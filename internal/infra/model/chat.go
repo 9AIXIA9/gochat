@@ -1,7 +1,7 @@
 package model
 
 import (
-	"backend/internal/domain"
+	"gochat/internal/domain"
 	"gorm.io/gorm"
 	"time"
 )

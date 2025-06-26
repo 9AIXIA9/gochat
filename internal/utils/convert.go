@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"backend/internal/domain"
-	"backend/internal/infra/model"
+	"gochat/internal/domain"
+	"gochat/internal/infra/model"
 )
 
 // ModelToDomain 将数据库模型转换为领域模型

@@ -1,24 +1,32 @@
 package domain
 
-type RoomNumber uint64
+import (
+	"net/http"
+)
+
+type RoomNumber int64
 
 type Room struct {
-	Name       string
-	Number     RoomNumber
-	SecretHash string
+	Name        string
+	Number      RoomNumber
+	SecretHash  string
+	Description string
+	MaxUsers    int
+	Owner       UserNumber
+	CreatedAt   int64
 }
 
-type CreateRoom interface {
+type CreateRoomUsecase interface {
 	EncryptSecret(secret string) string
 	GenerateNumber() RoomNumber
-	CreateRoom(room Room) error
+	CreateRoom(owner UserNumber, name, description string, maxUsers int) (*Room, error)
 }
 
-type JoinRoom interface {
+type JoinRoomUsecase interface {
 	CheckSecret(number RoomNumber, secret string) error
-	EstablishLongConnection() error
+	JoinRoom(userNumber UserNumber, roomNumber RoomNumber, w http.ResponseWriter, r *http.Request) error
 }
 
-type ExitRoom interface {
-	CloseLongConnection() error
+type ExitRoomUsecase interface {
+	ExitRoom(username, roomName string) error
 }

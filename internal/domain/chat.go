@@ -9,11 +9,5 @@ type Chat struct {
 	SendTime   time.Time
 }
 
-type SendMsg interface {
-	RecordChat(chat Chat) error
-	Broadcast(chat Chat) error
-}
-
-type LoadChats interface {
-	LoadChats(number RoomNumber) ([]Chat, error)
+type ChatRepository interface {
 }

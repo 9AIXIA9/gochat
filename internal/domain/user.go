@@ -1,11 +1,14 @@
 package domain
 
-type UserNumber uint64
+type UserNumber int64
 
 type User struct {
 	Number  UserNumber
 	Name    string
 	PwdHash string
+}
+
+type UserRepository interface {
 }
 
 type SignupUsecase interface {
