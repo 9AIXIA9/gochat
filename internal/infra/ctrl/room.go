@@ -2,8 +2,9 @@ package ctrl
 
 import (
 	"gochat/internal/domain"
-	"github.com/gorilla/websocket"
 	"sync"
+
+	"github.com/gorilla/websocket"
 )
 
 type Room struct {
@@ -18,9 +19,9 @@ type Client struct {
 	send chan []byte
 }
 
-//func (r *Room) broadcast() {
+// func (r *Room) broadcast() {
 //
-//}
+// }
 func (r *Room) close() {
 	close(r.broadcast)
 }
@@ -32,12 +33,12 @@ func (c *Client) close() {
 	}
 }
 
-//接收客户端的信息
+// 接收客户端的信息
 func (c *Client) write() {
 
 }
 
-//发送信息给客户端
+// 发送信息给客户端
 func (c *Client) read() {
 	//读取历史记录
 }

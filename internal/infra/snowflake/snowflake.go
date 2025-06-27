@@ -4,17 +4,18 @@ import (
 	"github.com/bwmarrin/snowflake"
 	"gochat/internal/config"
 	"gochat/internal/domain"
+	"log"
 )
 
 var (
 	node *snowflake.Node
 )
 
-func Init(config config.Snowflake) (err error) {
+func MustInit(config *config.Snowflake) {
+	var err error
 	if node, err = snowflake.NewNode(config.Node); err != nil {
-		return err
+		log.Fatalf("init snowflake node failed : %v", err)
 	}
-	return nil
 }
 
 func GenerateUserNumber() domain.UserNumber {

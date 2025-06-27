@@ -8,7 +8,7 @@ func NewExitRoom() domain.ExitRoomUsecase {
 	return &ExitRoom{}
 }
 
-func (uc *ExitRoom) ExitRoom(username, roomName string) error {
+func (uc *ExitRoom) ExitRoom(userNumber domain.UserNumber, roomNumber domain.RoomNumber) error {
 	//TODO implement me
 	panic("implement me")
 }

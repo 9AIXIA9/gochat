@@ -1,6 +1,7 @@
 package presentation
 
 import (
+	"go.uber.org/zap"
 	"gochat/internal/domain"
 	"gochat/internal/utils"
 
@@ -9,41 +10,34 @@ import (
 
 type JoinRoomHandler struct {
 	joinRoomUsecase domain.JoinRoomUsecase
-	logger          domain.Logger
 }
 
-func JoinRoomHandlerFunc(joinRoomUsecase domain.JoinRoomUsecase, logger domain.Logger) gin.HandlerFunc {
+func JoinRoomHandlerFunc(joinRoomUsecase domain.JoinRoomUsecase) gin.HandlerFunc {
 	return (&JoinRoomHandler{
 		joinRoomUsecase: joinRoomUsecase,
-		logger:          logger,
 	}).JoinRoom
 }
 
 func (h *JoinRoomHandler) JoinRoom(c *gin.Context) {
 	var req JoinRoomRequest
 	if err := c.ShouldBindUri(&req); err != nil {
-		h.logger.Error("加入房间参数绑定失败: %v", err)
-		ResponseError(c, domain.CodeInvalidParam, err.Error())
+		ResponseError(c, domain.CodeInvalidParam, "")
 		return
 	}
 
 	// 获取当前用户信息
-	userID, userNumber, exists := utils.GetCurrentUser(c)
+	_, userNumber, exists := utils.GetCurrentUser(c)
 	if !exists {
-		h.logger.Error("获取用户信息失败")
-		ResponseError(c, domain.CodeUnauthorized, domain.CodeUnauthorized.Msg())
+		ResponseError(c, domain.CodeUnauthorized, "get current user info failed")
 		return
 	}
-
-	// 解析房间号码
-	roomNumber := domain.RoomNumber(0) // 这里需要根据实际情况转换字符串到RoomNumber
 
 	// 加入房间（WebSocket连接）
-	if err := h.joinRoomUsecase.JoinRoom(userNumber, roomNumber, c.Writer, c.Request); err != nil {
-		h.logger.Error("加入房间失败: %v", err)
-		ResponseError(c, domain.CodeRoomNotExist, domain.CodeRoomNotExist.Msg())
+	if err := h.joinRoomUsecase.JoinRoom(userNumber, req.RoomNumber, c.Writer, c.Request); err != nil {
+		ResponseError(c, domain.CodeRoomNotExist, "join room failed",
+			zap.Int64("userNumber", int64(userNumber)), zap.Int64("roomNumber", int64(req.RoomNumber)), zap.Error(err))
 		return
 	}
 
-	h.logger.Info("用户 %s(%d) 加入房间成功: %s", userID, userNumber, req.RoomNumber)
+	zap.L().Info("join room successfully", zap.Int64("userNumber", int64(userNumber)), zap.Int64("roomNumber", int64(req.RoomNumber)))
 }

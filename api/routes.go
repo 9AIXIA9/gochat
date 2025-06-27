@@ -2,14 +2,16 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
+	"gochat/internal/config"
 	"gochat/internal/domain"
+	"gochat/internal/infra/logger"
 	"gochat/internal/middleware"
 	"gochat/internal/presentation"
 )
 
 // Dependencies 依赖注入结构体
 type Dependencies struct {
-	Logger            domain.Logger
+	Config            *config.Config
 	AuthUsecase       domain.AuthUsecase
 	SignupUsecase     domain.SignupUsecase
 	LoginUsecase      domain.LoginUsecase
@@ -20,12 +22,11 @@ type Dependencies struct {
 
 func Setup(deps *Dependencies) *gin.Engine {
 	// 创建gin引擎
-	r := gin.Default()
+	r := gin.New(logger.GinOption())
 
 	// 注册全局中间件
 	r.Use(middleware.CORS())
-	r.Use(middleware.Logger(deps.Logger))
-	r.Use(middleware.Error(deps.Logger))
+	r.Use(middleware.Error())
 
 	// 注册路由
 	setup(r, deps)
@@ -41,8 +42,8 @@ func setup(r *gin.Engine, deps *Dependencies) {
 	public := api.Group("/")
 	{
 		// 用户相关
-		public.POST("/signup", presentation.SignupHandlerFunc(deps.SignupUsecase, deps.Logger))
-		public.POST("/login", presentation.LoginHandlerFunc(deps.LoginUsecase, deps.Logger))
+		public.POST("/signup", presentation.SignupHandlerFunc(deps.SignupUsecase))
+		public.POST("/login", presentation.LoginHandlerFunc(deps.LoginUsecase))
 	}
 
 	// 需要认证的路由
@@ -50,9 +51,9 @@ func setup(r *gin.Engine, deps *Dependencies) {
 	protected.Use(middleware.JWTAuth(deps.AuthUsecase))
 	{
 		// 房间相关
-		protected.POST("/rooms", presentation.CreateRoomHandlerFunc(deps.CreateRoomUsecase, deps.Logger))
-		protected.POST("/rooms/:number/join", presentation.JoinRoomHandlerFunc(deps.JoinRoomUsecase, deps.Logger))
-		protected.DELETE("/rooms/:number/exit", presentation.ExitRoomHandlerFunc(deps.ExitRoomUsecase, deps.Logger))
+		protected.POST("/rooms", presentation.CreateRoomHandlerFunc(deps.CreateRoomUsecase))
+		protected.POST("/rooms/:number/join", presentation.JoinRoomHandlerFunc(deps.JoinRoomUsecase))
+		protected.DELETE("/rooms/:number/exit", presentation.ExitRoomHandlerFunc(deps.ExitRoomUsecase))
 	}
 
 	// 健康检查

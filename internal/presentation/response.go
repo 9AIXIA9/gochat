@@ -1,6 +1,7 @@
 package presentation
 
 import (
+	"go.uber.org/zap"
 	"gochat/internal/domain"
 
 	"github.com/gin-gonic/gin"
@@ -23,9 +24,13 @@ func ResponseSuccess(c *gin.Context, data ...interface{}) {
 	})
 }
 
-func ResponseError(c *gin.Context, code domain.ResCode, errMsg string) {
+func ResponseError(c *gin.Context, code domain.ResCode, msg string, field ...zap.Field) {
+	if len(msg) != 0 {
+		zap.L().Error(msg, field...)
+	}
+
 	c.JSON(code.ToHTTP(), domain.Message{
 		Code: code,
-		Msg:  errMsg,
+		Msg:  code.Msg(),
 	})
 }

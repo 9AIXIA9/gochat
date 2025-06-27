@@ -1,6 +1,7 @@
 package presentation
 
 import (
+	"go.uber.org/zap"
 	"gochat/internal/domain"
 	"gochat/internal/utils"
 
@@ -9,41 +10,38 @@ import (
 
 type CreateRoomHandler struct {
 	createRoomUsecase domain.CreateRoomUsecase
-	logger            domain.Logger
 }
 
-func CreateRoomHandlerFunc(createRoomUsecase domain.CreateRoomUsecase, logger domain.Logger) gin.HandlerFunc {
+func CreateRoomHandlerFunc(createRoomUsecase domain.CreateRoomUsecase) gin.HandlerFunc {
 	return (&CreateRoomHandler{
 		createRoomUsecase: createRoomUsecase,
-		logger:            logger,
 	}).CreateRoom
 }
 
 func (h *CreateRoomHandler) CreateRoom(c *gin.Context) {
 	var req CreateRoomRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		h.logger.Error("创建房间参数绑定失败: %v", err)
-		ResponseError(c, domain.CodeInvalidParam, err.Error())
+		ResponseError(c, domain.CodeInvalidParam, "")
 		return
 	}
 
 	// 获取当前用户信息
-	userID, userNumber, exists := utils.GetCurrentUser(c)
+	_, userNumber, exists := utils.GetCurrentUser(c)
 	if !exists {
-		h.logger.Error("获取用户信息失败")
-		ResponseError(c, domain.CodeUnauthorized, domain.CodeUnauthorized.Msg())
+		ResponseError(c, domain.CodeUnauthorized, "get current user info failed")
 		return
 	}
 
 	// 创建房间
 	room, err := h.createRoomUsecase.CreateRoom(userNumber, req.Name, req.Description, req.MaxUsers)
 	if err != nil {
-		h.logger.Error("创建房间失败: %v", err)
-		ResponseError(c, domain.CodeServerBusy, domain.CodeServerBusy.Msg())
+		ResponseError(c, domain.CodeServerBusy, "create room failed", zap.Error(err),
+			zap.Int64("userNumber", int64(userNumber)), zap.Int64("roomNumber", int64(room.Number)))
 		return
 	}
 
-	h.logger.Info("用户 %s(%d) 创建房间成功: %s", userID, userNumber, room.Number)
+	zap.L().Info("create room successfully",
+		zap.Int64("userNumber", int64(userNumber)), zap.Int64("roomNumber", int64(room.Number)))
 
 	// 返回房间信息
 	ResponseSuccess(c, gin.H{

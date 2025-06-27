@@ -28,5 +28,5 @@ type JoinRoomUsecase interface {
 }
 
 type ExitRoomUsecase interface {
-	ExitRoom(username, roomName string) error
+	ExitRoom(userNumber UserNumber, roomNumber RoomNumber) error
 }

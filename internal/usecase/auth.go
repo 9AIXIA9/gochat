@@ -2,14 +2,19 @@ package usecase
 
 import (
 	"context"
-	"github.com/golang-jwt/jwt/v4"
 	"gochat/internal/config"
 	"gochat/internal/domain"
+
+	"github.com/golang-jwt/jwt/v4"
 )
 
 type Auth struct {
 	conf   config.JWT
 	secret string
+}
+
+func NewAuth() domain.AuthUsecase {
+	return &Auth{}
 }
 
 func (uc *Auth) ParseToken(ctx context.Context, tokenStr string) bool {

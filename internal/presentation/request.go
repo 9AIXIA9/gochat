@@ -23,17 +23,17 @@ type CreateRoomRequest struct {
 
 // JoinRoomRequest 加入房间请求
 type JoinRoomRequest struct {
-	RoomNumber string `uri:"number" binding:"required"`
+	RoomNumber domain.RoomNumber `uri:"number" binding:"required"`
 }
 
 // ExitRoomRequest 退出房间请求
 type ExitRoomRequest struct {
-	RoomNumber string `uri:"number" binding:"required"`
+	RoomNumber domain.RoomNumber `uri:"number" binding:"required"`
 }
 
 // ChatMessageRequest 聊天消息请求
 type ChatMessageRequest struct {
-	RoomNumber string `json:"room_number" binding:"required"`
-	Content    string `json:"content" binding:"required,min=1,max=1000"`
-	Type       string `json:"type" binding:"required,oneof=text image file"`
+	RoomNumber domain.RoomNumber `json:"room_number" binding:"required"`
+	Content    string            `json:"content" binding:"required,min=1,max=1000"`
+	Type       string            `json:"type" binding:"required,oneof=text image file"`
 }

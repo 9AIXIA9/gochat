@@ -1,6 +1,7 @@
 package presentation
 
 import (
+	"go.uber.org/zap"
 	"gochat/internal/domain"
 	"gochat/internal/utils"
 
@@ -9,40 +10,37 @@ import (
 
 type ExitRoomHandler struct {
 	exitRoomUsecase domain.ExitRoomUsecase
-	logger          domain.Logger
 }
 
-func ExitRoomHandlerFunc(exitRoomUsecase domain.ExitRoomUsecase, logger domain.Logger) gin.HandlerFunc {
+func ExitRoomHandlerFunc(exitRoomUsecase domain.ExitRoomUsecase) gin.HandlerFunc {
 	return (&ExitRoomHandler{
 		exitRoomUsecase: exitRoomUsecase,
-		logger:          logger,
 	}).ExitRoom
 }
 
 func (h *ExitRoomHandler) ExitRoom(c *gin.Context) {
 	var req ExitRoomRequest
 	if err := c.ShouldBindUri(&req); err != nil {
-		h.logger.Error("退出房间参数绑定失败: %v", err)
-		ResponseError(c, domain.CodeInvalidParam, err.Error())
+		ResponseError(c, domain.CodeInvalidParam, "")
 		return
 	}
 
 	// 获取当前用户信息
-	userID, userNumber, exists := utils.GetCurrentUser(c)
+	_, userNumber, exists := utils.GetCurrentUser(c)
 	if !exists {
-		h.logger.Error("获取用户信息失败")
+		zap.L().Error("获取用户信息失败")
 		ResponseError(c, domain.CodeUnauthorized, domain.CodeUnauthorized.Msg())
 		return
 	}
 
 	// 退出房间
-	if err := h.exitRoomUsecase.ExitRoom(userID, req.RoomNumber); err != nil {
-		h.logger.Error("退出房间失败: %v", err)
-		ResponseError(c, domain.CodeServerBusy, domain.CodeServerBusy.Msg())
+	if err := h.exitRoomUsecase.ExitRoom(userNumber, req.RoomNumber); err != nil {
+		ResponseError(c, domain.CodeServerBusy, "exit room failed",
+			zap.Int64("userNumber", int64(userNumber)), zap.Int64("roomNumber", int64(req.RoomNumber)), zap.Error(err))
 		return
 	}
 
-	h.logger.Info("用户 %s(%d) 退出房间成功: %s", userID, userNumber, req.RoomNumber)
+	zap.L().Info("exit room successfully", zap.Int64("userNumber", int64(userNumber)), zap.Int64("roomNumber", int64(req.RoomNumber)))
 	ResponseSuccess(c, gin.H{
 		"message": "退出房间成功",
 	})

@@ -1,10 +1,10 @@
 package ctrl
 
 import (
-	"gochat/internal/domain"
 	"errors"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"gochat/internal/domain"
 	"net/http"
 	"sync"
 )

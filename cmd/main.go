@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"errors"
+	"flag"
 	"fmt"
 	"gochat/api"
-	"gochat/internal/config"
 	"log"
 	"net/http"
 	"os"
@@ -13,16 +13,18 @@ import (
 	"time"
 )
 
+const defaultConfigPath = "./etc/config.yaml"
+
 func main() {
+	path := flag.String("config", defaultConfigPath, "config path")
+	flag.Parse()
+
 	// 使用Wire初始化依赖
-	deps, err := InitializeDependencies()
-	if err != nil {
-		log.Fatalf("init dependencies: %v", err)
-	}
+	deps := InitializeDependencies(*path)
 
 	// 创建HTTP服务器
 	srv := &http.Server{
-		Addr:    fmt.Sprintf("%s:%d", config.C.Host, config.C.Port),
+		Addr:    fmt.Sprintf("%s:%d", deps.Config.Host, deps.Config.Port),
 		Handler: api.Setup(deps),
 	}
 

@@ -8,36 +8,31 @@ import (
 
 type LoginHandler struct {
 	loginUsecase domain.LoginUsecase
-	logger       domain.Logger
 }
 
-func LoginHandlerFunc(loginUsecase domain.LoginUsecase, logger domain.Logger) gin.HandlerFunc {
+func LoginHandlerFunc(loginUsecase domain.LoginUsecase) gin.HandlerFunc {
 	return (&LoginHandler{
 		loginUsecase: loginUsecase,
-		logger:       logger,
 	}).Login
 }
 
 func (h *LoginHandler) Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		h.logger.Error("登录参数绑定失败: %v", err)
-		ResponseError(c, domain.CodeInvalidParam, err.Error())
+		ResponseError(c, domain.CodeInvalidParam, "")
 		return
 	}
 
 	// 验证用户名密码
 	if err := h.loginUsecase.CheckPwd(req.Number, req.Password); err != nil {
-		h.logger.Error("密码验证失败: %v", err)
-		ResponseError(c, domain.CodeWrongPassword, domain.CodeWrongPassword.Msg())
+		ResponseError(c, domain.CodeWrongPassword, "wrong password or userNumber")
 		return
 	}
 
 	// 生成token
 	token := h.loginUsecase.GenerateToken()
 	if token == "" {
-		h.logger.Error("生成token失败")
-		ResponseError(c, domain.CodeServerBusy, domain.CodeServerBusy.Msg())
+		ResponseError(c, domain.CodeServerBusy, "")
 		return
 	}
 

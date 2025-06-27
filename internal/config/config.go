@@ -1,21 +1,21 @@
 package config
 
 import (
-	"fmt"
+	"log"
 	"os"
 
 	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
-	Name      string    `yaml:"Name"`
-	Host      string    `yaml:"Host"`
-	Port      int       `yaml:"Port"`
-	JWT       JWT       `yaml:"JWT"`
-	Database  Database  `yaml:"Database"`
-	Redis     Redis     `yaml:"Redis"`
-	Log       Log       `yaml:"Log"`
-	Snowflake Snowflake `yaml:"Snowflake"`
+	Name      string     `yaml:"Name"`
+	Host      string     `yaml:"Host"`
+	Port      int        `yaml:"Port"`
+	JWT       *JWT       `yaml:"JWT"`
+	Database  *Database  `yaml:"Database"`
+	Redis     *Redis     `yaml:"Redis"`
+	Log       *Log       `yaml:"Log"`
+	Snowflake *Snowflake `yaml:"Snowflake"`
 }
 
 type JWT struct {
@@ -24,6 +24,7 @@ type JWT struct {
 }
 
 type Log struct {
+	Mode       string `yaml:"Mode"`
 	Level      string `yaml:"Level"`
 	Filename   string `yaml:"Filename"`
 	MaxSize    int    `yaml:"MaxSize"`
@@ -50,16 +51,18 @@ type Redis struct {
 	DB       int    `yaml:"DB"`
 }
 
-func Init(configFile string) (*Config, error) {
+func MustLoad(configFile string) *Config {
 	data, err := os.ReadFile(configFile)
 	if err != nil {
-		return nil, fmt.Errorf("read config file failed: %w", err)
+		log.Fatalf("read config file failed: %v", err)
+		return nil
 	}
 
 	c := &Config{}
 	if err := yaml.Unmarshal(data, c); err != nil {
-		return nil, fmt.Errorf("parse config failed: %w", err)
+		log.Fatalf("parse config failed: %v", err)
+		return nil
 	}
 
-	return c, nil
+	return c
 }

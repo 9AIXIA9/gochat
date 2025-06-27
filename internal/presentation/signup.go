@@ -1,6 +1,7 @@
 package presentation
 
 import (
+	"go.uber.org/zap"
 	"gochat/internal/domain"
 
 	"github.com/gin-gonic/gin"
@@ -8,21 +9,18 @@ import (
 
 type SignupHandler struct {
 	signupUsecase domain.SignupUsecase
-	logger        domain.Logger
 }
 
-func SignupHandlerFunc(signupUsecase domain.SignupUsecase, logger domain.Logger) gin.HandlerFunc {
+func SignupHandlerFunc(signupUsecase domain.SignupUsecase) gin.HandlerFunc {
 	return (&SignupHandler{
 		signupUsecase: signupUsecase,
-		logger:        logger,
 	}).Signup
 }
 
 func (h *SignupHandler) Signup(c *gin.Context) {
 	var req SignupRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		h.logger.Error("注册参数绑定失败: %v", err)
-		ResponseError(c, domain.CodeInvalidParam, err.Error())
+		ResponseError(c, domain.CodeInvalidParam, "")
 		return
 	}
 
@@ -40,8 +38,7 @@ func (h *SignupHandler) Signup(c *gin.Context) {
 	}
 
 	if err := h.signupUsecase.CreateUser(user); err != nil {
-		h.logger.Error("创建用户失败: %v", err)
-		ResponseError(c, domain.CodeUserExist, domain.CodeUserExist.Msg())
+		ResponseError(c, domain.CodeUserExist, "create user failed", zap.Error(err))
 		return
 	}
 
