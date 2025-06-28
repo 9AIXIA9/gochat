@@ -2,19 +2,19 @@ package utils
 
 import (
 	"gochat/internal/domain"
-	"gochat/internal/infra/model"
+	"gochat/internal/infra/repository"
 )
 
 // ModelToDomain 将数据库模型转换为领域模型
 func ModelToDomain(from interface{}) interface{} {
 	switch v := from.(type) {
-	case model.User:
+	case repository.User:
 		return domain.User{
 			Number:  v.Number,
 			Name:    v.Name,
 			PwdHash: v.PwdHash,
 		}
-	case *model.User:
+	case *repository.User:
 		if v == nil {
 			return nil
 		}
@@ -23,13 +23,13 @@ func ModelToDomain(from interface{}) interface{} {
 			Name:    v.Name,
 			PwdHash: v.PwdHash,
 		}
-	case model.Room:
+	case repository.Room:
 		return domain.Room{
 			Name:       v.Name,
 			Number:     v.Number,
 			SecretHash: v.SecretHash,
 		}
-	case *model.Room:
+	case *repository.Room:
 		if v == nil {
 			return nil
 		}
@@ -38,14 +38,14 @@ func ModelToDomain(from interface{}) interface{} {
 			Number:     v.Number,
 			SecretHash: v.SecretHash,
 		}
-	case model.Chat:
+	case repository.Chat:
 		return domain.Chat{
 			UserNumber: v.UserNumber,
 			RoomNumber: v.RoomNumber,
 			Content:    v.Content,
 			SendTime:   v.SendTime,
 		}
-	case *model.Chat:
+	case *repository.Chat:
 		if v == nil {
 			return nil
 		}
@@ -55,19 +55,19 @@ func ModelToDomain(from interface{}) interface{} {
 			Content:    v.Content,
 			SendTime:   v.SendTime,
 		}
-	case []model.User:
+	case []repository.User:
 		users := make([]domain.User, len(v))
 		for i, u := range v {
 			users[i] = ModelToDomain(u).(domain.User)
 		}
 		return users
-	case []model.Room:
+	case []repository.Room:
 		rooms := make([]domain.Room, len(v))
 		for i, r := range v {
 			rooms[i] = ModelToDomain(r).(domain.Room)
 		}
 		return rooms
-	case []model.Chat:
+	case []repository.Chat:
 		chats := make([]domain.Chat, len(v))
 		for i, c := range v {
 			chats[i] = ModelToDomain(c).(domain.Chat)
@@ -82,7 +82,7 @@ func ModelToDomain(from interface{}) interface{} {
 func DomainToModel(from interface{}) interface{} {
 	switch v := from.(type) {
 	case domain.User:
-		return model.User{
+		return repository.User{
 			Number:  v.Number,
 			Name:    v.Name,
 			PwdHash: v.PwdHash,
@@ -91,13 +91,13 @@ func DomainToModel(from interface{}) interface{} {
 		if v == nil {
 			return nil
 		}
-		return model.User{
+		return repository.User{
 			Number:  v.Number,
 			Name:    v.Name,
 			PwdHash: v.PwdHash,
 		}
 	case domain.Room:
-		return model.Room{
+		return repository.Room{
 			Name:       v.Name,
 			Number:     v.Number,
 			SecretHash: v.SecretHash,
@@ -106,13 +106,13 @@ func DomainToModel(from interface{}) interface{} {
 		if v == nil {
 			return nil
 		}
-		return model.Room{
+		return repository.Room{
 			Name:       v.Name,
 			Number:     v.Number,
 			SecretHash: v.SecretHash,
 		}
 	case domain.Chat:
-		return model.Chat{
+		return repository.Chat{
 			UserNumber: v.UserNumber,
 			RoomNumber: v.RoomNumber,
 			Content:    v.Content,
@@ -122,28 +122,28 @@ func DomainToModel(from interface{}) interface{} {
 		if v == nil {
 			return nil
 		}
-		return model.Chat{
+		return repository.Chat{
 			UserNumber: v.UserNumber,
 			RoomNumber: v.RoomNumber,
 			Content:    v.Content,
 			SendTime:   v.SendTime,
 		}
 	case []domain.User:
-		users := make([]model.User, len(v))
+		users := make([]repository.User, len(v))
 		for i, u := range v {
-			users[i] = DomainToModel(u).(model.User)
+			users[i] = DomainToModel(u).(repository.User)
 		}
 		return users
 	case []domain.Room:
-		rooms := make([]model.Room, len(v))
+		rooms := make([]repository.Room, len(v))
 		for i, r := range v {
-			rooms[i] = DomainToModel(r).(model.Room)
+			rooms[i] = DomainToModel(r).(repository.Room)
 		}
 		return rooms
 	case []domain.Chat:
-		chats := make([]model.Chat, len(v))
+		chats := make([]repository.Chat, len(v))
 		for i, c := range v {
-			chats[i] = DomainToModel(c).(model.Chat)
+			chats[i] = DomainToModel(c).(repository.Chat)
 		}
 		return chats
 	default:

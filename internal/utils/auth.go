@@ -7,20 +7,18 @@ import (
 )
 
 // GetCurrentUser 从上下文中获取当前用户信息
-func GetCurrentUser(c *gin.Context) (userID uint64, userNumber domain.UserNumber, exists bool) {
-	userIDInterface, exists1 := c.Get(domain.UserIDKey)
-	userNumberInterface, exists2 := c.Get(domain.UserNumberKey)
+func GetCurrentUser(c *gin.Context) (userNumber domain.UserNumber) {
+	userNumberInterface, exists := c.Get(domain.AuthKey)
 
-	if !exists1 || !exists2 {
-		return 0, 0, false
+	if !exists {
+		return 0
 	}
 
-	userID, ok1 := userIDInterface.(uint64)
-	userNumber, ok2 := userNumberInterface.(domain.UserNumber)
+	userNumber, ok := userNumberInterface.(domain.UserNumber)
 
-	if !ok1 || !ok2 {
-		return 0, 0, false
+	if !ok {
+		return 0
 	}
 
-	return userID, userNumber, true
+	return userNumber
 }

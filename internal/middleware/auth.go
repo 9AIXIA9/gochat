@@ -14,15 +14,15 @@ func JWTAuth(uc domain.AuthUsecase) gin.HandlerFunc {
 		// 从请求头获取token
 		authHeader := c.Request.Header.Get("Authorization")
 		if authHeader == "" {
-			presentation.ResponseError(c, domain.CodeUnauthorized, domain.CodeUnauthorized.Msg())
+			presentation.ResponseSuccess(c, domain.NewResponseWithoutMsg(domain.CodeUnauthorized))
 			c.Abort()
 			return
 		}
 
 		// Bearer token格式
 		parts := strings.SplitN(authHeader, " ", 2)
-		if !(len(parts) == 2 && parts[0] == "Bearer") {
-			presentation.ResponseError(c, domain.CodeInvalidToken, domain.CodeInvalidToken.Msg())
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			presentation.ResponseSuccess(c, domain.NewResponseWithoutMsg(domain.CodeInvalidToken))
 			c.Abort()
 			return
 		}
@@ -33,7 +33,7 @@ func JWTAuth(uc domain.AuthUsecase) gin.HandlerFunc {
 		if uc.ParseToken(c, tokenString) {
 			c.Next()
 		} else {
-			presentation.ResponseError(c, domain.CodeInvalidToken, domain.CodeInvalidToken.Msg())
+			presentation.ResponseSuccess(c, domain.NewResponseWithoutMsg(domain.CodeInvalidToken))
 			c.Abort()
 			return
 		}

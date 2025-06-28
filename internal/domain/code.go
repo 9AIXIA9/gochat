@@ -9,27 +9,23 @@ const (
 	CodeSuccess ResCode = 200
 
 	// 客户端错误 4xx
-	CodeInvalidParam  ResCode = 400
-	CodeUnauthorized  ResCode = 401
-	CodeForbidden     ResCode = 403
-	CodeNotFound      ResCode = 404
-	CodeUserExist     ResCode = 410
-	CodeUserNotExist  ResCode = 411
-	CodeWrongPassword ResCode = 412
-	CodeInvalidToken  ResCode = 413
-	CodeRoomNotExist  ResCode = 414
-	CodeRoomIsFull    ResCode = 415
+	CodeInvalidParam ResCode = 400 + iota
+	CodeUnauthorized
+	CodeForbidden
+	CodeUserExist
+	CodeUserNotExist
+	CodeWrongPassword
+	CodeInvalidToken
+	CodeRoomNotExist
+	CodeRoomExist
+	CodeRoomIsFull
+	CodeWrongSecret
+	CodeHasJoined
+	CodeNotJoined
 
 	// 服务端错误 5xx
-	CodeServerBusy     ResCode = 500
-	CodeInvalidRequest ResCode = 501
+	CodeServerBusy ResCode = 500 + iota
 )
-
-type Message struct {
-	Code ResCode `json:"code"`
-	Msg  string  `json:"msg"`
-	Data any     `json:"data,omitempty"`
-}
 
 func (c ResCode) ToHTTP() int {
 	switch {
@@ -54,8 +50,6 @@ func (c ResCode) Msg() string {
 		return "未认证"
 	case CodeForbidden:
 		return "没有权限"
-	case CodeNotFound:
-		return "请求资源不存在"
 	case CodeUserExist:
 		return "用户已存在"
 	case CodeUserNotExist:
@@ -66,12 +60,18 @@ func (c ResCode) Msg() string {
 		return "无效的token"
 	case CodeRoomNotExist:
 		return "房间不存在"
+	case CodeRoomExist:
+		return "房间已存在"
 	case CodeRoomIsFull:
 		return "房间已满"
 	case CodeServerBusy:
 		return "服务繁忙"
-	case CodeInvalidRequest:
-		return "请求错误"
+	case CodeWrongSecret:
+		return "房间号或密钥错误"
+	case CodeHasJoined:
+		return "已加入房间"
+	case CodeNotJoined:
+		return "未加入房间"
 	default:
 		return "未知错误"
 	}

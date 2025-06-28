@@ -9,12 +9,11 @@ import (
 )
 
 type Auth struct {
-	conf   config.JWT
-	secret string
+	conf *config.JWT
 }
 
-func NewAuth() domain.AuthUsecase {
-	return &Auth{}
+func NewAuth(conf *config.JWT) domain.AuthUsecase {
+	return &Auth{conf: conf}
 }
 
 func (uc *Auth) ParseToken(ctx context.Context, tokenStr string) bool {
@@ -31,7 +30,6 @@ func (uc *Auth) ParseToken(ctx context.Context, tokenStr string) bool {
 	claims, ok := token.Claims.(*domain.JwtCustomClaims)
 
 	// 将用户信息存储到上下文中
-	context.WithValue(ctx, domain.UserIDKey, claims.UserID)
-	context.WithValue(ctx, domain.UserNumberKey, claims.UserNumber)
+	context.WithValue(ctx, domain.AuthKey, claims.Auth)
 	return ok && token.Valid
 }

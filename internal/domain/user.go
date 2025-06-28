@@ -9,15 +9,20 @@ type User struct {
 }
 
 type UserRepository interface {
+	Create(user *User) (bool, error)
+	QueryByNumber(number UserNumber) (*User, error)
 }
 
 type SignupUsecase interface {
-	EncryptPwd(pwd string) string
+	Logic(req *SignupRequest) (*Response, error)
+	EncryptPwd(pwd string) (string, error)
 	GenerateNumber() UserNumber
-	CreateUser(user User) error
+	CreateUser(user *User) (bool, error)
 }
 
 type LoginUsecase interface {
-	CheckPwd(number UserNumber, pwd string) error
-	GenerateToken() string
+	Logic(req *LoginRequest) (*Response, error)
+	QueryUser(number UserNumber) (*User, error)
+	CheckPwd(origin, hash string) error
+	GenerateToken(userNumber UserNumber) (string, error)
 }

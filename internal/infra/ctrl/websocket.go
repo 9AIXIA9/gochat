@@ -19,15 +19,43 @@ var (
 	manager Manager
 )
 
-// JoinRoom 建立连接
-func JoinRoom(userNumber domain.UserNumber, roomNumber domain.RoomNumber, w http.ResponseWriter, r *http.Request) error {
+// CreateRoom 创建房间
+func CreateRoom(owner domain.UserNumber, roomNumber domain.RoomNumber) error {
 	//检查是否存在此房间
+	manager.roomsMutex.Lock()
+	defer manager.roomsMutex.Unlock()
+
+	_, exist := manager.rooms[roomNumber]
+	if exist {
+		return errors.New("the room has existed")
+	}
+
+	//创建房间
+	room := &Room{
+		broadcast:    make(chan []byte, 256),
+		clients:      nil,
+		clientsMutex: sync.RWMutex{},
+	}
+
+	manager.rooms[roomNumber] = room
+	return nil
+}
+
+// EstablishConnection 建立连接
+func EstablishConnection(w http.ResponseWriter, r *http.Request, userNumber domain.UserNumber, roomNumber domain.RoomNumber) error {
+	//检查是否存在此房间
+	manager.roomsMutex.RLock()
+	defer manager.roomsMutex.RUnlock()
+
 	room, exist := manager.rooms[roomNumber]
 	if !exist {
 		return errors.New("the room doesn't exist")
 	}
 
 	//检查用户是否已进入
+	room.clientsMutex.Lock()
+	defer room.clientsMutex.Unlock()
+
 	_, exist = room.clients[userNumber]
 	if exist {
 		return errors.New("user has existed")
@@ -53,15 +81,21 @@ func JoinRoom(userNumber domain.UserNumber, roomNumber domain.RoomNumber, w http
 	return nil
 }
 
-// ExitRoom 退出房间
-func ExitRoom(userNumber domain.UserNumber, roomNumber domain.RoomNumber) error {
+// ExitConnection 退出房间
+func ExitConnection(userNumber domain.UserNumber, roomNumber domain.RoomNumber) error {
 	//检查房间是否存在
+	manager.roomsMutex.Lock()
+	defer manager.roomsMutex.Unlock()
+
 	room, exist := manager.rooms[roomNumber]
 	if !exist {
 		return nil
 	}
 
 	//关闭用户连接
+	room.clientsMutex.Lock()
+	defer room.clientsMutex.Unlock()
+
 	client, exist := room.clients[userNumber]
 	if exist {
 		client.close()

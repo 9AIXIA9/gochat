@@ -1,32 +1,39 @@
 package domain
 
-import (
-	"net/http"
-)
-
 type RoomNumber int64
 
 type Room struct {
-	Name        string
-	Number      RoomNumber
-	SecretHash  string
-	Description string
-	MaxUsers    int
-	Owner       UserNumber
-	CreatedAt   int64
+	Name         string
+	Number       RoomNumber
+	SecretHash   string
+	Description  string
+	CurrentUsers int
+	MaxUsers     int
+	Owner        UserNumber
+}
+
+type RoomRepository interface {
+	Create(room *Room) (bool, error)
+	JoinOne(userNumber UserNumber, roomNumber RoomNumber) (bool, error)
+	QueryByRoomNumber(roomNumber RoomNumber) (*Room, error)
+	Delete(userNumber UserNumber, roomNumber RoomNumber) (bool, error)
 }
 
 type CreateRoomUsecase interface {
-	EncryptSecret(secret string) string
+	Logic(req *CreateRoomRequest) (*Response, error)
+	EncryptSecret(secret string) (string, error)
 	GenerateNumber() RoomNumber
-	CreateRoom(owner UserNumber, name, description string, maxUsers int) (*Room, error)
+	CreateRoom(room *Room) (bool, error)
 }
 
 type JoinRoomUsecase interface {
-	CheckSecret(number RoomNumber, secret string) error
-	JoinRoom(userNumber UserNumber, roomNumber RoomNumber, w http.ResponseWriter, r *http.Request) error
+	Logic(req *JoinRoomRequest) (*Response, error)
+	QueryRoom(number RoomNumber) (*Room, error)
+	CheckSecret(origin, hash string) error
+	JoinRoom(userNumber UserNumber, roomNumber RoomNumber) (bool, error)
 }
 
 type ExitRoomUsecase interface {
-	ExitRoom(userNumber UserNumber, roomNumber RoomNumber) error
+	Logic(req *ExitRoomRequest) (*Response, error)
+	ExitRoom(userNumber UserNumber, roomNumber RoomNumber) (bool, error)
 }

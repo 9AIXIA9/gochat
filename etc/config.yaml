@@ -1,25 +1,27 @@
 Name: gochat
 Host: 0.0.0.0
 Port: 8888
+Language: "zh"
 
 JWT:
-  Secret: "something in your eyes is the most beautiful"
+  Secret: "${JWT_SECRET}"  
   ExpireTime: 24 # hours
 
 Database:
   Host: localhost
-  Port: 13306
-  Username: gochat
-  Password: gochat
+  Port: 3306
+  Username: root
+  Password: "${DB_PASSWORD}"  
   Database: gochat
 
 Redis:
   Host: localhost
   Port: 16379
-  Password: "xijia2005"
+  Password: "${REDIS_PASSWORD}"  
   DB: 0
 
 Log:
+  Mode: debug
   Level: info
   Filename: logs/app.log
   MaxSize: 100 # MB

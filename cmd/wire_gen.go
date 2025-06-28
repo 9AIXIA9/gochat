@@ -10,22 +10,29 @@ import (
 	"github.com/google/wire"
 	"gochat/api"
 	"gochat/internal/config"
+	"gochat/internal/domain"
 	"gochat/internal/infra/logger"
+	"gochat/internal/infra/repository"
 	"gochat/internal/infra/snowflake"
+	"gochat/internal/presentation"
 	"gochat/internal/usecase"
+	"gorm.io/gorm"
 )
 
 // Injectors from wire.go:
 
-// InitializeDependencies 使用 Wire 初始化所有依赖
+// InitializeDependencies 使用Wire初始化所有依赖
 func InitializeDependencies(configPath string) *api.Dependencies {
 	config := ProvideConfig(configPath)
-	authUsecase := usecase.NewAuth()
-	signupUsecase := usecase.NewSignup()
-	loginUsecase := usecase.NewLogin()
-	createRoomUsecase := usecase.NewCreateRoom()
-	joinRoomUsecase := usecase.NewJoinRoom()
-	exitRoomUsecase := usecase.NewExitRoom()
+	authUsecase := ProvideAuth(config)
+	db := ProvideDatabase(config)
+	userRepository := repository.NewUserRepository(db)
+	signupUsecase := usecase.NewSignup(userRepository)
+	loginUsecase := ProvideLogin(userRepository, config)
+	roomRepository := repository.NewRoomRepository(db)
+	createRoomUsecase := usecase.NewCreateRoom(roomRepository)
+	joinRoomUsecase := usecase.NewJoinRoom(roomRepository)
+	exitRoomUsecase := usecase.NewExitRoom(roomRepository)
 	dependencies := &api.Dependencies{
 		Config:            config,
 		AuthUsecase:       authUsecase,
@@ -44,11 +51,37 @@ func InitializeDependencies(configPath string) *api.Dependencies {
 func ProvideConfig(configPath string) *config.Config {
 
 	conf := config.MustLoad(configPath)
+
+	conf.Validate()
 	logger.MustInit(conf.Log)
 	snowflake.MustInit(conf.Snowflake)
+	presentation.MustInitTrans(conf.Language)
 
 	return conf
 }
 
-// UsecaseSet 提供所有的 Usecase
-var UsecaseSet = wire.NewSet(usecase.NewAuth, usecase.NewSignup, usecase.NewLogin, usecase.NewCreateRoom, usecase.NewJoinRoom, usecase.NewExitRoom)
+// ProvideDatabase 提供数据库连接
+func ProvideDatabase(conf *config.Config) *gorm.DB {
+	return repository.MustConnectToMysql(*conf.Database)
+}
+
+// ProvideAuth 提供Auth服务并注入JWT配置
+func ProvideAuth(conf *config.Config) domain.AuthUsecase {
+	return usecase.NewAuth(conf.JWT)
+}
+
+// ProvideLogin 提供Login服务并注入JWT配置
+func ProvideLogin(repo domain.UserRepository, conf *config.Config) domain.LoginUsecase {
+	return usecase.NewLogin(conf.JWT, repo)
+}
+
+// RepositorySet 提供所有的Repository
+var RepositorySet = wire.NewSet(repository.NewUserRepository, repository.NewRoomRepository, repository.NewChatRepository)
+
+// UsecaseSet 提供所有的Usecase
+var UsecaseSet = wire.NewSet(
+
+	ProvideAuth,
+
+	ProvideLogin, usecase.NewSignup, usecase.NewCreateRoom, usecase.NewJoinRoom, usecase.NewExitRoom,
+)

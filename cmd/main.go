@@ -14,10 +14,18 @@ import (
 )
 
 const defaultConfigPath = "./etc/config.yaml"
+const defaultEnvPath = "development"
 
 func main() {
 	path := flag.String("config", defaultConfigPath, "config path")
+	env := flag.String("env", defaultEnvPath, "environment (development, production, etc)")
 	flag.Parse()
+
+	// 如果命令行指定了环境，设置到环境变量中
+	if err := os.Setenv("GOCHAT_ENV", *env); err != nil {
+		log.Fatalf("set env failed,err:%v", err)
+	}
+	log.Printf("using environment: %s", *env)
 
 	// 使用Wire初始化依赖
 	deps := InitializeDependencies(*path)

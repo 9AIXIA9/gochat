@@ -26,7 +26,6 @@ func Setup(deps *Dependencies) *gin.Engine {
 
 	// 注册全局中间件
 	r.Use(middleware.CORS())
-	r.Use(middleware.Error())
 
 	// 注册路由
 	setup(r, deps)
@@ -58,9 +57,6 @@ func setup(r *gin.Engine, deps *Dependencies) {
 
 	// 健康检查
 	r.GET("/health", func(c *gin.Context) {
-		presentation.ResponseSuccess(c, gin.H{
-			"status":  "ok",
-			"message": "服务运行正常",
-		})
+		presentation.ResponseSuccess(c, domain.NewSuccessResponse("服务器正常工作"))
 	})
 }
