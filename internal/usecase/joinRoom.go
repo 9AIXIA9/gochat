@@ -16,7 +16,7 @@ func NewJoinRoom(roomRepo domain.RoomRepository, userRoomRepo domain.UserRoomRep
 
 func (uc *JoinRoom) Logic(req *domain.JoinRoomRequest) (*domain.Response, error) {
 	//查询房间信息
-	room, err := uc.QueryRoom(req.URI.Number)
+	room, err := uc.QueryRoom(req.Number)
 	if err != nil {
 		return nil, err
 	}
@@ -30,12 +30,12 @@ func (uc *JoinRoom) Logic(req *domain.JoinRoomRequest) (*domain.Response, error)
 	}
 
 	// 判断密钥
-	if err := uc.CheckSecret(req.Body.Secret, room.SecretHash); err != nil {
+	if err := uc.CheckSecret(req.Secret, room.SecretHash); err != nil {
 		return domain.NewResponseWithDefaultMsg(domain.CodeWrongSecret), nil
 	}
 
 	//加入房间(仓库)
-	if exist, err := uc.JoinRoom(req.UserNumber, req.URI.Number); err != nil {
+	if exist, err := uc.JoinRoom(req.UserNumber, req.Number); err != nil {
 		return nil, err
 	} else if exist {
 		return domain.NewResponseWithDefaultMsg(domain.CodeHasJoined), nil

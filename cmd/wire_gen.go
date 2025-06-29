@@ -11,10 +11,10 @@ import (
 	"gochat/api"
 	"gochat/internal/config"
 	"gochat/internal/domain"
+	"gochat/internal/handler"
 	"gochat/internal/infra/logger"
 	"gochat/internal/infra/repository"
 	"gochat/internal/infra/snowflake"
-	"gochat/internal/presentation"
 	"gochat/internal/usecase"
 	"gorm.io/gorm"
 )
@@ -56,7 +56,7 @@ func ProvideConfig(configPath string) *config.Config {
 	conf.Validate()
 	logger.MustInit(conf.Log)
 	snowflake.MustInit(conf.Snowflake)
-	presentation.MustInitTrans(conf.Language)
+	handler.MustInitTrans(conf.Language)
 
 	return conf
 }

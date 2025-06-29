@@ -1,4 +1,4 @@
-package presentation
+package handler
 
 import (
 	"github.com/go-playground/locales/en"

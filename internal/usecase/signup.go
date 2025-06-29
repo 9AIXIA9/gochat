@@ -17,7 +17,7 @@ func NewSignup(repo domain.UserRepository) domain.SignupUsecase {
 
 func (uc *Signup) Logic(req *domain.SignupRequest) (*domain.Response, error) {
 	// 加密密码
-	hashedPassword, err := uc.EncryptPwd(req.Body.Password)
+	hashedPassword, err := uc.EncryptPwd(req.Password)
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +28,7 @@ func (uc *Signup) Logic(req *domain.SignupRequest) (*domain.Response, error) {
 	// 创建用户
 	user := &domain.User{
 		Number:  userNumber,
-		Name:    req.Body.Name,
+		Name:    req.Name,
 		PwdHash: hashedPassword,
 	}
 

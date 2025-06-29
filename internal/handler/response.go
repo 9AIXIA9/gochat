@@ -1,4 +1,4 @@
-package presentation
+package handler
 
 import (
 	"gochat/internal/domain"

@@ -11,7 +11,6 @@ const (
 	// 客户端错误 4xx
 	CodeInvalidParam ResCode = 400 + iota
 	CodeUnauthorized
-	CodeForbidden
 	CodeUserExist
 	CodeUserNotExist
 	CodeWrongPassword
@@ -48,8 +47,6 @@ func (c ResCode) Msg() string {
 		return "请求参数错误"
 	case CodeUnauthorized:
 		return "未认证"
-	case CodeForbidden:
-		return "没有权限"
 	case CodeUserExist:
 		return "用户已存在"
 	case CodeUserNotExist:

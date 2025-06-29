@@ -18,7 +18,7 @@ func NewCreateRoom(repo domain.RoomRepository) domain.CreateRoomUsecase {
 
 func (uc *CreateRoom) Logic(req *domain.CreateRoomRequest) (*domain.Response, error) {
 	//加密secret
-	secretHash, err := uc.EncryptSecret(req.Body.Secret)
+	secretHash, err := uc.EncryptSecret(req.Secret)
 	if err != nil {
 		return nil, err
 	}
@@ -28,12 +28,12 @@ func (uc *CreateRoom) Logic(req *domain.CreateRoomRequest) (*domain.Response, er
 
 	// 创建房间
 	room := &domain.Room{
-		Name:         req.Body.Name,
+		Name:         req.Name,
 		Number:       roomNumber,
 		SecretHash:   secretHash,
-		Description:  req.Body.Description,
+		Description:  req.Description,
 		CurrentUsers: 1,
-		MaxUsers:     req.Body.MaxUsers,
+		MaxUsers:     req.MaxUsers,
 		Owner:        req.UserNumber,
 	}
 
@@ -46,9 +46,9 @@ func (uc *CreateRoom) Logic(req *domain.CreateRoomRequest) (*domain.Response, er
 	// 返回房间信息
 	return domain.NewSuccessResponse(gin.H{
 		"room_number": strconv.Itoa(int(roomNumber)),
-		"room_name":   req.Body.Name,
-		"description": req.Body.Description,
-		"max_users":   req.Body.MaxUsers,
+		"room_name":   req.Name,
+		"description": req.Description,
+		"max_users":   req.MaxUsers,
 		"owner":       strconv.Itoa(int(req.UserNumber)),
 	}), nil
 }

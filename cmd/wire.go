@@ -27,7 +27,7 @@ func ProvideConfig(configPath string) *config.Config {
 	// 初始化系统组件，失败直接panic
 	logger.MustInit(conf.Log)
 	snowflake.MustInit(conf.Snowflake)
-	presentation.MustInitTrans(conf.Language)
+	handler.MustInitTrans(conf.Language)
 
 	return conf
 }

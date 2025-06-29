@@ -19,7 +19,7 @@ func NewLogin(conf *config.JWT, repo domain.UserRepository) domain.LoginUsecase 
 
 func (uc *Login) Logic(req *domain.LoginRequest) (*domain.Response, error) {
 	//查询用户信息
-	user, err := uc.QueryUser(req.Body.Number)
+	user, err := uc.QueryUser(req.Number)
 	if err != nil {
 		return nil, err
 	}
@@ -29,12 +29,12 @@ func (uc *Login) Logic(req *domain.LoginRequest) (*domain.Response, error) {
 	}
 
 	// 验证用户名密码
-	if err := uc.CheckPwd(req.Body.Password, user.PwdHash); err != nil {
+	if err := uc.CheckPwd(req.Password, user.PwdHash); err != nil {
 		return domain.NewResponseWithDefaultMsg(domain.CodeWrongPassword), nil
 	}
 
 	// 生成token
-	token, err := uc.GenerateToken(&domain.AuthInfo{UserNumber: req.Body.Number})
+	token, err := uc.GenerateToken(&domain.AuthInfo{UserNumber: req.Number})
 	if err != nil {
 		return nil, err
 	}

@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"gochat/internal/domain"
-	"gochat/internal/presentation"
+	"gochat/internal/handler"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -14,7 +14,7 @@ func JWTAuth(uc domain.AuthUsecase) gin.HandlerFunc {
 		// 从请求头获取token
 		authHeader := c.Request.Header.Get("Authorization")
 		if authHeader == "" {
-			presentation.ResponseSuccess(c, domain.NewResponseWithDefaultMsg(domain.CodeUnauthorized))
+			handler.ResponseSuccess(c, domain.NewResponseWithDefaultMsg(domain.CodeUnauthorized))
 			c.Abort()
 			return
 		}
@@ -22,7 +22,7 @@ func JWTAuth(uc domain.AuthUsecase) gin.HandlerFunc {
 		// Bearer token格式
 		parts := strings.SplitN(authHeader, " ", 2)
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			presentation.ResponseSuccess(c, domain.NewResponseWithDefaultMsg(domain.CodeInvalidToken))
+			handler.ResponseSuccess(c, domain.NewResponseWithDefaultMsg(domain.CodeInvalidToken))
 			c.Abort()
 			return
 		}
@@ -34,7 +34,7 @@ func JWTAuth(uc domain.AuthUsecase) gin.HandlerFunc {
 			c.Set(domain.AuthInfoKey, authInfo)
 			c.Next()
 		} else {
-			presentation.ResponseSuccess(c, domain.NewResponseWithDefaultMsg(domain.CodeInvalidToken))
+			handler.ResponseSuccess(c, domain.NewResponseWithDefaultMsg(domain.CodeInvalidToken))
 			c.Abort()
 			return
 		}

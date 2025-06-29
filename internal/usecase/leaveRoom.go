@@ -14,7 +14,7 @@ func NewLeaveRoom(repo domain.UserRoomRepository) domain.LeaveRoomUsecase {
 
 func (uc *LeaveRoom) Logic(req *domain.LeaveRoomRequest) (*domain.Response, error) {
 	// 退出房间
-	if exist, err := uc.LeaveRoom(req.UserNumber, req.URI.RoomNumber); err != nil {
+	if exist, err := uc.LeaveRoom(req.UserNumber, req.Number); err != nil {
 		return nil, err
 	} else if !exist {
 		return domain.NewResponseWithDefaultMsg(domain.CodeNotJoined), nil
