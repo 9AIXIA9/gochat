@@ -41,8 +41,8 @@ func setup(r *gin.Engine, deps *Dependencies) {
 	public := api.Group("/")
 	{
 		// 用户相关
-		public.POST("/signup", handler.Adapter[handler.SignupRequest, domain.SignupRequest](deps.SignupUsecase))
-		public.POST("/login", handler.Adapter[handler.LoginRequest, domain.LoginRequest](deps.LoginUsecase))
+		public.POST("/signup", handler.Signup(deps.SignupUsecase))
+		public.POST("/login", handler.Login(deps.LoginUsecase))
 	}
 
 	// 需要认证的路由
@@ -50,9 +50,9 @@ func setup(r *gin.Engine, deps *Dependencies) {
 	protected.Use(middleware.JWTAuth(deps.AuthUsecase))
 	{
 		// 房间相关
-		protected.POST("/rooms", handler.Adapter[handler.CreateRoomRequest, domain.CreateRoomRequest](deps.CreateRoomUsecase))
-		protected.POST("/rooms/:number/join", handler.Adapter[handler.JoinRoomRequest, domain.JoinRoomRequest](deps.JoinRoomUsecase))
-		protected.DELETE("/rooms/:number/leave", handler.Adapter[handler.LeaveRoomRequest, domain.LeaveRoomRequest](deps.LeaveRoomUsecase))
+		protected.POST("/rooms", handler.CreateRoom(deps.CreateRoomUsecase))
+		protected.POST("/rooms/:number/join", handler.JoinRoom(deps.JoinRoomUsecase))
+		protected.DELETE("/rooms/:number/leave", handler.LeaveRoom(deps.LeaveRoomUsecase))
 	}
 
 	// 健康检查
