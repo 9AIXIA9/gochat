@@ -1,13 +1,15 @@
-package ctrl
+package websocket
 
 import (
-	"errors"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"gochat/internal/domain"
+	"gochat/internal/types"
 	"net/http"
 	"sync"
 )
+
+//todo 事件驱动模式
 
 type Manager struct {
 	websocket.Upgrader
@@ -16,6 +18,7 @@ type Manager struct {
 }
 
 var (
+	//todo 不要包级全局变量
 	manager Manager
 )
 
@@ -27,7 +30,7 @@ func CreateGroup(owner domain.UserNumber, roomNumber domain.RoomNumber) error {
 
 	_, exist := manager.rooms[roomNumber]
 	if exist {
-		return errors.New("the room has existed")
+		return types.ErrRoomExist
 	}
 
 	//创建房间
@@ -49,7 +52,7 @@ func EstablishConnection(w http.ResponseWriter, r *http.Request, userNumber doma
 
 	room, exist := manager.rooms[roomNumber]
 	if !exist {
-		return errors.New("the room doesn't exist")
+		return types.ErrRoomNotExist
 	}
 
 	//检查用户是否已进入
@@ -58,7 +61,7 @@ func EstablishConnection(w http.ResponseWriter, r *http.Request, userNumber doma
 
 	_, exist = room.clients[userNumber]
 	if exist {
-		return errors.New("user has existed")
+		return types.ErrUserExist
 	}
 
 	// 升级HTTP连接到WebSocket

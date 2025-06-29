@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"gochat/internal/domain"
+	"gochat/internal/types"
 	"reflect"
 	"strings"
 )
@@ -12,7 +13,7 @@ import (
 func BindParams(c *gin.Context, param interface{}) (*domain.Response, error) {
 	// 校验参数是否有效
 	if param == nil {
-		return nil, errors.New("param is nil")
+		return nil, types.ErrNullPointer
 	}
 
 	// 绑定URI参数

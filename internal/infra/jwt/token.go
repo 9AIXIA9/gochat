@@ -4,6 +4,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"gochat/internal/config"
 	"gochat/internal/domain"
+	"gochat/internal/types"
 	"time"
 )
 
@@ -37,7 +38,7 @@ func ParseToken(secret, tokenStr string) (*domain.AuthInfo, error) {
 	})
 
 	if err != nil || !token.Valid {
-		return nil, domain.ErrInvalidToken
+		return nil, types.ErrInvalidToken
 	}
 
 	//验证合理性
@@ -48,7 +49,7 @@ func ParseToken(secret, tokenStr string) (*domain.AuthInfo, error) {
 		return &domain.AuthInfo{UserNumber: claims.UserNumber}, nil
 	}
 
-	return nil, domain.ErrInvalidTokenClaims
+	return nil, types.ErrInvalidTokenClaims
 }
 
 func (c Claims) Valid() error {
@@ -57,7 +58,7 @@ func (c Claims) Valid() error {
 	}
 
 	if c.UserNumber == 0 {
-		return domain.ErrInvalidTokenClaims
+		return types.ErrInvalidTokenClaims
 	}
 
 	return nil

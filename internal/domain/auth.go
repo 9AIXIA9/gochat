@@ -1,15 +1,6 @@
 package domain
 
-import (
-	"errors"
-)
-
 const AuthInfoKey = "auth"
-
-var (
-	ErrInvalidTokenClaims = errors.New("invalid token claims")
-	ErrInvalidToken       = errors.New("invalid token")
-)
 
 // AuthContext 认证上下文接口
 type AuthContext interface {

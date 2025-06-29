@@ -1,4 +1,4 @@
-package ctrl
+package websocket
 
 import (
 	"gochat/internal/domain"
