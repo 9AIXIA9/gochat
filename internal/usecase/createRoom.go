@@ -2,10 +2,10 @@ package usecase
 
 import (
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 	"gochat/internal/domain"
 	"gochat/internal/infra/encrypt"
 	"gochat/internal/infra/snowflake"
+	"strconv"
 )
 
 type CreateRoom struct {
@@ -18,7 +18,7 @@ func NewCreateRoom(repo domain.RoomRepository) domain.CreateRoomUsecase {
 
 func (uc *CreateRoom) Logic(req *domain.CreateRoomRequest) (*domain.Response, error) {
 	//加密secret
-	secretHash, err := uc.EncryptSecret(req.Secret)
+	secretHash, err := uc.EncryptSecret(req.Body.Secret)
 	if err != nil {
 		return nil, err
 	}
@@ -28,31 +28,28 @@ func (uc *CreateRoom) Logic(req *domain.CreateRoomRequest) (*domain.Response, er
 
 	// 创建房间
 	room := &domain.Room{
-		Name:         req.Name,
+		Name:         req.Body.Name,
 		Number:       roomNumber,
 		SecretHash:   secretHash,
-		Description:  req.Description,
+		Description:  req.Body.Description,
 		CurrentUsers: 1,
-		MaxUsers:     req.MaxUsers,
+		MaxUsers:     req.Body.MaxUsers,
 		Owner:        req.UserNumber,
 	}
 
 	if exist, err := uc.CreateRoom(room); err != nil {
 		return nil, err
 	} else if exist {
-		return domain.NewResponseWithoutMsg(domain.CodeRoomExist), nil
+		return domain.NewResponseWithDefaultMsg(domain.CodeRoomExist), nil
 	}
-
-	zap.L().Info("create room successfully",
-		zap.Int64("userNumber", int64(req.UserNumber)), zap.Int64("roomNumber", int64(roomNumber)))
 
 	// 返回房间信息
 	return domain.NewSuccessResponse(gin.H{
-		"room_number": roomNumber,
-		"room_name":   req.Name,
-		"description": req.Description,
-		"max_users":   req.MaxUsers,
-		"owner":       req.UserNumber,
+		"room_number": strconv.Itoa(int(roomNumber)),
+		"room_name":   req.Body.Name,
+		"description": req.Body.Description,
+		"max_users":   req.Body.MaxUsers,
+		"owner":       strconv.Itoa(int(req.UserNumber)),
 	}), nil
 }
 

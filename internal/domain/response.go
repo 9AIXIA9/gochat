@@ -7,27 +7,25 @@ type Response struct {
 }
 
 func NewResponse(code ResCode, msg string, data ...any) *Response {
-	var resData any
-	switch len(data) {
-	case 0:
-		resData = nil
-	case 1:
-		resData = data[0]
-	default:
-		resData = data
-	}
-
-	return &Response{
+	res := &Response{
 		Code: code,
 		Msg:  msg,
-		Data: resData,
 	}
+
+	if len(data) > 0 {
+		if l := len(data); l == 1 && data[0] != nil {
+			res.Data = data[0]
+		} else if l > 1 {
+			res.Data = data
+		}
+	}
+	return res
 }
 
-func NewResponseWithoutMsg(code ResCode, data ...any) *Response {
-	return NewResponse(code, code.Msg(), data)
+func NewResponseWithDefaultMsg(code ResCode, data ...any) *Response {
+	return NewResponse(code, code.Msg(), data...)
 }
 
 func NewSuccessResponse(data ...any) *Response {
-	return NewResponse(CodeSuccess, CodeSuccess.Msg(), data)
+	return NewResponseWithDefaultMsg(CodeSuccess, data...)
 }

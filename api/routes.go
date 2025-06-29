@@ -17,7 +17,7 @@ type Dependencies struct {
 	LoginUsecase      domain.LoginUsecase
 	CreateRoomUsecase domain.CreateRoomUsecase
 	JoinRoomUsecase   domain.JoinRoomUsecase
-	ExitRoomUsecase   domain.ExitRoomUsecase
+	LeaveRoomUsecase  domain.LeaveRoomUsecase
 }
 
 func Setup(deps *Dependencies) *gin.Engine {
@@ -52,7 +52,7 @@ func setup(r *gin.Engine, deps *Dependencies) {
 		// 房间相关
 		protected.POST("/rooms", presentation.CreateRoomHandlerFunc(deps.CreateRoomUsecase))
 		protected.POST("/rooms/:number/join", presentation.JoinRoomHandlerFunc(deps.JoinRoomUsecase))
-		protected.DELETE("/rooms/:number/exit", presentation.ExitRoomHandlerFunc(deps.ExitRoomUsecase))
+		protected.DELETE("/rooms/:number/leave", presentation.LeaveRoomHandlerFunc(deps.LeaveRoomUsecase))
 	}
 
 	// 健康检查

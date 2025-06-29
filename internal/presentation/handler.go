@@ -4,8 +4,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"gochat/internal/domain"
-	"gochat/internal/utils"
 )
+
+//todo 完善
 
 // HandlerAdapter 将业务逻辑处理函数转换为gin.HandlerFunc
 func HandlerAdapter[Req any](logicFn func(*Req) (*domain.Response, error)) gin.HandlerFunc {
@@ -24,8 +25,8 @@ func HandlerAdapter[Req any](logicFn func(*Req) (*domain.Response, error)) gin.H
 
 		// 注入认证信息
 		if authReq, ok := any(&req).(domain.AuthContext); ok {
-			userNumber := utils.GetCurrentUser(c)
-			authReq.SetUserNumber(userNumber)
+			info := GetUserInfo(c)
+			authReq.SetInfo(*info)
 		}
 
 		//todo err 元数据暂未处理
@@ -45,4 +46,21 @@ func HandlerAdapter[Req any](logicFn func(*Req) (*domain.Response, error)) gin.H
 		//默认成功响应
 		ResponseSuccess(c, domain.NewSuccessResponse())
 	}
+}
+
+// GetUserInfo 从上下文中获取当前用户信息
+func GetUserInfo(c *gin.Context) *domain.AuthInfo {
+	authInfoInterface, exists := c.Get(domain.AuthInfoKey)
+
+	if !exists {
+		return nil
+	}
+
+	authInfo, ok := authInfoInterface.(*domain.AuthInfo)
+
+	if !ok {
+		return nil
+	}
+
+	return authInfo
 }

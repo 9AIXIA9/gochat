@@ -26,10 +26,10 @@ func CreateRoomHandlerFunc(CreateRoomUsecase domain.CreateRoomUsecase) gin.Handl
 	})
 }
 
-// ExitRoomHandlerFunc 退出房间处理函数
-func ExitRoomHandlerFunc(exitRoomUsecase domain.ExitRoomUsecase) gin.HandlerFunc {
-	return HandlerAdapter(func(req *domain.ExitRoomRequest) (*domain.Response, error) {
-		return exitRoomUsecase.Logic(req)
+// LeaveRoomHandlerFunc 退出房间处理函数
+func LeaveRoomHandlerFunc(leaveRoomUsecase domain.LeaveRoomUsecase) gin.HandlerFunc {
+	return HandlerAdapter(func(req *domain.LeaveRoomRequest) (*domain.Response, error) {
+		return leaveRoomUsecase.Logic(req)
 	})
 }
 

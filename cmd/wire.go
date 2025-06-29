@@ -51,7 +51,8 @@ func ProvideLogin(repo domain.UserRepository, conf *config.Config) domain.LoginU
 var RepositorySet = wire.NewSet(
 	repository.NewUserRepository,
 	repository.NewRoomRepository,
-	repository.NewChatRepository,
+	repository.NewMessageRepository,
+	repository.NewUserRoomRepository,
 )
 
 // UsecaseSet 提供所有的Usecase
@@ -68,7 +69,7 @@ var UsecaseSet = wire.NewSet(
 	// Room相关
 	usecase.NewCreateRoom,
 	usecase.NewJoinRoom,
-	usecase.NewExitRoom,
+	usecase.NewLeaveRoom,
 )
 
 // InitializeDependencies 使用Wire初始化所有依赖

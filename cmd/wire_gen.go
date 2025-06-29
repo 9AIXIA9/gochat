@@ -31,8 +31,9 @@ func InitializeDependencies(configPath string) *api.Dependencies {
 	loginUsecase := ProvideLogin(userRepository, config)
 	roomRepository := repository.NewRoomRepository(db)
 	createRoomUsecase := usecase.NewCreateRoom(roomRepository)
-	joinRoomUsecase := usecase.NewJoinRoom(roomRepository)
-	exitRoomUsecase := usecase.NewExitRoom(roomRepository)
+	userRoomRepository := repository.NewUserRoomRepository(db)
+	joinRoomUsecase := usecase.NewJoinRoom(roomRepository, userRoomRepository)
+	leaveRoomUsecase := usecase.NewLeaveRoom(userRoomRepository)
 	dependencies := &api.Dependencies{
 		Config:            config,
 		AuthUsecase:       authUsecase,
@@ -40,7 +41,7 @@ func InitializeDependencies(configPath string) *api.Dependencies {
 		LoginUsecase:      loginUsecase,
 		CreateRoomUsecase: createRoomUsecase,
 		JoinRoomUsecase:   joinRoomUsecase,
-		ExitRoomUsecase:   exitRoomUsecase,
+		LeaveRoomUsecase:  leaveRoomUsecase,
 	}
 	return dependencies
 }
@@ -76,12 +77,12 @@ func ProvideLogin(repo domain.UserRepository, conf *config.Config) domain.LoginU
 }
 
 // RepositorySet 提供所有的Repository
-var RepositorySet = wire.NewSet(repository.NewUserRepository, repository.NewRoomRepository, repository.NewChatRepository)
+var RepositorySet = wire.NewSet(repository.NewUserRepository, repository.NewRoomRepository, repository.NewMessageRepository, repository.NewUserRoomRepository)
 
 // UsecaseSet 提供所有的Usecase
 var UsecaseSet = wire.NewSet(
 
 	ProvideAuth,
 
-	ProvideLogin, usecase.NewSignup, usecase.NewCreateRoom, usecase.NewJoinRoom, usecase.NewExitRoom,
+	ProvideLogin, usecase.NewSignup, usecase.NewCreateRoom, usecase.NewJoinRoom, usecase.NewLeaveRoom,
 )

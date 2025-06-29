@@ -1,20 +1,11 @@
 package repository
 
 import (
+	"errors"
 	"gochat/internal/domain"
+	"gochat/internal/model"
 	"gorm.io/gorm"
 )
-
-type Room struct {
-	gorm.Model
-	Name         string
-	Number       domain.RoomNumber
-	Owner        domain.UserNumber
-	SecretHash   string
-	Description  string
-	CurrentUsers int
-	MaxUsers     int
-}
 
 type RoomRepository struct {
 	db *gorm.DB
@@ -25,17 +16,29 @@ func NewRoomRepository(db *gorm.DB) domain.RoomRepository {
 }
 
 func (r *RoomRepository) Create(room *domain.Room) (bool, error) {
-	return false, nil
-}
+	var existingRoom model.GormRoom
+	result := r.db.Where("number = ?", room.Number).First(&existingRoom)
+	if result.RowsAffected > 0 {
+		return true, nil // 房间已存在
+	}
 
-func (r *RoomRepository) JoinOne(userNumber domain.UserNumber, roomNumber domain.RoomNumber) (bool, error) {
+	gormRoom := model.RoomFromDomain(room)
+	if err := r.db.Create(gormRoom).Error; err != nil {
+		return false, err
+	}
+
 	return false, nil
 }
 
 func (r *RoomRepository) QueryByRoomNumber(roomNumber domain.RoomNumber) (*domain.Room, error) {
-	return nil, nil
-}
+	var gormRoom model.GormRoom
+	result := r.db.Where("number = ?", roomNumber).First(&gormRoom)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, nil // 房间不存在
+		}
+		return nil, result.Error
+	}
 
-func (r *RoomRepository) Delete(userNumber domain.UserNumber, roomNumber domain.RoomNumber) (bool, error) {
-	return false, nil
+	return gormRoom.ToDomain(), nil
 }

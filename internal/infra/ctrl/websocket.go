@@ -19,8 +19,8 @@ var (
 	manager Manager
 )
 
-// CreateRoom 创建房间
-func CreateRoom(owner domain.UserNumber, roomNumber domain.RoomNumber) error {
+// CreateGroup 创建房间
+func CreateGroup(owner domain.UserNumber, roomNumber domain.RoomNumber) error {
 	//检查是否存在此房间
 	manager.roomsMutex.Lock()
 	defer manager.roomsMutex.Unlock()
@@ -81,7 +81,7 @@ func EstablishConnection(w http.ResponseWriter, r *http.Request, userNumber doma
 	return nil
 }
 
-// ExitConnection 退出房间
+// ExitConnection 关闭连接
 func ExitConnection(userNumber domain.UserNumber, roomNumber domain.RoomNumber) error {
 	//检查房间是否存在
 	manager.roomsMutex.Lock()
