@@ -6,7 +6,6 @@ var DefaultResponse = domain.NewSuccessMessage()
 
 // middleware || handler response
 var (
-	HealthCheckResponse  = domain.NewSuccessMessage()
 	TimeoutResponse      = domain.NewDefaultMessage(domain.CodeTimeout)
 	UnauthorizedResponse = domain.NewDefaultMessage(domain.CodeUnauthorized)
 	InvalidTokenResponse = domain.NewDefaultMessage(domain.CodeInvalidToken)

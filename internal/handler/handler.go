@@ -3,7 +3,6 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 	"gochat/internal/domain"
-	"gochat/internal/types"
 )
 
 func Signup(usecase domain.SignupUsecase) gin.HandlerFunc {
@@ -20,10 +19,4 @@ func JoinRoom(usecase domain.JoinRoomUsecase) gin.HandlerFunc {
 }
 func LeaveRoom(usecase domain.LeaveRoomUsecase) gin.HandlerFunc {
 	return Adapter[LeaveRoomRequest, domain.LeaveRoomRequest](usecase)
-}
-
-func HealthCheck() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		ResponseSuccess(c, types.HealthCheckResponse)
-	}
 }

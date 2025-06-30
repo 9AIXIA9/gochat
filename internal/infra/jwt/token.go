@@ -18,12 +18,11 @@ type Claims struct {
 func GenerateToken(ctx context.Context, conf *config.JWT, info *domain.AuthInfo) (string, error) {
 	return timeout.ConvertAndExecuteWithResponse(ctx, func() (string, error) {
 		mySecret := []byte(conf.Secret)
-		dur := time.Duration(conf.ExpireTime) * time.Hour
 
 		c := Claims{
 			UserNumber: info.UserNumber,
 			RegisteredClaims: jwt.RegisteredClaims{
-				ExpiresAt: jwt.NewNumericDate(time.Now().Add(dur)),
+				ExpiresAt: jwt.NewNumericDate(time.Now().Add(conf.ExpireTime)),
 			},
 		}
 

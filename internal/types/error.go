@@ -14,7 +14,6 @@ var (
 // websocket
 var (
 	ErrUserExist    = errors.New("the user has existed")
-	ErrUserNotExist = errors.New("the user doesn't exist")
 	ErrRoomExist    = errors.New("the room has existed")
 	ErrRoomNotExist = errors.New("the room doesn't exist")
 )

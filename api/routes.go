@@ -7,7 +7,6 @@ import (
 	"gochat/internal/config"
 	"gochat/internal/domain"
 	"gochat/internal/handler"
-	"gochat/internal/infra/logger"
 	"gochat/internal/middleware"
 )
 
@@ -24,9 +23,11 @@ type Dependencies struct {
 
 func Setup(deps *Dependencies) *gin.Engine {
 	// 创建gin引擎
-	r := gin.New(logger.GinOption())
+	r := gin.New()
 
 	// 注册全局中间件
+	r.Use(middleware.Logger())
+	r.Use(middleware.Recover())
 	r.Use(middleware.RateLimit(deps.Config.RateLimit))
 	r.Use(middleware.CORS())
 	r.Use(middleware.Timeout(deps.Config.Timeout))
@@ -58,9 +59,6 @@ func setup(r *gin.Engine, deps *Dependencies) {
 		protected.POST("/rooms/:number/join", handler.JoinRoom(deps.JoinRoomUsecase))
 		protected.DELETE("/rooms/:number/leave", handler.LeaveRoom(deps.LeaveRoomUsecase))
 	}
-
-	// 健康检查
-	r.GET("/health", handler.HealthCheck())
 
 	//swagger文档
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
