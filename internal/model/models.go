@@ -6,14 +6,14 @@ import (
 	"time"
 )
 
-type GormUser struct {
+type User struct {
 	gorm.Model
 	Number  domain.UserNumber `gorm:"uniqueIndex"`
 	Name    string
 	PwdHash string
 }
 
-type GormRoom struct {
+type Room struct {
 	gorm.Model
 	Number       domain.RoomNumber `gorm:"uniqueIndex"`
 	Name         string
@@ -24,7 +24,7 @@ type GormRoom struct {
 	MaxUsers     int
 }
 
-type GormMessage struct {
+type Chat struct {
 	gorm.Model
 	UserNumber domain.UserNumber
 	RoomNumber domain.RoomNumber
@@ -32,7 +32,7 @@ type GormMessage struct {
 	SentAt     time.Time
 }
 
-type GormUserRoom struct {
+type UserRoom struct {
 	UserNumber domain.UserNumber `gorm:"primaryKey"`
 	RoomNumber domain.RoomNumber `gorm:"primaryKey"`
 }

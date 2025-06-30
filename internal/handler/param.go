@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func BindParams(c *gin.Context, param interface{}) (*domain.Response, error) {
+func BindParams(c *gin.Context, param interface{}) (*domain.Message, error) {
 	// 校验参数是否有效
 	if param == nil {
 		return nil, types.ErrNullPointer
@@ -92,17 +92,17 @@ func hasStructField(obj interface{}, fieldName string) bool {
 	return found
 }
 
-func handleBindError(err error) (*domain.Response, error) {
+func handleBindError(err error) (*domain.Message, error) {
 	var validErr validator.ValidationErrors
 	if errors.As(err, &validErr) {
-		msg := buildValidationErrorMessage(validErr)
-		return domain.NewResponse(domain.CodeInvalidParam, msg), nil
+		msg := buildValidationErrorChat(validErr)
+		return domain.NewMessage(domain.CodeInvalidParam, msg), nil
 	}
 	return nil, err
 }
 
 // 提取验证错误信息格式化为辅助函数
-func buildValidationErrorMessage(typeErr validator.ValidationErrors) string {
+func buildValidationErrorChat(typeErr validator.ValidationErrors) string {
 	msg := strings.Builder{}
 	for i, fe := range typeErr {
 		if i > 0 {

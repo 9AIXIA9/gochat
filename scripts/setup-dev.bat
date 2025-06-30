@@ -1,7 +1,7 @@
 @echo off
-rem CloudClip 开发环境设置脚本 (Windows)
+rem GoChat 开发环境设置脚本 (Windows)
 
-echo 🚀 正在设置 CloudClip 开发环境...
+echo 🚀 正在设置 GoChat 开发环境...
 
 rem 检查 Go 版本
 echo 检查 Go 版本...

@@ -2,30 +2,35 @@ Name: gochat
 Host: 0.0.0.0
 Port: 8888
 Language: "zh"
+Timeout: 5s
 
 JWT:
-  Secret: "${JWT_SECRET}"  
-  ExpireTime: 24 # hours
+  Secret: "${JWT_SECRET}"
+  ExpireTime: 8000h
+
+RateLimit:
+  Period: 1s
+  Limit: 1000
 
 Database:
   Host: localhost
   Port: 13306
   Username: root
-  Password: "${DB_PASSWORD}"  
+  Password: "${DB_PASSWORD}"
   Database: gochat
 
 Redis:
   Host: localhost
   Port: 16379
-  Password: "${REDIS_PASSWORD}"  
+  Password: "${REDIS_PASSWORD}"
   DB: 0
 
 Log:
   Mode: debug
   Level: info
   Filename: logs/app.log
-  MaxSize: 100 # MB
-  MaxAge: 7 # days
+  MaxSize: 100    # MB
+  MaxAge: 7       # days
   MaxBackups: 3
 
 Snowflake:

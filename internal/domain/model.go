@@ -22,7 +22,7 @@ type Room struct {
 	Owner        UserNumber
 }
 
-type Message struct {
+type Chat struct {
 	UserNumber UserNumber
 	RoomNumber RoomNumber
 	Content    string

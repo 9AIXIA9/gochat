@@ -51,7 +51,7 @@ func ProvideLogin(repo domain.UserRepository, conf *config.Config) domain.LoginU
 var RepositorySet = wire.NewSet(
 	repository.NewUserRepository,
 	repository.NewRoomRepository,
-	repository.NewMessageRepository,
+	repository.NewChatRepository,
 	repository.NewUserRoomRepository,
 )
 

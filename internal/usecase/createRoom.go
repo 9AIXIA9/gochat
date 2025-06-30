@@ -1,11 +1,11 @@
 package usecase
 
 import (
-	"github.com/gin-gonic/gin"
+	"context"
 	"gochat/internal/domain"
 	"gochat/internal/infra/encrypt"
 	"gochat/internal/infra/snowflake"
-	"strconv"
+	"gochat/internal/types"
 )
 
 type CreateRoom struct {
@@ -16,15 +16,18 @@ func NewCreateRoom(repo domain.RoomRepository) domain.CreateRoomUsecase {
 	return &CreateRoom{repo: repo}
 }
 
-func (uc *CreateRoom) Logic(req *domain.CreateRoomRequest) (*domain.Response, error) {
+func (uc *CreateRoom) Logic(ctx context.Context, req *domain.CreateRoomRequest) (*domain.Message, error) {
 	//加密secret
-	secretHash, err := uc.EncryptSecret(req.Secret)
+	secretHash, err := uc.EncryptSecret(ctx, req.Secret)
 	if err != nil {
 		return nil, err
 	}
 
 	//生成房间号
-	roomNumber := uc.GenerateNumber()
+	roomNumber, err := uc.GenerateNumber(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	// 创建房间
 	room := &domain.Room{
@@ -37,30 +40,30 @@ func (uc *CreateRoom) Logic(req *domain.CreateRoomRequest) (*domain.Response, er
 		Owner:        req.UserNumber,
 	}
 
-	if exist, err := uc.CreateRoom(room); err != nil {
+	if exist, err := uc.CreateRoom(ctx, room); err != nil {
 		return nil, err
 	} else if exist {
-		return domain.NewResponseWithDefaultMsg(domain.CodeRoomExist), nil
+		return types.RoomExistResponse, nil
 	}
 
 	// 返回房间信息
-	return domain.NewSuccessResponse(gin.H{
-		"room_number": strconv.Itoa(int(roomNumber)),
-		"room_name":   req.Name,
-		"description": req.Description,
-		"max_users":   req.MaxUsers,
-		"owner":       strconv.Itoa(int(req.UserNumber)),
+	return domain.NewSuccessMessage(domain.CreateRoomResponse{
+		RoomNumber:  roomNumber,
+		RoomName:    req.Name,
+		Description: req.Description,
+		MaxUsers:    req.MaxUsers,
+		Owner:       req.UserNumber,
 	}), nil
 }
 
-func (uc *CreateRoom) EncryptSecret(secret string) (string, error) {
-	return encrypt.Encrypt(secret)
+func (uc *CreateRoom) EncryptSecret(ctx context.Context, secret string) (string, error) {
+	return encrypt.Encrypt(ctx, secret)
 }
 
-func (uc *CreateRoom) GenerateNumber() domain.RoomNumber {
-	return snowflake.GenerateRoomNumber()
+func (uc *CreateRoom) GenerateNumber(ctx context.Context) (domain.RoomNumber, error) {
+	return snowflake.GenerateRoomNumber(ctx)
 }
 
-func (uc *CreateRoom) CreateRoom(room *domain.Room) (bool, error) {
-	return uc.repo.Create(room)
+func (uc *CreateRoom) CreateRoom(ctx context.Context, room *domain.Room) (bool, error) {
+	return uc.repo.Create(ctx, room)
 }

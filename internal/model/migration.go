@@ -7,27 +7,27 @@ import (
 
 func AutoMigrate(db *gorm.DB) {
 	if err := db.AutoMigrate(
-		&GormUser{},
-		&GormRoom{},
-		&GormMessage{},
-		&GormUserRoom{},
+		&User{},
+		&Room{},
+		&Chat{},
+		&UserRoom{},
 	); err != nil {
 		log.Fatalf("auto migrate tables failed,err:%v", err)
 	}
 }
 
-func (u *GormUser) TableName() string {
+func (u *User) TableName() string {
 	return "user"
 }
 
-func (r *GormRoom) TableName() string {
+func (r *Room) TableName() string {
 	return "room"
 }
 
-func (m *GormMessage) TableName() string {
-	return "message"
+func (m *Chat) TableName() string {
+	return "chat"
 }
 
-func (ur *GormUserRoom) TableName() string {
+func (ur *UserRoom) TableName() string {
 	return "user_room"
 }

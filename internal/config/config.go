@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/spf13/viper"
 	"log"
+	"time"
 )
 
 const (
@@ -12,20 +13,27 @@ const (
 
 // Config 应用程序配置结构
 type Config struct {
-	Name      string     `mapstructure:"Name"`
-	Host      string     `mapstructure:"Host"`
-	Port      int        `mapstructure:"Port"`
-	Language  string     `mapstructure:"Language"`
-	JWT       *JWT       `mapstructure:"JWT"`
-	Database  *Database  `mapstructure:"Database"`
-	Redis     *Redis     `mapstructure:"Redis"`
-	Log       *Log       `mapstructure:"Log"`
-	Snowflake *Snowflake `mapstructure:"Snowflake"`
+	Name      string        `mapstructure:"Name"`
+	Host      string        `mapstructure:"Host"`
+	Port      int           `mapstructure:"Port"`
+	Language  string        `mapstructure:"Language"`
+	Timeout   time.Duration `mapstructure:"Timeout"`
+	JWT       *JWT          `mapstructure:"JWT"`
+	RateLimit *RateLimit    `mapstructure:"RateLimit"`
+	Database  *Database     `mapstructure:"Database"`
+	Redis     *Redis        `mapstructure:"Redis"`
+	Log       *Log          `mapstructure:"Log"`
+	Snowflake *Snowflake    `mapstructure:"Snowflake"`
 }
 
 type JWT struct {
-	Secret     string `mapstructure:"Secret"`
-	ExpireTime int    `mapstructure:"ExpireTime"` // 单位：小时
+	Secret     string        `mapstructure:"Secret"`
+	ExpireTime time.Duration `mapstructure:"ExpireTime"`
+}
+
+type RateLimit struct {
+	Period time.Duration `mapstructure:"Period"`
+	Limit  int64         `mapstructure:"Limit"`
 }
 
 type Log struct {
@@ -69,7 +77,7 @@ func MustLoad(configFile string) *Config {
 func Load(configFile string) (*Config, error) {
 	// 加载环境变量
 	if err := loadEnvFile(); err != nil {
-		return nil, fmt.Errorf("加载环境变量文件失败: %w", err)
+		return nil, fmt.Errorf("load environment variable file failed: %w", err)
 	}
 
 	v := viper.New()
@@ -79,7 +87,7 @@ func Load(configFile string) (*Config, error) {
 
 	// 读取配置文件
 	if err := v.ReadInConfig(); err != nil {
-		return nil, fmt.Errorf("读取配置文件失败: %w", err)
+		return nil, fmt.Errorf("read config file failed: %w", err)
 	}
 
 	// 配置环境变量设置
@@ -87,7 +95,7 @@ func Load(configFile string) (*Config, error) {
 
 	var cfg Config
 	if err := v.Unmarshal(&cfg); err != nil {
-		return nil, fmt.Errorf("解析配置失败: %w", err)
+		return nil, fmt.Errorf("parse config file failed: %w", err)
 	}
 
 	return &cfg, nil

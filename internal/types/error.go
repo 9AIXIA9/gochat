@@ -1,6 +1,9 @@
 package types
 
-import "errors"
+import (
+	"context"
+	"errors"
+)
 
 //handler
 
@@ -20,4 +23,10 @@ var (
 var (
 	ErrInvalidTokenClaims = errors.New("invalid token claims")
 	ErrInvalidToken       = errors.New("invalid token")
+)
+
+// timeout
+var (
+	ErrTimeout  = context.DeadlineExceeded
+	ErrCanceled = context.Canceled
 )

@@ -2,6 +2,8 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	"github.com/swaggo/gin-swagger"
 	"gochat/internal/config"
 	"gochat/internal/domain"
 	"gochat/internal/handler"
@@ -25,7 +27,9 @@ func Setup(deps *Dependencies) *gin.Engine {
 	r := gin.New(logger.GinOption())
 
 	// 注册全局中间件
+	r.Use(middleware.RateLimit(deps.Config.RateLimit))
 	r.Use(middleware.CORS())
+	r.Use(middleware.Timeout(deps.Config.Timeout))
 
 	// 注册路由
 	setup(r, deps)
@@ -56,7 +60,8 @@ func setup(r *gin.Engine, deps *Dependencies) {
 	}
 
 	// 健康检查
-	r.GET("/health", func(c *gin.Context) {
-		handler.ResponseSuccess(c, domain.NewSuccessResponse("服务器正常工作"))
-	})
+	r.GET("/health", handler.HealthCheck())
+
+	//swagger文档
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 }

@@ -4,7 +4,7 @@ import (
 	"gochat/internal/domain"
 )
 
-func (u *GormUser) ToDomain() *domain.User {
+func (u *User) ToDomain() *domain.User {
 	return &domain.User{
 		Number:  u.Number,
 		Name:    u.Name,
@@ -12,15 +12,15 @@ func (u *GormUser) ToDomain() *domain.User {
 	}
 }
 
-func UserFromDomain(user *domain.User) *GormUser {
-	return &GormUser{
+func UserFromDomain(user *domain.User) *User {
+	return &User{
 		Number:  user.Number,
 		Name:    user.Name,
 		PwdHash: user.PwdHash,
 	}
 }
 
-func (r *GormRoom) ToDomain() *domain.Room {
+func (r *Room) ToDomain() *domain.Room {
 	return &domain.Room{
 		Name:         r.Name,
 		Number:       r.Number,
@@ -32,8 +32,8 @@ func (r *GormRoom) ToDomain() *domain.Room {
 	}
 }
 
-func RoomFromDomain(room *domain.Room) *GormRoom {
-	return &GormRoom{
+func RoomFromDomain(room *domain.Room) *Room {
+	return &Room{
 		Number:       room.Number,
 		Name:         room.Name,
 		Owner:        room.Owner,
@@ -44,8 +44,8 @@ func RoomFromDomain(room *domain.Room) *GormRoom {
 	}
 }
 
-func (m *GormMessage) ToDomain() domain.Message {
-	return domain.Message{
+func (m *Chat) ToDomain() domain.Chat {
+	return domain.Chat{
 		UserNumber: m.UserNumber,
 		RoomNumber: m.RoomNumber,
 		Content:    m.Content,
@@ -53,11 +53,11 @@ func (m *GormMessage) ToDomain() domain.Message {
 	}
 }
 
-func MessageFromDomain(message domain.Message) *GormMessage {
-	return &GormMessage{
-		UserNumber: message.UserNumber,
-		RoomNumber: message.RoomNumber,
-		Content:    message.Content,
-		SentAt:     message.SendTime,
+func ChatFromDomain(chat domain.Chat) *Chat {
+	return &Chat{
+		UserNumber: chat.UserNumber,
+		RoomNumber: chat.RoomNumber,
+		Content:    chat.Content,
+		SentAt:     chat.SendTime,
 	}
 }

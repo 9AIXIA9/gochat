@@ -21,6 +21,7 @@ const (
 	CodeWrongSecret
 	CodeHasJoined
 	CodeNotJoined
+	CodeTimeout
 
 	// 服务端错误 5xx
 	CodeServerBusy ResCode = 500 + iota
@@ -30,6 +31,8 @@ func (c ResCode) ToHTTP() int {
 	switch {
 	case c >= 200 && c < 300:
 		return http.StatusOK
+	case c == CodeTimeout:
+		return http.StatusRequestTimeout
 	case c >= 400 && c < 500:
 		return http.StatusBadRequest
 	case c >= 500:
@@ -69,6 +72,8 @@ func (c ResCode) Msg() string {
 		return "已加入房间"
 	case CodeNotJoined:
 		return "未加入房间"
+	case CodeTimeout:
+		return "请求超时"
 	default:
 		return "未知错误"
 	}

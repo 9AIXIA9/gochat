@@ -1,11 +1,12 @@
 package usecase
 
 import (
-	"github.com/gin-gonic/gin"
+	"context"
 	"gochat/internal/config"
 	"gochat/internal/domain"
 	"gochat/internal/infra/encrypt"
 	"gochat/internal/infra/jwt"
+	"gochat/internal/types"
 )
 
 type Login struct {
@@ -17,42 +18,40 @@ func NewLogin(conf *config.JWT, repo domain.UserRepository) domain.LoginUsecase 
 	return &Login{repo: repo, conf: conf}
 }
 
-func (uc *Login) Logic(req *domain.LoginRequest) (*domain.Response, error) {
+func (uc *Login) Logic(ctx context.Context, req *domain.LoginRequest) (*domain.Message, error) {
 	//查询用户信息
-	user, err := uc.QueryUser(req.Number)
+	user, err := uc.QueryUser(ctx, req.Number)
 	if err != nil {
 		return nil, err
 	}
 
 	if user == nil {
-		return domain.NewResponseWithDefaultMsg(domain.CodeUserNotExist), nil
+		return types.NotJoinedResponse, nil
 	}
 
 	// 验证用户名密码
-	if err := uc.CheckPwd(req.Password, user.PwdHash); err != nil {
-		return domain.NewResponseWithDefaultMsg(domain.CodeWrongPassword), nil
+	if err := uc.CheckPwd(ctx, req.Password, user.PwdHash); err != nil {
+		return types.WrongPasswordResponse, nil
 	}
 
 	// 生成token
-	token, err := uc.GenerateToken(&domain.AuthInfo{UserNumber: req.Number})
+	token, err := uc.GenerateToken(ctx, &domain.AuthInfo{UserNumber: req.Number})
 	if err != nil {
 		return nil, err
 	}
 
 	// 返回token
-	return domain.NewSuccessResponse(gin.H{
-		"token": token,
-	}), nil
+	return domain.NewSuccessMessage(domain.LoginResponse{Token: token}), nil
 }
 
-func (uc *Login) QueryUser(number domain.UserNumber) (*domain.User, error) {
-	return uc.repo.QueryByNumber(number)
+func (uc *Login) QueryUser(ctx context.Context, number domain.UserNumber) (*domain.User, error) {
+	return uc.repo.QueryByNumber(ctx, number)
 }
 
-func (uc *Login) CheckPwd(origin, hash string) error {
-	return encrypt.Compare(origin, hash)
+func (uc *Login) CheckPwd(ctx context.Context, origin, hash string) error {
+	return encrypt.Compare(ctx, origin, hash)
 }
 
-func (uc *Login) GenerateToken(authInfo *domain.AuthInfo) (string, error) {
-	return jwt.GenerateToken(uc.conf, authInfo)
+func (uc *Login) GenerateToken(ctx context.Context, authInfo *domain.AuthInfo) (string, error) {
+	return jwt.GenerateToken(ctx, uc.conf, authInfo)
 }

@@ -4,6 +4,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"gochat/internal/domain"
+	"gochat/internal/types"
+	"gochat/internal/utils/timeout"
 )
 
 // Adapter 将HTTP请求处理转换为业务逻辑处理函数
@@ -13,11 +15,14 @@ func Adapter[E domain.ExternalRequest[D], D any](usecase domain.Usecase[D]) gin.
 		hReq := new(E)
 
 		// 绑定请求参数
-		if resp, err := BindParams(c, hReq); err != nil {
+		resp, err := BindParams(c, hReq)
+		if err != nil {
 			zap.L().Error("bind params failed", zap.Error(err))
 			ResponseError(c)
 			return
-		} else if resp != nil {
+		}
+
+		if resp != nil {
 			ResponseSuccess(c, resp)
 			return
 		}
@@ -27,15 +32,20 @@ func Adapter[E domain.ExternalRequest[D], D any](usecase domain.Usecase[D]) gin.
 
 		// 转换为领域请求并执行逻辑
 		domainReq := (*hReq).ToDomain()
-		executeLogic(c, func() (*domain.Response, error) {
-			return usecase.Logic(domainReq)
+		executeFn(c, func() (*domain.Message, error) {
+			return usecase.Logic(c.Request.Context(), domainReq)
 		})
 	}
 }
 
-func executeLogic(c *gin.Context, logic func() (*domain.Response, error)) {
+func executeFn(c *gin.Context, logic func() (*domain.Message, error)) {
 	resp, err := logic()
 	if err != nil {
+		if timeout.IsCanceledOrTimeout(err) {
+			ResponseSuccess(c, types.TimeoutResponse)
+			return
+		}
+
 		zap.L().Error("server error", zap.Error(err))
 		ResponseError(c)
 		return
@@ -45,6 +55,6 @@ func executeLogic(c *gin.Context, logic func() (*domain.Response, error)) {
 	if resp != nil {
 		ResponseSuccess(c, resp)
 	} else {
-		ResponseSuccess(c, domain.NewSuccessResponse())
+		ResponseSuccess(c, types.DefaultResponse)
 	}
 }
