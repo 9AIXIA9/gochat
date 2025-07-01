@@ -5,7 +5,6 @@ import (
 	"gochat/internal/domain"
 	"gochat/internal/infra/encrypt"
 	"gochat/internal/infra/snowflake"
-	"gochat/internal/types"
 )
 
 type CreateRoom struct {
@@ -43,7 +42,7 @@ func (uc *CreateRoom) Logic(ctx context.Context, req *domain.CreateRoomRequest) 
 	if exist, err := uc.CreateRoom(ctx, room); err != nil {
 		return nil, err
 	} else if exist {
-		return types.RoomExistResponse, nil
+		return domain.RoomExistResponse, nil
 	}
 
 	// 返回房间信息

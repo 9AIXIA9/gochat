@@ -5,7 +5,6 @@ import (
 	"gochat/internal/domain"
 	"gochat/internal/infra/encrypt"
 	"gochat/internal/infra/snowflake"
-	"gochat/internal/types"
 )
 
 type Signup struct {
@@ -39,7 +38,7 @@ func (uc *Signup) Logic(ctx context.Context, req *domain.SignupRequest) (*domain
 	if exist, err := uc.CreateUser(ctx, user); err != nil {
 		return nil, err
 	} else if exist {
-		return types.UserExistResponse, nil
+		return domain.UserExistResponse, nil
 	}
 
 	// 返回用户信息

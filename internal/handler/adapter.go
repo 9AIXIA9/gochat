@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"gochat/internal/domain"
-	"gochat/internal/types"
 	"gochat/internal/utils/timeout"
 )
 
@@ -42,7 +41,7 @@ func executeFn(c *gin.Context, logic func() (*domain.Message, error)) {
 	resp, err := logic()
 	if err != nil {
 		if timeout.IsCanceledOrTimeout(err) {
-			ResponseSuccess(c, types.TimeoutResponse)
+			ResponseSuccess(c, domain.TimeoutResponse)
 			return
 		}
 
@@ -55,6 +54,6 @@ func executeFn(c *gin.Context, logic func() (*domain.Message, error)) {
 	if resp != nil {
 		ResponseSuccess(c, resp)
 	} else {
-		ResponseSuccess(c, types.DefaultResponse)
+		ResponseSuccess(c, domain.DefaultResponse)
 	}
 }

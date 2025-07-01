@@ -4,7 +4,6 @@ import (
 	"context"
 	"gochat/internal/domain"
 	"gochat/internal/infra/encrypt"
-	"gochat/internal/types"
 )
 
 type JoinRoom struct {
@@ -24,27 +23,27 @@ func (uc *JoinRoom) Logic(ctx context.Context, req *domain.JoinRoomRequest) (*do
 	}
 
 	if room == nil {
-		return types.RoomNotExistResponse, nil
+		return domain.RoomNotExistResponse, nil
 	}
 
 	//判断人数
 	if room.CurrentUsers >= room.MaxUsers {
-		return types.RoomIsFullResponse, nil
+		return domain.RoomIsFullResponse, nil
 	}
 
 	// 判断密钥
 	if err := uc.CheckSecret(ctx, req.Secret, room.SecretHash); err != nil {
-		return types.WrongSecretResponse, nil
+		return domain.WrongSecretResponse, nil
 	}
 
 	//加入房间(仓库)
 	if exist, err := uc.JoinRoom(ctx, req.UserNumber, req.Number); err != nil {
 		return nil, err
 	} else if exist {
-		return types.HasJoinedResponse, nil
+		return domain.HasJoinedResponse, nil
 	}
 
-	return types.DefaultResponse, nil
+	return domain.DefaultResponse, nil
 }
 
 func (uc *JoinRoom) CheckSecret(ctx context.Context, origin, hash string) error {

@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: cloudclip-api
+    container_name: gochat-api
     restart: unless-stopped
     ports:
       - "8888:8888"
@@ -17,17 +17,17 @@ services:
       - mysql
       - redis
     networks:
-      - cloudclip-network
+      - gochat-network
 
   mysql:
     image: mysql:8.0
-    container_name: cloudclip-mysql
+    container_name: gochat-mysql
     restart: unless-stopped
     environment:
-      - MYSQL_ROOT_PASSWORD=cloudclip_secret
-      - MYSQL_DATABASE=cloudclip
-      - MYSQL_USER=cloudclip
-      - MYSQL_PASSWORD=cloudclip_pass
+      - MYSQL_ROOT_PASSWORD=gochat_secret
+      - MYSQL_DATABASE=gochat
+      - MYSQL_USER=gochat
+      - MYSQL_PASSWORD=gochat_pass
       - TZ=Asia/Shanghai
     ports:
       - "3306:3306"
@@ -35,21 +35,21 @@ services:
       - mysql-data:/var/lib/mysql
       - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     networks:
-      - cloudclip-network
+      - gochat-network
 
   redis:
     image: redis:7-alpine
-    container_name: cloudclip-redis
+    container_name: gochat-redis
     restart: unless-stopped
     ports:
       - "6379:6379"
     volumes:
       - redis-data:/data
     networks:
-      - cloudclip-network
+      - gochat-network
 
 networks:
-  cloudclip-network:
+  gochat-network:
     driver: bridge
 
 volumes:

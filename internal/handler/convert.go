@@ -1,6 +1,8 @@
 package handler
 
-import "gochat/internal/domain"
+import (
+	"gochat/internal/domain"
+)
 
 func (r SignupRequest) ToDomain() *domain.SignupRequest {
 	return &domain.SignupRequest{

@@ -3,9 +3,8 @@ package middleware
 import (
 	"github.com/gin-contrib/timeout"
 	"github.com/gin-gonic/gin"
+	"gochat/internal/domain"
 	"gochat/internal/handler"
-	"gochat/internal/types"
-
 	"time"
 )
 
@@ -23,5 +22,5 @@ func Timeout(duration time.Duration) gin.HandlerFunc {
 }
 
 func timeoutResponse(c *gin.Context) {
-	handler.ResponseSuccess(c, types.TimeoutResponse)
+	handler.ResponseSuccess(c, domain.TimeoutResponse)
 }

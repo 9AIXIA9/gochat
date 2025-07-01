@@ -15,3 +15,24 @@ type CreateRoomResponse struct {
 	Description string     `json:"description"`
 	MaxUsers    int        `json:"max_users"`
 }
+
+var DefaultResponse = NewSuccessMessage()
+
+// middleware || handler response
+var (
+	TimeoutResponse      = NewDefaultMessage(CodeTimeout)
+	UnauthorizedResponse = NewDefaultMessage(CodeUnauthorized)
+	InvalidTokenResponse = NewDefaultMessage(CodeInvalidToken)
+)
+
+// usecase logic response
+var (
+	UserExistResponse     = NewDefaultMessage(CodeUserExist)
+	WrongPasswordResponse = NewDefaultMessage(CodeWrongPassword)
+	RoomExistResponse     = NewDefaultMessage(CodeRoomExist)
+	RoomNotExistResponse  = NewDefaultMessage(CodeRoomNotExist)
+	RoomIsFullResponse    = NewDefaultMessage(CodeRoomIsFull)
+	WrongSecretResponse   = NewDefaultMessage(CodeWrongSecret)
+	HasJoinedResponse     = NewDefaultMessage(CodeHasJoined)
+	NotJoinedResponse     = NewDefaultMessage(CodeNotJoined)
+)

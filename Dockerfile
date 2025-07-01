@@ -10,7 +10,7 @@ RUN go mod download
 COPY . .
 
 # 构建应用
-RUN CGO_ENABLED=0 GOOS=linux go build -o /app/bin/cloudclip cloudclip.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/bin/gochat gochat.go
 
 # 使用轻量级的基础镜像
 FROM alpine:latest
@@ -23,8 +23,8 @@ RUN apk --no-cache add ca-certificates tzdata && \
 WORKDIR /app
 
 # 从构建阶段复制二进制文件
-COPY --from=builder /app/bin/cloudclip /app/
-COPY --from=builder /app/etc/cloudclip-api.yaml /app/etc/
+COPY --from=builder /app/bin/gochat /app/
+COPY --from=builder /app/etc/gochat-api.yaml /app/etc/
 
 # 设置时区环境变量
 ENV TZ=Asia/Shanghai
@@ -33,4 +33,4 @@ ENV TZ=Asia/Shanghai
 EXPOSE 8888
 
 # 运行应用
-CMD ["/app/cloudclip", "-f", "/app/etc/cloudclip-api.yaml"]
+CMD ["/app/gochat", "-f", "/app/etc/gochat-api.yaml"]

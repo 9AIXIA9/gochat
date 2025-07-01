@@ -6,7 +6,6 @@ import (
 	"gochat/internal/domain"
 	"gochat/internal/infra/encrypt"
 	"gochat/internal/infra/jwt"
-	"gochat/internal/types"
 )
 
 type Login struct {
@@ -26,12 +25,12 @@ func (uc *Login) Logic(ctx context.Context, req *domain.LoginRequest) (*domain.M
 	}
 
 	if user == nil {
-		return types.NotJoinedResponse, nil
+		return domain.NotJoinedResponse, nil
 	}
 
 	// 验证用户名密码
 	if err := uc.CheckPwd(ctx, req.Password, user.PwdHash); err != nil {
-		return types.WrongPasswordResponse, nil
+		return domain.WrongPasswordResponse, nil
 	}
 
 	// 生成token

@@ -1,9 +1,9 @@
 .PHONY: build clean test run help docker-build docker-push docker-run
 
-APP_NAME=cloudclip
+APP_NAME=gochat
 BUILD_DIR=./bin
-MAIN_FILE=cloudclip.go
-CONFIG_FILE=etc/cloudclip-api.yaml
+MAIN_FILE=gochat.go
+CONFIG_FILE=etc/gochat-api.yaml
 
 # 获取当前git commit id
 GIT_COMMIT=$(shell git rev-parse --short HEAD)

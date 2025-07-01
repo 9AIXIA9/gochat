@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"gochat/internal/domain"
-	"gochat/internal/types"
 )
 
 type LeaveRoom struct {
@@ -19,10 +18,10 @@ func (uc *LeaveRoom) Logic(ctx context.Context, req *domain.LeaveRoomRequest) (*
 	if exist, err := uc.LeaveRoom(ctx, req.UserNumber, req.Number); err != nil {
 		return nil, err
 	} else if !exist {
-		return types.NotJoinedResponse, nil
+		return domain.NotJoinedResponse, nil
 	}
 
-	return types.DefaultResponse, nil
+	return domain.DefaultResponse, nil
 }
 
 func (uc *LeaveRoom) LeaveRoom(ctx context.Context, userNumber domain.UserNumber, roomNumber domain.RoomNumber) (bool, error) {
