@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"gochat/internal/domain"
+	"gochat/internal/utils"
 )
 
 type LeaveRoom struct {
@@ -15,15 +16,16 @@ func NewLeaveRoom(repo domain.UserRoomRepository) domain.LeaveRoomUsecase {
 
 func (uc *LeaveRoom) Logic(ctx context.Context, req *domain.LeaveRoomRequest) (*domain.Message, error) {
 	// 退出房间
-	if exist, err := uc.LeaveRoom(ctx, req.UserNumber, req.Number); err != nil {
+	if err := uc.LeaveRoom(ctx, req.UserNumber, req.Number); err != nil {
+		if utils.IsNotFound(err) {
+			return domain.NotJoinedResponse, nil
+		}
 		return nil, err
-	} else if !exist {
-		return domain.NotJoinedResponse, nil
 	}
 
-	return domain.DefaultResponse, nil
+	return nil, nil
 }
 
-func (uc *LeaveRoom) LeaveRoom(ctx context.Context, userNumber domain.UserNumber, roomNumber domain.RoomNumber) (bool, error) {
-	return uc.repo.Leave(ctx, userNumber, roomNumber)
+func (uc *LeaveRoom) LeaveRoom(ctx context.Context, userNumber domain.UserNumber, roomNumber domain.RoomNumber) error {
+	return uc.repo.Delete(ctx, userNumber, roomNumber)
 }

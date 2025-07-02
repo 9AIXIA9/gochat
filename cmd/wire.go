@@ -7,10 +7,11 @@ import (
 	"gochat/api"
 	"gochat/internal/config"
 	"gochat/internal/domain"
+	"gochat/internal/handler"
 	"gochat/internal/infra/logger"
 	"gochat/internal/infra/repository"
 	"gochat/internal/infra/snowflake"
-	"gochat/internal/presentation"
+	"gochat/internal/infra/websocket"
 	"gochat/internal/usecase"
 	"gorm.io/gorm"
 
@@ -75,6 +76,7 @@ var UsecaseSet = wire.NewSet(
 // InitializeDependencies 使用Wire初始化所有依赖
 func InitializeDependencies(configPath string) *api.Dependencies {
 	wire.Build(
+		websocket.NewManager,
 		ProvideConfig,
 		ProvideDatabase,
 		RepositorySet,

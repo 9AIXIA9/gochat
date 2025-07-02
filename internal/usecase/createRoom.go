@@ -5,6 +5,7 @@ import (
 	"gochat/internal/domain"
 	"gochat/internal/infra/encrypt"
 	"gochat/internal/infra/snowflake"
+	"gochat/internal/utils"
 )
 
 type CreateRoom struct {
@@ -39,10 +40,11 @@ func (uc *CreateRoom) Logic(ctx context.Context, req *domain.CreateRoomRequest) 
 		Owner:        req.UserNumber,
 	}
 
-	if exist, err := uc.CreateRoom(ctx, room); err != nil {
+	if err := uc.CreateRoom(ctx, room); err != nil {
+		if utils.IsDuplicate(err) {
+			return domain.RoomExistResponse, nil
+		}
 		return nil, err
-	} else if exist {
-		return domain.RoomExistResponse, nil
 	}
 
 	// 返回房间信息
@@ -63,6 +65,6 @@ func (uc *CreateRoom) GenerateNumber(ctx context.Context) (domain.RoomNumber, er
 	return snowflake.GenerateRoomNumber(ctx)
 }
 
-func (uc *CreateRoom) CreateRoom(ctx context.Context, room *domain.Room) (bool, error) {
-	return uc.repo.Create(ctx, room)
+func (uc *CreateRoom) CreateRoom(ctx context.Context, room *domain.Room) error {
+	return uc.repo.Save(ctx, room)
 }

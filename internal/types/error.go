@@ -5,17 +5,16 @@ import (
 	"errors"
 )
 
+// repository || websocket
+var (
+	ErrNotFound     = errors.New("entity not found")
+	ErrDuplicateKey = errors.New("entity key has existed")
+)
+
 //handler
 
 var (
 	ErrNullPointer = errors.New("param is nil")
-)
-
-// websocket
-var (
-	ErrUserExist    = errors.New("the user has existed")
-	ErrRoomExist    = errors.New("the room has existed")
-	ErrRoomNotExist = errors.New("the room doesn't exist")
 )
 
 // jwt

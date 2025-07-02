@@ -1,5 +1,12 @@
 package utils
 
+import (
+	"errors"
+	"gochat/internal/types"
+	"gorm.io/gorm"
+	"strings"
+)
+
 // NormalizeVarArgs 标准化可变参数，根据参数数量返回不同形式的结果
 func NormalizeVarArgs[T any](data ...T) any {
 	if l := len(data); l == 1 {
@@ -19,4 +26,27 @@ func GetOption[T any](opts ...T) (bool, T) {
 	} else {
 		return true, opts[0]
 	}
+}
+
+func CheckDuplicateKeyError(err error) error {
+	errMsg := strings.ToLower(err.Error())
+	if strings.Contains(errMsg, "duplicate") || strings.Contains(errMsg, "1062") {
+		return types.ErrDuplicateKey
+	}
+	return err
+}
+
+func CheckNotFoundError(err error) error {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return types.ErrNotFound
+	}
+	return err
+}
+
+func IsNotFound(err error) bool {
+	return errors.Is(err, types.ErrNotFound)
+}
+
+func IsDuplicate(err error) bool {
+	return errors.Is(err, types.ErrDuplicateKey)
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"gochat/internal/domain"
 	"gochat/internal/infra/encrypt"
+	"gochat/internal/utils"
 )
 
 type JoinRoom struct {
@@ -17,8 +18,11 @@ func NewJoinRoom(roomRepo domain.RoomRepository, userRoomRepo domain.UserRoomRep
 
 func (uc *JoinRoom) Logic(ctx context.Context, req *domain.JoinRoomRequest) (*domain.Message, error) {
 	//查询房间信息
-	room, err := uc.QueryRoom(ctx, req.Number)
+	room, err := uc.FindRoom(ctx, req.Number)
 	if err != nil {
+		if utils.IsNotFound(err) {
+			return domain.RoomNotExistResponse, nil
+		}
 		return nil, err
 	}
 
@@ -37,23 +41,24 @@ func (uc *JoinRoom) Logic(ctx context.Context, req *domain.JoinRoomRequest) (*do
 	}
 
 	//加入房间(仓库)
-	if exist, err := uc.JoinRoom(ctx, req.UserNumber, req.Number); err != nil {
+	if err := uc.JoinRoom(ctx, req.UserNumber, req.Number); err != nil {
+		if utils.IsDuplicate(err) {
+			return domain.HasJoinedResponse, nil
+		}
 		return nil, err
-	} else if exist {
-		return domain.HasJoinedResponse, nil
 	}
 
-	return domain.DefaultResponse, nil
+	return nil, nil
 }
 
 func (uc *JoinRoom) CheckSecret(ctx context.Context, origin, hash string) error {
 	return encrypt.Compare(ctx, origin, hash)
 }
 
-func (uc *JoinRoom) JoinRoom(ctx context.Context, userNumber domain.UserNumber, roomNumber domain.RoomNumber) (bool, error) {
-	return uc.userRoomRepo.Join(ctx, userNumber, roomNumber)
+func (uc *JoinRoom) JoinRoom(ctx context.Context, userNumber domain.UserNumber, roomNumber domain.RoomNumber) error {
+	return uc.userRoomRepo.Save(ctx, userNumber, roomNumber)
 }
 
-func (uc *JoinRoom) QueryRoom(ctx context.Context, number domain.RoomNumber) (*domain.Room, error) {
-	return uc.roomRepo.QueryByRoomNumber(ctx, number)
+func (uc *JoinRoom) FindRoom(ctx context.Context, number domain.RoomNumber) (*domain.Room, error) {
+	return uc.roomRepo.FindOneByNumber(ctx, number)
 }

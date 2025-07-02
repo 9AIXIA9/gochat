@@ -28,6 +28,7 @@ var (
 // usecase logic response
 var (
 	UserExistResponse     = NewDefaultMessage(CodeUserExist)
+	UserNotExistResponse  = NewDefaultMessage(CodeUserNotExist)
 	WrongPasswordResponse = NewDefaultMessage(CodeWrongPassword)
 	RoomExistResponse     = NewDefaultMessage(CodeRoomExist)
 	RoomNotExistResponse  = NewDefaultMessage(CodeRoomNotExist)

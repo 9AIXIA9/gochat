@@ -6,6 +6,7 @@ import (
 	"gochat/internal/domain"
 	"gochat/internal/infra/encrypt"
 	"gochat/internal/infra/jwt"
+	"gochat/internal/utils"
 )
 
 type Login struct {
@@ -19,8 +20,11 @@ func NewLogin(conf *config.JWT, repo domain.UserRepository) domain.LoginUsecase 
 
 func (uc *Login) Logic(ctx context.Context, req *domain.LoginRequest) (*domain.Message, error) {
 	//查询用户信息
-	user, err := uc.QueryUser(ctx, req.Number)
+	user, err := uc.FindUser(ctx, req.Number)
 	if err != nil {
+		if utils.IsNotFound(err) {
+			return domain.UserNotExistResponse, nil
+		}
 		return nil, err
 	}
 
@@ -43,8 +47,8 @@ func (uc *Login) Logic(ctx context.Context, req *domain.LoginRequest) (*domain.M
 	return domain.NewSuccessMessage(domain.LoginResponse{Token: token}), nil
 }
 
-func (uc *Login) QueryUser(ctx context.Context, number domain.UserNumber) (*domain.User, error) {
-	return uc.repo.QueryByNumber(ctx, number)
+func (uc *Login) FindUser(ctx context.Context, number domain.UserNumber) (*domain.User, error) {
+	return uc.repo.FindOneByNumber(ctx, number)
 }
 
 func (uc *Login) CheckPwd(ctx context.Context, origin, hash string) error {

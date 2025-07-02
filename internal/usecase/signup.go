@@ -5,6 +5,7 @@ import (
 	"gochat/internal/domain"
 	"gochat/internal/infra/encrypt"
 	"gochat/internal/infra/snowflake"
+	"gochat/internal/utils"
 )
 
 type Signup struct {
@@ -35,10 +36,11 @@ func (uc *Signup) Logic(ctx context.Context, req *domain.SignupRequest) (*domain
 		PwdHash: hashedPassword,
 	}
 
-	if exist, err := uc.CreateUser(ctx, user); err != nil {
+	if err := uc.CreateUser(ctx, user); err != nil {
+		if utils.IsDuplicate(err) {
+			return domain.UserExistResponse, nil
+		}
 		return nil, err
-	} else if exist {
-		return domain.UserExistResponse, nil
 	}
 
 	// 返回用户信息
@@ -53,6 +55,6 @@ func (uc *Signup) GenerateNumber(ctx context.Context) (domain.UserNumber, error)
 	return snowflake.GenerateUserNumber(ctx)
 }
 
-func (uc *Signup) CreateUser(ctx context.Context, user *domain.User) (bool, error) {
-	return uc.repo.Create(ctx, user)
+func (uc *Signup) CreateUser(ctx context.Context, user *domain.User) error {
+	return uc.repo.Save(ctx, user)
 }

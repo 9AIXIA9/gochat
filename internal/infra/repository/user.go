@@ -2,9 +2,9 @@ package repository
 
 import (
 	"context"
-	"errors"
 	"gochat/internal/domain"
 	"gochat/internal/model"
+	"gochat/internal/utils"
 	"gorm.io/gorm"
 )
 
@@ -16,29 +16,18 @@ func NewUserRepository(db *gorm.DB) domain.UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (u *UserRepository) Create(ctx context.Context, user *domain.User) (bool, error) {
-	var existingUser model.User
-	result := u.db.WithContext(ctx).Where("number = ?", user.Number).First(&existingUser)
-	if result.RowsAffected > 0 {
-		return true, nil // 用户已存在
-	}
-
+func (u *UserRepository) Save(ctx context.Context, user *domain.User) error {
 	gormUser := model.UserFromDomain(user)
-	if err := u.db.WithContext(ctx).Create(gormUser).Error; err != nil {
-		return false, err
+	if err := u.db.WithContext(ctx).Save(gormUser).Error; err != nil {
+		return utils.CheckDuplicateKeyError(err)
 	}
-
-	return false, nil
+	return nil
 }
 
-func (u *UserRepository) QueryByNumber(ctx context.Context, number domain.UserNumber) (*domain.User, error) {
+func (u *UserRepository) FindOneByNumber(ctx context.Context, number domain.UserNumber) (*domain.User, error) {
 	var gormUser model.User
-	result := u.db.WithContext(ctx).Where("number = ?", number).First(&gormUser)
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return nil, nil // 用户不存在
-		}
-		return nil, result.Error
+	if err := u.db.WithContext(ctx).Where("number = ?", number).First(&gormUser).Error; err != nil {
+		return nil, utils.CheckNotFoundError(err)
 	}
 
 	return gormUser.ToDomain(), nil

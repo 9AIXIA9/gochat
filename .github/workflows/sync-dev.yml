@@ -47,7 +47,7 @@ jobs:
             const fs = require('fs');
             const conflictFiles = fs.readFileSync('conflict_files.txt', 'utf8').trim().split('\n');
             
-            await github.rest.issues.create({
+            await github.rest.issues.Save({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: 'main 到 dev 的合并冲突',

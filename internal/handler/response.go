@@ -1,9 +1,8 @@
 package handler
 
 import (
-	"gochat/internal/domain"
-
 	"github.com/gin-gonic/gin"
+	"gochat/internal/domain"
 )
 
 func ResponseSuccess(c *gin.Context, message *domain.Message) {

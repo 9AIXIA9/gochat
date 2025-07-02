@@ -10,6 +10,8 @@ import (
 
 // RateLimit 限流中间件
 func RateLimit(conf *config.RateLimit) gin.HandlerFunc {
+	//todo redis存储
+
 	// 创建速率配置：每分钟20次请求
 	rate := limiter.Rate{
 		Period: conf.Period,

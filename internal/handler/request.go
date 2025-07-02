@@ -1,6 +1,8 @@
 package handler
 
-import "gochat/internal/domain"
+import (
+	"gochat/internal/domain"
+)
 
 // SignupRequest 注册请求
 type SignupRequest struct {

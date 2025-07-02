@@ -61,3 +61,10 @@ func ChatFromDomain(chat domain.Chat) *Chat {
 		SentAt:     chat.SendTime,
 	}
 }
+
+func NewUserRoom(userNumber domain.UserNumber, roomNumber domain.RoomNumber) *UserRoom {
+	return &UserRoom{
+		UserNumber: userNumber,
+		RoomNumber: roomNumber,
+	}
+}

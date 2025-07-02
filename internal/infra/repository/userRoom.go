@@ -2,9 +2,10 @@ package repository
 
 import (
 	"context"
-	"errors"
 	"gochat/internal/domain"
 	"gochat/internal/model"
+	"gochat/internal/types"
+	"gochat/internal/utils"
 	"gorm.io/gorm"
 )
 
@@ -16,46 +17,36 @@ func NewUserRoomRepository(db *gorm.DB) domain.UserRoomRepository {
 	return &UserRoomRepository{db: db}
 }
 
-func (u *UserRoomRepository) Join(ctx context.Context, userNumber domain.UserNumber, roomNumber domain.RoomNumber) (bool, error) {
-	var userRoom model.UserRoom
-	result := u.db.WithContext(ctx).Where("user_number = ? AND room_number = ?", userNumber, roomNumber).First(&userRoom)
-	if result.RowsAffected > 0 {
-		return true, nil // 用户已在房间中
-	}
-
-	// 创建新的用户房间关联
-	newUserRoom := model.UserRoom{
-		UserNumber: userNumber,
-		RoomNumber: roomNumber,
-	}
-
-	if err := u.db.WithContext(ctx).Create(&newUserRoom).Error; err != nil {
-		return false, err
+func (u *UserRoomRepository) Save(ctx context.Context, userNumber domain.UserNumber, roomNumber domain.RoomNumber) error {
+	if err := u.db.WithContext(ctx).Save(model.NewUserRoom(userNumber, roomNumber)).Error; err != nil {
+		return utils.CheckDuplicateKeyError(err)
 	}
 
 	// 更新房间的当前用户数
 	if err := u.db.WithContext(ctx).Model(&model.Room{}).Where("number = ?", roomNumber).
 		UpdateColumn("current_users", gorm.Expr("current_users + ?", 1)).Error; err != nil {
-		return false, err
+		return err
 	}
 
-	return false, nil
+	return nil
 }
 
-func (u *UserRoomRepository) Leave(ctx context.Context, userNumber domain.UserNumber, roomNumber domain.RoomNumber) (bool, error) {
+func (u *UserRoomRepository) Delete(ctx context.Context, userNumber domain.UserNumber, roomNumber domain.RoomNumber) error {
 	result := u.db.WithContext(ctx).Where("user_number = ? AND room_number = ?", userNumber, roomNumber).Delete(&model.UserRoom{})
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return false, nil // 用户不在房间中
-		}
-		return false, result.Error
+	if err := result.Error; err != nil {
+		return utils.CheckNotFoundError(err)
+	}
+
+	// 如果没有删除任何记录
+	if result.RowsAffected == 0 {
+		return types.ErrNotFound
 	}
 
 	// 更新房间的当前用户数
 	if err := u.db.WithContext(ctx).Model(&model.Room{}).Where("number = ?", roomNumber).
 		UpdateColumn("current_users", gorm.Expr("current_users - ?", 1)).Error; err != nil {
-		return false, err
+		return err
 	}
 
-	return true, nil
+	return nil
 }

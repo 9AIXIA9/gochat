@@ -1,25 +1,27 @@
 package domain
 
-import "context"
+import (
+	"context"
+)
 
 //todo 加上retry
 
 type UserRepository interface {
-	Create(ctx context.Context, user *User) (bool, error)
-	QueryByNumber(ctx context.Context, number UserNumber) (*User, error)
+	Save(ctx context.Context, user *User) error
+	FindOneByNumber(ctx context.Context, number UserNumber) (*User, error)
 }
 
 type RoomRepository interface {
-	Create(ctx context.Context, room *Room) (bool, error)
-	QueryByRoomNumber(ctx context.Context, roomNumber RoomNumber) (*Room, error)
+	Save(ctx context.Context, room *Room) error
+	FindOneByNumber(ctx context.Context, number RoomNumber) (*Room, error)
 }
 
 type UserRoomRepository interface {
-	Join(ctx context.Context, userNumber UserNumber, roomNumber RoomNumber) (bool, error)
-	Leave(ctx context.Context, userNumber UserNumber, roomNumber RoomNumber) (bool, error)
+	Save(ctx context.Context, userNumber UserNumber, roomNumber RoomNumber) error
+	Delete(ctx context.Context, userNumber UserNumber, roomNumber RoomNumber) error
 }
 
 type ChatRepository interface {
-	Create(ctx context.Context, chat Chat) (bool, error)
-	QueryAllByRoomNumber(ctx context.Context, number RoomNumber) ([]Chat, error)
+	Save(ctx context.Context, chat Chat) error
+	FindAllByRoomNumber(ctx context.Context, number RoomNumber) ([]Chat, error)
 }
