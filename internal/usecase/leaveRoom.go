@@ -18,7 +18,7 @@ func (uc *LeaveRoom) Logic(ctx context.Context, req *domain.LeaveRoomRequest) (*
 	// 退出房间
 	if err := uc.LeaveRoom(ctx, req.UserNumber, req.Number); err != nil {
 		if utils.IsNotFound(err) {
-			return domain.NotJoinedResponse, nil
+			return domain.NotJoinedMessage, nil
 		}
 		return nil, err
 	}

@@ -13,7 +13,7 @@ func JWTAuth(uc domain.AuthUsecase) gin.HandlerFunc {
 		// 从请求头获取token
 		authHeader := c.Request.Header.Get("Authorization")
 		if authHeader == "" {
-			handler.ResponseSuccess(c, domain.UnauthorizedResponse)
+			handler.ResponseSuccess(c, domain.UnauthorizedMessage)
 			c.Abort()
 			return
 		}
@@ -21,7 +21,7 @@ func JWTAuth(uc domain.AuthUsecase) gin.HandlerFunc {
 		// Bearer token格式
 		parts := strings.SplitN(authHeader, " ", 2)
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			handler.ResponseSuccess(c, domain.InvalidTokenResponse)
+			handler.ResponseSuccess(c, domain.InvalidTokenMessage)
 			c.Abort()
 			return
 		}
@@ -30,7 +30,7 @@ func JWTAuth(uc domain.AuthUsecase) gin.HandlerFunc {
 
 		// 解析token
 		if authInfo, err := uc.ParseToken(c.Request.Context(), tokenString); err != nil {
-			handler.ResponseSuccess(c, domain.InvalidTokenResponse)
+			handler.ResponseSuccess(c, domain.InvalidTokenMessage)
 			c.Abort()
 			return
 		} else {

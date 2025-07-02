@@ -23,18 +23,18 @@ func (uc *Login) Logic(ctx context.Context, req *domain.LoginRequest) (*domain.M
 	user, err := uc.FindUser(ctx, req.Number)
 	if err != nil {
 		if utils.IsNotFound(err) {
-			return domain.UserNotExistResponse, nil
+			return domain.UserNotExistMessage, nil
 		}
 		return nil, err
 	}
 
 	if user == nil {
-		return domain.NotJoinedResponse, nil
+		return domain.NotJoinedMessage, nil
 	}
 
 	// 验证用户名密码
-	if err := uc.CheckPwd(ctx, req.Password, user.PwdHash); err != nil {
-		return domain.WrongPasswordResponse, nil
+	if err := uc.CheckPwd(ctx, req.Password, user.PwdHash()); err != nil {
+		return domain.WrongPasswordMessage, nil
 	}
 
 	// 生成token

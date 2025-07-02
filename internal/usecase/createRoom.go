@@ -30,19 +30,11 @@ func (uc *CreateRoom) Logic(ctx context.Context, req *domain.CreateRoomRequest) 
 	}
 
 	// 创建房间
-	room := &domain.Room{
-		Name:         req.Name,
-		Number:       roomNumber,
-		SecretHash:   secretHash,
-		Description:  req.Description,
-		CurrentUsers: 1,
-		MaxUsers:     req.MaxUsers,
-		Owner:        req.UserNumber,
-	}
+	room := domain.CreateRoom(roomNumber, req.Name, secretHash, req.Description, req.MaxUsers, req.UserNumber)
 
 	if err := uc.CreateRoom(ctx, room); err != nil {
 		if utils.IsDuplicate(err) {
-			return domain.RoomExistResponse, nil
+			return domain.RoomExistMessage, nil
 		}
 		return nil, err
 	}

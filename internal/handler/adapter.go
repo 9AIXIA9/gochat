@@ -41,7 +41,7 @@ func executeFn(c *gin.Context, logic func() (*domain.Message, error)) {
 	resp, err := logic()
 	if err != nil {
 		if timeout.IsCanceledOrTimeout(err) {
-			ResponseSuccess(c, domain.TimeoutResponse)
+			ResponseSuccess(c, domain.TimeoutMessage)
 			return
 		}
 
@@ -54,6 +54,6 @@ func executeFn(c *gin.Context, logic func() (*domain.Message, error)) {
 	if resp != nil {
 		ResponseSuccess(c, resp)
 	} else {
-		ResponseSuccess(c, domain.DefaultResponse)
+		ResponseSuccess(c, domain.DefaultMessage)
 	}
 }

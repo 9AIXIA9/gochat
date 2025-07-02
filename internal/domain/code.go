@@ -5,10 +5,15 @@ import "net/http"
 type ResCode int
 
 // 定义错误码常量
-const (
-	CodeSuccess ResCode = 200
 
-	// 客户端错误 4xx
+// CodeSuccess 成功响应
+const CodeSuccess ResCode = 200
+
+// CodeServerBusy 服务端错误
+const CodeServerBusy ResCode = 500
+
+// 客户端错误 4xx
+const (
 	CodeInvalidParam ResCode = 400 + iota
 	CodeUnauthorized
 	CodeUserExist
@@ -22,9 +27,6 @@ const (
 	CodeHasJoined
 	CodeNotJoined
 	CodeTimeout
-
-	// 服务端错误 5xx
-	CodeServerBusy ResCode = 500 + iota
 )
 
 func (c ResCode) ToHTTP() int {

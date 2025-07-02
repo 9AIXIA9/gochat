@@ -15,7 +15,6 @@ import (
 	"gochat/internal/infra/logger"
 	"gochat/internal/infra/repository"
 	"gochat/internal/infra/snowflake"
-	"gochat/internal/infra/websocket"
 	"gochat/internal/usecase"
 	"gorm.io/gorm"
 )
@@ -25,7 +24,6 @@ import (
 // InitializeDependencies 使用Wire初始化所有依赖
 func InitializeDependencies(configPath string) *api.Dependencies {
 	config := ProvideConfig(configPath)
-	manager := websocket.NewManager()
 	authUsecase := ProvideAuth(config)
 	db := ProvideDatabase(config)
 	userRepository := repository.NewUserRepository(db)
@@ -38,7 +36,6 @@ func InitializeDependencies(configPath string) *api.Dependencies {
 	leaveRoomUsecase := usecase.NewLeaveRoom(userRoomRepository)
 	dependencies := &api.Dependencies{
 		Config:            config,
-		Manager:           manager,
 		AuthUsecase:       authUsecase,
 		SignupUsecase:     signupUsecase,
 		LoginUsecase:      loginUsecase,

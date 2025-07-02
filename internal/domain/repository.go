@@ -22,6 +22,6 @@ type UserRoomRepository interface {
 }
 
 type ChatRepository interface {
-	Save(ctx context.Context, chat Chat) error
-	FindAllByRoomNumber(ctx context.Context, number RoomNumber) ([]Chat, error)
+	Save(ctx context.Context, chat *Chat) error
+	FindAllByRoomNumber(ctx context.Context, number RoomNumber) ([]*Chat, error)
 }

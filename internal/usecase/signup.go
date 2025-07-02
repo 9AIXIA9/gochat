@@ -30,15 +30,11 @@ func (uc *Signup) Logic(ctx context.Context, req *domain.SignupRequest) (*domain
 	}
 
 	// 创建用户
-	user := &domain.User{
-		Number:  userNumber,
-		Name:    req.Name,
-		PwdHash: hashedPassword,
-	}
+	user := domain.CreateUser(userNumber, req.Name, hashedPassword)
 
 	if err := uc.CreateUser(ctx, user); err != nil {
 		if utils.IsDuplicate(err) {
-			return domain.UserExistResponse, nil
+			return domain.UserExistMessage, nil
 		}
 		return nil, err
 	}
