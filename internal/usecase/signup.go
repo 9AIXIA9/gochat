@@ -30,7 +30,7 @@ func (uc *Signup) Logic(ctx context.Context, req *domain.SignupRequest) (*domain
 	}
 
 	// 创建用户
-	user := domain.CreateUser(userNumber, req.Name, hashedPassword)
+	user := domain.NewUser(userNumber, req.Name, hashedPassword)
 
 	if err := uc.CreateUser(ctx, user); err != nil {
 		if utils.IsDuplicate(err) {

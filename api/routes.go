@@ -58,6 +58,9 @@ func setup(r *gin.Engine, deps *Dependencies) {
 		protected.POST("/rooms", handler.CreateRoom(deps.CreateRoomUsecase))
 		protected.POST("/rooms/:number/join", handler.JoinRoom(deps.JoinRoomUsecase))
 		protected.DELETE("/rooms/:number/leave", handler.LeaveRoom(deps.LeaveRoomUsecase))
+
+		//websocket长连接
+		protected.GET("/ws", handler.Websocket())
 	}
 
 	//swagger文档
