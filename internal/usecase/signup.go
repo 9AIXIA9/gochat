@@ -16,7 +16,7 @@ func NewSignup(repo domain.UserRepository) domain.SignupUsecase {
 	return &Signup{repo: repo}
 }
 
-func (uc *Signup) Logic(ctx context.Context, req *domain.SignupRequest) (*domain.Message, error) {
+func (uc *Signup) Logic(ctx context.Context, req *domain.SignupRequest) (*domain.Response, error) {
 	// 加密密码
 	hashedPassword, err := uc.EncryptPwd(ctx, req.Password)
 	if err != nil {
@@ -34,13 +34,13 @@ func (uc *Signup) Logic(ctx context.Context, req *domain.SignupRequest) (*domain
 
 	if err := uc.CreateUser(ctx, user); err != nil {
 		if utils.IsDuplicate(err) {
-			return domain.UserExistMessage, nil
+			return domain.UserExistResponse, nil
 		}
 		return nil, err
 	}
 
 	// 返回用户信息
-	return domain.NewSuccessMessage(domain.SignupResponse{UserNumber: userNumber}), nil
+	return domain.NewSuccessResponse(domain.SignupResponse{UserNumber: userNumber}), nil
 }
 
 func (uc *Signup) EncryptPwd(ctx context.Context, pwd string) (string, error) {

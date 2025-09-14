@@ -31,17 +31,17 @@ func Adapter[E domain.ExternalRequest[D], D any](usecase domain.Usecase[D]) gin.
 
 		// 转换为领域请求并执行逻辑
 		domainReq := (*hReq).ToDomain()
-		executeFn(c, func() (*domain.Message, error) {
+		executeFn(c, func() (*domain.Response, error) {
 			return usecase.Logic(c.Request.Context(), domainReq)
 		})
 	}
 }
 
-func executeFn(c *gin.Context, logic func() (*domain.Message, error)) {
+func executeFn(c *gin.Context, logic func() (*domain.Response, error)) {
 	resp, err := logic()
 	if err != nil {
 		if timeout.IsCanceledOrTimeout(err) {
-			ResponseSuccess(c, domain.TimeoutMessage)
+			ResponseSuccess(c, domain.TimeoutResponse)
 			return
 		}
 
@@ -54,6 +54,6 @@ func executeFn(c *gin.Context, logic func() (*domain.Message, error)) {
 	if resp != nil {
 		ResponseSuccess(c, resp)
 	} else {
-		ResponseSuccess(c, domain.DefaultMessage)
+		ResponseSuccess(c, domain.DefaultResponse)
 	}
 }

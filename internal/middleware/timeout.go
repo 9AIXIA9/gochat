@@ -22,5 +22,5 @@ func Timeout(duration time.Duration) gin.HandlerFunc {
 }
 
 func timeoutResponse(c *gin.Context) {
-	handler.ResponseSuccess(c, domain.TimeoutMessage)
+	handler.ResponseSuccess(c, domain.TimeoutResponse)
 }

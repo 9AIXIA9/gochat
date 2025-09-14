@@ -14,11 +14,11 @@ func NewLeaveRoom(repo domain.UserRoomRepository) domain.LeaveRoomUsecase {
 	return &LeaveRoom{repo}
 }
 
-func (uc *LeaveRoom) Logic(ctx context.Context, req *domain.LeaveRoomRequest) (*domain.Message, error) {
+func (uc *LeaveRoom) Logic(ctx context.Context, req *domain.LeaveRoomRequest) (*domain.Response, error) {
 	// 退出房间
 	if err := uc.LeaveRoom(ctx, req.UserNumber, req.Number); err != nil {
 		if utils.IsNotFound(err) {
-			return domain.NotJoinedMessage, nil
+			return domain.NotJoinedResponse, nil
 		}
 		return nil, err
 	}

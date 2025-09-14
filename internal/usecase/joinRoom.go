@@ -16,34 +16,34 @@ func NewJoinRoom(roomRepo domain.RoomRepository, userRoomRepo domain.UserRoomRep
 	return &JoinRoom{roomRepo: roomRepo, userRoomRepo: userRoomRepo}
 }
 
-func (uc *JoinRoom) Logic(ctx context.Context, req *domain.JoinRoomRequest) (*domain.Message, error) {
+func (uc *JoinRoom) Logic(ctx context.Context, req *domain.JoinRoomRequest) (*domain.Response, error) {
 	//查询房间信息
 	room, err := uc.FindRoom(ctx, req.Number)
 	if err != nil {
 		if utils.IsNotFound(err) {
-			return domain.RoomNotExistMessage, nil
+			return domain.RoomNotExistResponse, nil
 		}
 		return nil, err
 	}
 
 	if room == nil {
-		return domain.RoomNotExistMessage, nil
+		return domain.RoomNotExistResponse, nil
 	}
 
 	//判断人数
 	if room.CurrentUsers() >= room.MaxUsers() {
-		return domain.RoomIsFullMessage, nil
+		return domain.RoomIsFullResponse, nil
 	}
 
 	// 判断密钥
 	if err := uc.CheckSecret(ctx, req.Secret, room.SecretHash()); err != nil {
-		return domain.WrongSecretMessage, nil
+		return domain.WrongSecretResponse, nil
 	}
 
 	//加入房间(仓库)
 	if err := uc.JoinRoom(ctx, req.UserNumber, req.Number); err != nil {
 		if utils.IsDuplicate(err) {
-			return domain.HasJoinedMessage, nil
+			return domain.HasJoinedResponse, nil
 		}
 		return nil, err
 	}

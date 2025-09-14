@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func BindParams(c *gin.Context, param interface{}) (*domain.Message, error) {
+func BindParams(c *gin.Context, param interface{}) (*domain.Response, error) {
 	// 校验参数是否有效
 	if param == nil {
 		return nil, types.ErrNullPointer
@@ -55,11 +55,11 @@ func bindBodyIfExists(c *gin.Context, param interface{}) error {
 	return nil
 }
 
-func handleBindError(err error) (*domain.Message, error) {
+func handleBindError(err error) (*domain.Response, error) {
 	var validErr validator.ValidationErrors
 	if errors.As(err, &validErr) {
 		msg := buildValidationErrorChat(validErr)
-		return domain.NewMessage(domain.CodeInvalidParam, msg), nil
+		return domain.NewResponse(domain.CodeInvalidParam, msg), nil
 	}
 	return nil, err
 }

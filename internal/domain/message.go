@@ -2,14 +2,14 @@ package domain
 
 import "gochat/internal/utils"
 
-type Message struct {
+type Response struct {
 	Code ResCode `json:"code"`
 	Msg  string  `json:"msg"`
 	Data any     `json:"data,omitempty"`
 }
 
-func NewMessage(code ResCode, msg string, data ...any) *Message {
-	res := &Message{
+func NewResponse(code ResCode, msg string, data ...any) *Response {
+	res := &Response{
 		Code: code,
 		Msg:  msg,
 		Data: utils.NormalizeVarArgs(data...),
@@ -18,10 +18,10 @@ func NewMessage(code ResCode, msg string, data ...any) *Message {
 	return res
 }
 
-func NewDefaultMessage(code ResCode, data ...any) *Message {
-	return NewMessage(code, code.Msg(), data...)
+func NewDefaultResponse(code ResCode, data ...any) *Response {
+	return NewResponse(code, code.Msg(), data...)
 }
 
-func NewSuccessMessage(data ...any) *Message {
-	return NewDefaultMessage(CodeSuccess, data...)
+func NewSuccessResponse(data ...any) *Response {
+	return NewDefaultResponse(CodeSuccess, data...)
 }

@@ -16,24 +16,24 @@ type CreateRoomResponse struct {
 	MaxUsers    int        `json:"max_users"`
 }
 
-var DefaultMessage = NewSuccessMessage()
+var DefaultResponse = NewSuccessResponse()
 
 // middleware || handler response
 var (
-	TimeoutMessage      = NewDefaultMessage(CodeTimeout)
-	UnauthorizedMessage = NewDefaultMessage(CodeUnauthorized)
-	InvalidTokenMessage = NewDefaultMessage(CodeInvalidToken)
+	TimeoutResponse      = NewDefaultResponse(CodeTimeout)
+	UnauthorizedResponse = NewDefaultResponse(CodeUnauthorized)
+	InvalidTokenResponse = NewDefaultResponse(CodeInvalidToken)
 )
 
 // usecase logic response
 var (
-	UserExistMessage     = NewDefaultMessage(CodeUserExist)
-	UserNotExistMessage  = NewDefaultMessage(CodeUserNotExist)
-	WrongPasswordMessage = NewDefaultMessage(CodeWrongPassword)
-	RoomExistMessage     = NewDefaultMessage(CodeRoomExist)
-	RoomNotExistMessage  = NewDefaultMessage(CodeRoomNotExist)
-	RoomIsFullMessage    = NewDefaultMessage(CodeRoomIsFull)
-	WrongSecretMessage   = NewDefaultMessage(CodeWrongSecret)
-	HasJoinedMessage     = NewDefaultMessage(CodeHasJoined)
-	NotJoinedMessage     = NewDefaultMessage(CodeNotJoined)
+	UserExistResponse     = NewDefaultResponse(CodeUserExist)
+	UserNotExistResponse  = NewDefaultResponse(CodeUserNotExist)
+	WrongPasswordResponse = NewDefaultResponse(CodeWrongPassword)
+	RoomExistResponse     = NewDefaultResponse(CodeRoomExist)
+	RoomNotExistResponse  = NewDefaultResponse(CodeRoomNotExist)
+	RoomIsFullResponse    = NewDefaultResponse(CodeRoomIsFull)
+	WrongSecretResponse   = NewDefaultResponse(CodeWrongSecret)
+	HasJoinedResponse     = NewDefaultResponse(CodeHasJoined)
+	NotJoinedResponse     = NewDefaultResponse(CodeNotJoined)
 )

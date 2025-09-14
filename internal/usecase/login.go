@@ -18,23 +18,23 @@ func NewLogin(conf *config.JWT, repo domain.UserRepository) domain.LoginUsecase 
 	return &Login{repo: repo, conf: conf}
 }
 
-func (uc *Login) Logic(ctx context.Context, req *domain.LoginRequest) (*domain.Message, error) {
+func (uc *Login) Logic(ctx context.Context, req *domain.LoginRequest) (*domain.Response, error) {
 	//查询用户信息
 	user, err := uc.FindUser(ctx, req.Number)
 	if err != nil {
 		if utils.IsNotFound(err) {
-			return domain.UserNotExistMessage, nil
+			return domain.UserNotExistResponse, nil
 		}
 		return nil, err
 	}
 
 	if user == nil {
-		return domain.NotJoinedMessage, nil
+		return domain.NotJoinedResponse, nil
 	}
 
 	// 验证用户名密码
 	if err := uc.CheckPwd(ctx, req.Password, user.PwdHash()); err != nil {
-		return domain.WrongPasswordMessage, nil
+		return domain.WrongPasswordResponse, nil
 	}
 
 	// 生成token
@@ -44,7 +44,7 @@ func (uc *Login) Logic(ctx context.Context, req *domain.LoginRequest) (*domain.M
 	}
 
 	// 返回token
-	return domain.NewSuccessMessage(domain.LoginResponse{Token: token}), nil
+	return domain.NewSuccessResponse(domain.LoginResponse{Token: token}), nil
 }
 
 func (uc *Login) FindUser(ctx context.Context, number domain.UserNumber) (*domain.User, error) {

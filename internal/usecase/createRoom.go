@@ -16,7 +16,7 @@ func NewCreateRoom(repo domain.RoomRepository) domain.CreateRoomUsecase {
 	return &CreateRoom{repo: repo}
 }
 
-func (uc *CreateRoom) Logic(ctx context.Context, req *domain.CreateRoomRequest) (*domain.Message, error) {
+func (uc *CreateRoom) Logic(ctx context.Context, req *domain.CreateRoomRequest) (*domain.Response, error) {
 	//加密secret
 	secretHash, err := uc.EncryptSecret(ctx, req.Secret)
 	if err != nil {
@@ -34,13 +34,13 @@ func (uc *CreateRoom) Logic(ctx context.Context, req *domain.CreateRoomRequest) 
 
 	if err := uc.CreateRoom(ctx, room); err != nil {
 		if utils.IsDuplicate(err) {
-			return domain.RoomExistMessage, nil
+			return domain.RoomExistResponse, nil
 		}
 		return nil, err
 	}
 
 	// 返回房间信息
-	return domain.NewSuccessMessage(domain.CreateRoomResponse{
+	return domain.NewSuccessResponse(domain.CreateRoomResponse{
 		RoomNumber:  roomNumber,
 		RoomName:    req.Name,
 		Description: req.Description,
