@@ -4,6 +4,7 @@ import (
 	"errors"
 	"gochat/internal/types"
 	"gorm.io/gorm"
+	"reflect"
 	"strings"
 )
 
@@ -41,6 +42,55 @@ func CheckNotFoundError(err error) error {
 		return types.ErrNotFound
 	}
 	return err
+}
+
+// HasStructField 检查结构体是否包含特定字段
+func HasStructField(obj interface{}, fieldName string) bool {
+	t := reflect.TypeOf(obj)
+
+	// 确保我们处理的是指针类型
+	if t.Kind() != reflect.Ptr {
+		return false
+	}
+
+	// 获取指针指向的结构体的类型
+	t = t.Elem()
+
+	// 确保是结构体
+	if t.Kind() != reflect.Struct {
+		return false
+	}
+
+	// 查找字段
+	_, found := t.FieldByName(fieldName)
+	return found
+}
+
+// GetFieldAddr 获取结构体中指定字段的地址
+func GetFieldAddr(obj interface{}, fieldName string) interface{} {
+	v := reflect.ValueOf(obj)
+
+	// 确保我们处理的是指针类型
+	if v.Kind() != reflect.Ptr {
+		return nil
+	}
+
+	// 获取指针指向的结构体
+	v = v.Elem()
+
+	// 确保是结构体
+	if v.Kind() != reflect.Struct {
+		return nil
+	}
+
+	// 获取字段值
+	field := v.FieldByName(fieldName)
+	if !field.IsValid() {
+		return nil
+	}
+
+	// 返回字段地址
+	return field.Addr().Interface()
 }
 
 func IsNotFound(err error) bool {
