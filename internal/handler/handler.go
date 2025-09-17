@@ -20,3 +20,6 @@ func JoinRoom(usecase domain.JoinRoomUsecase) gin.HandlerFunc {
 func LeaveRoom(usecase domain.LeaveRoomUsecase) gin.HandlerFunc {
 	return Adapter[LeaveRoomRequest, domain.LeaveRoomRequest](usecase)
 }
+func SendMessage(usecase domain.SendMessageUsecase) gin.HandlerFunc {
+	return Adapter[SendMessageRequest, domain.SendMessageRequest](usecase)
+}

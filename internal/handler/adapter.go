@@ -32,7 +32,7 @@ func Adapter[E domain.ExternalRequest[D], D any](usecase domain.Usecase[D]) gin.
 		// 转换为领域请求并执行逻辑
 		domainReq := (*hReq).ToDomain()
 		executeFn(c, func() (*domain.Response, error) {
-			return usecase.Logic(c.Request.Context(), domainReq)
+			return usecase.Execute(c.Request.Context(), domainReq)
 		})
 	}
 }

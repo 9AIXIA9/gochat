@@ -14,7 +14,7 @@ func NewLeaveRoom(repo domain.UserRoomRepository) domain.LeaveRoomUsecase {
 	return &LeaveRoom{repo}
 }
 
-func (uc *LeaveRoom) Logic(ctx context.Context, req *domain.LeaveRoomRequest) (*domain.Response, error) {
+func (uc *LeaveRoom) Execute(ctx context.Context, req *domain.LeaveRoomRequest) (*domain.Response, error) {
 	// 退出房间
 	if err := uc.LeaveRoom(ctx, req.UserNumber, req.Number); err != nil {
 		if utils.IsNotFound(err) {

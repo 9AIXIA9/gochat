@@ -16,7 +16,7 @@ func NewCreateRoom(repo domain.RoomRepository) domain.CreateRoomUsecase {
 	return &CreateRoom{repo: repo}
 }
 
-func (uc *CreateRoom) Logic(ctx context.Context, req *domain.CreateRoomRequest) (*domain.Response, error) {
+func (uc *CreateRoom) Execute(ctx context.Context, req *domain.CreateRoomRequest) (*domain.Response, error) {
 	//加密secret
 	secretHash, err := uc.EncryptSecret(ctx, req.Secret)
 	if err != nil {

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"gochat/internal/domain"
+	"time"
 )
 
 // SignupRequest 注册请求
@@ -47,5 +48,17 @@ type LeaveRoomRequest struct {
 	domain.AuthInfo `json:"-"`
 	URI             struct {
 		RoomNumber domain.RoomNumber `uri:"number" binding:"required"`
+	}
+}
+
+// SendMessageRequest 发送信息请求
+type SendMessageRequest struct {
+	domain.AuthInfo `json:"-"`
+	URI             struct {
+		To domain.BaseNumber `uri:"to" binding:"required"`
+	}
+	Body struct {
+		Content string    `json:"content" binding:"required"`
+		SentAt  time.Time `json:"send_at" binding:"required"`
 	}
 }

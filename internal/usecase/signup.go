@@ -16,7 +16,7 @@ func NewSignup(repo domain.UserRepository) domain.SignupUsecase {
 	return &Signup{repo: repo}
 }
 
-func (uc *Signup) Logic(ctx context.Context, req *domain.SignupRequest) (*domain.Response, error) {
+func (uc *Signup) Execute(ctx context.Context, req *domain.SignupRequest) (*domain.Response, error) {
 	// 加密密码
 	hashedPassword, err := uc.EncryptPwd(ctx, req.Password)
 	if err != nil {

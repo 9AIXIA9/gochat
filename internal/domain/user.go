@@ -1,6 +1,6 @@
 package domain
 
-type UserNumber int64
+type UserNumber BaseNumber
 type User struct {
 	number  UserNumber
 	name    string

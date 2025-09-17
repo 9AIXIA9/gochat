@@ -1,6 +1,6 @@
 package domain
 
-type RoomNumber int64
+type RoomNumber BaseNumber
 type Room struct {
 	name         string
 	number       RoomNumber

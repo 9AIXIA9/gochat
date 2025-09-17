@@ -77,7 +77,7 @@ func ProvideLogin(repo domain.UserRepository, conf *config.Config) domain.LoginU
 }
 
 // RepositorySet 提供所有的Repository
-var RepositorySet = wire.NewSet(repository.NewUserRepository, repository.NewRoomRepository, repository.NewChatRepository, repository.NewUserRoomRepository)
+var RepositorySet = wire.NewSet(repository.NewUserRepository, repository.NewRoomRepository, repository.NewMessageRepository, repository.NewUserRoomRepository)
 
 // UsecaseSet 提供所有的Usecase
 var UsecaseSet = wire.NewSet(

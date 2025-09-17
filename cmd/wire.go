@@ -11,6 +11,7 @@ import (
 	"gochat/internal/infra/logger"
 	"gochat/internal/infra/repository"
 	"gochat/internal/infra/snowflake"
+	"gochat/internal/infra/websocket/manager"
 	"gochat/internal/usecase"
 	"gorm.io/gorm"
 
@@ -51,7 +52,7 @@ func ProvideLogin(repo domain.UserRepository, conf *config.Config) domain.LoginU
 var RepositorySet = wire.NewSet(
 	repository.NewUserRepository,
 	repository.NewRoomRepository,
-	repository.NewChatRepository,
+	repository.NewMessageRepository,
 	repository.NewUserRoomRepository,
 )
 
@@ -60,7 +61,7 @@ var UsecaseSet = wire.NewSet(
 	// Auth
 	ProvideAuth,
 
-	// Logic
+	// Execute
 	ProvideLogin,
 
 	// Signup
@@ -79,6 +80,7 @@ func InitializeDependencies(configPath string) *api.Dependencies {
 		ProvideDatabase,
 		RepositorySet,
 		UsecaseSet,
+		manager.NewManager,
 		wire.Struct(new(api.Dependencies), "*"),
 	)
 	return &api.Dependencies{}

@@ -58,14 +58,14 @@ func bindBodyIfExists(c *gin.Context, param interface{}) error {
 func handleBindError(err error) (*domain.Response, error) {
 	var validErr validator.ValidationErrors
 	if errors.As(err, &validErr) {
-		msg := buildValidationErrorChat(validErr)
+		msg := buildValidationErrorMessage(validErr)
 		return domain.NewResponse(domain.CodeInvalidParam, msg), nil
 	}
 	return nil, err
 }
 
 // 提取验证错误信息格式化为辅助函数
-func buildValidationErrorChat(typeErr validator.ValidationErrors) string {
+func buildValidationErrorMessage(typeErr validator.ValidationErrors) string {
 	msg := strings.Builder{}
 	for i, fe := range typeErr {
 		if i > 0 {

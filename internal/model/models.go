@@ -24,12 +24,12 @@ type Room struct {
 	MaxUsers     int
 }
 
-type Chat struct {
+type Message struct {
 	gorm.Model
-	UserNumber domain.UserNumber
-	RoomNumber domain.RoomNumber
-	Content    string
-	SentAt     time.Time
+	From    domain.UserNumber
+	To      domain.BaseNumber
+	Content string
+	SentAt  time.Time
 }
 
 type UserRoom struct {

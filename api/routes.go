@@ -7,18 +7,21 @@ import (
 	"gochat/internal/config"
 	"gochat/internal/domain"
 	"gochat/internal/handler"
+	"gochat/internal/infra/websocket/manager"
 	"gochat/internal/middleware"
 )
 
 // Dependencies 依赖注入结构体
 type Dependencies struct {
-	Config            *config.Config
-	AuthUsecase       domain.AuthUsecase
-	SignupUsecase     domain.SignupUsecase
-	LoginUsecase      domain.LoginUsecase
-	CreateRoomUsecase domain.CreateRoomUsecase
-	JoinRoomUsecase   domain.JoinRoomUsecase
-	LeaveRoomUsecase  domain.LeaveRoomUsecase
+	Config             *config.Config
+	WebsocketManager   *manager.Manager
+	AuthUsecase        domain.AuthUsecase
+	SignupUsecase      domain.SignupUsecase
+	LoginUsecase       domain.LoginUsecase
+	CreateRoomUsecase  domain.CreateRoomUsecase
+	JoinRoomUsecase    domain.JoinRoomUsecase
+	LeaveRoomUsecase   domain.LeaveRoomUsecase
+	SendMessageUsecase domain.SendMessageUsecase
 }
 
 func Setup(deps *Dependencies) *gin.Engine {
@@ -59,8 +62,11 @@ func setup(r *gin.Engine, deps *Dependencies) {
 		protected.POST("/rooms/:number/join", handler.JoinRoom(deps.JoinRoomUsecase))
 		protected.DELETE("/rooms/:number/leave", handler.LeaveRoom(deps.LeaveRoomUsecase))
 
+		// 消息相关
+		protected.POST("/message", handler.SendMessage(deps.SendMessageUsecase))
+
 		//websocket长连接
-		protected.GET("/ws", handler.Websocket())
+		protected.GET("/ws", handler.Websocket(deps.WebsocketManager))
 	}
 
 	//swagger文档

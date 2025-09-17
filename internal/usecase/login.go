@@ -18,7 +18,7 @@ func NewLogin(conf *config.JWT, repo domain.UserRepository) domain.LoginUsecase 
 	return &Login{repo: repo, conf: conf}
 }
 
-func (uc *Login) Logic(ctx context.Context, req *domain.LoginRequest) (*domain.Response, error) {
+func (uc *Login) Execute(ctx context.Context, req *domain.LoginRequest) (*domain.Response, error) {
 	//查询用户信息
 	user, err := uc.FindUser(ctx, req.Number)
 	if err != nil {

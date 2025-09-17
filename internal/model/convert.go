@@ -32,16 +32,16 @@ func RoomFromDomain(room *domain.Room) *Room {
 	}
 }
 
-func (m *Chat) ToDomain() *domain.Chat {
-	return domain.NewChat(m.UserNumber, m.RoomNumber, m.Content, m.SentAt)
+func (m *Message) ToDomain() *domain.Message {
+	return domain.NewMessage(m.From, m.To, m.Content, m.SentAt)
 }
 
-func ChatFromDomain(chat *domain.Chat) *Chat {
-	return &Chat{
-		UserNumber: chat.UserNumber(),
-		RoomNumber: chat.RoomNumber(),
-		Content:    chat.Content(),
-		SentAt:     chat.SendTime(),
+func MessageFromDomain(message *domain.Message) *Message {
+	return &Message{
+		From:    message.From(),
+		To:      message.To(),
+		Content: message.Content(),
+		SentAt:  message.SendAt(),
 	}
 }
 

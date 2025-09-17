@@ -9,7 +9,7 @@ func AutoMigrate(db *gorm.DB) {
 	if err := db.AutoMigrate(
 		&User{},
 		&Room{},
-		&Chat{},
+		&Message{},
 		&UserRoom{},
 	); err != nil {
 		log.Fatalf("auto migrate tables failed,err:%v", err)
@@ -24,8 +24,8 @@ func (r *Room) TableName() string {
 	return "room"
 }
 
-func (m *Chat) TableName() string {
-	return "chat"
+func (m *Message) TableName() string {
+	return "message"
 }
 
 func (ur *UserRoom) TableName() string {

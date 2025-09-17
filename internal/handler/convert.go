@@ -42,3 +42,12 @@ func (r LeaveRoomRequest) ToDomain() *domain.LeaveRoomRequest {
 		Number:   r.URI.RoomNumber,
 	}
 }
+
+func (r SendMessageRequest) ToDomain() *domain.SendMessageRequest {
+	return &domain.SendMessageRequest{
+		AuthInfo: r.AuthInfo,
+		To:       r.URI.To,
+		Content:  r.Body.Content,
+		SentAt:   r.Body.SentAt,
+	}
+}

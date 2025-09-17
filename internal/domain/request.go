@@ -1,5 +1,7 @@
 package domain
 
+import "time"
+
 type ExternalRequest[request any] interface {
 	ToDomain() *request
 }
@@ -36,4 +38,12 @@ type JoinRoomRequest struct {
 type LeaveRoomRequest struct {
 	AuthInfo
 	Number RoomNumber
+}
+
+// SendMessageRequest 发送消息请求
+type SendMessageRequest struct {
+	AuthInfo
+	To      BaseNumber
+	Content string
+	SentAt  time.Time
 }

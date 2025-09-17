@@ -21,7 +21,8 @@ type UserRoomRepository interface {
 	Delete(ctx context.Context, userNumber UserNumber, roomNumber RoomNumber) error
 }
 
-type ChatRepository interface {
-	Save(ctx context.Context, chat *Chat) error
-	FindAllByRoomNumber(ctx context.Context, number RoomNumber) ([]*Chat, error)
+type MessageRepository interface {
+	Save(ctx context.Context, message *Message) error
+	QueryMessages(ctx context.Context, number BaseNumber, count int) ([]*Message, error)
+	QueryAllMessages(ctx context.Context, number BaseNumber) ([]*Message, error)
 }

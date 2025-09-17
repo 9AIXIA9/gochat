@@ -16,7 +16,7 @@ func NewJoinRoom(roomRepo domain.RoomRepository, userRoomRepo domain.UserRoomRep
 	return &JoinRoom{roomRepo: roomRepo, userRoomRepo: userRoomRepo}
 }
 
-func (uc *JoinRoom) Logic(ctx context.Context, req *domain.JoinRoomRequest) (*domain.Response, error) {
+func (uc *JoinRoom) Execute(ctx context.Context, req *domain.JoinRoomRequest) (*domain.Response, error) {
 	//查询房间信息
 	room, err := uc.FindRoom(ctx, req.Number)
 	if err != nil {
