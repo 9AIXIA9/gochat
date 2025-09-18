@@ -4,89 +4,126 @@ import (
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
 	"gochat/internal/domain"
+	"gochat/internal/types"
+	"sync"
+	"sync/atomic"
 )
 
 const (
 	sendCache = 256
-	readCache = 256
 )
 
 type Client interface {
 	Start()
-	Write(data []byte)
+	Write(data []byte) error
 	Number() domain.UserNumber
 	Close() error
 }
 
+// todo 心跳检测
 type client struct {
-	number   domain.UserNumber
-	conn     *websocket.Conn
-	sendChan chan []byte
-	readChan chan []byte
+	number    domain.UserNumber
+	conn      *websocket.Conn
+	sendChan  chan []byte
+	onClose   func(number domain.UserNumber) error
+	closeOnce sync.Once
+	closed    atomic.Bool
+	closeMu   sync.RWMutex
 }
 
-func NewClient(conn *websocket.Conn, number domain.UserNumber) Client {
+func NewClient(conn *websocket.Conn, number domain.UserNumber, closeFn func(number domain.UserNumber) error) Client {
 	return &client{
 		number:   number,
 		conn:     conn,
 		sendChan: make(chan []byte, sendCache),
-		readChan: make(chan []byte, readCache),
+		onClose:  closeFn,
 	}
 }
-func (u *client) Start() {
-	go u.writePump()
-	u.readPump()
+
+func (c *client) Start() {
+	go c.writePump()
+	c.readPump()
 }
 
-func (u *client) Number() domain.UserNumber {
-	return u.number
+func (c *client) Number() domain.UserNumber {
+	return c.number
 }
 
-func (u *client) Write(data []byte) {
-	u.sendChan <- data
-}
+func (c *client) Write(data []byte) error {
+	c.closeMu.RLock()
+	defer c.closeMu.RUnlock()
 
-func (u *client) Close() error {
-	close(u.sendChan)
-	close(u.readChan)
-	if err := u.conn.Close(); err != nil {
-		return err
+	if !c.closed.Load() {
+		select {
+		case c.sendChan <- data:
+			return nil
+		default:
+			return types.ErrFullMessage
+		}
 	}
-	return nil
+	return types.ErrClientClosed
+}
+
+func (c *client) Close() (err error) {
+	c.closeOnce.Do(func() {
+		c.closeMu.Lock()
+		defer c.closeMu.Unlock()
+
+		c.closed.CompareAndSwap(false, true)
+		close(c.sendChan)
+
+		//关闭连接
+		if err2 := c.conn.Close(); err2 != nil {
+			err = err2
+		}
+
+		//调用关闭回调
+		if c.onClose != nil {
+			if err2 := c.onClose(c.number); err2 != nil {
+				err = err2
+			}
+		}
+	})
+	return err
 }
 
 // 发送信息给客户端
-func (u *client) writePump() {
-	for {
-		msg, ok := <-u.sendChan
-		if !ok {
-			//关闭连接发送的 msg
-			if err := u.conn.WriteMessage(websocket.CloseMessage, []byte{}); err != nil {
-				zap.L().Error("websocket write close msg failed", zap.Error(err))
-				return
-			}
+func (c *client) writePump() {
+	defer func() {
+		//关闭客户端
+		if err := c.Close(); err != nil {
+			zap.L().Error("close client failed", zap.Error(err))
 		}
+	}()
 
+	for bytes := range c.sendChan {
 		// 处理发送的 msg
-		err := u.conn.WriteMessage(websocket.TextMessage, msg)
+		err := c.conn.WriteMessage(websocket.TextMessage, bytes)
 		if err != nil {
 			zap.L().Error("websocket write msg failed", zap.Error(err))
-			continue
+			return
 		}
 	}
 }
 
 // 接收客户端的信息
-func (u *client) readPump() {
+func (c *client) readPump() {
 	for {
 		// 接收客户端的信息
-		_, msg, err := u.conn.ReadMessage()
+		_, msg, err := c.conn.ReadMessage()
 		if err != nil {
-			zap.L().Error("websocket read msg failed", zap.Error(err))
-			continue
+			zap.L().Info("websocket client closed", zap.Error(err))
+			err := c.Close()
+			if err != nil {
+				zap.L().Error("websocket client close failed", zap.Error(err))
+				return
+			}
+			return
 		}
 
 		//todo 客户端发送信息暂时未处理 后续可扩展为已读未读 发送状态等
-		u.readChan <- msg
+		zap.L().Info("receive message sent from client",
+			zap.String("content", string(msg)),
+			zap.Int64("number", int64(c.Number())))
 	}
 }

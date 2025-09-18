@@ -13,15 +13,16 @@ import (
 
 // Dependencies 依赖注入结构体
 type Dependencies struct {
-	Config             *config.Config
-	WebsocketManager   *manager.Manager
-	AuthUsecase        domain.AuthUsecase
-	SignupUsecase      domain.SignupUsecase
-	LoginUsecase       domain.LoginUsecase
-	CreateRoomUsecase  domain.CreateRoomUsecase
-	JoinRoomUsecase    domain.JoinRoomUsecase
-	LeaveRoomUsecase   domain.LeaveRoomUsecase
-	SendMessageUsecase domain.SendMessageUsecase
+	Config               *config.Config
+	WebsocketManager     *manager.Manager
+	AuthUsecase          domain.AuthUsecase
+	SignupUsecase        domain.SignupUsecase
+	LoginUsecase         domain.LoginUsecase
+	CreateRoomUsecase    domain.CreateRoomUsecase
+	JoinRoomUsecase      domain.JoinRoomUsecase
+	LeaveRoomUsecase     domain.LeaveRoomUsecase
+	SendMessageUsecase   domain.SendMessageUsecase
+	UserConnectedUsecase domain.UserConnectedUsecase
 }
 
 func Setup(deps *Dependencies) *gin.Engine {
@@ -33,7 +34,6 @@ func Setup(deps *Dependencies) *gin.Engine {
 	r.Use(middleware.Recover())
 	r.Use(middleware.RateLimit(deps.Config.RateLimit))
 	r.Use(middleware.CORS())
-	r.Use(middleware.Timeout(deps.Config.Timeout))
 
 	// 注册路由
 	setup(r, deps)
@@ -47,15 +47,15 @@ func setup(r *gin.Engine, deps *Dependencies) {
 
 	// 公开路由（不需要认证）
 	public := api.Group("/")
+	public.Use(middleware.Timeout(deps.Config.Timeout))
 	{
-		// 用户相关
 		public.POST("/signup", handler.Signup(deps.SignupUsecase))
 		public.POST("/login", handler.Login(deps.LoginUsecase))
 	}
 
 	// 需要认证的路由
 	protected := api.Group("/")
-	protected.Use(middleware.JWTAuth(deps.AuthUsecase))
+	protected.Use(middleware.JWTAuth(deps.AuthUsecase), middleware.Timeout(deps.Config.Timeout))
 	{
 		// 房间相关
 		protected.POST("/rooms", handler.CreateRoom(deps.CreateRoomUsecase))
@@ -63,12 +63,16 @@ func setup(r *gin.Engine, deps *Dependencies) {
 		protected.DELETE("/rooms/:number/leave", handler.LeaveRoom(deps.LeaveRoomUsecase))
 
 		// 消息相关
-		protected.POST("/message", handler.SendMessage(deps.SendMessageUsecase))
-
-		//websocket长连接
-		protected.GET("/ws", handler.Websocket(deps.WebsocketManager))
+		protected.POST("/message/:to", handler.SendMessage(deps.SendMessageUsecase))
 	}
 
-	//swagger文档
+	// websocket长连接（不加timeout）
+	wsProtected := api.Group("/")
+	wsProtected.Use(middleware.JWTAuth(deps.AuthUsecase))
+	{
+		wsProtected.GET("/ws", handler.Websocket(deps.UserConnectedUsecase, deps.WebsocketManager))
+	}
+
+	// swagger文档
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 }

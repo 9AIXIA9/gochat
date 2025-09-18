@@ -15,6 +15,7 @@ import (
 	"gochat/internal/infra/logger"
 	"gochat/internal/infra/repository"
 	"gochat/internal/infra/snowflake"
+	"gochat/internal/infra/websocket/manager"
 	"gochat/internal/usecase"
 	"gorm.io/gorm"
 )
@@ -24,6 +25,7 @@ import (
 // InitializeDependencies 使用Wire初始化所有依赖
 func InitializeDependencies(configPath string) *api.Dependencies {
 	config := ProvideConfig(configPath)
+	managerManager := manager.NewManager()
 	authUsecase := ProvideAuth(config)
 	db := ProvideDatabase(config)
 	userRepository := repository.NewUserRepository(db)
@@ -34,14 +36,20 @@ func InitializeDependencies(configPath string) *api.Dependencies {
 	userRoomRepository := repository.NewUserRoomRepository(db)
 	joinRoomUsecase := usecase.NewJoinRoom(roomRepository, userRoomRepository)
 	leaveRoomUsecase := usecase.NewLeaveRoom(userRoomRepository)
+	messageRepository := repository.NewMessageRepository(db)
+	sendMessageUsecase := usecase.NewSendMessage(managerManager, messageRepository)
+	userConnectedUsecase := usecase.NewUserConnected(messageRepository, managerManager)
 	dependencies := &api.Dependencies{
-		Config:            config,
-		AuthUsecase:       authUsecase,
-		SignupUsecase:     signupUsecase,
-		LoginUsecase:      loginUsecase,
-		CreateRoomUsecase: createRoomUsecase,
-		JoinRoomUsecase:   joinRoomUsecase,
-		LeaveRoomUsecase:  leaveRoomUsecase,
+		Config:               config,
+		WebsocketManager:     managerManager,
+		AuthUsecase:          authUsecase,
+		SignupUsecase:        signupUsecase,
+		LoginUsecase:         loginUsecase,
+		CreateRoomUsecase:    createRoomUsecase,
+		JoinRoomUsecase:      joinRoomUsecase,
+		LeaveRoomUsecase:     leaveRoomUsecase,
+		SendMessageUsecase:   sendMessageUsecase,
+		UserConnectedUsecase: userConnectedUsecase,
 	}
 	return dependencies
 }
@@ -84,5 +92,5 @@ var UsecaseSet = wire.NewSet(
 
 	ProvideAuth,
 
-	ProvideLogin, usecase.NewSignup, usecase.NewCreateRoom, usecase.NewJoinRoom, usecase.NewLeaveRoom,
+	ProvideLogin, usecase.NewSignup, usecase.NewCreateRoom, usecase.NewJoinRoom, usecase.NewLeaveRoom, usecase.NewSendMessage, usecase.NewUserConnected,
 )

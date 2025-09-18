@@ -2,6 +2,7 @@ package handler
 
 import (
 	"gochat/internal/domain"
+	"time"
 )
 
 func (r SignupRequest) ToDomain() *domain.SignupRequest {
@@ -48,6 +49,6 @@ func (r SendMessageRequest) ToDomain() *domain.SendMessageRequest {
 		AuthInfo: r.AuthInfo,
 		To:       r.URI.To,
 		Content:  r.Body.Content,
-		SentAt:   r.Body.SentAt,
+		SentAt:   time.Unix(r.Body.SentAt, 0),
 	}
 }

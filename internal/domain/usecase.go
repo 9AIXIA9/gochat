@@ -40,8 +40,15 @@ type LeaveRoomUsecase interface {
 	LeaveRoom(ctx context.Context, userNumber UserNumber, roomNumber RoomNumber) error
 }
 
+type UserConnectedUsecase interface {
+	Execute(ctx context.Context, number UserNumber) error
+	QueryUnsentMessages(ctx context.Context, number UserNumber) ([]*Message, error) //todo 只修改已发送成功的
+	SendMessages(ctx context.Context, msgs []*Message)
+	UpdateMessagesSent(ctx context.Context, msgs []*Message) error
+}
+
 type SendMessageUsecase interface {
 	Execute(ctx context.Context, req *SendMessageRequest) (*Response, error)
 	SaveMessage(ctx context.Context, msg *Message) error
-	Send(ctx context.Context, msg *Message) (bool, error)
+	Send(ctx context.Context, msg *Message) error
 }

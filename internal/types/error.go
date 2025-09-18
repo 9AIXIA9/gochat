@@ -5,7 +5,7 @@ import (
 	"errors"
 )
 
-// repository || websocket
+// repository
 var (
 	ErrNotFound     = errors.New("entity not found")
 	ErrDuplicateKey = errors.New("entity key has existed")
@@ -27,4 +27,10 @@ var (
 var (
 	ErrTimeout  = context.DeadlineExceeded
 	ErrCanceled = context.Canceled
+)
+
+// websocket
+var (
+	ErrClientClosed = errors.New("client has been closed")
+	ErrFullMessage  = errors.New("too many messages")
 )

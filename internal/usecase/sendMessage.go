@@ -19,28 +19,26 @@ func NewSendMessage(manager *manager.Manager, repo domain.MessageRepository) dom
 }
 
 func (uc *SendMessage) Execute(ctx context.Context, req *domain.SendMessageRequest) (*domain.Response, error) {
-	msg := domain.NewMessage(req.AuthInfo.UserNumber, req.To, req.Content, req.SentAt)
+	msg := domain.CreateMessage(req.AuthInfo.UserNumber, req.To, req.Content, req.SentAt, false)
 
-	if err := uc.SaveMessage(ctx, msg); err != nil {
-
-	}
-
-	ok, err := uc.Send(ctx, msg)
+	//尝试发送给客户端
+	err := uc.Send(ctx, msg)
 	if err != nil {
-
+		return nil, err
 	}
 
-	if ok {
-		//成功发送 创建消息发送事件
-		return
+	//存储 message
+	if err := uc.SaveMessage(ctx, msg); err != nil {
+		return nil, err
 	}
-	return
+
+	return domain.DefaultResponse, nil
 }
 
 func (uc *SendMessage) SaveMessage(ctx context.Context, msg *domain.Message) error {
 	return uc.repo.Save(ctx, msg)
 }
 
-func (uc *SendMessage) Send(ctx context.Context, msg *domain.Message) (bool, error) {
+func (uc *SendMessage) Send(ctx context.Context, msg *domain.Message) error {
 	return uc.manager.Send(ctx, msg)
 }

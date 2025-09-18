@@ -71,6 +71,12 @@ var UsecaseSet = wire.NewSet(
 	usecase.NewCreateRoom,
 	usecase.NewJoinRoom,
 	usecase.NewLeaveRoom,
+
+	// message相关
+	usecase.NewSendMessage,
+
+	// websocket相关
+	usecase.NewUserConnected,
 )
 
 // InitializeDependencies 使用Wire初始化所有依赖

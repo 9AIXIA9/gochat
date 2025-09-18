@@ -33,16 +33,36 @@ func RoomFromDomain(room *domain.Room) *Room {
 }
 
 func (m *Message) ToDomain() *domain.Message {
-	return domain.NewMessage(m.From, m.To, m.Content, m.SentAt)
+	return domain.NewMessage(m.ID, m.Sender, m.Recipient, m.Content, m.SentAt, m.Sent)
+}
+
+func ToDomainMessages(msgs []*Message) []*domain.Message {
+	domainMsgs := make([]*domain.Message, 0, len(msgs))
+
+	for _, msg := range msgs {
+		domainMsgs = append(domainMsgs, msg.ToDomain())
+	}
+
+	return domainMsgs
 }
 
 func MessageFromDomain(message *domain.Message) *Message {
 	return &Message{
-		From:    message.From(),
-		To:      message.To(),
-		Content: message.Content(),
-		SentAt:  message.SendAt(),
+		ID:        message.ID(),
+		Sender:    message.From(),
+		Recipient: message.To(),
+		Content:   message.Content(),
+		SentAt:    message.SendAt(),
+		Sent:      message.IsSent(),
 	}
+}
+
+func MessagesFromDomain(msgs []*domain.Message) []*Message {
+	modelMsgs := make([]*Message, 0, len(msgs))
+	for _, msg := range msgs {
+		modelMsgs = append(modelMsgs, MessageFromDomain(msg))
+	}
+	return modelMsgs
 }
 
 func NewUserRoom(userNumber domain.UserNumber, roomNumber domain.RoomNumber) *UserRoom {

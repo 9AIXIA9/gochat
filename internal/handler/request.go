@@ -2,7 +2,6 @@ package handler
 
 import (
 	"gochat/internal/domain"
-	"time"
 )
 
 // SignupRequest 注册请求
@@ -58,7 +57,7 @@ type SendMessageRequest struct {
 		To domain.BaseNumber `uri:"to" binding:"required"`
 	}
 	Body struct {
-		Content string    `json:"content" binding:"required"`
-		SentAt  time.Time `json:"send_at" binding:"required"`
+		Content string `json:"content" binding:"required"`
+		SentAt  int64  `json:"sent_at" binding:"required"`
 	}
 }

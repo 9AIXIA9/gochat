@@ -28,17 +28,20 @@ func NewManager() *Manager {
 	}
 }
 
-func (m *Manager) Send(ctx context.Context, msg *domain.Message) (bool, error) {
+func (m *Manager) Send(ctx context.Context, msg *domain.Message) error {
 	//todo ctx
 	//user
 	c, ok := m.clients[domain.UserNumber(msg.To())]
 	if ok {
 		data, err := msg.MarshalJSON()
 		if err != nil {
-			return false, err
+			return err
 		}
 		c.Write(data)
-		return true, nil
+
+		//成功传递message
+		msg.Sent()
+		return nil
 	}
 
 	//room
@@ -46,14 +49,16 @@ func (m *Manager) Send(ctx context.Context, msg *domain.Message) (bool, error) {
 	if ok {
 		data, err := msg.MarshalJSON()
 		if err != nil {
-			return false, err
+			return err
 		}
 
 		r.Broadcast(data)
-		return true, nil
+		//成功传递message
+		msg.Sent()
+		return nil
 	}
 
-	return false, nil
+	return nil
 }
 
 func (m *Manager) AddClient(c client.Client) {
@@ -66,16 +71,10 @@ func (m *Manager) DropClient(number domain.UserNumber) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	// 关闭并移除 client
-	c, exist := m.clients[number]
-	if exist {
-		if err := c.Close(); err != nil {
-			return err
-		}
-		delete(m.clients, number)
-	}
+	// 移除 client
+	delete(m.clients, number)
 
-	// 获取并移除 client 的房间集合
+	// 移除 client 的房间集合
 	roomNumbers := m.clientRooms[number]
 	delete(m.clientRooms, number)
 
