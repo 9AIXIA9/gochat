@@ -1,64 +1,84 @@
 package manager
 
 import (
-	"context"
+	"errors"
+	"go.uber.org/zap"
 	"gochat/internal/domain"
 	"gochat/internal/infra/websocket/client"
+	"gochat/internal/types"
 	"sync"
 )
 
 const (
-	clientsCache     = 200
-	roomsCache       = 200
-	clientRoomsCache = 200
+	clientsCache = 200
 )
 
 type Manager struct {
-	clients     map[domain.UserNumber]client.Client
-	rooms       map[domain.RoomNumber]client.Room
-	clientRooms map[domain.UserNumber]map[domain.RoomNumber]struct{}
-	mu          sync.Mutex
+	clients map[domain.UserNumber]client.Client
+	mu      sync.Mutex
 }
 
 func NewManager() *Manager {
 	return &Manager{
-		clients:     make(map[domain.UserNumber]client.Client, clientsCache),
-		rooms:       make(map[domain.RoomNumber]client.Room, roomsCache),
-		clientRooms: make(map[domain.UserNumber]map[domain.RoomNumber]struct{}, clientRoomsCache),
+		clients: make(map[domain.UserNumber]client.Client, clientsCache),
 	}
 }
 
-func (m *Manager) Send(ctx context.Context, msg *domain.Message) error {
+func (m *Manager) Send(number domain.UserNumber, msg *domain.Message) error {
 	//todo ctx
-	//user
-	c, ok := m.clients[domain.UserNumber(msg.To())]
-	if ok {
-		data, err := msg.MarshalJSON()
-		if err != nil {
-			return err
-		}
-		c.Write(data)
-
-		//成功传递message
-		msg.Sent()
-		return nil
-	}
-
-	//room
-	r, ok := m.rooms[domain.RoomNumber(msg.To())]
+	c, ok := m.clients[number]
 	if ok {
 		data, err := msg.MarshalJSON()
 		if err != nil {
 			return err
 		}
 
-		r.Broadcast(data)
-		//成功传递message
-		msg.Sent()
+		if err := c.Write(data); err != nil {
+			return err
+		}
+
 		return nil
 	}
 
-	return nil
+	return types.ErrNotFound
+}
+
+func (m *Manager) SendUserManyMsgs(number domain.UserNumber, msgs []*domain.Message) []domain.MessageID {
+	msgIDs := make([]domain.MessageID, 0, len(msgs))
+
+	for _, msg := range msgs {
+		err := m.Send(number, msg)
+		if err == nil {
+			msgIDs = append(msgIDs, msg.ID())
+		}
+		if err != nil && !errors.Is(err, types.ErrNotFound) {
+			zap.L().Error("send message failed",
+				zap.Int64("user_number", int64(number)),
+				zap.String("message_id", string(msg.ID())),
+				zap.Error(err))
+		}
+	}
+
+	return msgIDs
+}
+
+func (m *Manager) SendMsgToManyUsers(msg *domain.Message, numbers []domain.UserNumber) []domain.UserNumber {
+	numbersSent := make([]domain.UserNumber, 0, len(numbers))
+
+	for _, number := range numbers {
+		err := m.Send(number, msg)
+		if err == nil {
+			numbersSent = append(numbersSent, number)
+		}
+		if err != nil && !errors.Is(err, types.ErrNotFound) {
+			zap.L().Error("send message failed",
+				zap.Int64("user_number", int64(number)),
+				zap.String("message_id", string(msg.ID())),
+				zap.Error(err))
+		}
+	}
+
+	return numbersSent
 }
 
 func (m *Manager) AddClient(c client.Client) {
@@ -67,76 +87,9 @@ func (m *Manager) AddClient(c client.Client) {
 	m.clients[c.Number()] = c
 }
 
-func (m *Manager) DropClient(number domain.UserNumber) error {
+func (m *Manager) DropClient(number domain.UserNumber) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-
 	// 移除 client
 	delete(m.clients, number)
-
-	// 移除 client 的房间集合
-	roomNumbers := m.clientRooms[number]
-	delete(m.clientRooms, number)
-
-	// 未加入房间直接返回
-	if roomNumbers == nil {
-		return nil
-	}
-
-	// 逐个房间移除 client，并在房间人数 <= 1 时删除房间
-	for roomNumber := range roomNumbers {
-		if err := m.leaveRoom(number, roomNumber); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (m *Manager) JoinRoom(number domain.RoomNumber, c client.Client) {
-	clientNumber := c.Number()
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	room, exist := m.rooms[number]
-	if !exist {
-		room = client.NewRoom(number)
-		m.rooms[number] = room
-	}
-
-	room.AddClient(c)
-
-	if m.clientRooms[clientNumber] == nil {
-		m.clientRooms[clientNumber] = make(map[domain.RoomNumber]struct{})
-	}
-	m.clientRooms[clientNumber][number] = struct{}{}
-}
-
-func (m *Manager) LeaveRoom(userNumber domain.UserNumber, roomNumber domain.RoomNumber) error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	return m.leaveRoom(userNumber, roomNumber)
-}
-
-func (m *Manager) leaveRoom(userNumber domain.UserNumber, roomNumber domain.RoomNumber) error {
-	//检查是否存在
-	room, ok := m.rooms[roomNumber]
-	if !ok {
-		return nil
-	}
-
-	//删除房间中的客户端
-	room.DropClient(userNumber)
-	if rooms, ok := m.clientRooms[userNumber]; ok {
-		delete(rooms, roomNumber)
-
-		//删除用户与房间的对应关系
-		if len(rooms) == 0 {
-			delete(m.clientRooms, userNumber)
-		}
-	}
-
-	if room.Length() <= 1 {
-		delete(m.rooms, roomNumber)
-	}
-	return nil
 }

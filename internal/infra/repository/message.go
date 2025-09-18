@@ -15,74 +15,103 @@ func NewMessageRepository(db *gorm.DB) domain.MessageRepository {
 	return &MessageRepository{db: db}
 }
 
-func (m *MessageRepository) Save(ctx context.Context, message *domain.Message) error {
-	modelMsg := model.MessageFromDomain(message)
-	return m.db.WithContext(ctx).Create(modelMsg).Error
-}
-
-func (m *MessageRepository) UpdateMessagesSent(ctx context.Context, messages []*domain.Message) error {
-	for _, msg := range messages {
-		if err := m.db.WithContext(ctx).
-			Model(&model.Message{}).
-			Where("id = ?", msg.ID()).
-			Update("sent", msg.IsSent()).Error; err != nil {
+func (m *MessageRepository) SaveAndQueryUserNumberShouldSent(ctx context.Context, message *domain.Message) ([]domain.UserNumber, error) {
+	var userNumbers []domain.UserNumber
+	err := m.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// 存储消息本体
+		modelMsg := model.MessageFromDomain(message)
+		if err := tx.Create(modelMsg).Error; err != nil {
 			return err
 		}
-	}
-	return nil
-}
 
-func (m *MessageRepository) QueryMessages(ctx context.Context, number domain.BaseNumber, count int) ([]*domain.Message, error) {
-	var modelMsgs []*model.Message
-	err := m.db.WithContext(ctx).
-		Where("recipient = ?", number).
-		Order("sent_at desc").
-		Limit(count).
-		Find(&modelMsgs).Error
+		// 查询房间成员
+		var userRooms []model.UserRoom
+		if err := tx.Where("room_number = ?", message.To()).Find(&userRooms).Error; err != nil {
+			return err
+		}
+
+		if len(userRooms) > 0 {
+			for _, ur := range userRooms {
+				userNumbers = append(userNumbers, ur.UserNumber)
+			}
+		} else {
+			// 校验用户号是否存在
+			var user model.User
+			if err := tx.Where("number = ?", message.To()).First(&user).Error; err != nil {
+				return err // 用户不存在或查询出错
+			}
+			userNumbers = append(userNumbers, domain.UserNumber(message.To()))
+		}
+
+		// 批量插入 UserMessage
+		userMessages := make([]*model.UserMessage, 0, len(userNumbers))
+		for _, num := range userNumbers {
+			userMessages = append(userMessages, &model.UserMessage{
+				Sent:       false,
+				UserNumber: num,
+				MessageID:  message.ID(),
+			})
+		}
+		if len(userMessages) > 0 {
+			if err := tx.Create(&userMessages).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
 	if err != nil {
 		return nil, err
 	}
-	return model.ToDomainMessages(modelMsgs), nil
+	return userNumbers, nil
+}
+
+func (m *MessageRepository) UpdateMessagesSentToOneUser(ctx context.Context, number domain.UserNumber, msgIDs []domain.MessageID) error {
+	if len(msgIDs) == 0 {
+		return nil
+	}
+	return m.db.WithContext(ctx).
+		Model(&model.UserMessage{}).
+		Where("user_number = ? AND message_id IN ?", number, msgIDs).
+		Update("sent", true).Error
+}
+
+func (m *MessageRepository) UpdateMessageSentToManyUsers(ctx context.Context, msgID domain.MessageID, userNumbers []domain.UserNumber) error {
+	if len(userNumbers) == 0 {
+		return nil
+	}
+
+	return m.db.WithContext(ctx).
+		Model(&model.UserMessage{}).
+		Where(" message_id = ? AND user_number in ?", msgID, userNumbers).
+		Update("sent", true).Error
 }
 
 func (m *MessageRepository) QueryUnsentMessages(ctx context.Context, number domain.UserNumber) ([]*domain.Message, error) {
-	// 查询用户加入的所有房间号
-	var roomNumbers []domain.RoomNumber
-	err := m.db.WithContext(ctx).
-		Model(&model.UserRoom{}).
-		Where("user_number = ?", number).
-		Pluck("room_number", &roomNumbers).Error
-	if err != nil {
+	var userMsgs []model.UserMessage
+	if err := m.db.WithContext(ctx).
+		Where("user_number = ? AND sent = ?", number, false).
+		Find(&userMsgs).Error; err != nil {
+		return nil, err
+	}
+	if len(userMsgs) == 0 {
+		return nil, nil
+	}
+
+	// 提取 message_id
+	msgIDs := make([]domain.MessageID, 0, len(userMsgs))
+	for _, um := range userMsgs {
+		msgIDs = append(msgIDs, um.MessageID)
+	}
+
+	// 查询消息内容
+	var msgs []*model.Message
+	if err := m.db.WithContext(ctx).
+		Where("id IN ?", msgIDs).
+		Order("sent_at ASC").
+		Find(&msgs).Error; err != nil {
 		return nil, err
 	}
 
-	//构建接收者列表（用户号 + 房间号）
-	recipients := []domain.BaseNumber{domain.BaseNumber(number)}
-	for _, rn := range roomNumbers {
-		recipients = append(recipients, domain.BaseNumber(rn))
-	}
-
-	// 查询消息（包含点对点消息和群消息）
-	var modelMsgs []*model.Message
-	err = m.db.WithContext(ctx).
-		Where("recipient IN (?) AND sent = ?", recipients, false).
-		Order("sent_at desc").
-		Find(&modelMsgs).Error
-	if err != nil {
-		return nil, err
-	}
-
-	return model.ToDomainMessages(modelMsgs), nil
-}
-
-func (m *MessageRepository) QueryAllMessages(ctx context.Context, number domain.BaseNumber) ([]*domain.Message, error) {
-	var modelMsgs []*model.Message
-	err := m.db.WithContext(ctx).
-		Where("recipient = ?", number).
-		Order("sent_at desc").
-		Find(&modelMsgs).Error
-	if err != nil {
-		return nil, err
-	}
-	return model.ToDomainMessages(modelMsgs), nil
+	return model.ToDomainMessages(msgs), nil
 }

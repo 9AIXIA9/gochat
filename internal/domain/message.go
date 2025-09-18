@@ -7,31 +7,28 @@ import (
 )
 
 type BaseNumber int64
+type MessageID string
 
-// Message 泛型消息结构
 type Message struct {
-	id      string
+	id      MessageID
 	from    UserNumber
 	to      BaseNumber
 	content string
 	sentAt  time.Time
-	sent    bool
-	//read  bool
 }
 
-func NewMessage(id string, from UserNumber, to BaseNumber, content string, sendAt time.Time, sent bool) *Message {
+func NewMessage(id MessageID, from UserNumber, to BaseNumber, content string, sendAt time.Time) *Message {
 	return &Message{
 		id:      id,
 		from:    from,
 		to:      to,
 		content: content,
 		sentAt:  sendAt,
-		sent:    sent,
 	}
 }
 
-func CreateMessage(from UserNumber, to BaseNumber, content string, sendAt time.Time, sent bool) *Message {
-	return NewMessage(uuid.NewString(), from, to, content, sendAt, sent)
+func CreateMessage(from UserNumber, to BaseNumber, content string, sendAt time.Time) *Message {
+	return NewMessage(MessageID(uuid.NewString()), from, to, content, sendAt)
 }
 
 func (m *Message) ToJSON() map[string]interface{} {
@@ -48,7 +45,7 @@ func (m *Message) MarshalJSON() ([]byte, error) {
 	return json.Marshal(m.ToJSON())
 }
 
-func (m *Message) ID() string {
+func (m *Message) ID() MessageID {
 	return m.id
 }
 
@@ -66,12 +63,4 @@ func (m *Message) Content() string {
 
 func (m *Message) SendAt() time.Time {
 	return m.sentAt
-}
-
-func (m *Message) IsSent() bool {
-	return m.sent
-}
-
-func (m *Message) Sent() {
-	m.sent = true
 }

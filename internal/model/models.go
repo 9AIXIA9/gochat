@@ -26,15 +26,21 @@ type Room struct {
 
 type Message struct {
 	gorm.Model
-	ID        string `gorm:"primaryKey"`
+	ID        domain.MessageID `gorm:"primaryKey"`
 	Sender    domain.UserNumber
 	Recipient domain.BaseNumber
 	Content   string
 	SentAt    time.Time
-	Sent      bool
 }
 
 type UserRoom struct {
 	UserNumber domain.UserNumber `gorm:"primaryKey"`
 	RoomNumber domain.RoomNumber `gorm:"primaryKey"`
+}
+
+type UserMessage struct {
+	gorm.Model
+	Sent       bool
+	UserNumber domain.UserNumber
+	MessageID  domain.MessageID
 }

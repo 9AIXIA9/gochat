@@ -25,13 +25,13 @@ type client struct {
 	number    domain.UserNumber
 	conn      *websocket.Conn
 	sendChan  chan []byte
-	onClose   func(number domain.UserNumber) error
+	onClose   func(number domain.UserNumber)
 	closeOnce sync.Once
 	closed    atomic.Bool
 	closeMu   sync.RWMutex
 }
 
-func NewClient(conn *websocket.Conn, number domain.UserNumber, closeFn func(number domain.UserNumber) error) Client {
+func NewClient(conn *websocket.Conn, number domain.UserNumber, closeFn func(number domain.UserNumber)) Client {
 	return &client{
 		number:   number,
 		conn:     conn,
@@ -79,9 +79,7 @@ func (c *client) Close() (err error) {
 
 		//调用关闭回调
 		if c.onClose != nil {
-			if err2 := c.onClose(c.number); err2 != nil {
-				err = err2
-			}
+			c.onClose(c.number)
 		}
 	})
 	return err

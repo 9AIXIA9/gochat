@@ -11,6 +11,8 @@ type SendMessage struct {
 	manager *manager.Manager
 }
 
+//todo 拆成两个 room和private
+
 func NewSendMessage(manager *manager.Manager, repo domain.MessageRepository) domain.SendMessageUsecase {
 	return &SendMessage{
 		repo:    repo,
@@ -19,26 +21,33 @@ func NewSendMessage(manager *manager.Manager, repo domain.MessageRepository) dom
 }
 
 func (uc *SendMessage) Execute(ctx context.Context, req *domain.SendMessageRequest) (*domain.Response, error) {
-	msg := domain.CreateMessage(req.AuthInfo.UserNumber, req.To, req.Content, req.SentAt, false)
+	msg := domain.CreateMessage(req.AuthInfo.UserNumber, req.To, req.Content, req.SentAt)
 
-	//尝试发送给客户端
-	err := uc.Send(ctx, msg)
+	//存储 message并查询应该发送的用户
+	userNumbers, err := uc.SaveAndQueryUserNumberShouldSent(ctx, msg)
 	if err != nil {
 		return nil, err
 	}
 
-	//存储 message
-	if err := uc.SaveMessage(ctx, msg); err != nil {
+	//发送给用户
+	numbersSent := uc.SendMsgToManyUsers(msg, userNumbers)
+
+	//存储已发送的信息
+	if err := uc.UpdateMessageSentToManyUsers(ctx, msg.ID(), numbersSent); err != nil {
 		return nil, err
 	}
 
 	return domain.DefaultResponse, nil
 }
 
-func (uc *SendMessage) SaveMessage(ctx context.Context, msg *domain.Message) error {
-	return uc.repo.Save(ctx, msg)
+func (uc *SendMessage) SendMsgToManyUsers(msg *domain.Message, numbers []domain.UserNumber) []domain.UserNumber {
+	return uc.manager.SendMsgToManyUsers(msg, numbers)
 }
 
-func (uc *SendMessage) Send(ctx context.Context, msg *domain.Message) error {
-	return uc.manager.Send(ctx, msg)
+func (uc *SendMessage) SaveAndQueryUserNumberShouldSent(ctx context.Context, msg *domain.Message) ([]domain.UserNumber, error) {
+	return uc.repo.SaveAndQueryUserNumberShouldSent(ctx, msg)
+}
+
+func (uc *SendMessage) UpdateMessageSentToManyUsers(ctx context.Context, msgID domain.MessageID, userNumbers []domain.UserNumber) error {
+	return uc.repo.UpdateMessageSentToManyUsers(ctx, msgID, userNumbers)
 }

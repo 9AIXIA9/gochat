@@ -42,13 +42,14 @@ type LeaveRoomUsecase interface {
 
 type UserConnectedUsecase interface {
 	Execute(ctx context.Context, number UserNumber) error
-	QueryUnsentMessages(ctx context.Context, number UserNumber) ([]*Message, error) //todo 只修改已发送成功的
-	SendMessages(ctx context.Context, msgs []*Message)
-	UpdateMessagesSent(ctx context.Context, msgs []*Message) error
+	QueryUnsentMessages(ctx context.Context, number UserNumber) ([]*Message, error)
+	SendUserManyMsgs(number UserNumber, msgs []*Message) []MessageID
+	UpdateMessagesSentToOneUser(ctx context.Context, number UserNumber, msgIDs []MessageID) error
 }
 
 type SendMessageUsecase interface {
 	Execute(ctx context.Context, req *SendMessageRequest) (*Response, error)
-	SaveMessage(ctx context.Context, msg *Message) error
-	Send(ctx context.Context, msg *Message) error
+	SaveAndQueryUserNumberShouldSent(ctx context.Context, msg *Message) ([]UserNumber, error)
+	SendMsgToManyUsers(msg *Message, numbers []UserNumber) []UserNumber
+	UpdateMessageSentToManyUsers(ctx context.Context, msgID MessageID, userNumbers []UserNumber) error
 }
