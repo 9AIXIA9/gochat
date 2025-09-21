@@ -25,7 +25,6 @@ func NewManager() *Manager {
 }
 
 func (m *Manager) Send(number domain.UserNumber, msg *domain.Message) error {
-	//todo ctx
 	c, ok := m.clients[number]
 	if ok {
 		data, err := msg.MarshalJSON()

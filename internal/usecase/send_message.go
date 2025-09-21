@@ -11,8 +11,6 @@ type SendMessage struct {
 	manager *manager.Manager
 }
 
-//todo 拆成两个 room和private
-
 func NewSendMessage(manager *manager.Manager, repo domain.MessageRepository) domain.SendMessageUsecase {
 	return &SendMessage{
 		repo:    repo,
