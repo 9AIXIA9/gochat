@@ -19,7 +19,7 @@ func NewSendMessage(manager *manager.Manager, repo domain.MessageRepository) dom
 }
 
 func (uc *SendMessage) Execute(ctx context.Context, req *domain.SendMessageRequest) (*domain.Response, error) {
-	msg := domain.CreateMessage(req.AuthInfo.UserNumber, req.To, req.Content, req.SentAt)
+	msg := domain.CreateMessage(req.UserNumber, req.To, req.Content, req.SentAt)
 
 	//存储 message并查询应该发送的用户
 	userNumbers, err := uc.SaveAndQueryUserNumberShouldSent(ctx, msg)

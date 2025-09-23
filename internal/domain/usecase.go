@@ -19,7 +19,8 @@ type LoginUsecase interface {
 	Execute(ctx context.Context, req *LoginRequest) (*Response, error)
 	FindUser(ctx context.Context, number UserNumber) (*User, error)
 	CheckPwd(ctx context.Context, origin, hash string) error
-	GenerateToken(ctx context.Context, authInfo *AuthInfo) (string, error)
+	GenerateRefreshToken() (RefreshToken, error)
+	SaveRefreshToken(ctx context.Context, token RefreshToken, info *RefreshInfo) error
 }
 type CreateRoomUsecase interface {
 	Execute(ctx context.Context, req *CreateRoomRequest) (*Response, error)

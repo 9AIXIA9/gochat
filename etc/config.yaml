@@ -4,9 +4,13 @@ Port: 8888
 Language: "zh"
 Timeout: 5s
 
-JWT:
-  Secret: "${JWT_SECRET}"
-  ExpireTime: 8000h
+Token:
+  Refresh:
+    Length: 32
+    ExpireDuration: 72h
+  Auth:
+    Secret: "${JWT_SECRET}"
+    ExpireDuration: 24h
 
 RateLimit:
   Period: 1s

@@ -29,7 +29,7 @@ func JWTAuth(uc domain.AuthUsecase) gin.HandlerFunc {
 		tokenString := parts[1]
 
 		// 解析token
-		if authInfo, err := uc.ParseToken(c.Request.Context(), tokenString); err != nil {
+		if authInfo, err := uc.ParseAuthToken(c.Request.Context(), domain.AuthToken(tokenString)); err != nil {
 			handler.ResponseSuccess(c, domain.InvalidTokenResponse)
 			c.Abort()
 			return

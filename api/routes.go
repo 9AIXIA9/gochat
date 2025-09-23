@@ -18,6 +18,7 @@ type Dependencies struct {
 	AuthUsecase          domain.AuthUsecase
 	SignupUsecase        domain.SignupUsecase
 	LoginUsecase         domain.LoginUsecase
+	RefreshTokenUsecase  domain.RefreshTokenUsecase
 	CreateRoomUsecase    domain.CreateRoomUsecase
 	JoinRoomUsecase      domain.JoinRoomUsecase
 	LeaveRoomUsecase     domain.LeaveRoomUsecase
@@ -28,6 +29,8 @@ type Dependencies struct {
 func Setup(deps *Dependencies) *gin.Engine {
 	// 创建gin引擎
 	r := gin.New()
+
+	//todo 注册 panic和recover中间件 当前状态下handler panic后无响应
 
 	// 注册全局中间件
 	r.Use(middleware.Logger())
@@ -50,7 +53,8 @@ func setup(r *gin.Engine, deps *Dependencies) {
 	public.Use(middleware.Timeout(deps.Config.Timeout))
 	{
 		public.POST("/signup", handler.Signup(deps.SignupUsecase))
-		public.POST("/login", handler.Login(deps.LoginUsecase))
+		public.POST("/login", handler.Login(deps.Config.Token.Refresh, deps.LoginUsecase))
+		public.GET("/refresh/token", handler.RefreshToken(deps.Config.Token.Refresh, deps.RefreshTokenUsecase))
 	}
 
 	// 需要认证的路由

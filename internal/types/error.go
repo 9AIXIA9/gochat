@@ -34,3 +34,9 @@ var (
 	ErrClientClosed = errors.New("client has been closed")
 	ErrFullMessage  = errors.New("too many messages")
 )
+
+// token
+
+var (
+	ErrLengthLessThanZero = errors.New("token length must be greater than 0")
+)

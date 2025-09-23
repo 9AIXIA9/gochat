@@ -18,6 +18,11 @@ type LoginRequest struct {
 	Password string
 }
 
+// RefreshTokenRequest 刷新token请求
+type RefreshTokenRequest struct {
+	RefreshToken RefreshToken
+}
+
 // CreateRoomRequest 创建房间请求
 type CreateRoomRequest struct {
 	AuthInfo

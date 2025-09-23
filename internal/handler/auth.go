@@ -8,15 +8,15 @@ import (
 // injectAuthInfo 注入认证信息
 func injectAuthInfo(c *gin.Context, req interface{}) {
 	if authReq, ok := req.(domain.AuthContext); ok {
-		info := GetUserInfo(c)
+		info := GetAuthInfo(c)
 		if info != nil {
 			authReq.SetInfo(info)
 		}
 	}
 }
 
-// GetUserInfo 从上下文中获取当前用户信息
-func GetUserInfo(c *gin.Context) *domain.AuthInfo {
+// GetAuthInfo 从上下文中获取当前用户信息
+func GetAuthInfo(c *gin.Context) *domain.AuthInfo {
 	authInfoInterface, exists := c.Get(domain.AuthInfoKey)
 
 	if !exists {

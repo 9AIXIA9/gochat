@@ -8,7 +8,10 @@ import (
 )
 
 // Adapter 将HTTP请求处理转换为业务逻辑处理函数
-func Adapter[E domain.ExternalRequest[D], D any](usecase domain.Usecase[D]) gin.HandlerFunc {
+func Adapter[E domain.ExternalRequest[D], D any](
+	usecase domain.Usecase[D],
+	cookieSetter func(c *gin.Context, response *domain.Response),
+) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 创建请求对象
 		hReq := new(E)
@@ -33,11 +36,15 @@ func Adapter[E domain.ExternalRequest[D], D any](usecase domain.Usecase[D]) gin.
 		domainReq := (*hReq).ToDomain()
 		executeFn(c, func() (*domain.Response, error) {
 			return usecase.Execute(c.Request.Context(), domainReq)
-		})
+		}, cookieSetter) // 传递cookieSetter
 	}
 }
 
-func executeFn(c *gin.Context, logic func() (*domain.Response, error)) {
+func executeFn(
+	c *gin.Context,
+	logic func() (*domain.Response, error),
+	cookieSetter func(c *gin.Context, response *domain.Response),
+) {
 	resp, err := logic()
 	if err != nil {
 		if timeout.IsCanceledOrTimeout(err) {
@@ -50,8 +57,12 @@ func executeFn(c *gin.Context, logic func() (*domain.Response, error)) {
 		return
 	}
 
-	// 处理响应
+	// 处理响应和Cookie
 	if resp != nil {
+		// 通过回调函数设置Cookie
+		if cookieSetter != nil {
+			cookieSetter(c, resp)
+		}
 		ResponseSuccess(c, resp)
 	} else {
 		ResponseSuccess(c, domain.DefaultResponse)

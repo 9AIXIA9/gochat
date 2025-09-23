@@ -4,9 +4,9 @@
 package main
 
 import (
+	"github.com/go-redis/redis/v8"
 	"gochat/api"
 	"gochat/internal/config"
-	"gochat/internal/domain"
 	"gochat/internal/handler"
 	"gochat/internal/infra/logger"
 	"gochat/internal/infra/repository"
@@ -33,19 +33,22 @@ func ProvideConfig(configPath string) *config.Config {
 	return conf
 }
 
-// ProvideDatabase 提供数据库连接
-func ProvideDatabase(conf *config.Config) *gorm.DB {
-	return repository.MustConnectToMysql(*conf.Database)
+// ProvideMysqlConnection 提供 Mysql数据库连接
+func ProvideMysqlConnection(conf *config.Config) *gorm.DB {
+	return repository.MustConnectToMysql(conf.Database)
 }
 
-// ProvideAuth 提供Auth服务并注入JWT配置
-func ProvideAuth(conf *config.Config) domain.AuthUsecase {
-	return usecase.NewAuth(conf.JWT)
+// ProvideRedisConnection 提供 Mysql数据库连接
+func ProvideRedisConnection(conf *config.Config) *redis.Client {
+	return repository.MustConnectToRedis(conf.Redis)
 }
 
-// ProvideLogin 提供Login服务并注入JWT配置
-func ProvideLogin(repo domain.UserRepository, conf *config.Config) domain.LoginUsecase {
-	return usecase.NewLogin(conf.JWT, repo)
+func ProvideTokenConf(conf *config.Config) *config.Token {
+	return conf.Token
+}
+
+func ProvideRefreshTokenConf(conf *config.Config) *config.RefreshToken {
+	return conf.Token.Refresh
 }
 
 // RepositorySet 提供所有的Repository
@@ -54,18 +57,22 @@ var RepositorySet = wire.NewSet(
 	repository.NewRoomRepository,
 	repository.NewMessageRepository,
 	repository.NewUserRoomRepository,
+	repository.NewRefreshTokenRepository,
 )
 
 // UsecaseSet 提供所有的Usecase
 var UsecaseSet = wire.NewSet(
 	// Auth
-	ProvideAuth,
+	usecase.NewAuth,
 
-	// Execute
-	ProvideLogin,
+	// Login
+	usecase.NewLogin,
 
 	// Signup
 	usecase.NewSignup,
+
+	// RefreshToken
+	usecase.NewRefreshToken,
 
 	// Room相关
 	usecase.NewCreateRoom,
@@ -83,7 +90,10 @@ var UsecaseSet = wire.NewSet(
 func InitializeDependencies(configPath string) *api.Dependencies {
 	wire.Build(
 		ProvideConfig,
-		ProvideDatabase,
+		ProvideTokenConf,
+		ProvideRefreshTokenConf,
+		ProvideMysqlConnection,
+		ProvideRedisConnection,
 		RepositorySet,
 		UsecaseSet,
 		manager.NewManager,

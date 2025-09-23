@@ -3,7 +3,6 @@ package jwt
 import (
 	"context"
 	"github.com/golang-jwt/jwt/v4"
-	"gochat/internal/config"
 	"gochat/internal/domain"
 	"gochat/internal/types"
 	"gochat/internal/utils/timeout"
@@ -15,14 +14,14 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(ctx context.Context, conf *config.JWT, info *domain.AuthInfo) (string, error) {
-	return timeout.ConvertAndExecuteWithResponse(ctx, func() (string, error) {
-		mySecret := []byte(conf.Secret)
+func GenerateAuthToken(ctx context.Context, secret string, expireDuration time.Duration, info *domain.AuthInfo) (domain.AuthToken, error) {
+	return timeout.ConvertAndExecuteWithResponse(ctx, func() (domain.AuthToken, error) {
+		mySecret := []byte(secret)
 
 		c := Claims{
 			UserNumber: info.UserNumber,
 			RegisteredClaims: jwt.RegisteredClaims{
-				ExpiresAt: jwt.NewNumericDate(time.Now().Add(conf.ExpireTime)),
+				ExpiresAt: jwt.NewNumericDate(time.Now().Add(expireDuration)),
 			},
 		}
 
@@ -30,14 +29,18 @@ func GenerateToken(ctx context.Context, conf *config.JWT, info *domain.AuthInfo)
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, c)
 
 		//使用指定的secret签名并获得完整的编码后的字符串token
-		return token.SignedString(mySecret)
+		if tokenStr, err := token.SignedString(mySecret); err != nil {
+			return "", nil
+		} else {
+			return domain.AuthToken(tokenStr), nil
+		}
 	})
 }
 
-func ParseToken(ctx context.Context, secret, tokenStr string) (*domain.AuthInfo, error) {
+func ParseAuthToken(ctx context.Context, secret string, authToken domain.AuthToken) (*domain.AuthInfo, error) {
 	return timeout.ConvertAndExecuteWithResponse(ctx, func() (*domain.AuthInfo, error) {
 		//解析 Token
-		token, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.ParseWithClaims(string(authToken), &Claims{}, func(token *jwt.Token) (interface{}, error) {
 			return []byte(secret), nil
 		})
 

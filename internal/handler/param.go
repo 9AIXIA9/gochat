@@ -7,6 +7,7 @@ import (
 	"gochat/internal/domain"
 	"gochat/internal/types"
 	"gochat/internal/utils"
+	"reflect"
 	"strings"
 )
 
@@ -31,6 +32,11 @@ func BindParams(c *gin.Context, param interface{}) (*domain.Response, error) {
 		return handleBindError(err)
 	}
 
+	// 绑定Cookie参数
+	if err := bindCookieIfExists(c, param); err != nil {
+		return handleBindError(err)
+	}
+
 	return nil, nil
 }
 
@@ -51,6 +57,30 @@ func bindQueryIfExists(c *gin.Context, param interface{}) error {
 func bindBodyIfExists(c *gin.Context, param interface{}) error {
 	if utils.HasStructField(param, "Body") {
 		return c.ShouldBindJSON(utils.GetFieldAddr(param, "Body"))
+	}
+	return nil
+}
+
+func bindCookieIfExists(c *gin.Context, param interface{}) error {
+	if !utils.HasStructField(param, "Cookie") {
+		return nil
+	}
+	cookiePtr := utils.GetFieldAddr(param, "Cookie")
+	if cookiePtr == nil {
+		return nil
+	}
+	cookieVal := reflect.ValueOf(cookiePtr).Elem()
+	cookieType := cookieVal.Type()
+	for i := 0; i < cookieType.NumField(); i++ {
+		field := cookieType.Field(i)
+		cookieName := field.Tag.Get("json")
+		if cookieName == "" {
+			cookieName = field.Name
+		}
+		val, err := c.Cookie(cookieName)
+		if err == nil {
+			cookieVal.Field(i).SetString(val)
+		}
 	}
 	return nil
 }

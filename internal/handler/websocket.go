@@ -11,7 +11,7 @@ import (
 
 func Websocket(usecase domain.UserConnectedUsecase, m *manager.Manager) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		info := GetUserInfo(c)
+		info := GetAuthInfo(c)
 
 		//升级连接
 		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)

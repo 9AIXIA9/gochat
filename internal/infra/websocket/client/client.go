@@ -119,7 +119,7 @@ func (c *client) readPump() {
 			return
 		}
 
-		//todo 客户端发送信息暂时未处理 后续可扩展为已读未读 发送状态等
+		//todo 客户端发送信息暂时未处理 后续可扩展为已读未读 ASK确认
 		zap.L().Info("receive message sent from client",
 			zap.String("content", string(msg)),
 			zap.Int64("number", int64(c.Number())))

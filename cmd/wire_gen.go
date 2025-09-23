@@ -7,10 +7,10 @@
 package main
 
 import (
+	"github.com/go-redis/redis/v8"
 	"github.com/google/wire"
 	"gochat/api"
 	"gochat/internal/config"
-	"gochat/internal/domain"
 	"gochat/internal/handler"
 	"gochat/internal/infra/logger"
 	"gochat/internal/infra/repository"
@@ -26,11 +26,16 @@ import (
 func InitializeDependencies(configPath string) *api.Dependencies {
 	config := ProvideConfig(configPath)
 	managerManager := manager.NewManager()
-	authUsecase := ProvideAuth(config)
-	db := ProvideDatabase(config)
+	token := ProvideTokenConf(config)
+	authUsecase := usecase.NewAuth(token)
+	db := ProvideMysqlConnection(config)
 	userRepository := repository.NewUserRepository(db)
 	signupUsecase := usecase.NewSignup(userRepository)
-	loginUsecase := ProvideLogin(userRepository, config)
+	refreshToken := ProvideRefreshTokenConf(config)
+	client := ProvideRedisConnection(config)
+	refreshTokenRepository := repository.NewRefreshTokenRepository(client)
+	loginUsecase := usecase.NewLogin(refreshToken, userRepository, refreshTokenRepository)
+	refreshTokenUsecase := usecase.NewRefreshToken(token, refreshTokenRepository)
 	roomRepository := repository.NewRoomRepository(db)
 	createRoomUsecase := usecase.NewCreateRoom(roomRepository)
 	userRoomRepository := repository.NewUserRoomRepository(db)
@@ -45,6 +50,7 @@ func InitializeDependencies(configPath string) *api.Dependencies {
 		AuthUsecase:          authUsecase,
 		SignupUsecase:        signupUsecase,
 		LoginUsecase:         loginUsecase,
+		RefreshTokenUsecase:  refreshTokenUsecase,
 		CreateRoomUsecase:    createRoomUsecase,
 		JoinRoomUsecase:      joinRoomUsecase,
 		LeaveRoomUsecase:     leaveRoomUsecase,
@@ -69,28 +75,26 @@ func ProvideConfig(configPath string) *config.Config {
 	return conf
 }
 
-// ProvideDatabase 提供数据库连接
-func ProvideDatabase(conf *config.Config) *gorm.DB {
-	return repository.MustConnectToMysql(*conf.Database)
+// ProvideMysqlConnection 提供 Mysql数据库连接
+func ProvideMysqlConnection(conf *config.Config) *gorm.DB {
+	return repository.MustConnectToMysql(conf.Database)
 }
 
-// ProvideAuth 提供Auth服务并注入JWT配置
-func ProvideAuth(conf *config.Config) domain.AuthUsecase {
-	return usecase.NewAuth(conf.JWT)
+// ProvideRedisConnection 提供 Mysql数据库连接
+func ProvideRedisConnection(conf *config.Config) *redis.Client {
+	return repository.MustConnectToRedis(conf.Redis)
 }
 
-// ProvideLogin 提供Login服务并注入JWT配置
-func ProvideLogin(repo domain.UserRepository, conf *config.Config) domain.LoginUsecase {
-	return usecase.NewLogin(conf.JWT, repo)
+func ProvideTokenConf(conf *config.Config) *config.Token {
+	return conf.Token
+}
+
+func ProvideRefreshTokenConf(conf *config.Config) *config.RefreshToken {
+	return conf.Token.Refresh
 }
 
 // RepositorySet 提供所有的Repository
-var RepositorySet = wire.NewSet(repository.NewUserRepository, repository.NewRoomRepository, repository.NewMessageRepository, repository.NewUserRoomRepository)
+var RepositorySet = wire.NewSet(repository.NewUserRepository, repository.NewRoomRepository, repository.NewMessageRepository, repository.NewUserRoomRepository, repository.NewRefreshTokenRepository)
 
 // UsecaseSet 提供所有的Usecase
-var UsecaseSet = wire.NewSet(
-
-	ProvideAuth,
-
-	ProvideLogin, usecase.NewSignup, usecase.NewCreateRoom, usecase.NewJoinRoom, usecase.NewLeaveRoom, usecase.NewSendMessage, usecase.NewUserConnected,
-)
+var UsecaseSet = wire.NewSet(usecase.NewAuth, usecase.NewLogin, usecase.NewSignup, usecase.NewRefreshToken, usecase.NewCreateRoom, usecase.NewJoinRoom, usecase.NewLeaveRoom, usecase.NewSendMessage, usecase.NewUserConnected)

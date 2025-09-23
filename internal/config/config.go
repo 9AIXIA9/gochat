@@ -18,7 +18,7 @@ type Config struct {
 	Port      int           `mapstructure:"Port"`
 	Language  string        `mapstructure:"Language"`
 	Timeout   time.Duration `mapstructure:"Timeout"`
-	JWT       *JWT          `mapstructure:"JWT"`
+	Token     *Token        `mapstructure:"Token"`
 	RateLimit *RateLimit    `mapstructure:"RateLimit"`
 	Database  *Database     `mapstructure:"Database"`
 	Redis     *Redis        `mapstructure:"Redis"`
@@ -26,9 +26,19 @@ type Config struct {
 	Snowflake *Snowflake    `mapstructure:"Snowflake"`
 }
 
-type JWT struct {
-	Secret     string        `mapstructure:"Secret"`
-	ExpireTime time.Duration `mapstructure:"ExpireTime"`
+type Token struct {
+	Refresh *RefreshToken
+	Auth    *AuthToken
+}
+
+type RefreshToken struct {
+	Length         int           `mapstructure:"Length"`
+	ExpireDuration time.Duration `mapstructure:"ExpireDuration"`
+}
+
+type AuthToken struct {
+	Secret         string        `mapstructure:"Secret"`
+	ExpireDuration time.Duration `mapstructure:"ExpireDuration"`
 }
 
 type RateLimit struct {
@@ -64,11 +74,11 @@ type Redis struct {
 	DB       int    `mapstructure:"DB"`
 }
 
-// MustLoad 加载配置，如果失败则panic
+// MustLoad 加载配置，如果失败则退出
 func MustLoad(configFile string) *Config {
 	config, err := Load(configFile)
 	if err != nil {
-		panic(err)
+		log.Fatalf("config load failed,err:%v", err)
 	}
 	return config
 }
@@ -106,5 +116,9 @@ func (c *Config) Validate() {
 		c.Language = defaultLanguage
 	} else if c.Language != "zh" && c.Language != "en" {
 		log.Fatalf("language can only be selected from Chinese (zh) and English (en).")
+	}
+
+	if c.Token.Refresh.Length <= 0 {
+		log.Fatalf("refresh token can't <= 0")
 	}
 }

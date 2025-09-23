@@ -39,7 +39,7 @@ func setupEnvironmentVars(v *viper.Viper) {
 	// 绑定特定环境变量到配置路径
 	envMappings := map[string]string{
 		"Database.Password": "DB_PASSWORD",
-		"JWT.Secret":        "JWT_SECRET",
+		"Token.Secret":      "JWT_SECRET",
 		"Redis.Password":    "REDIS_PASSWORD",
 	}
 

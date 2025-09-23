@@ -4,6 +4,7 @@ import (
 	"errors"
 	"gochat/internal/types"
 	"gorm.io/gorm"
+	"log"
 	"reflect"
 	"strings"
 )
@@ -17,6 +18,24 @@ func NormalizeVarArgs[T any](data ...T) any {
 	} else {
 		return nil
 	}
+}
+
+// IsEmptyData 判断 data 是否为 nil 或空结构体（所有字段不可导出或被 json:"-" 标记）
+func IsEmptyData(data any) bool {
+	if data == nil {
+		return true
+	}
+	v := reflect.ValueOf(data)
+	switch v.Kind() {
+	case reflect.Struct:
+		// 空结构体
+		return v.NumField() == 0
+	case reflect.Slice, reflect.Map:
+		return v.Len() == 0
+	default:
+		log.Fatalf("unhandled default case")
+	}
+	return false
 }
 
 // GetOption 获取可选的参数

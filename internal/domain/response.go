@@ -1,6 +1,9 @@
 package domain
 
-import "gochat/internal/utils"
+import (
+	"encoding/json"
+	"gochat/internal/utils"
+)
 
 type Response struct {
 	Code ResCode `json:"code"`
@@ -8,13 +11,37 @@ type Response struct {
 	Data any     `json:"data,omitempty"`
 }
 
+func (r *Response) MarshalJSON() ([]byte, error) {
+	//用匿名结构体来进行默认json序列化 防止无限递归
+	type Alias Response
+	aux := &struct {
+		*Alias
+	}{
+		Alias: (*Alias)(r),
+	}
+
+	// 判断 Data 是否为“空结构体”或 nil
+	if utils.IsEmptyData(r.Data) {
+		return json.Marshal(&struct {
+			Code ResCode `json:"code"`
+			Msg  string  `json:"msg"`
+		}{
+			Code: r.Code,
+			Msg:  r.Msg,
+		})
+	}
+
+	return json.Marshal(aux)
+}
+
 func NewResponse(code ResCode, msg string, data ...any) *Response {
+	normalizedData := utils.NormalizeVarArgs(data...)
+
 	res := &Response{
 		Code: code,
 		Msg:  msg,
-		Data: utils.NormalizeVarArgs(data...),
+		Data: normalizedData,
 	}
-
 	return res
 }
 
@@ -31,7 +58,12 @@ type SignupResponse struct {
 }
 
 type LoginResponse struct {
-	Token string `json:"token"`
+	RefreshToken RefreshToken `json:"-"`
+}
+
+type RefreshTokenResponse struct {
+	AuthToken    AuthToken    `json:"auth_token"`
+	RefreshToken RefreshToken `json:"-"`
 }
 
 type CreateRoomResponse struct {

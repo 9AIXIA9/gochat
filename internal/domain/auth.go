@@ -4,6 +4,8 @@ import (
 	"context"
 )
 
+type AuthToken string
+
 const AuthInfoKey = "auth"
 
 // AuthContext 认证上下文接口
@@ -20,8 +22,6 @@ func (r *AuthInfo) SetInfo(info *AuthInfo) {
 	r.UserNumber = info.UserNumber
 }
 
-//todo Refresh token
-
 type AuthUsecase interface {
-	ParseToken(ctx context.Context, tokenStr string) (*AuthInfo, error)
+	ParseAuthToken(ctx context.Context, token AuthToken) (*AuthInfo, error)
 }

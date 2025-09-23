@@ -19,6 +19,12 @@ func (r LoginRequest) ToDomain() *domain.LoginRequest {
 	}
 }
 
+func (r RefreshRequest) ToDomain() *domain.RefreshTokenRequest {
+	return &domain.RefreshTokenRequest{
+		RefreshToken: r.Cookie.RefreshToken,
+	}
+}
+
 func (r CreateRoomRequest) ToDomain() *domain.CreateRoomRequest {
 	return &domain.CreateRoomRequest{
 		AuthInfo:    r.AuthInfo,

@@ -8,13 +8,13 @@ import (
 )
 
 type Auth struct {
-	conf *config.JWT
+	conf *config.Token
 }
 
-func NewAuth(conf *config.JWT) domain.AuthUsecase {
+func NewAuth(conf *config.Token) domain.AuthUsecase {
 	return &Auth{conf: conf}
 }
 
-func (uc *Auth) ParseToken(ctx context.Context, tokenStr string) (*domain.AuthInfo, error) {
-	return jwt.ParseToken(ctx, uc.conf.Secret, tokenStr)
+func (uc *Auth) ParseAuthToken(ctx context.Context, token domain.AuthToken) (*domain.AuthInfo, error) {
+	return jwt.ParseAuthToken(ctx, uc.conf.Auth.Secret, token)
 }

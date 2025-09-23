@@ -20,6 +20,13 @@ type LoginRequest struct {
 	}
 }
 
+// RefreshRequest 更新令牌请求
+type RefreshRequest struct {
+	Cookie struct {
+		RefreshToken domain.RefreshToken `json:"refresh_token"`
+	}
+}
+
 // CreateRoomRequest 创建房间请求
 type CreateRoomRequest struct {
 	domain.AuthInfo `json:"-"`
