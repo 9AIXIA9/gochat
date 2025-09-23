@@ -4,7 +4,7 @@
 package main
 
 import (
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"gochat/api"
 	"gochat/internal/config"
 	"gochat/internal/handler"
@@ -38,7 +38,7 @@ func ProvideMysqlConnection(conf *config.Config) *gorm.DB {
 	return repository.MustConnectToMysql(conf.Database)
 }
 
-// ProvideRedisConnection 提供 Mysql数据库连接
+// ProvideRedisConnection 提供 Redis数据库连接
 func ProvideRedisConnection(conf *config.Config) *redis.Client {
 	return repository.MustConnectToRedis(conf.Redis)
 }

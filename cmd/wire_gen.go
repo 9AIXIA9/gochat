@@ -7,8 +7,8 @@
 package main
 
 import (
-	"github.com/go-redis/redis/v8"
 	"github.com/google/wire"
+	"github.com/redis/go-redis/v9"
 	"gochat/api"
 	"gochat/internal/config"
 	"gochat/internal/handler"
@@ -26,13 +26,13 @@ import (
 func InitializeDependencies(configPath string) *api.Dependencies {
 	config := ProvideConfig(configPath)
 	managerManager := manager.NewManager()
+	client := ProvideRedisConnection(config)
 	token := ProvideTokenConf(config)
 	authUsecase := usecase.NewAuth(token)
 	db := ProvideMysqlConnection(config)
 	userRepository := repository.NewUserRepository(db)
 	signupUsecase := usecase.NewSignup(userRepository)
 	refreshToken := ProvideRefreshTokenConf(config)
-	client := ProvideRedisConnection(config)
 	refreshTokenRepository := repository.NewRefreshTokenRepository(client)
 	loginUsecase := usecase.NewLogin(refreshToken, userRepository, refreshTokenRepository)
 	refreshTokenUsecase := usecase.NewRefreshToken(token, refreshTokenRepository)
@@ -47,6 +47,7 @@ func InitializeDependencies(configPath string) *api.Dependencies {
 	dependencies := &api.Dependencies{
 		Config:               config,
 		WebsocketManager:     managerManager,
+		RedisClient:          client,
 		AuthUsecase:          authUsecase,
 		SignupUsecase:        signupUsecase,
 		LoginUsecase:         loginUsecase,
@@ -80,7 +81,7 @@ func ProvideMysqlConnection(conf *config.Config) *gorm.DB {
 	return repository.MustConnectToMysql(conf.Database)
 }
 
-// ProvideRedisConnection 提供 Mysql数据库连接
+// ProvideRedisConnection 提供 Redis数据库连接
 func ProvideRedisConnection(conf *config.Config) *redis.Client {
 	return repository.MustConnectToRedis(conf.Redis)
 }

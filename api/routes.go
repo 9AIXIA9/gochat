@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 	swaggerFiles "github.com/swaggo/files"
 	"github.com/swaggo/gin-swagger"
 	"gochat/internal/config"
@@ -15,6 +16,7 @@ import (
 type Dependencies struct {
 	Config               *config.Config
 	WebsocketManager     *manager.Manager
+	RedisClient          *redis.Client
 	AuthUsecase          domain.AuthUsecase
 	SignupUsecase        domain.SignupUsecase
 	LoginUsecase         domain.LoginUsecase
@@ -33,7 +35,7 @@ func Setup(deps *Dependencies) *gin.Engine {
 	// 注册全局中间件
 	r.Use(middleware.Logger())
 	r.Use(middleware.Recover())
-	r.Use(middleware.RateLimit(deps.Config.RateLimit))
+	r.Use(middleware.RateLimit(deps.RedisClient, deps.Config.RateLimit))
 	r.Use(middleware.CORS())
 
 	// 注册路由

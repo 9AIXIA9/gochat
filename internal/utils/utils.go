@@ -6,7 +6,6 @@ import (
 	"gochat/internal/types"
 	"gochat/internal/utils/timeout"
 	"gorm.io/gorm"
-	"log"
 	"reflect"
 	"strings"
 )
@@ -27,17 +26,45 @@ func IsEmptyData(data any) bool {
 	if data == nil {
 		return true
 	}
+
 	v := reflect.ValueOf(data)
+
+	// 解包指针类型
+	for v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return true
+		}
+		v = v.Elem()
+	}
+
 	switch v.Kind() {
 	case reflect.Struct:
-		// 空结构体
-		return v.NumField() == 0
-	case reflect.Slice, reflect.Map:
+		t := v.Type()
+		if t.NumField() == 0 {
+			return true
+		}
+		// 遍历字段，若存在可导出且未被 json:"-" 标记的字段，则认为不是空
+		for i := 0; i < t.NumField(); i++ {
+			f := t.Field(i)
+			// 非导出字段跳过
+			if f.PkgPath != "" {
+				continue
+			}
+			// 被 json:"-" 标记的字段跳过
+			if f.Tag.Get("json") == "-" {
+				continue
+			}
+			// 找到可序列化的字段，认为不是空
+			return false
+		}
+		// 所有字段都不可序列化
+		return true
+	case reflect.Slice, reflect.Map, reflect.Array:
 		return v.Len() == 0
 	default:
-		log.Fatalf("unhandled default case")
+		// 其他类型不视为“空结构体”，让其正常序列化
+		return false
 	}
-	return false
 }
 
 // GetOption 获取可选的参数

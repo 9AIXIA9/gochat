@@ -14,7 +14,7 @@ Token:
 
 RateLimit:
   Period: 1s
-  Limit: 1000
+  Limit: 10
 
 Database:
   Host: localhost
