@@ -30,8 +30,6 @@ func Setup(deps *Dependencies) *gin.Engine {
 	// 创建gin引擎
 	r := gin.New()
 
-	//todo 注册 panic和recover中间件 当前状态下handler panic后无响应
-
 	// 注册全局中间件
 	r.Use(middleware.Logger())
 	r.Use(middleware.Recover())
@@ -50,24 +48,22 @@ func setup(r *gin.Engine, deps *Dependencies) {
 
 	// 公开路由（不需要认证）
 	public := api.Group("/")
-	public.Use(middleware.Timeout(deps.Config.Timeout))
 	{
-		public.POST("/signup", handler.Signup(deps.SignupUsecase))
-		public.POST("/login", handler.Login(deps.Config.Token.Refresh, deps.LoginUsecase))
-		public.GET("/refresh/token", handler.RefreshToken(deps.Config.Token.Refresh, deps.RefreshTokenUsecase))
+		public.POST("/signup", handler.Signup(deps.SignupUsecase, deps.Config.Timeout))
+		public.POST("/login", handler.Login(deps.LoginUsecase, deps.Config.Token.Refresh, deps.Config.Timeout))
+		public.GET("/refresh/token", handler.RefreshToken(deps.RefreshTokenUsecase, deps.Config.Token.Refresh, deps.Config.Timeout))
 	}
 
 	// 需要认证的路由
 	protected := api.Group("/")
-	protected.Use(middleware.JWTAuth(deps.AuthUsecase), middleware.Timeout(deps.Config.Timeout))
 	{
 		// 房间相关
-		protected.POST("/rooms", handler.CreateRoom(deps.CreateRoomUsecase))
-		protected.POST("/rooms/:number/join", handler.JoinRoom(deps.JoinRoomUsecase))
-		protected.DELETE("/rooms/:number/leave", handler.LeaveRoom(deps.LeaveRoomUsecase))
+		protected.POST("/rooms", handler.CreateRoom(deps.CreateRoomUsecase, deps.Config.Timeout))
+		protected.POST("/rooms/:number/join", handler.JoinRoom(deps.JoinRoomUsecase, deps.Config.Timeout))
+		protected.DELETE("/rooms/:number/leave", handler.LeaveRoom(deps.LeaveRoomUsecase, deps.Config.Timeout))
 
 		// 消息相关
-		protected.POST("/message/:to", handler.SendMessage(deps.SendMessageUsecase))
+		protected.POST("/message/:to", handler.SendMessage(deps.SendMessageUsecase, deps.Config.Timeout))
 	}
 
 	// websocket长连接（不加timeout）

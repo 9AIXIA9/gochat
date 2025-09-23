@@ -19,7 +19,7 @@ func NewRoomRepository(db *gorm.DB) domain.RoomRepository {
 func (r *RoomRepository) Save(ctx context.Context, room *domain.Room) error {
 	gormRoom := model.RoomFromDomain(room)
 	if err := r.db.WithContext(ctx).Save(gormRoom).Error; err != nil {
-		return utils.CheckDuplicateKeyError(err)
+		return utils.HandleDatabaseError(ctx, err)
 	}
 	return nil
 }
@@ -27,7 +27,7 @@ func (r *RoomRepository) Save(ctx context.Context, room *domain.Room) error {
 func (r *RoomRepository) FindOneByNumber(ctx context.Context, roomNumber domain.RoomNumber) (*domain.Room, error) {
 	var gormRoom model.Room
 	if err := r.db.WithContext(ctx).Where("number = ?", roomNumber).First(&gormRoom).Error; err != nil {
-		return nil, utils.CheckNotFoundError(err)
+		return nil, utils.HandleDatabaseError(ctx, err)
 	}
 
 	return gormRoom.ToDomain(), nil

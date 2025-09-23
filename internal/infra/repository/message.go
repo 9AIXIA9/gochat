@@ -4,6 +4,7 @@ import (
 	"context"
 	"gochat/internal/domain"
 	"gochat/internal/model"
+	"gochat/internal/utils"
 	"gorm.io/gorm"
 )
 
@@ -21,13 +22,13 @@ func (m *MessageRepository) SaveAndQueryUserNumberShouldSent(ctx context.Context
 		// 存储消息本体
 		modelMsg := model.MessageFromDomain(message)
 		if err := tx.Create(modelMsg).Error; err != nil {
-			return err
+			return utils.HandleDatabaseError(ctx, err)
 		}
 
 		// 查询房间成员
 		var userRooms []model.UserRoom
 		if err := tx.Where("room_number = ?", message.To()).Find(&userRooms).Error; err != nil {
-			return err
+			return utils.HandleDatabaseError(ctx, err)
 		}
 
 		if len(userRooms) > 0 {
@@ -38,7 +39,7 @@ func (m *MessageRepository) SaveAndQueryUserNumberShouldSent(ctx context.Context
 			// 校验用户号是否存在
 			var user model.User
 			if err := tx.Where("number = ?", message.To()).First(&user).Error; err != nil {
-				return err // 用户不存在或查询出错
+				return utils.HandleDatabaseError(ctx, err) // 用户不存在或查询出错
 			}
 			userNumbers = append(userNumbers, domain.UserNumber(message.To()))
 		}
@@ -54,14 +55,14 @@ func (m *MessageRepository) SaveAndQueryUserNumberShouldSent(ctx context.Context
 		}
 		if len(userMessages) > 0 {
 			if err := tx.Create(&userMessages).Error; err != nil {
-				return err
+				return utils.HandleDatabaseError(ctx, err)
 			}
 		}
 		return nil
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, utils.HandleDatabaseError(ctx, err)
 	}
 	return userNumbers, nil
 }
@@ -70,10 +71,13 @@ func (m *MessageRepository) UpdateMessagesSentToOneUser(ctx context.Context, num
 	if len(msgIDs) == 0 {
 		return nil
 	}
-	return m.db.WithContext(ctx).
+	if err := m.db.WithContext(ctx).
 		Model(&model.UserMessage{}).
 		Where("user_number = ? AND message_id IN ?", number, msgIDs).
-		Update("sent", true).Error
+		Update("sent", true).Error; err != nil {
+		return utils.HandleDatabaseError(ctx, err)
+	}
+	return nil
 }
 
 func (m *MessageRepository) UpdateMessageSentToManyUsers(ctx context.Context, msgID domain.MessageID, userNumbers []domain.UserNumber) error {
@@ -81,10 +85,13 @@ func (m *MessageRepository) UpdateMessageSentToManyUsers(ctx context.Context, ms
 		return nil
 	}
 
-	return m.db.WithContext(ctx).
+	if err := m.db.WithContext(ctx).
 		Model(&model.UserMessage{}).
 		Where(" message_id = ? AND user_number in ?", msgID, userNumbers).
-		Update("sent", true).Error
+		Update("sent", true).Error; err != nil {
+		return utils.HandleDatabaseError(ctx, err)
+	}
+	return nil
 }
 
 func (m *MessageRepository) QueryUnsentMessages(ctx context.Context, number domain.UserNumber) ([]*domain.Message, error) {
@@ -92,7 +99,7 @@ func (m *MessageRepository) QueryUnsentMessages(ctx context.Context, number doma
 	if err := m.db.WithContext(ctx).
 		Where("user_number = ? AND sent = ?", number, false).
 		Find(&userMsgs).Error; err != nil {
-		return nil, err
+		return nil, utils.HandleDatabaseError(ctx, err)
 	}
 	if len(userMsgs) == 0 {
 		return nil, nil
@@ -110,7 +117,7 @@ func (m *MessageRepository) QueryUnsentMessages(ctx context.Context, number doma
 		Where("id IN ?", msgIDs).
 		Order("sent_at ASC").
 		Find(&msgs).Error; err != nil {
-		return nil, err
+		return nil, utils.HandleDatabaseError(ctx, err)
 	}
 
 	return model.ToDomainMessages(msgs), nil

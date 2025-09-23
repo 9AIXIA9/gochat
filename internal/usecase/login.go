@@ -24,7 +24,6 @@ func NewLogin(conf *config.RefreshToken, useRepo domain.UserRepository, refreshT
 }
 
 func (uc *Login) Execute(ctx context.Context, req *domain.LoginRequest) (*domain.Response, error) {
-
 	//查询用户信息
 	user, err := uc.FindUser(ctx, req.Number)
 	if err != nil {

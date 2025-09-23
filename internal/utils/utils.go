@@ -1,8 +1,10 @@
 package utils
 
 import (
+	"context"
 	"errors"
 	"gochat/internal/types"
+	"gochat/internal/utils/timeout"
 	"gorm.io/gorm"
 	"log"
 	"reflect"
@@ -46,6 +48,35 @@ func GetOption[T any](opts ...T) (bool, T) {
 	} else {
 		return true, opts[0]
 	}
+}
+
+// HandleDatabaseError 统一将底层 DB/Redis/上下文错误映射为业务错误类型
+func HandleDatabaseError(ctx context.Context, err error) error {
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
+
+	if err == nil {
+		return nil
+	}
+
+	// 1. 超时或取消优先
+	if timeout.IsCanceledOrTimeout(err) {
+		return types.ErrTimeout
+	}
+
+	// 2. gorm 未找到 -> 转为 types.ErrNotFound
+	if e := CheckNotFoundError(err); errors.Is(e, types.ErrNotFound) {
+		return types.ErrNotFound
+	}
+
+	// 3. 重复键 -> 转为 types.ErrDuplicateKey
+	if e := CheckDuplicateKeyError(err); errors.Is(e, types.ErrDuplicateKey) {
+		return types.ErrDuplicateKey
+	}
+
+	// 4. 其他错误保持原样返回，便于上层记录或透传
+	return err
 }
 
 func CheckDuplicateKeyError(err error) error {

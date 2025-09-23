@@ -10,7 +10,3 @@ import (
 func Logger() gin.HandlerFunc {
 	return ginzap.Ginzap(zap.L(), time.RFC3339, true)
 }
-
-func Recover() gin.HandlerFunc {
-	return ginzap.RecoveryWithZap(zap.L(), true)
-}
