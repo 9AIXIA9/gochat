@@ -1,20 +1,28 @@
 package domain
 
-type UserNumber uint64
-
+type UserNumber BaseNumber
 type User struct {
-	Number  UserNumber
-	Name    string
-	PwdHash string
+	number  UserNumber
+	name    string
+	pwdHash string
 }
 
-type SignupUsecase interface {
-	EncryptPwd(pwd string) string
-	GenerateNumber() UserNumber
-	CreateUser(user User) error
+func NewUser(number UserNumber, name string, pwdHash string) *User {
+	return &User{
+		number:  number,
+		name:    name,
+		pwdHash: pwdHash,
+	}
 }
 
-type LoginUsecase interface {
-	CheckPwd(number UserNumber, pwd string) error
-	GenerateToken() string
+//Getter
+
+func (u *User) Number() UserNumber {
+	return u.number
+}
+func (u *User) Name() string {
+	return u.name
+}
+func (u *User) PwdHash() string {
+	return u.pwdHash
 }

@@ -1,3 +1,41 @@
-Name: CloudClip-api
+Name: gochat
 Host: 0.0.0.0
 Port: 8888
+Language: "zh"
+Timeout: 5s
+
+Token:
+  Refresh:
+    Length: 32
+    ExpireDuration: 72h
+  Auth:
+    Secret: "${JWT_SECRET}"
+    ExpireDuration: 24h
+
+RateLimit:
+  Period: 1s
+  Limit: 10
+
+Database:
+  Host: localhost
+  Port: 13306
+  Username: root
+  Password: "${DB_PASSWORD}"
+  Database: gochat
+
+Redis:
+  Host: localhost
+  Port: 16379
+  Password: "${REDIS_PASSWORD}"
+  DB: 0
+
+Log:
+  Mode: debug
+  Level: info
+  Filename: logs/app.log
+  MaxSize: 100    # MB
+  MaxAge: 7       # days
+  MaxBackups: 3
+
+Snowflake:
+  Node: 1

@@ -1,0 +1,62 @@
+package usecase
+
+import (
+	"context"
+	"gochat/internal/domain"
+	"gochat/internal/infra/encrypt"
+	"gochat/internal/infra/snowflake"
+	"gochat/internal/utils"
+)
+
+type CreateRoom struct {
+	repo domain.RoomRepository
+}
+
+func NewCreateRoom(repo domain.RoomRepository) domain.CreateRoomUsecase {
+	return &CreateRoom{repo: repo}
+}
+
+func (uc *CreateRoom) Execute(ctx context.Context, req *domain.CreateRoomRequest) (*domain.Response, error) {
+	//加密secret
+	secretHash, err := uc.EncryptSecret(ctx, req.Secret)
+	if err != nil {
+		return nil, err
+	}
+
+	//生成房间号
+	roomNumber, err := uc.GenerateNumber(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// 创建房间
+	room := domain.NewRoom(roomNumber, req.Name, secretHash, req.Description, 1, req.MaxUsers, req.UserNumber)
+
+	if err := uc.CreateRoom(ctx, room); err != nil {
+		if utils.IsDuplicate(err) {
+			return domain.RoomExistResponse, nil
+		}
+		return nil, err
+	}
+
+	// 返回房间信息
+	return domain.NewSuccessResponse(domain.CreateRoomResponse{
+		RoomNumber:  roomNumber,
+		RoomName:    req.Name,
+		Description: req.Description,
+		MaxUsers:    req.MaxUsers,
+		Owner:       req.UserNumber,
+	}), nil
+}
+
+func (uc *CreateRoom) EncryptSecret(ctx context.Context, secret string) (string, error) {
+	return encrypt.Encrypt(ctx, secret)
+}
+
+func (uc *CreateRoom) GenerateNumber(ctx context.Context) (domain.RoomNumber, error) {
+	return snowflake.GenerateRoomNumber(ctx)
+}
+
+func (uc *CreateRoom) CreateRoom(ctx context.Context, room *domain.Room) error {
+	return uc.repo.Save(ctx, room)
+}

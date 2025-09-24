@@ -1,24 +1,54 @@
 package domain
 
-type RoomNumber uint64
-
+type RoomNumber BaseNumber
 type Room struct {
-	Name       string
-	Number     RoomNumber
-	SecretHash string
+	name         string
+	number       RoomNumber
+	secretHash   string
+	description  string
+	currentUsers int
+	maxUsers     int
+	owner        UserNumber
 }
 
-type CreateRoom interface {
-	EncryptSecret(secret string) string
-	GenerateNumber() RoomNumber
-	CreateRoom(room Room) error
+func NewRoom(number RoomNumber, name string, secretHash string, description string, currentUsers, maxUsers int, owner UserNumber) *Room {
+	return &Room{
+		number:       number,
+		name:         name,
+		secretHash:   secretHash,
+		description:  description,
+		currentUsers: currentUsers,
+		maxUsers:     maxUsers,
+		owner:        owner,
+	}
 }
 
-type JoinRoom interface {
-	CheckSecret(number RoomNumber, secret string) error
-	EstablishLongConnection() error
+//Getter
+
+func (r *Room) Number() RoomNumber {
+	return r.number
 }
 
-type ExitRoom interface {
-	CloseLongConnection() error
+func (r *Room) Name() string {
+	return r.name
+}
+
+func (r *Room) SecretHash() string {
+	return r.secretHash
+}
+
+func (r *Room) Description() string {
+	return r.description
+}
+
+func (r *Room) CurrentUsers() int {
+	return r.currentUsers
+}
+
+func (r *Room) MaxUsers() int {
+	return r.maxUsers
+}
+
+func (r *Room) Owner() UserNumber {
+	return r.owner
 }
