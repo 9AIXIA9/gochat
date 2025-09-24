@@ -1,4 +1,3 @@
-# .github/workflows/auto-approve.yml
 name: Auto-Approve PRs
 on:
   pull_request:
@@ -16,4 +15,4 @@ jobs:
       - name: 自动批准 PR
         uses: hmarr/auto-approve-action@v3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}  # 正确的参数名是 token 而不是 github-token
+          github-token: ${{ secrets.GITHUB_TOKEN }}
