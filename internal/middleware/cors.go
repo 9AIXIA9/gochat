@@ -3,17 +3,17 @@ package middleware
 import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"time"
+	"gochat/internal/config"
 )
 
 // CORS 跨域处理中间件
-func CORS() gin.HandlerFunc {
+func CORS(conf *config.CORS) gin.HandlerFunc {
 	return cors.New(cors.Config{
-		AllowOrigins:     []string{"*"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
-		AllowHeaders:     []string{"Origin", "Content-Type"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
+		AllowOrigins:     conf.Origins,
+		AllowMethods:     conf.AllowMethods,
+		AllowHeaders:     conf.AllowHeaders,
+		ExposeHeaders:    conf.ExposeHeaders,
+		AllowCredentials: conf.AllowCredentials,
+		MaxAge:           conf.MaxAge,
 	})
 }

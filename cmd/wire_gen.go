@@ -32,9 +32,8 @@ func InitializeDependencies(configPath string) *api.Dependencies {
 	db := ProvideMysqlConnection(config)
 	userRepository := repository.NewUserRepository(db)
 	signupUsecase := usecase.NewSignup(userRepository)
-	refreshToken := ProvideRefreshTokenConf(config)
 	refreshTokenRepository := repository.NewRefreshTokenRepository(client)
-	loginUsecase := usecase.NewLogin(refreshToken, userRepository, refreshTokenRepository)
+	loginUsecase := usecase.NewLogin(token, userRepository, refreshTokenRepository)
 	refreshTokenUsecase := usecase.NewRefreshToken(token, refreshTokenRepository)
 	roomRepository := repository.NewRoomRepository(db)
 	createRoomUsecase := usecase.NewCreateRoom(roomRepository)
@@ -88,10 +87,6 @@ func ProvideRedisConnection(conf *config.Config) *redis.Client {
 
 func ProvideTokenConf(conf *config.Config) *config.Token {
 	return conf.Token
-}
-
-func ProvideRefreshTokenConf(conf *config.Config) *config.RefreshToken {
-	return conf.Token.Refresh
 }
 
 // RepositorySet 提供所有的Repository

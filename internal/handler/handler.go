@@ -10,25 +10,25 @@ import (
 func Signup(usecase domain.SignupUsecase, timeout time.Duration) gin.HandlerFunc {
 	return Adapter[SignupRequest, domain.SignupRequest](usecase, nil, timeout)
 }
-func Login(usecase domain.LoginUsecase, conf *config.RefreshToken, timeout time.Duration) gin.HandlerFunc {
+func Login(usecase domain.LoginUsecase, cookieConf *config.Cookie, tokenConf *config.RefreshToken, timeout time.Duration) gin.HandlerFunc {
 	return Adapter[LoginRequest, domain.LoginRequest](
 		usecase,
 		func(c *gin.Context, resp *domain.Response) {
 			// 从响应数据中提取刷新令牌
 			if loginResp, ok := resp.Data.(domain.LoginResponse); ok {
-				c.SetCookie("refresh_token", string(loginResp.RefreshToken), int(conf.ExpireDuration.Seconds()), "/", "", true, true)
+				c.SetCookie("refresh_token", string(loginResp.RefreshToken), int(tokenConf.ExpireDuration.Seconds()), cookieConf.Path, cookieConf.Domain, cookieConf.Secure, cookieConf.HttpOnly)
 			}
 		},
 		timeout,
 	)
 }
-func RefreshToken(usecase domain.RefreshTokenUsecase, conf *config.RefreshToken, timeout time.Duration) gin.HandlerFunc {
+func RefreshToken(usecase domain.RefreshTokenUsecase, cookieConf *config.Cookie, tokenConf *config.RefreshToken, timeout time.Duration) gin.HandlerFunc {
 	return Adapter[RefreshRequest, domain.RefreshTokenRequest](
 		usecase,
 		func(c *gin.Context, resp *domain.Response) {
 			// 从响应数据中提取刷新令牌
 			if refreshTokenResp, ok := resp.Data.(domain.RefreshTokenResponse); ok {
-				c.SetCookie("refresh_token", string(refreshTokenResp.RefreshToken), int(conf.ExpireDuration.Seconds()), "/", "", true, true)
+				c.SetCookie("refresh_token", string(refreshTokenResp.RefreshToken), int(tokenConf.ExpireDuration.Seconds()), cookieConf.Path, cookieConf.Domain, cookieConf.Secure, cookieConf.HttpOnly)
 			}
 		},
 		timeout,

@@ -42,7 +42,7 @@ type CreateRoomRequest struct {
 type JoinRoomRequest struct {
 	domain.AuthInfo `json:"-"`
 	URI             struct {
-		Number domain.RoomNumber `uri:"number" binding:"required"`
+		Number domain.RoomNumber `uri:"number,string" binding:"required"`
 	}
 	Body struct {
 		Secret string `json:"secret" binding:"required,max=20"`
@@ -53,7 +53,7 @@ type JoinRoomRequest struct {
 type LeaveRoomRequest struct {
 	domain.AuthInfo `json:"-"`
 	URI             struct {
-		RoomNumber domain.RoomNumber `uri:"number" binding:"required"`
+		RoomNumber domain.RoomNumber `uri:"number,string" binding:"required"`
 	}
 }
 
@@ -61,7 +61,7 @@ type LeaveRoomRequest struct {
 type SendMessageRequest struct {
 	domain.AuthInfo `json:"-"`
 	URI             struct {
-		To domain.BaseNumber `uri:"to" binding:"required"`
+		To domain.BaseNumber `uri:"to,string" binding:"required"`
 	}
 	Body struct {
 		Content string `json:"content" binding:"required"`

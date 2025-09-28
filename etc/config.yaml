@@ -4,6 +4,24 @@ Port: 8888
 Language: "zh"
 Timeout: 5s
 
+CORS:
+  Origins: "${CORS_ORIGINS}"
+  AllowMethods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - OPTIONS
+  AllowHeaders:
+    - Origin
+    - Content-Type
+    - Authorization
+  ExposeHeaders:
+    - Content-Length
+    - Content-Type
+  AllowCredentials: true
+  MaxAge: 72h
+
 Token:
   Refresh:
     Length: 32
@@ -39,3 +57,4 @@ Log:
 
 Snowflake:
   Node: 1
+

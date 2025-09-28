@@ -27,7 +27,7 @@ func (uc *RefreshToken) Execute(ctx context.Context, req *domain.RefreshTokenReq
 		return nil, err
 	}
 	if info == nil {
-		return domain.InvalidTokenResponse, nil
+		return domain.UnauthorizedResponse, nil
 	}
 
 	//生成 refresh token

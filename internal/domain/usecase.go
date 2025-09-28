@@ -20,6 +20,7 @@ type LoginUsecase interface {
 	FindUser(ctx context.Context, number UserNumber) (*User, error)
 	CheckPwd(ctx context.Context, origin, hash string) error
 	GenerateRefreshToken() (RefreshToken, error)
+	GenerateAuthToken(ctx context.Context, authInfo *AuthInfo) (AuthToken, error)
 	SaveRefreshToken(ctx context.Context, token RefreshToken, info *RefreshInfo) error
 }
 type CreateRoomUsecase interface {

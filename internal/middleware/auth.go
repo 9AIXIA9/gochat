@@ -13,7 +13,7 @@ func JWTAuth(uc domain.AuthUsecase) gin.HandlerFunc {
 		// 从请求头获取token
 		authHeader := c.Request.Header.Get("Authorization")
 		if authHeader == "" {
-			handler.ResponseSuccess(c, domain.UnauthorizedResponse)
+			handler.ResponseSuccess(c, domain.InvalidTokenResponse)
 			c.Abort()
 			return
 		}
