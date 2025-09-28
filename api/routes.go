@@ -3,8 +3,6 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
-	swaggerFiles "github.com/swaggo/files"
-	"github.com/swaggo/gin-swagger"
 	"gochat/internal/config"
 	"gochat/internal/domain"
 	"gochat/internal/handler"
@@ -74,7 +72,4 @@ func setup(r *gin.Engine, deps *Dependencies) {
 	{
 		wsProtected.GET("/ws", handler.Websocket(deps.UserConnectedUsecase, deps.WebsocketManager))
 	}
-
-	// swagger文档
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 }
