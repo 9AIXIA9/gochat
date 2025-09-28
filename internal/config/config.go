@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"github.com/spf13/viper"
 	"log"
+	"os"
+	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -18,6 +21,7 @@ type Config struct {
 	Port      int           `mapstructure:"Port"`
 	Language  string        `mapstructure:"Language"`
 	Timeout   time.Duration `mapstructure:"Timeout"`
+	Cert      *Cert         `mapstructure:"Cert"`
 	Cookie    *Cookie       `mapstructure:"Cookie"`
 	CORS      *CORS         `mapstructure:"CORS"`
 	Token     *Token        `mapstructure:"Token"`
@@ -26,6 +30,11 @@ type Config struct {
 	Redis     *Redis        `mapstructure:"Redis"`
 	Log       *Log          `mapstructure:"Log"`
 	Snowflake *Snowflake    `mapstructure:"Snowflake"`
+}
+
+type Cert struct {
+	HTTPSKeyFile  string `mapstructure:"HTTPSKeyFile"`
+	HTTPSCertFile string `mapstructure:"HTTPSCertFile"`
 }
 
 type CORS struct {
@@ -101,32 +110,42 @@ func MustLoad(configFile string) *Config {
 	return config
 }
 
-// Load 加载配置文件和环境变量
+// Load 加载配置文件
 func Load(configFile string) (*Config, error) {
-	// 加载环境变量
-	if err := loadEnvFile(); err != nil {
-		return nil, fmt.Errorf("load environment variable file failed: %w", err)
-	}
-
 	v := viper.New()
 
 	// 设置配置文件
 	v.SetConfigFile(configFile)
 
-	// 读取配置文件
-	if err := v.ReadInConfig(); err != nil {
+	// 读取配置文件内容
+	content, err := os.ReadFile(configFile)
+	if err != nil {
 		return nil, fmt.Errorf("read config file failed: %w", err)
 	}
 
-	// 配置环境变量设置
-	setupEnvironmentVars(v)
+	// 扩展环境变量
+	expandedContent := os.ExpandEnv(string(content))
 
-	var cfg Config
-	if err := v.Unmarshal(&cfg); err != nil {
+	// 使用扩展后的内容配置Viper
+	ext := filepath.Ext(configFile)
+	if ext == "" {
+		ext = ".yaml"
+	}
+	v.SetConfigType(strings.TrimPrefix(ext, "."))
+
+	// 使用扩展后的内容配置Viper
+	if err := v.ReadConfig(strings.NewReader(expandedContent)); err != nil {
+		return nil, fmt.Errorf("read config failed: %w", err)
+	}
+
+	cfg := new(Config)
+	if err := v.Unmarshal(cfg); err != nil {
 		return nil, fmt.Errorf("parse config file failed: %w", err)
 	}
 
-	return &cfg, nil
+	//验证配置正确性
+	cfg.Validate()
+	return cfg, nil
 }
 
 func (c *Config) Validate() {
