@@ -33,8 +33,8 @@ func Setup(deps *Dependencies) *gin.Engine {
 	// 注册全局中间件
 	r.Use(middleware.Logger())
 	r.Use(middleware.Recover())
+	r.Use(middleware.CORS(deps.Config.CORS))
 	r.Use(middleware.RateLimit(deps.RedisClient, deps.Config.RateLimit))
-	r.Use(middleware.CORS())
 
 	// 注册路由
 	setup(r, deps)
@@ -50,8 +50,8 @@ func setup(r *gin.Engine, deps *Dependencies) {
 	public := api.Group("/")
 	{
 		public.POST("/signup", handler.Signup(deps.SignupUsecase, deps.Config.Timeout))
-		public.POST("/login", handler.Login(deps.LoginUsecase, deps.Config.Token.Refresh, deps.Config.Timeout))
-		public.GET("/refresh/token", handler.RefreshToken(deps.RefreshTokenUsecase, deps.Config.Token.Refresh, deps.Config.Timeout))
+		public.POST("/login", handler.Login(deps.LoginUsecase, deps.Config.Cookie, deps.Config.Token.Refresh, deps.Config.Timeout))
+		public.GET("/refresh/token", handler.RefreshToken(deps.RefreshTokenUsecase, deps.Config.Cookie, deps.Config.Token.Refresh, deps.Config.Timeout))
 	}
 
 	// 需要认证的路由

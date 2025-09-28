@@ -30,17 +30,36 @@ func main() {
 	// 使用Wire初始化依赖
 	deps := InitializeDependencies(*path)
 
-	// 创建HTTP服务器
+	// 读取证书路径（可通过环境变量覆盖）
+	certFile := os.Getenv("TLS_CERT")
+	if certFile == "" {
+		certFile = "cert.pem"
+	}
+	keyFile := os.Getenv("TLS_KEY")
+	if keyFile == "" {
+		keyFile = "key.pem"
+	}
+
+	// 确认证书文件存在
+	if _, err := os.Stat(certFile); err != nil {
+		log.Fatalf("tls cert file not found: %s (generate with mkcert or set TLS_CERT). err: %v", certFile, err)
+	}
+	if _, err := os.Stat(keyFile); err != nil {
+		log.Fatalf("tls key file not found: %s (generate with mkcert or set TLS_KEY). err: %v", keyFile, err)
+	}
+
+	// 创建HTTP服务器（用于 HTTPS）
 	srv := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", deps.Config.Host, deps.Config.Port),
 		Handler: api.Setup(deps),
 	}
 
-	// 启动服务器
+	// 启动 HTTPS 服务器
 	go func() {
-		log.Printf("start server at : %s", srv.Addr)
-		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Fatalf("start server failed: %s\n", err)
+		log.Printf("starting https server on %s (cert=%s key=%s)", srv.Addr, certFile, keyFile)
+		// ListenAndServeTLS 会阻塞直到服务器返回错误
+		if err := srv.ListenAndServeTLS(certFile, keyFile); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("start https server failed: %s\n", err)
 		}
 	}()
 

@@ -107,3 +107,7 @@ go.work
 # ----- 文档生成 ----- #
 _site/
 .sass-cache/
+
+
+# ----- CERT证书 ----- #
+certs/

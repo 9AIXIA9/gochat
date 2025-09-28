@@ -47,10 +47,6 @@ func ProvideTokenConf(conf *config.Config) *config.Token {
 	return conf.Token
 }
 
-func ProvideRefreshTokenConf(conf *config.Config) *config.RefreshToken {
-	return conf.Token.Refresh
-}
-
 // RepositorySet 提供所有的Repository
 var RepositorySet = wire.NewSet(
 	repository.NewUserRepository,
@@ -91,7 +87,6 @@ func InitializeDependencies(configPath string) *api.Dependencies {
 	wire.Build(
 		ProvideConfig,
 		ProvideTokenConf,
-		ProvideRefreshTokenConf,
 		ProvideMysqlConnection,
 		ProvideRedisConnection,
 		RepositorySet,

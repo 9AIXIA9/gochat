@@ -58,6 +58,7 @@ type SignupResponse struct {
 }
 
 type LoginResponse struct {
+	AuthToken    AuthToken    `json:"auth_token"`
 	RefreshToken RefreshToken `json:"-"`
 }
 

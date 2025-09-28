@@ -18,12 +18,30 @@ type Config struct {
 	Port      int           `mapstructure:"Port"`
 	Language  string        `mapstructure:"Language"`
 	Timeout   time.Duration `mapstructure:"Timeout"`
+	Cookie    *Cookie       `mapstructure:"Cookie"`
+	CORS      *CORS         `mapstructure:"CORS"`
 	Token     *Token        `mapstructure:"Token"`
 	RateLimit *RateLimit    `mapstructure:"RateLimit"`
 	Database  *Database     `mapstructure:"Database"`
 	Redis     *Redis        `mapstructure:"Redis"`
 	Log       *Log          `mapstructure:"Log"`
 	Snowflake *Snowflake    `mapstructure:"Snowflake"`
+}
+
+type CORS struct {
+	Origins          []string      `mapstructure:"Origins"`
+	AllowMethods     []string      `mapstructure:"AllowMethods"`
+	AllowHeaders     []string      `mapstructure:"AllowHeaders"`
+	ExposeHeaders    []string      `mapstructure:"ExposeHeaders"`
+	AllowCredentials bool          `mapstructure:"AllowCredentials"`
+	MaxAge           time.Duration `mapstructure:"MaxAge"`
+}
+
+type Cookie struct {
+	Domain   string `mapstructure:"Domain"`
+	Secure   bool   `mapstructure:"Secure"`
+	HttpOnly bool   `mapstructure:"HttpOnly"`
+	Path     string `mapstructure:"Path"`
 }
 
 type Token struct {
