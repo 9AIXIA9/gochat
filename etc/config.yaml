@@ -4,8 +4,12 @@ Port: 8888
 Language: "zh"
 Timeout: 5s
 
+Cert:
+  HTTPSKeyFile: ${HTTPS_KEY_FILE}
+  HTTPSCertFIle: ${HTTPS_CERT_FILE}
+
 CORS:
-  Origins: "${CORS_ORIGINS}"
+  Origins: ${CORS_ORIGINS}
   AllowMethods:
     - GET
     - POST
@@ -27,7 +31,7 @@ Token:
     Length: 32
     ExpireDuration: 72h
   Auth:
-    Secret: "${JWT_SECRET}"
+    Secret: ${JWT_SECRET}
     ExpireDuration: 24h
 
 RateLimit:
@@ -38,13 +42,13 @@ Database:
   Host: localhost
   Port: 13306
   Username: root
-  Password: "${DB_PASSWORD}"
+  Password: ${DB_PASSWORD}
   Database: gochat
 
 Redis:
   Host: localhost
   Port: 16379
-  Password: "${REDIS_PASSWORD}"
+  Password: ${REDIS_PASSWORD}
   DB: 0
 
 Log:

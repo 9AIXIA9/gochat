@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"gochat/api"
+	"gochat/internal/config"
 	"log"
 	"net/http"
 	"os"
@@ -25,27 +26,20 @@ func main() {
 	if err := os.Setenv("GOCHAT_ENV", *env); err != nil {
 		log.Fatalf("set env failed,err:%v", err)
 	}
+	if err := config.LoadEnvFile(); err != nil {
+		log.Fatalf("load env failed,err:%v", err)
+	}
 	log.Printf("using environment: %s", *env)
 
 	// 使用Wire初始化依赖
 	deps := InitializeDependencies(*path)
 
-	// 读取证书路径（可通过环境变量覆盖）
-	certFile := os.Getenv("TLS_CERT")
-	if certFile == "" {
-		certFile = "cert.pem"
-	}
-	keyFile := os.Getenv("TLS_KEY")
-	if keyFile == "" {
-		keyFile = "key.pem"
-	}
-
 	// 确认证书文件存在
-	if _, err := os.Stat(certFile); err != nil {
-		log.Fatalf("tls cert file not found: %s (generate with mkcert or set TLS_CERT). err: %v", certFile, err)
+	if _, err := os.Stat(deps.Config.Cert.HTTPSCertFile); err != nil {
+		log.Fatalf("tls cert file not found: %s (generate with mkcert or set TLS_CERT). err: %v", deps.Config.Cert.HTTPSCertFile, err)
 	}
-	if _, err := os.Stat(keyFile); err != nil {
-		log.Fatalf("tls key file not found: %s (generate with mkcert or set TLS_KEY). err: %v", keyFile, err)
+	if _, err := os.Stat(deps.Config.Cert.HTTPSKeyFile); err != nil {
+		log.Fatalf("tls key file not found: %s (generate with mkcert or set TLS_KEY). err: %v", deps.Config.Cert.HTTPSKeyFile, err)
 	}
 
 	// 创建HTTP服务器（用于 HTTPS）
@@ -56,9 +50,9 @@ func main() {
 
 	// 启动 HTTPS 服务器
 	go func() {
-		log.Printf("starting https server on %s (cert=%s key=%s)", srv.Addr, certFile, keyFile)
+		log.Printf("starting https server on %s", srv.Addr)
 		// ListenAndServeTLS 会阻塞直到服务器返回错误
-		if err := srv.ListenAndServeTLS(certFile, keyFile); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err := srv.ListenAndServeTLS(deps.Config.Cert.HTTPSCertFile, deps.Config.Cert.HTTPSKeyFile); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("start https server failed: %s\n", err)
 		}
 	}()
