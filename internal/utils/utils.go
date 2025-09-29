@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"errors"
+	"fmt"
 	"gochat/internal/types"
 	"gochat/internal/utils/timeout"
 	"gorm.io/gorm"
@@ -176,4 +177,117 @@ func IsNotFound(err error) bool {
 
 func IsDuplicate(err error) bool {
 	return errors.Is(err, types.ErrDuplicateKey)
+}
+
+// ValidateAllSubStructsNotEmpty 递归验证传入结构体的所有子结构体/切片/映射等是否为空。
+// - obj 必须为结构体或指向结构体的指针。
+// - 可通过 struct tag `validate:"skip"` 跳过某个字段的校验。
+// 返回非 nil 错误时，错误信息列出所有被判空的字段路径。
+func ValidateAllSubStructsNotEmpty(obj interface{}) error {
+	if obj == nil {
+		return fmt.Errorf("object is nil")
+	}
+
+	v := reflect.ValueOf(obj)
+	for v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
+		if v.IsNil() {
+			return fmt.Errorf("object is nil pointer")
+		}
+		v = v.Elem()
+	}
+
+	if v.Kind() != reflect.Struct {
+		return fmt.Errorf("expected struct or pointer to struct")
+	}
+
+	var empties []string
+
+	var walk func(reflect.Value, string)
+	walk = func(val reflect.Value, path string) {
+		if !val.IsValid() {
+			return
+		}
+
+		// 解包指针/接口
+		for val.Kind() == reflect.Ptr || val.Kind() == reflect.Interface {
+			if val.IsNil() {
+				empties = append(empties, path)
+				return
+			}
+			val = val.Elem()
+		}
+
+		switch val.Kind() {
+		case reflect.Struct:
+			t := val.Type()
+			for i := 0; i < t.NumField(); i++ {
+				f := t.Field(i)
+				// 跳过未导出字段
+				if f.PkgPath != "" {
+					continue
+				}
+				// 支持 tag 跳过
+				if f.Tag.Get("validate") == "skip" {
+					continue
+				}
+
+				fv := val.Field(i)
+				fieldPath := f.Name
+				if path != "" {
+					fieldPath = path + "." + f.Name
+				}
+
+				// 使用已有的 IsEmptyData 判空规则
+				// 需要注意：fv.Interface() 在导出字段上是安全的
+				if IsEmptyData(fv.Interface()) {
+					empties = append(empties, fieldPath)
+					// 为空时无需继续深入该字段
+					continue
+				}
+
+				// 若是容器或嵌套结构，继续递归检查其内部元素
+				switch fv.Kind() {
+				case reflect.Struct, reflect.Ptr, reflect.Interface:
+					walk(fv, fieldPath)
+				case reflect.Slice, reflect.Array:
+					if fv.Len() > 0 {
+						for j := 0; j < fv.Len(); j++ {
+							walk(fv.Index(j), fmt.Sprintf("%s[%d]", fieldPath, j))
+						}
+					}
+				case reflect.Map:
+					if fv.Len() > 0 {
+						for _, k := range fv.MapKeys() {
+							walk(fv.MapIndex(k), fmt.Sprintf("%s[%v]", fieldPath, k.Interface()))
+						}
+					}
+				}
+			}
+		case reflect.Slice, reflect.Array:
+			if val.Len() == 0 {
+				empties = append(empties, path)
+			} else {
+				for i := 0; i < val.Len(); i++ {
+					walk(val.Index(i), fmt.Sprintf("%s[%d]", path, i))
+				}
+			}
+		case reflect.Map:
+			if val.Len() == 0 {
+				empties = append(empties, path)
+			} else {
+				for _, k := range val.MapKeys() {
+					walk(val.MapIndex(k), fmt.Sprintf("%s[%v]", path, k.Interface()))
+				}
+			}
+		default:
+			// 基础类型不用递归
+		}
+	}
+
+	walk(v, "")
+
+	if len(empties) > 0 {
+		return fmt.Errorf("empty fields: %s", strings.Join(empties, ", "))
+	}
+	return nil
 }
