@@ -8,6 +8,12 @@ Cert:
   HTTPSKeyFile: ${HTTPS_KEY_FILE}
   HTTPSCertFIle: ${HTTPS_CERT_FILE}
 
+Cookie:
+  Domain: ${COOKIE_DOMAIN}
+  Secure: ${COOKIE_SECURE}
+  HttpOnly: ${COOKIE_HTTPONLY}
+  Path: ${COOKIE_PATH}
+
 CORS:
   Origins: ${CORS_ORIGINS}
   AllowMethods:

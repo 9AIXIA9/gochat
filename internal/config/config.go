@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"github.com/spf13/viper"
+	"gochat/internal/utils"
 	"log"
 	"os"
 	"path/filepath"
@@ -157,5 +158,9 @@ func (c *Config) Validate() {
 
 	if c.Token.Refresh.Length <= 0 {
 		log.Fatalf("refresh token can't <= 0")
+	}
+
+	if err := utils.ValidateAllSubStructsNotEmpty(c); err != nil {
+		log.Fatalf("an empty pointer appears:err:%v", err)
 	}
 }
