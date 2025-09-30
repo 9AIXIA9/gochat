@@ -27,16 +27,7 @@ func NewManager() *Manager {
 func (m *Manager) Send(number domain.UserNumber, msg *domain.Message) error {
 	c, ok := m.clients[number]
 	if ok {
-		data, err := msg.MarshalJSON()
-		if err != nil {
-			return err
-		}
-
-		if err := c.Write(data); err != nil {
-			return err
-		}
-
-		return nil
+		return c.Write(msg)
 	}
 
 	return types.ErrNotFound
@@ -84,6 +75,10 @@ func (m *Manager) AddClient(c client.Client) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.clients[c.Number()] = c
+	c.SetCloseHandler(func(code int, text string) error {
+		m.DropClient(c.Number())
+		return nil
+	})
 }
 
 func (m *Manager) DropClient(number domain.UserNumber) {

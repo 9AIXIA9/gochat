@@ -56,6 +56,7 @@ func setup(r *gin.Engine, deps *Dependencies) {
 
 	// 需要认证的路由
 	protected := api.Group("/")
+	protected.Use(middleware.JWTAuth(deps.AuthUsecase))
 	{
 		// 房间相关
 		protected.POST("/rooms", handler.CreateRoom(deps.CreateRoomUsecase, deps.Config.Timeout))

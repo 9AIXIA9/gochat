@@ -21,7 +21,7 @@ func Websocket(usecase domain.UserConnectedUsecase, m *manager.Manager) gin.Hand
 			return
 		}
 
-		userClient := client.NewClient(conn, info.UserNumber, m.DropClient)
+		userClient := client.New(conn, info.UserNumber)
 
 		m.AddClient(userClient)
 

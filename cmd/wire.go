@@ -12,6 +12,7 @@ import (
 	"gochat/internal/infra/repository"
 	"gochat/internal/infra/snowflake"
 	"gochat/internal/infra/websocket/manager"
+	"gochat/internal/infra/websocket/upgrader"
 	"gochat/internal/usecase"
 	"gorm.io/gorm"
 
@@ -29,6 +30,7 @@ func ProvideConfig(configPath string) *config.Config {
 	logger.MustInit(conf.Log)
 	snowflake.MustInit(conf.Snowflake)
 	handler.MustInitTrans(conf.Language)
+	upgrader.Init(conf.CORS.Origins)
 
 	return conf
 }

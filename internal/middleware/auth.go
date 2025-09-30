@@ -7,29 +7,32 @@ import (
 	"strings"
 )
 
+const authQueryKey = "token"
+
 // JWTAuth JWT认证中间件
 func JWTAuth(uc domain.AuthUsecase) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 从请求头获取token
-		authHeader := c.Request.Header.Get("Authorization")
-		if authHeader == "" {
+		var tokenStr string
+		if authHeader := c.Request.Header.Get("Authorization"); authHeader != "" {
+			// Bearer token格式
+			parts := strings.SplitN(authHeader, " ", 2)
+			if len(parts) != 2 || parts[0] != "Bearer" {
+				handler.ResponseSuccess(c, domain.InvalidTokenResponse)
+				c.Abort()
+				return
+			}
+			tokenStr = parts[1]
+		} else if authQuery := c.Query(authQueryKey); authQuery != "" {
+			tokenStr = authQuery
+		} else {
 			handler.ResponseSuccess(c, domain.InvalidTokenResponse)
 			c.Abort()
 			return
 		}
-
-		// Bearer token格式
-		parts := strings.SplitN(authHeader, " ", 2)
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			handler.ResponseSuccess(c, domain.InvalidTokenResponse)
-			c.Abort()
-			return
-		}
-
-		tokenString := parts[1]
 
 		// 解析token
-		if authInfo, err := uc.ParseAuthToken(c.Request.Context(), domain.AuthToken(tokenString)); err != nil {
+		if authInfo, err := uc.ParseAuthToken(c.Request.Context(), domain.AuthToken(tokenStr)); err != nil {
 			handler.ResponseSuccess(c, domain.InvalidTokenResponse)
 			c.Abort()
 			return

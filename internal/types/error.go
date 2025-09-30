@@ -31,8 +31,7 @@ var (
 
 // websocket
 var (
-	ErrClientClosed = errors.New("client has been closed")
-	ErrFullMessage  = errors.New("too many messages")
+	ErrFullMessage = errors.New("too many messages")
 )
 
 // token
