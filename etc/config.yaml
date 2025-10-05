@@ -38,7 +38,7 @@ Token:
     ExpireDuration: 72h
   Auth:
     Secret: ${JWT_SECRET}
-    ExpireDuration: 24h
+    ExpireDuration: 1h
 
 RateLimit:
   Period: 1s

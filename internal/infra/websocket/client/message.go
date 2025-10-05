@@ -8,6 +8,7 @@ const (
 	PingType MessageType = "ping"
 	PongType             = "pong"
 	DataType             = "data"
+	AuthType             = "auth"
 )
 
 type Message struct {
