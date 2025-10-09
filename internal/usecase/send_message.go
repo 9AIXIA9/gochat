@@ -35,7 +35,9 @@ func (uc *SendMessage) Execute(ctx context.Context, req *domain.SendMessageReque
 		return nil, err
 	}
 
-	return domain.DefaultResponse, nil
+	return domain.NewSuccessResponse(domain.SendMessageResponse{
+		MessageID: msg.ID(),
+	}), nil
 }
 
 func (uc *SendMessage) SendMsgToManyUsers(msg *domain.Message, numbers []domain.UserNumber) []domain.UserNumber {

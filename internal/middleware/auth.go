@@ -12,7 +12,7 @@ import (
 
 const authQueryKey = "token"
 
-// WebsocketJWTAuth HTTPS JWT认证中间件
+// HTTPSJWTAuth HTTPS JWT认证中间件
 func HTTPSJWTAuth(uc domain.AuthUsecase) gin.HandlerFunc {
 	return JWTAuth(uc, func(c *gin.Context) {
 		handler.ResponseSuccess(c, domain.InvalidTokenResponse)
@@ -25,7 +25,6 @@ func WebsocketJWTAuth(uc domain.AuthUsecase) gin.HandlerFunc {
 		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 		if err != nil {
 			zap.L().Error("upgrade connection failed", zap.Error(err))
-			handler.ResponseError(c)
 			return
 		}
 
