@@ -75,6 +75,10 @@ type CreateRoomResponse struct {
 	MaxUsers    int        `json:"max_users"`
 }
 
+type SendMessageResponse struct {
+	MessageID MessageID `json:"message_id"`
+}
+
 var DefaultResponse = NewSuccessResponse()
 
 // middleware || handler response

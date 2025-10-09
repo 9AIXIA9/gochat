@@ -104,7 +104,10 @@ func (c *client) writePump() {
 				zap.L().Error("set write deadline failed", zap.Error(err))
 				return
 			}
-			if err := c.conn.WriteJSON(&Message{Type: PingType}); err != nil {
+			if err := c.conn.WriteJSON(&Message{
+				Type: PingType,
+				Data: nil,
+			}); err != nil {
 				zap.L().Error("websocket json ping failed", zap.Error(err))
 				return
 			}

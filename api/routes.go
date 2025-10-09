@@ -55,22 +55,22 @@ func setup(r *gin.Engine, deps *Dependencies) {
 	}
 
 	// 需要认证的路由
-	protected := api.Group("/")
-	protected.Use(middleware.JWTAuth(deps.AuthUsecase))
+	httpsProtected := api.Group("/")
+	httpsProtected.Use(middleware.HTTPSJWTAuth(deps.AuthUsecase))
 	{
 		// 房间相关
-		protected.POST("/rooms", handler.CreateRoom(deps.CreateRoomUsecase, deps.Config.Timeout))
-		protected.POST("/rooms/:number/join", handler.JoinRoom(deps.JoinRoomUsecase, deps.Config.Timeout))
-		protected.DELETE("/rooms/:number/leave", handler.LeaveRoom(deps.LeaveRoomUsecase, deps.Config.Timeout))
+		httpsProtected.POST("/rooms", handler.CreateRoom(deps.CreateRoomUsecase, deps.Config.Timeout))
+		httpsProtected.POST("/rooms/:number/join", handler.JoinRoom(deps.JoinRoomUsecase, deps.Config.Timeout))
+		httpsProtected.DELETE("/rooms/:number/leave", handler.LeaveRoom(deps.LeaveRoomUsecase, deps.Config.Timeout))
 
 		// 消息相关
-		protected.POST("/message/:to", handler.SendMessage(deps.SendMessageUsecase, deps.Config.Timeout))
+		httpsProtected.POST("/message/:to", handler.SendMessage(deps.SendMessageUsecase, deps.Config.Timeout))
 	}
 
-	// websocket长连接（不加timeout）
-	wsProtected := api.Group("/")
-	wsProtected.Use(middleware.JWTAuth(deps.AuthUsecase))
+	// websocket长连接
+	wssProtected := api.Group("/")
+	wssProtected.Use(middleware.WebsocketJWTAuth(deps.AuthUsecase))
 	{
-		wsProtected.GET("/ws", handler.Websocket(deps.UserConnectedUsecase, deps.WebsocketManager))
+		wssProtected.GET("/ws", handler.Websocket(deps.UserConnectedUsecase, deps.WebsocketManager))
 	}
 }
