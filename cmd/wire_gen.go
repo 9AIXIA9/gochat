@@ -42,21 +42,23 @@ func InitializeDependencies(configPath string) *api.Dependencies {
 	joinRoomUsecase := usecase.NewJoinRoom(roomRepository, userRoomRepository)
 	leaveRoomUsecase := usecase.NewLeaveRoom(userRoomRepository)
 	messageRepository := repository.NewMessageRepository(db)
-	sendMessageUsecase := usecase.NewSendMessage(managerManager, messageRepository)
+	sendPrivateMessageUsecase := usecase.NewSendPrivateMessage(managerManager, messageRepository)
+	sendRoomMessageUsecase := usecase.NewSendRoomMessage(managerManager, messageRepository)
 	userConnectedUsecase := usecase.NewUserConnected(messageRepository, managerManager)
 	dependencies := &api.Dependencies{
-		Config:               config,
-		WebsocketManager:     managerManager,
-		RedisClient:          client,
-		AuthUsecase:          authUsecase,
-		SignupUsecase:        signupUsecase,
-		LoginUsecase:         loginUsecase,
-		RefreshTokenUsecase:  refreshTokenUsecase,
-		CreateRoomUsecase:    createRoomUsecase,
-		JoinRoomUsecase:      joinRoomUsecase,
-		LeaveRoomUsecase:     leaveRoomUsecase,
-		SendMessageUsecase:   sendMessageUsecase,
-		UserConnectedUsecase: userConnectedUsecase,
+		Config:                    config,
+		WebsocketManager:          managerManager,
+		RedisClient:               client,
+		AuthUsecase:               authUsecase,
+		SignupUsecase:             signupUsecase,
+		LoginUsecase:              loginUsecase,
+		RefreshTokenUsecase:       refreshTokenUsecase,
+		CreateRoomUsecase:         createRoomUsecase,
+		JoinRoomUsecase:           joinRoomUsecase,
+		LeaveRoomUsecase:          leaveRoomUsecase,
+		SendPrivateMessageUsecase: sendPrivateMessageUsecase,
+		SendRoomMessageUsecase:    sendRoomMessageUsecase,
+		UserConnectedUsecase:      userConnectedUsecase,
 	}
 	return dependencies
 }
@@ -95,4 +97,4 @@ func ProvideTokenConf(conf *config.Config) *config.Token {
 var RepositorySet = wire.NewSet(repository.NewUserRepository, repository.NewRoomRepository, repository.NewMessageRepository, repository.NewUserRoomRepository, repository.NewRefreshTokenRepository)
 
 // UsecaseSet 提供所有的Usecase
-var UsecaseSet = wire.NewSet(usecase.NewAuth, usecase.NewLogin, usecase.NewSignup, usecase.NewRefreshToken, usecase.NewCreateRoom, usecase.NewJoinRoom, usecase.NewLeaveRoom, usecase.NewSendMessage, usecase.NewUserConnected)
+var UsecaseSet = wire.NewSet(usecase.NewAuth, usecase.NewLogin, usecase.NewSignup, usecase.NewRefreshToken, usecase.NewCreateRoom, usecase.NewJoinRoom, usecase.NewLeaveRoom, usecase.NewSendPrivateMessage, usecase.NewSendRoomMessage, usecase.NewUserConnected)

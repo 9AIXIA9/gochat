@@ -31,6 +31,7 @@ type Message struct {
 	Recipient domain.BaseNumber
 	Content   string
 	SentAt    time.Time
+	Type      domain.MessageType
 }
 
 type UserRoom struct {

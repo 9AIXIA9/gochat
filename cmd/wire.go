@@ -78,7 +78,8 @@ var UsecaseSet = wire.NewSet(
 	usecase.NewLeaveRoom,
 
 	// message相关
-	usecase.NewSendMessage,
+	usecase.NewSendPrivateMessage,
+	usecase.NewSendRoomMessage,
 
 	// websocket相关
 	usecase.NewUserConnected,

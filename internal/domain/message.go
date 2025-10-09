@@ -8,6 +8,12 @@ import (
 
 type BaseNumber int64
 type MessageID string
+type MessageType string
+
+const (
+	MessageTypePrivate MessageType = "private"
+	MessageTypeRoom    MessageType = "room"
+)
 
 type Message struct {
 	id      MessageID
@@ -15,20 +21,22 @@ type Message struct {
 	to      BaseNumber
 	content string
 	sentAt  time.Time
+	mType   MessageType
 }
 
-func NewMessage(id MessageID, from UserNumber, to BaseNumber, content string, sendAt time.Time) *Message {
+func NewMessage(id MessageID, from UserNumber, to BaseNumber, content string, sendAt time.Time, mType MessageType) *Message {
 	return &Message{
 		id:      id,
 		from:    from,
 		to:      to,
 		content: content,
 		sentAt:  sendAt,
+		mType:   mType,
 	}
 }
 
-func CreateMessage(from UserNumber, to BaseNumber, content string, sendAt time.Time) *Message {
-	return NewMessage(MessageID(uuid.NewString()), from, to, content, sendAt)
+func CreateMessage(from UserNumber, to BaseNumber, content string, sendAt time.Time, mType MessageType) *Message {
+	return NewMessage(MessageID(uuid.NewString()), from, to, content, sendAt, mType)
 }
 
 func (m *Message) ToJSON() map[string]interface{} {
@@ -38,6 +46,7 @@ func (m *Message) ToJSON() map[string]interface{} {
 		"to":      m.to,
 		"content": m.content,
 		"sent_at": m.sentAt.Format(time.RFC3339),
+		"type":    m.mType,
 	}
 }
 
@@ -63,4 +72,7 @@ func (m *Message) Content() string {
 
 func (m *Message) SendAt() time.Time {
 	return m.sentAt
+}
+func (m *Message) Type() MessageType {
+	return m.mType
 }

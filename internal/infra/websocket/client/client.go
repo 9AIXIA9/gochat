@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
@@ -21,44 +22,39 @@ const (
 
 type Client interface {
 	Start()
-	Write(msg *domain.Message) error
-	Number() domain.UserNumber
-	SetCloseHandler(func(code int, text string) error)
+	Wait()
+	Send(msg *domain.Message) error
 	Close()
 }
 
 type client struct {
-	number    domain.UserNumber
 	conn      *websocket.Conn
 	sendChan  chan *Message
-	closeMu   sync.RWMutex
 	closeOnce sync.Once
+	closeCtx  context.Context
+	closeFn   func()
 }
 
-func New(conn *websocket.Conn, number domain.UserNumber) Client {
+func New(conn *websocket.Conn) Client {
+	ctx, cancel := context.WithCancel(context.Background())
+
 	return &client{
-		number:   number,
 		conn:     conn,
 		sendChan: make(chan *Message, sendCache),
+		closeCtx: ctx,
+		closeFn:  cancel,
 	}
 }
 
 func (c *client) Start() {
 	c.conn.SetReadLimit(readLimit)
-	c.conn.SetReadDeadline(time.Now().Add(pongWait))
+	_ = c.conn.SetReadDeadline(time.Now().Add(pongWait))
 
 	go c.writePump()
-	c.readPump()
+	go c.readPump()
 }
 
-func (c *client) Number() domain.UserNumber {
-	return c.number
-}
-
-func (c *client) Write(msg *domain.Message) error {
-	c.closeMu.RLock()
-	defer c.closeMu.RUnlock()
-
+func (c *client) Send(msg *domain.Message) error {
 	data, err := msg.MarshalJSON()
 	if err != nil {
 		return err
@@ -111,6 +107,8 @@ func (c *client) writePump() {
 				zap.L().Error("websocket json ping failed", zap.Error(err))
 				return
 			}
+		case <-c.closeCtx.Done():
+			return
 		}
 	}
 }
@@ -139,11 +137,7 @@ func (c *client) handleClientMsg(msg *Message) {
 	switch msg.Type {
 	case PingType:
 		// 客户端使用自定义 ping，回复自定义 pong，并延长读超时
-		if err := c.conn.WriteJSON(&Message{Type: PongType}); err != nil {
-			zap.L().Error("response client pong failed", zap.Error(err))
-			c.Close()
-			return
-		}
+		c.enqueue(&Message{Type: PongType})
 		_ = c.conn.SetReadDeadline(time.Now().Add(pongWait))
 	case PongType:
 		// 收到客户端的自定义 pong，延长读超时
@@ -155,18 +149,24 @@ func (c *client) handleClientMsg(msg *Message) {
 	}
 }
 
-func (c *client) Close() {
-	c.closeMu.Lock()
-	defer c.closeMu.Unlock()
+func (c *client) enqueue(m *Message) {
+	select {
+	case c.sendChan <- m:
+	default:
+		// 队列满，避免死锁；根据需求选择丢弃
+		zap.L().Warn("send channel full on internal message")
+	}
+}
+func (c *client) Wait() {
+	<-c.closeCtx.Done()
+}
 
+func (c *client) Close() {
 	c.closeOnce.Do(func() {
+		c.closeFn()
 		close(c.sendChan)
 		if err := c.conn.Close(); err != nil {
 			zap.L().Error("close client failed", zap.Error(err))
 		}
 	})
-}
-
-func (c *client) SetCloseHandler(fn func(code int, text string) error) {
-	c.conn.SetCloseHandler(fn)
 }

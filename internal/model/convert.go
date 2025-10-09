@@ -33,7 +33,7 @@ func RoomFromDomain(room *domain.Room) *Room {
 }
 
 func (m *Message) ToDomain() *domain.Message {
-	return domain.NewMessage(m.ID, m.Sender, m.Recipient, m.Content, m.SentAt)
+	return domain.NewMessage(m.ID, m.Sender, m.Recipient, m.Content, m.SentAt, m.Type)
 }
 
 func ToDomainMessages(msgs []*Message) []*domain.Message {

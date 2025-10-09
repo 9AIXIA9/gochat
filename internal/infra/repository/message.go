@@ -16,6 +16,17 @@ func NewMessageRepository(db *gorm.DB) domain.MessageRepository {
 	return &MessageRepository{db: db}
 }
 
+func (m *MessageRepository) Save(ctx context.Context, message *domain.Message) error {
+	return utils.HandleDatabaseError(ctx, m.db.WithContext(ctx).Create(model.MessageFromDomain(message)).Error)
+}
+
+func (m *MessageRepository) UpdateMessageSent(ctx context.Context, userNumber domain.UserNumber, msgID domain.MessageID) error {
+	return utils.HandleDatabaseError(ctx, m.db.WithContext(ctx).
+		Model(&model.UserMessage{}).
+		Where(" message_id = ? AND user_number = ?", msgID, userNumber).
+		Update("sent", true).Error)
+}
+
 func (m *MessageRepository) SaveAndQueryUserNumberShouldSent(ctx context.Context, message *domain.Message) ([]domain.UserNumber, error) {
 	var userNumbers []domain.UserNumber
 	err := m.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
