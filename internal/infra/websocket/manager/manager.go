@@ -15,7 +15,7 @@ const (
 
 type Manager struct {
 	clients map[domain.UserNumber]client.Client
-	mu      sync.Mutex
+	mu      sync.RWMutex
 }
 
 func NewManager() *Manager {
@@ -24,18 +24,35 @@ func NewManager() *Manager {
 	}
 }
 
+func (m *Manager) AddClient(c client.Client) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.clients[c.Number()] = c
+
+	c.SetCloseHandler(func(code int, text string) error {
+		m.DropClient(c.Number())
+		return nil
+	})
+}
+
+func (m *Manager) DropClient(number domain.UserNumber) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	delete(m.clients, number)
+}
+
 func (m *Manager) Send(number domain.UserNumber, msg *domain.Message) error {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	c, ok := m.clients[number]
 	if ok {
 		return c.Write(msg)
 	}
-
 	return types.ErrNotFound
 }
 
 func (m *Manager) SendUserManyMsgs(number domain.UserNumber, msgs []*domain.Message) []domain.MessageID {
 	msgIDs := make([]domain.MessageID, 0, len(msgs))
-
 	for _, msg := range msgs {
 		err := m.Send(number, msg)
 		if err == nil {
@@ -48,13 +65,11 @@ func (m *Manager) SendUserManyMsgs(number domain.UserNumber, msgs []*domain.Mess
 				zap.Error(err))
 		}
 	}
-
 	return msgIDs
 }
 
 func (m *Manager) SendMsgToManyUsers(msg *domain.Message, numbers []domain.UserNumber) []domain.UserNumber {
 	numbersSent := make([]domain.UserNumber, 0, len(numbers))
-
 	for _, number := range numbers {
 		err := m.Send(number, msg)
 		if err == nil {
@@ -67,23 +82,5 @@ func (m *Manager) SendMsgToManyUsers(msg *domain.Message, numbers []domain.UserN
 				zap.Error(err))
 		}
 	}
-
 	return numbersSent
-}
-
-func (m *Manager) AddClient(c client.Client) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	m.clients[c.Number()] = c
-	c.SetCloseHandler(func(code int, text string) error {
-		m.DropClient(c.Number())
-		return nil
-	})
-}
-
-func (m *Manager) DropClient(number domain.UserNumber) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	// 移除 client
-	delete(m.clients, number)
 }
