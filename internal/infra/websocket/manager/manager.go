@@ -1,11 +1,11 @@
 package manager
 
 import (
-	"errors"
-	"go.uber.org/zap"
+	"github.com/gorilla/websocket"
 	"gochat/internal/domain"
 	"gochat/internal/infra/websocket/client"
 	"gochat/internal/types"
+
 	"sync"
 )
 
@@ -24,63 +24,39 @@ func NewManager() *Manager {
 	}
 }
 
-func (m *Manager) AddClient(c client.Client) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	m.clients[c.Number()] = c
+func (m *Manager) AddClient(conn *websocket.Conn, number domain.UserNumber) func() {
+	c := client.New(conn)
 
-	c.SetCloseHandler(func(code int, text string) error {
-		m.DropClient(c.Number())
-		return nil
-	})
+	// 先注册到 map（不在持锁状态下启动协程）
+	m.mu.Lock()
+	old, ok := m.clients[number]
+	m.clients[number] = c
+	m.mu.Unlock()
+
+	// 如有旧连接，移除并关闭（避免在持锁时做关闭）
+	if ok && old != nil {
+		old.Close()
+	}
+
+	c.Start()
+	return func() {
+		c.Wait()
+
+		m.mu.Lock()
+		delete(m.clients, number)
+		m.mu.Unlock()
+
+		c.Close()
+	}
 }
 
-func (m *Manager) DropClient(number domain.UserNumber) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	delete(m.clients, number)
-}
-
-func (m *Manager) Send(number domain.UserNumber, msg *domain.Message) error {
+func (m *Manager) SendMessage(number domain.UserNumber, msg *domain.Message) error {
 	m.mu.RLock()
-	defer m.mu.RUnlock()
 	c, ok := m.clients[number]
+	m.mu.RUnlock()
+
 	if ok {
-		return c.Write(msg)
+		return c.Send(msg)
 	}
 	return types.ErrNotFound
-}
-
-func (m *Manager) SendUserManyMsgs(number domain.UserNumber, msgs []*domain.Message) []domain.MessageID {
-	msgIDs := make([]domain.MessageID, 0, len(msgs))
-	for _, msg := range msgs {
-		err := m.Send(number, msg)
-		if err == nil {
-			msgIDs = append(msgIDs, msg.ID())
-		}
-		if err != nil && !errors.Is(err, types.ErrNotFound) {
-			zap.L().Error("send message failed",
-				zap.Int64("user_number", int64(number)),
-				zap.String("message_id", string(msg.ID())),
-				zap.Error(err))
-		}
-	}
-	return msgIDs
-}
-
-func (m *Manager) SendMsgToManyUsers(msg *domain.Message, numbers []domain.UserNumber) []domain.UserNumber {
-	numbersSent := make([]domain.UserNumber, 0, len(numbers))
-	for _, number := range numbers {
-		err := m.Send(number, msg)
-		if err == nil {
-			numbersSent = append(numbersSent, number)
-		}
-		if err != nil && !errors.Is(err, types.ErrNotFound) {
-			zap.L().Error("send message failed",
-				zap.Int64("user_number", int64(number)),
-				zap.String("message_id", string(msg.ID())),
-				zap.Error(err))
-		}
-	}
-	return numbersSent
 }

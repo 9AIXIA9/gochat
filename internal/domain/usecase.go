@@ -49,7 +49,13 @@ type UserConnectedUsecase interface {
 	UpdateMessagesSentToOneUser(ctx context.Context, number UserNumber, msgIDs []MessageID) error
 }
 
-type SendMessageUsecase interface {
+type SendPrivateMessageUsecase interface {
+	Execute(ctx context.Context, req *SendMessageRequest) (*Response, error)
+	SaveMessage(ctx context.Context, msg *Message) error
+	SendMessage(msg *Message) error
+	UpdateMessageSent(ctx context.Context, userNumber UserNumber, msgID MessageID) error
+}
+type SendRoomMessageUsecase interface {
 	Execute(ctx context.Context, req *SendMessageRequest) (*Response, error)
 	SaveAndQueryUserNumberShouldSent(ctx context.Context, msg *Message) ([]UserNumber, error)
 	SendMsgToManyUsers(msg *Message, numbers []UserNumber) []UserNumber

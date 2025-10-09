@@ -2,8 +2,11 @@ package usecase
 
 import (
 	"context"
+	"errors"
+	"go.uber.org/zap"
 	"gochat/internal/domain"
 	"gochat/internal/infra/websocket/manager"
+	"gochat/internal/types"
 )
 
 type userConnected struct {
@@ -42,7 +45,20 @@ func (uc *userConnected) QueryUnsentMessages(ctx context.Context, number domain.
 }
 
 func (uc *userConnected) SendUserManyMsgs(number domain.UserNumber, msgs []*domain.Message) []domain.MessageID {
-	return uc.manager.SendUserManyMsgs(number, msgs)
+	msgIDs := make([]domain.MessageID, 0, len(msgs))
+	for _, msg := range msgs {
+		err := uc.manager.SendMessage(number, msg)
+		if err == nil {
+			msgIDs = append(msgIDs, msg.ID())
+		}
+		if err != nil && !errors.Is(err, types.ErrNotFound) {
+			zap.L().Error("send message failed",
+				zap.Int64("user_number", int64(number)),
+				zap.String("message_id", string(msg.ID())),
+				zap.Error(err))
+		}
+	}
+	return msgIDs
 }
 
 func (uc *userConnected) UpdateMessagesSentToOneUser(ctx context.Context, number domain.UserNumber, msgIDs []domain.MessageID) error {

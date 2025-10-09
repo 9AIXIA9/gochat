@@ -28,12 +28,12 @@ func WebsocketJWTAuth(uc domain.AuthUsecase) gin.HandlerFunc {
 			return
 		}
 
-		conn.WriteJSON(&client.Message{
+		_ = conn.WriteJSON(&client.Message{
 			Type: client.AuthType,
 			Data: nil,
 		})
 
-		conn.Close()
+		_ = conn.Close()
 	})
 }
 

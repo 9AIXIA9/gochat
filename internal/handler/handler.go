@@ -43,6 +43,9 @@ func JoinRoom(usecase domain.JoinRoomUsecase, timeout time.Duration) gin.Handler
 func LeaveRoom(usecase domain.LeaveRoomUsecase, timeout time.Duration) gin.HandlerFunc {
 	return Adapter[LeaveRoomRequest, domain.LeaveRoomRequest](usecase, nil, timeout)
 }
-func SendMessage(usecase domain.SendMessageUsecase, timeout time.Duration) gin.HandlerFunc {
+func SendPrivateMessage(usecase domain.SendPrivateMessageUsecase, timeout time.Duration) gin.HandlerFunc {
+	return Adapter[SendMessageRequest, domain.SendMessageRequest](usecase, nil, timeout)
+}
+func SendRoomMessage(usecase domain.SendRoomMessageUsecase, timeout time.Duration) gin.HandlerFunc {
 	return Adapter[SendMessageRequest, domain.SendMessageRequest](usecase, nil, timeout)
 }

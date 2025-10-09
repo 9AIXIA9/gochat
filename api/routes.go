@@ -12,18 +12,19 @@ import (
 
 // Dependencies 依赖注入结构体
 type Dependencies struct {
-	Config               *config.Config
-	WebsocketManager     *manager.Manager
-	RedisClient          *redis.Client
-	AuthUsecase          domain.AuthUsecase
-	SignupUsecase        domain.SignupUsecase
-	LoginUsecase         domain.LoginUsecase
-	RefreshTokenUsecase  domain.RefreshTokenUsecase
-	CreateRoomUsecase    domain.CreateRoomUsecase
-	JoinRoomUsecase      domain.JoinRoomUsecase
-	LeaveRoomUsecase     domain.LeaveRoomUsecase
-	SendMessageUsecase   domain.SendMessageUsecase
-	UserConnectedUsecase domain.UserConnectedUsecase
+	Config                    *config.Config
+	WebsocketManager          *manager.Manager
+	RedisClient               *redis.Client
+	AuthUsecase               domain.AuthUsecase
+	SignupUsecase             domain.SignupUsecase
+	LoginUsecase              domain.LoginUsecase
+	RefreshTokenUsecase       domain.RefreshTokenUsecase
+	CreateRoomUsecase         domain.CreateRoomUsecase
+	JoinRoomUsecase           domain.JoinRoomUsecase
+	LeaveRoomUsecase          domain.LeaveRoomUsecase
+	SendPrivateMessageUsecase domain.SendPrivateMessageUsecase
+	SendRoomMessageUsecase    domain.SendRoomMessageUsecase
+	UserConnectedUsecase      domain.UserConnectedUsecase
 }
 
 func Setup(deps *Dependencies) *gin.Engine {
@@ -64,7 +65,8 @@ func setup(r *gin.Engine, deps *Dependencies) {
 		httpsProtected.DELETE("/rooms/:number/leave", handler.LeaveRoom(deps.LeaveRoomUsecase, deps.Config.Timeout))
 
 		// 消息相关
-		httpsProtected.POST("/message/:to", handler.SendMessage(deps.SendMessageUsecase, deps.Config.Timeout))
+		httpsProtected.POST("/private/message/:to", handler.SendPrivateMessage(deps.SendPrivateMessageUsecase, deps.Config.Timeout))
+		httpsProtected.POST("/room/message/:to", handler.SendRoomMessage(deps.SendRoomMessageUsecase, deps.Config.Timeout))
 	}
 
 	// websocket长连接

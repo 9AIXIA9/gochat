@@ -23,7 +23,9 @@ type UserRoomRepository interface {
 }
 
 type MessageRepository interface {
+	Save(ctx context.Context, message *Message) error
 	SaveAndQueryUserNumberShouldSent(ctx context.Context, message *Message) ([]UserNumber, error)
+	UpdateMessageSent(ctx context.Context, userNumber UserNumber, msgID MessageID) error
 	UpdateMessagesSentToOneUser(ctx context.Context, number UserNumber, msgIDs []MessageID) error
 	UpdateMessageSentToManyUsers(ctx context.Context, msgID MessageID, userNumbers []UserNumber) error
 	QueryUnsentMessages(ctx context.Context, number UserNumber) ([]*Message, error)
