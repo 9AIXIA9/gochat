@@ -7,7 +7,6 @@ import (
 // SignupRequest 注册请求
 type SignupRequest struct {
 	Body struct {
-		Name     string `json:"name" binding:"required,min=2,max=20"`
 		Password string `json:"password" binding:"required,min=6,max=50"`
 	}
 }
@@ -31,10 +30,8 @@ type RefreshRequest struct {
 type CreateRoomRequest struct {
 	domain.AuthInfo `json:"-"`
 	Body            struct {
-		Name        string `json:"name" binding:"required,min=1,max=50"`
-		Secret      string `json:"secret" binding:"required,max=20"`
-		Description string `json:"description" binding:"max=200"`
-		MaxUsers    int    `json:"max_users" binding:"required,min=2,max=100"`
+		Secret   string `json:"secret" binding:"required,max=20"`
+		MaxUsers int    `json:"max_users" binding:"required,min=2,max=100"`
 	}
 }
 

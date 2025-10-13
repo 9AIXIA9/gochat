@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"gochat/internal/domain"
-	"gochat/internal/utils/timeout"
+	"gochat/internal/utils"
 	"runtime/debug"
 	"time"
 )
@@ -124,7 +124,7 @@ func handleExecError(c *gin.Context, err error) {
 	}
 
 	// 2. 超时或取消
-	if timeout.IsCanceledOrTimeout(err) || errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
+	if utils.IsCanceledOrTimeout(err) {
 		ResponseSuccess(c, domain.TimeoutResponse)
 		return
 	}

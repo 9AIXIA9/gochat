@@ -2,7 +2,6 @@ package logger
 
 import (
 	"gochat/internal/config"
-	"log"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -12,7 +11,7 @@ import (
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-func MustInit(config *config.Log) {
+func Init(config *config.Log) error {
 	writeSyncer := getLogWriter(
 		config.Filename,
 		config.MaxSize,
@@ -23,7 +22,7 @@ func MustInit(config *config.Log) {
 	var l = new(zapcore.Level)
 	err := l.UnmarshalText([]byte(config.Level))
 	if err != nil {
-		log.Fatalf("logger init failed,unmarshal zapcore level into text,err:%v", err)
+		return err
 	}
 
 	var core zapcore.Core
@@ -42,6 +41,7 @@ func MustInit(config *config.Log) {
 
 	//替换全局 logger对象
 	zap.ReplaceGlobals(lg)
+	return nil
 }
 
 // 设置编码器配置

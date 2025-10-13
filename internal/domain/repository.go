@@ -1,40 +1,33 @@
 package domain
 
-import (
-	"context"
-	"time"
-)
-
-//todo 加上retry
+type Repository interface {
+	Users() UserRepository
+	Rooms() RoomRepository
+	Messages() MessageRepository
+	RefreshTokens() RefreshTokenRepository
+}
 
 type UserRepository interface {
-	Save(ctx context.Context, user *User) error
-	FindOneByNumber(ctx context.Context, number UserNumber) (*User, error)
+	UserSaver
+	UserFinder
 }
 
 type RoomRepository interface {
-	Save(ctx context.Context, room *Room) error
-	FindOneByNumber(ctx context.Context, number RoomNumber) (*Room, error)
-}
-
-type UserRoomRepository interface {
-	Save(ctx context.Context, userNumber UserNumber, roomNumber RoomNumber) error
-	Delete(ctx context.Context, userNumber UserNumber, roomNumber RoomNumber) error
+	RoomSaver
+	RoomFinder
+	RoomJoiner
+	RoomLeaver
+	RoomMemberFinder
+	JoinRoomAggregateUOW
 }
 
 type MessageRepository interface {
-	Save(ctx context.Context, message *Message) error
-	SaveAndQueryUserNumberShouldSent(ctx context.Context, message *Message) ([]UserNumber, error)
-	UpdateMessageSent(ctx context.Context, userNumber UserNumber, msgID MessageID) error
-	UpdateMessagesSentToOneUser(ctx context.Context, number UserNumber, msgIDs []MessageID) error
-	UpdateMessageSentToManyUsers(ctx context.Context, msgID MessageID, userNumbers []UserNumber) error
-	QueryUnsentMessages(ctx context.Context, number UserNumber) ([]*Message, error)
+	MessageSaver
+	UnsentMessageFinder
+	SentMessageUpdater
 }
 
 type RefreshTokenRepository interface {
-	Save(ctx context.Context, token RefreshToken, info *RefreshInfo, expireDuration time.Duration) error
-	FindByToken(ctx context.Context, token RefreshToken) (*RefreshInfo, error)
-	FindByUserNumber(ctx context.Context, userNumber UserNumber) (*RefreshInfo, error)
-	DeleteByToken(ctx context.Context, token RefreshToken) error
-	DeleteByUserNumber(ctx context.Context, userNumber UserNumber) error
+	RefreshTokenSaver
+	RefreshTokenFinder
 }

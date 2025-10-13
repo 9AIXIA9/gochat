@@ -2,21 +2,19 @@ package usecase
 
 import (
 	"context"
-	"errors"
 	"gochat/internal/domain"
-	"gochat/internal/infra/websocket/manager"
-	"gochat/internal/types"
+	"gochat/internal/utils"
 )
 
 type SendPrivateMessage struct {
-	repo    domain.MessageRepository
-	manager *manager.Manager
+	domain.MessageSender
+	domain.SendMessageAggregate
 }
 
-func NewSendPrivateMessage(manager *manager.Manager, repo domain.MessageRepository) domain.SendPrivateMessageUsecase {
+func NewSendPrivateMessage(sender domain.MessageSender, sendMessageAggregate domain.SendMessageAggregate) domain.SendPrivateMessageUsecase {
 	return &SendPrivateMessage{
-		repo:    repo,
-		manager: manager,
+		SendMessageAggregate: sendMessageAggregate,
+		MessageSender:        sender,
 	}
 }
 
@@ -29,7 +27,7 @@ func (uc *SendPrivateMessage) Execute(ctx context.Context, req *domain.SendMessa
 	}
 
 	//发送给用户
-	err := uc.SendMessage(msg)
+	err := uc.SendMessage(domain.UserNumber(msg.To()), msg)
 	if err == nil {
 		// 存储已发送的信息
 		if err := uc.UpdateMessageSent(ctx, req.UserNumber, msg.ID()); err != nil {
@@ -40,23 +38,11 @@ func (uc *SendPrivateMessage) Execute(ctx context.Context, req *domain.SendMessa
 		}), nil
 	}
 
-	if errors.Is(err, types.ErrNotFound) {
+	if utils.IsNotFound(err) {
 		return domain.NewSuccessResponse(domain.SendMessageResponse{
 			MessageID: msg.ID(),
 		}), nil
 	}
 
 	return nil, err
-}
-
-func (uc *SendPrivateMessage) SaveMessage(ctx context.Context, msg *domain.Message) error {
-	return uc.repo.Save(ctx, msg)
-}
-
-func (uc *SendPrivateMessage) SendMessage(msg *domain.Message) error {
-	return uc.manager.SendMessage(domain.UserNumber(msg.To()), msg)
-}
-
-func (uc *SendPrivateMessage) UpdateMessageSent(ctx context.Context, userNumber domain.UserNumber, msgID domain.MessageID) error {
-	return uc.repo.UpdateMessageSent(ctx, userNumber, msgID)
 }

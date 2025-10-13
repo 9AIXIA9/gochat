@@ -68,11 +68,10 @@ type RefreshTokenResponse struct {
 }
 
 type CreateRoomResponse struct {
-	RoomNumber  RoomNumber `json:"room_number,string"`
-	RoomName    string     `json:"room_name"`
-	Owner       UserNumber `json:"owner,string"`
-	Description string     `json:"description"`
-	MaxUsers    int        `json:"max_users"`
+	RoomNumber RoomNumber `json:"room_number,string"`
+	RoomName   string     `json:"room_name"`
+	Owner      UserNumber `json:"owner,string"`
+	MaxUsers   int        `json:"max_users"`
 }
 
 type SendMessageResponse struct {
@@ -93,7 +92,6 @@ var (
 	UserExistResponse     = NewDefaultResponse(CodeUserExist)
 	UserNotExistResponse  = NewDefaultResponse(CodeUserNotExist)
 	WrongPasswordResponse = NewDefaultResponse(CodeWrongPassword)
-	RoomExistResponse     = NewDefaultResponse(CodeRoomExist)
 	RoomNotExistResponse  = NewDefaultResponse(CodeRoomNotExist)
 	RoomIsFullResponse    = NewDefaultResponse(CodeRoomIsFull)
 	WrongSecretResponse   = NewDefaultResponse(CodeWrongSecret)

@@ -1,10 +1,11 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"github.com/spf13/viper"
+	"gochat/internal/types"
 	"gochat/internal/utils"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -31,6 +32,7 @@ type Config struct {
 	Redis     *Redis        `mapstructure:"Redis"`
 	Log       *Log          `mapstructure:"Log"`
 	Snowflake *Snowflake    `mapstructure:"Snowflake"`
+	Encryptor *Encryptor    `mapstructure:"Encryptor"`
 }
 
 type Cert struct {
@@ -86,6 +88,9 @@ type Log struct {
 type Snowflake struct {
 	Node int64 `mapstructure:"Node"`
 }
+type Encryptor struct {
+	Cost int `mapstructure:"Cost"`
+}
 
 type Database struct {
 	Host     string `mapstructure:"Host"`
@@ -99,16 +104,7 @@ type Redis struct {
 	Host     string `mapstructure:"Host"`
 	Port     int    `mapstructure:"Port"`
 	Password string `mapstructure:"Password"`
-	DB       int    `mapstructure:"DB"`
-}
-
-// MustLoad 加载配置，如果失败则退出
-func MustLoad(configFile string) *Config {
-	config, err := Load(configFile)
-	if err != nil {
-		log.Fatalf("config load failed,err:%v", err)
-	}
-	return config
+	DB       int    `mapstructure:"db"`
 }
 
 // Load 加载配置文件
@@ -145,22 +141,22 @@ func Load(configFile string) (*Config, error) {
 	}
 
 	//验证配置正确性
-	cfg.Validate()
-	return cfg, nil
+	return cfg, cfg.Validate()
 }
 
-func (c *Config) Validate() {
+func (c *Config) Validate() error {
 	if len(c.Language) == 0 {
 		c.Language = defaultLanguage
 	} else if c.Language != "zh" && c.Language != "en" {
-		log.Fatalf("language can only be selected from Chinese (zh) and English (en).")
+		return errors.New("language can only be selected from Chinese (zh) and English (en)")
 	}
 
 	if c.Token.Refresh.Length <= 0 {
-		log.Fatalf("refresh token can't <= 0")
+		return types.ErrLengthLessThanZero
 	}
 
 	if err := utils.ValidateAllSubStructsNotEmpty(c); err != nil {
-		log.Fatalf("an empty pointer appears:err:%v", err)
+		return types.ErrEmptyPointer
 	}
+	return nil
 }

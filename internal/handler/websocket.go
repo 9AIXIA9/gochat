@@ -8,7 +8,7 @@ import (
 	"gochat/internal/infra/websocket/upgrader"
 )
 
-func Websocket(usecase domain.UserConnectedUsecase, m *manager.Manager) gin.HandlerFunc {
+func Websocket(usecase domain.UserConnectedUsecase, m *manager.Manager, upgrader *upgrader.Upgrader) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 		if err != nil {

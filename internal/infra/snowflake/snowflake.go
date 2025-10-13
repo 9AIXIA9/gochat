@@ -1,33 +1,26 @@
 package snowflake
 
 import (
-	"context"
 	"github.com/bwmarrin/snowflake"
 	"gochat/internal/config"
 	"gochat/internal/domain"
-	"gochat/internal/utils/timeout"
-	"log"
 )
 
-var (
+var _ domain.NumberGenerator = (*NumberGenerator)(nil)
+
+type NumberGenerator struct {
 	node *snowflake.Node
-)
+}
 
-func MustInit(config *config.Snowflake) {
-	var err error
-	if node, err = snowflake.NewNode(config.Node); err != nil {
-		log.Fatalf("init snowflake node failed : %v", err)
+func NewNumberGenerator(conf *config.Snowflake) (*NumberGenerator, error) {
+	node, err := snowflake.NewNode(conf.Node)
+	if err != nil {
+		return nil, err
 	}
+
+	return &NumberGenerator{node: node}, nil
 }
 
-func GenerateUserNumber(ctx context.Context) (domain.UserNumber, error) {
-	return timeout.ConvertAndExecuteWithResponse(ctx, func() (domain.UserNumber, error) {
-		return domain.UserNumber(node.Generate().Int64()), nil
-	})
-}
-
-func GenerateRoomNumber(ctx context.Context) (domain.RoomNumber, error) {
-	return timeout.ConvertAndExecuteWithResponse(ctx, func() (domain.RoomNumber, error) {
-		return domain.RoomNumber(node.Generate().Int64()), nil
-	})
+func (g *NumberGenerator) GenerateNumber() domain.BaseNumber {
+	return domain.BaseNumber(g.node.Generate().Int64())
 }

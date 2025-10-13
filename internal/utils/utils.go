@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"gochat/internal/types"
-	"gochat/internal/utils/timeout"
 	"gorm.io/gorm"
 	"reflect"
 	"strings"
@@ -20,6 +19,21 @@ func NormalizeVarArgs[T any](data ...T) any {
 	} else {
 		return nil
 	}
+}
+
+// IsCanceledOrTimeout 错误是上下文被取消或者是超时
+func IsCanceledOrTimeout(err error) bool {
+	return IsCanceled(err) || IsTimeout(err)
+}
+
+// IsCanceled 判断错误是否由上下文取消引起
+func IsCanceled(err error) bool {
+	return errors.Is(err, types.ErrCanceled) || errors.Is(err, context.Canceled)
+}
+
+// IsTimeout 判断错误是否由上下文超时引起
+func IsTimeout(err error) bool {
+	return errors.Is(err, types.ErrTimeout) || errors.Is(err, context.DeadlineExceeded)
 }
 
 // IsEmptyData 判断 data 是否为 nil 或空结构体（所有字段不可导出或被 json:"-" 标记）
@@ -68,17 +82,7 @@ func IsEmptyData(data any) bool {
 	}
 }
 
-// GetOption 获取可选的参数
-func GetOption[T any](opts ...T) (bool, T) {
-	if len(opts) == 0 {
-		var zero T
-		return false, zero
-	} else {
-		return true, opts[0]
-	}
-}
-
-// HandleDatabaseError 统一将底层 DB/Redis/上下文错误映射为业务错误类型
+// HandleDatabaseError 统一将底层 db/Redis/上下文错误映射为业务错误类型
 func HandleDatabaseError(ctx context.Context, err error) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
@@ -89,7 +93,7 @@ func HandleDatabaseError(ctx context.Context, err error) error {
 	}
 
 	// 1. 超时或取消优先
-	if timeout.IsCanceledOrTimeout(err) {
+	if IsCanceledOrTimeout(err) {
 		return types.ErrTimeout
 	}
 
@@ -261,6 +265,7 @@ func ValidateAllSubStructsNotEmpty(obj interface{}) error {
 							walk(fv.MapIndex(k), fmt.Sprintf("%s[%v]", fieldPath, k.Interface()))
 						}
 					}
+				default:
 				}
 			}
 		case reflect.Slice, reflect.Array:

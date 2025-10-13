@@ -7,7 +7,6 @@ import (
 
 func (r SignupRequest) ToDomain() *domain.SignupRequest {
 	return &domain.SignupRequest{
-		Name:     r.Body.Name,
 		Password: r.Body.Password,
 	}
 }
@@ -27,11 +26,9 @@ func (r RefreshRequest) ToDomain() *domain.RefreshTokenRequest {
 
 func (r CreateRoomRequest) ToDomain() *domain.CreateRoomRequest {
 	return &domain.CreateRoomRequest{
-		AuthInfo:    r.AuthInfo,
-		Name:        r.Body.Name,
-		Secret:      r.Body.Secret,
-		Description: r.Body.Description,
-		MaxUsers:    r.Body.MaxUsers,
+		AuthInfo: r.AuthInfo,
+		Secret:   r.Body.Secret,
+		MaxUsers: r.Body.MaxUsers,
 	}
 }
 
