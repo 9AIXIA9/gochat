@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"github.com/go-playground/locales/en"
 	"github.com/go-playground/locales/zh"
 	ut "github.com/go-playground/universal-translator"
@@ -22,8 +23,8 @@ func GetTrans() ut.Translator {
 	return globalTrans
 }
 
-// MustInitTrans 初始化验证器和翻译器
-func MustInitTrans(locale string) {
+// InitTrans 初始化验证器和翻译器
+func InitTrans(locale string) error {
 	// 创建验证器实例
 	globalValidator = validator.New()
 
@@ -51,11 +52,13 @@ func MustInitTrans(locale string) {
 		// 注册英语翻译
 		err = enTranslations.RegisterDefaultTranslations(globalValidator, globalTrans)
 		if err != nil {
-			log.Fatalf("register English translation failed, err:%v", err)
+			return fmt.Errorf("register English translation failed, err:%w", err)
 		}
 
 		// 注册英语自定义翻译
-		registerEnCustomTranslations(globalValidator, globalTrans)
+		if err := registerEnCustomTranslations(globalValidator, globalTrans); err != nil {
+			return err
+		}
 
 	default: // 默认使用中文
 		// 创建中文翻译器
@@ -66,18 +69,21 @@ func MustInitTrans(locale string) {
 		// 注册中文翻译
 		err = zhTranslations.RegisterDefaultTranslations(globalValidator, globalTrans)
 		if err != nil {
-			log.Fatalf("register Chinese translation failed, err:%v", err)
+			return fmt.Errorf("register Chinese translation failed, err:%w", err)
 		}
 
 		// 注册中文自定义翻译
-		registerZhCustomTranslations(globalValidator, globalTrans)
+		if err := registerZhCustomTranslations(globalValidator, globalTrans); err != nil {
+			return err
+		}
 	}
 
 	log.Printf("translator initialized with locale: %s", locale)
+	return nil
 }
 
 // registerZhCustomTranslations 注册中文自定义翻译
-func registerZhCustomTranslations(v *validator.Validate, trans ut.Translator) {
+func registerZhCustomTranslations(v *validator.Validate, trans ut.Translator) error {
 	translations := []struct {
 		tag         string
 		translation string
@@ -100,11 +106,11 @@ func registerZhCustomTranslations(v *validator.Validate, trans ut.Translator) {
 		},
 	}
 
-	registerTranslations(v, trans, translations)
+	return registerTranslations(v, trans, translations)
 }
 
 // registerEnCustomTranslations 注册英文自定义翻译
-func registerEnCustomTranslations(v *validator.Validate, trans ut.Translator) {
+func registerEnCustomTranslations(v *validator.Validate, trans ut.Translator) error {
 	translations := []struct {
 		tag         string
 		translation string
@@ -127,7 +133,7 @@ func registerEnCustomTranslations(v *validator.Validate, trans ut.Translator) {
 		},
 	}
 
-	registerTranslations(v, trans, translations)
+	return registerTranslations(v, trans, translations)
 }
 
 // registerTranslations 注册翻译
@@ -135,13 +141,14 @@ func registerTranslations(v *validator.Validate, trans ut.Translator, translatio
 	tag         string
 	translation string
 	override    bool
-}) {
+}) error {
 	for _, t := range translations {
 		err := v.RegisterTranslation(t.tag, trans, registrationFunc(t.tag, t.translation, t.override), translateFunc)
 		if err != nil {
-			log.Fatalf("register translation failed, err:%v", err)
+			return fmt.Errorf("register translation failed, err:%v", err)
 		}
 	}
+	return nil
 }
 
 // registrationFunc 返回一个注册函数

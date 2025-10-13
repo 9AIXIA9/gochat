@@ -2,27 +2,24 @@ package usecase
 
 import (
 	"context"
-	"errors"
-	"go.uber.org/zap"
 	"gochat/internal/domain"
-	"gochat/internal/infra/websocket/manager"
-	"gochat/internal/types"
 )
 
 type userConnected struct {
-	repo    domain.MessageRepository
-	manager *manager.Manager
+	domain.MessageSender
+	domain.SendUnsentMessageAggregate
 }
 
-func NewUserConnected(repo domain.MessageRepository, m *manager.Manager) domain.UserConnectedUsecase {
+func NewUserConnected(sender domain.MessageSender,
+	sendUnsentMessageAggregate domain.SendUnsentMessageAggregate) domain.UserConnectedUsecase {
 	return &userConnected{
-		repo:    repo,
-		manager: m,
+		MessageSender:              sender,
+		SendUnsentMessageAggregate: sendUnsentMessageAggregate,
 	}
 }
 
 func (uc *userConnected) Execute(ctx context.Context, number domain.UserNumber) error {
-	msgs, err := uc.QueryUnsentMessages(ctx, number)
+	msgs, err := uc.FindUnsentMessages(ctx, number)
 	if err != nil {
 		return err
 	}
@@ -31,36 +28,14 @@ func (uc *userConnected) Execute(ctx context.Context, number domain.UserNumber) 
 		return nil
 	}
 
-	msgIDs := uc.SendUserManyMsgs(number, msgs)
-
-	err = uc.UpdateMessagesSentToOneUser(ctx, number, msgIDs)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (uc *userConnected) QueryUnsentMessages(ctx context.Context, number domain.UserNumber) ([]*domain.Message, error) {
-	return uc.repo.QueryUnsentMessages(ctx, number)
-}
-
-func (uc *userConnected) SendUserManyMsgs(number domain.UserNumber, msgs []*domain.Message) []domain.MessageID {
-	msgIDs := make([]domain.MessageID, 0, len(msgs))
 	for _, msg := range msgs {
-		err := uc.manager.SendMessage(number, msg)
-		if err == nil {
-			msgIDs = append(msgIDs, msg.ID())
-		}
-		if err != nil && !errors.Is(err, types.ErrNotFound) {
-			zap.L().Error("send message failed",
-				zap.Int64("user_number", int64(number)),
-				zap.String("message_id", string(msg.ID())),
-				zap.Error(err))
+		//忽略发送出错的消息
+		if err := uc.SendMessage(number, msg); err == nil {
+			if err := uc.UpdateMessageSent(ctx, number, msg.ID()); err != nil {
+
+			}
 		}
 	}
-	return msgIDs
-}
 
-func (uc *userConnected) UpdateMessagesSentToOneUser(ctx context.Context, number domain.UserNumber, msgIDs []domain.MessageID) error {
-	return uc.repo.UpdateMessagesSentToOneUser(ctx, number, msgIDs)
+	return nil
 }

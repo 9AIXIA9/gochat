@@ -3,14 +3,19 @@ package domain
 type UserNumber BaseNumber
 type User struct {
 	number  UserNumber
-	name    string
 	pwdHash string
 }
 
-func NewUser(number UserNumber, name string, pwdHash string) *User {
+func NewUser(number UserNumber, pwdHash string) *User {
 	return &User{
 		number:  number,
-		name:    name,
+		pwdHash: pwdHash,
+	}
+}
+
+func CreateUser(number BaseNumber, pwdHash string) *User {
+	return &User{
+		number:  UserNumber(number),
 		pwdHash: pwdHash,
 	}
 }
@@ -19,9 +24,6 @@ func NewUser(number UserNumber, name string, pwdHash string) *User {
 
 func (u *User) Number() UserNumber {
 	return u.number
-}
-func (u *User) Name() string {
-	return u.name
 }
 func (u *User) PwdHash() string {
 	return u.pwdHash

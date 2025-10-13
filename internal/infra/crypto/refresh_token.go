@@ -7,12 +7,23 @@ import (
 	"gochat/internal/types"
 )
 
-// GenerateRefreshToken 生成一个安全的随机令牌
-func GenerateRefreshToken(length int) (domain.RefreshToken, error) {
+var _ domain.RefreshTokenGenerator = (*RefreshTokenGenerator)(nil)
+
+type RefreshTokenGenerator struct {
+	length int
+}
+
+func NewRefreshTokenGenerator(length int) (*RefreshTokenGenerator, error) {
 	if length <= 0 {
-		return "", types.ErrLengthLessThanZero
+		return nil, types.ErrLengthLessThanZero
 	}
-	b := make([]byte, length)
+
+	return &RefreshTokenGenerator{length: length}, nil
+}
+
+// GenerateRefreshToken 生成一个安全的随机令牌
+func (g *RefreshTokenGenerator) GenerateRefreshToken() (domain.RefreshToken, error) {
+	b := make([]byte, g.length)
 	_, err := rand.Read(b)
 	if err != nil {
 		return "", err

@@ -2,19 +2,15 @@ package model
 
 import (
 	"gorm.io/gorm"
-	"log"
 )
 
-func AutoMigrate(db *gorm.DB) {
-	if err := db.AutoMigrate(
+func AutoMigrate(db *gorm.DB) error {
+	return db.AutoMigrate(
 		&User{},
 		&Room{},
 		&Message{},
 		&UserRoom{},
-		&UserMessage{},
-	); err != nil {
-		log.Fatalf("auto migrate tables failed,err:%v", err)
-	}
+		&UserMessage{})
 }
 
 func (u *User) TableName() string {

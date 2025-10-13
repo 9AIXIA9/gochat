@@ -2,27 +2,32 @@ package usecase
 
 import (
 	"context"
-	"gochat/internal/config"
 	"gochat/internal/domain"
-	"gochat/internal/infra/crypto"
-	"gochat/internal/infra/jwt"
+	"time"
 )
 
 type RefreshToken struct {
-	conf *config.Token
-	repo domain.RefreshTokenRepository
+	expireDuration time.Duration
+	domain.RefreshTokenAggregate
+	domain.AuthTokenGenerator
+	domain.RefreshTokenGenerator
 }
 
-func NewRefreshToken(conf *config.Token, repo domain.RefreshTokenRepository) domain.RefreshTokenUsecase {
+func NewRefreshToken(expireDuration time.Duration,
+	refreshTokenAggregate domain.RefreshTokenAggregate,
+	authTokenGenerator domain.AuthTokenGenerator,
+	refreshTokenGenerator domain.RefreshTokenGenerator) domain.RefreshTokenUsecase {
 	return &RefreshToken{
-		conf: conf,
-		repo: repo,
+		expireDuration:        expireDuration,
+		RefreshTokenAggregate: refreshTokenAggregate,
+		AuthTokenGenerator:    authTokenGenerator,
+		RefreshTokenGenerator: refreshTokenGenerator,
 	}
 }
 
 func (uc *RefreshToken) Execute(ctx context.Context, req *domain.RefreshTokenRequest) (*domain.Response, error) {
 	//查询 refresh token是否存在
-	info, err := uc.QueryRefreshToken(ctx, req.RefreshToken)
+	info, err := uc.FindRefreshToken(ctx, req.RefreshToken)
 	if err != nil {
 		return nil, err
 	}
@@ -37,12 +42,12 @@ func (uc *RefreshToken) Execute(ctx context.Context, req *domain.RefreshTokenReq
 	}
 
 	//存储 refresh token
-	if err = uc.SaveRefreshToken(ctx, rToken, info); err != nil {
+	if err = uc.SaveRefreshToken(ctx, rToken, info, uc.expireDuration); err != nil {
 		return nil, err
 	}
 
 	//生成 auth token
-	aToken, err := uc.GenerateAuthToken(ctx, info.Auth)
+	aToken, err := uc.GenerateAuthToken(info.Auth)
 	if err != nil {
 		return nil, err
 	}
@@ -50,20 +55,4 @@ func (uc *RefreshToken) Execute(ctx context.Context, req *domain.RefreshTokenReq
 		AuthToken:    aToken,
 		RefreshToken: rToken,
 	}), nil
-}
-
-func (uc *RefreshToken) QueryRefreshToken(ctx context.Context, token domain.RefreshToken) (*domain.RefreshInfo, error) {
-	return uc.repo.FindByToken(ctx, token)
-}
-
-func (uc *RefreshToken) SaveRefreshToken(ctx context.Context, token domain.RefreshToken, info *domain.RefreshInfo) error {
-	return uc.repo.Save(ctx, token, info, uc.conf.Refresh.ExpireDuration)
-}
-
-func (uc *RefreshToken) GenerateRefreshToken() (domain.RefreshToken, error) {
-	return crypto.GenerateRefreshToken(uc.conf.Refresh.Length)
-}
-
-func (uc *RefreshToken) GenerateAuthToken(ctx context.Context, authInfo *domain.AuthInfo) (domain.AuthToken, error) {
-	return jwt.GenerateAuthToken(ctx, uc.conf.Auth.Secret, uc.conf.Auth.ExpireDuration, authInfo)
 }

@@ -2,25 +2,25 @@ package domain
 
 type RoomNumber BaseNumber
 type Room struct {
-	name         string
 	number       RoomNumber
+	owner        UserNumber
 	secretHash   string
-	description  string
 	currentUsers int
 	maxUsers     int
-	owner        UserNumber
 }
 
-func NewRoom(number RoomNumber, name string, secretHash string, description string, currentUsers, maxUsers int, owner UserNumber) *Room {
+func NewRoom(number RoomNumber, secretHash string, currentUsers, maxUsers int, owner UserNumber) *Room {
 	return &Room{
 		number:       number,
-		name:         name,
 		secretHash:   secretHash,
-		description:  description,
 		currentUsers: currentUsers,
 		maxUsers:     maxUsers,
 		owner:        owner,
 	}
+}
+
+func CreateRoom(number BaseNumber, secretHash string, maxUsers int, owner UserNumber) *Room {
+	return NewRoom(RoomNumber(number), secretHash, 0, maxUsers, owner)
 }
 
 //Getter
@@ -29,16 +29,8 @@ func (r *Room) Number() RoomNumber {
 	return r.number
 }
 
-func (r *Room) Name() string {
-	return r.name
-}
-
 func (r *Room) SecretHash() string {
 	return r.secretHash
-}
-
-func (r *Room) Description() string {
-	return r.description
 }
 
 func (r *Room) CurrentUsers() int {

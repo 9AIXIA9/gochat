@@ -8,7 +8,6 @@ type ExternalRequest[request any] interface {
 
 // SignupRequest 注册请求
 type SignupRequest struct {
-	Name     string
 	Password string
 }
 
@@ -26,10 +25,8 @@ type RefreshTokenRequest struct {
 // CreateRoomRequest 创建房间请求
 type CreateRoomRequest struct {
 	AuthInfo
-	Name        string
-	Secret      string
-	Description string
-	MaxUsers    int
+	Secret   string
+	MaxUsers int
 }
 
 // JoinRoomRequest 加入房间请求

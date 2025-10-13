@@ -9,6 +9,8 @@ import (
 	"sync"
 )
 
+var _ domain.MessageSender = NewWebsocketManager()
+
 const (
 	clientsCache = 200
 )
@@ -18,7 +20,7 @@ type Manager struct {
 	mu      sync.RWMutex
 }
 
-func NewManager() *Manager {
+func NewWebsocketManager() *Manager {
 	return &Manager{
 		clients: make(map[domain.UserNumber]client.Client, clientsCache),
 	}

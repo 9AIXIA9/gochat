@@ -7,6 +7,7 @@ import (
 	"gochat/internal/domain"
 	"gochat/internal/handler"
 	"gochat/internal/infra/websocket/manager"
+	"gochat/internal/infra/websocket/upgrader"
 	"gochat/internal/middleware"
 )
 
@@ -14,6 +15,7 @@ import (
 type Dependencies struct {
 	Config                    *config.Config
 	WebsocketManager          *manager.Manager
+	WebsocketUpgrader         *upgrader.Upgrader
 	RedisClient               *redis.Client
 	AuthUsecase               domain.AuthUsecase
 	SignupUsecase             domain.SignupUsecase
@@ -71,8 +73,8 @@ func setup(r *gin.Engine, deps *Dependencies) {
 
 	// websocket长连接
 	wssProtected := api.Group("/")
-	wssProtected.Use(middleware.WebsocketJWTAuth(deps.AuthUsecase))
+	wssProtected.Use(middleware.WebsocketJWTAuth(deps.AuthUsecase, deps.WebsocketUpgrader))
 	{
-		wssProtected.GET("/ws", handler.Websocket(deps.UserConnectedUsecase, deps.WebsocketManager))
+		wssProtected.GET("/ws", handler.Websocket(deps.UserConnectedUsecase, deps.WebsocketManager, deps.WebsocketUpgrader))
 	}
 }

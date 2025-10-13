@@ -30,12 +30,12 @@ var (
 )
 
 // websocket
+
 var (
-	ErrFullMessage = errors.New("too many messages")
+	ErrFullMessage = errors.New("messages is full")
 )
 
-// token
-
 var (
-	ErrLengthLessThanZero = errors.New("token length must be greater than 0")
+	ErrLengthLessThanZero = errors.New("length should be greater than 0")
+	ErrEmptyPointer       = errors.New("empty pointer")
 )

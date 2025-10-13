@@ -68,3 +68,6 @@ Log:
 Snowflake:
   Node: 1
 
+Encryptor:
+  Cost: 10
+

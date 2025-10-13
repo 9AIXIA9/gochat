@@ -1,9 +1,5 @@
 package domain
 
-import (
-	"context"
-)
-
 type AuthToken string
 
 const AuthInfoKey = "auth"
@@ -20,8 +16,4 @@ type AuthInfo struct {
 
 func (r *AuthInfo) SetInfo(info *AuthInfo) {
 	r.UserNumber = info.UserNumber
-}
-
-type AuthUsecase interface {
-	ParseAuthToken(ctx context.Context, token AuthToken) (*AuthInfo, error)
 }

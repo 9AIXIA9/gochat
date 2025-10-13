@@ -20,7 +20,7 @@ func HTTPSJWTAuth(uc domain.AuthUsecase) gin.HandlerFunc {
 }
 
 // WebsocketJWTAuth Websocket JWT认证中间件
-func WebsocketJWTAuth(uc domain.AuthUsecase) gin.HandlerFunc {
+func WebsocketJWTAuth(uc domain.AuthUsecase, upgrader *upgrader.Upgrader) gin.HandlerFunc {
 	return JWTAuth(uc, func(c *gin.Context) {
 		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 		if err != nil {
@@ -60,7 +60,7 @@ func JWTAuth(uc domain.AuthUsecase, response func(c *gin.Context)) gin.HandlerFu
 		}
 
 		// 解析token
-		if authInfo, err := uc.ParseAuthToken(c.Request.Context(), domain.AuthToken(tokenStr)); err != nil {
+		if authInfo, err := uc.ParseAuthToken(domain.AuthToken(tokenStr)); err != nil {
 			response(c)
 			c.Abort()
 			return

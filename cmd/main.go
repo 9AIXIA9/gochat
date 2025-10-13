@@ -32,7 +32,10 @@ func main() {
 	log.Printf("using environment: %s", *env)
 
 	// 使用Wire初始化依赖
-	deps := InitializeDependencies(*path)
+	deps, err := NewDependencies(*path)
+	if err != nil {
+		log.Fatalf("init dependencies failed,err:%v", err)
+	}
 
 	// 确认证书文件存在
 	if _, err := os.Stat(deps.Config.Cert.HTTPSCertFile); err != nil {

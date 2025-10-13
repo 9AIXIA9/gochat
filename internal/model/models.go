@@ -9,17 +9,14 @@ import (
 type User struct {
 	gorm.Model
 	Number  domain.UserNumber `gorm:"uniqueIndex"`
-	Name    string
 	PwdHash string
 }
 
 type Room struct {
 	gorm.Model
 	Number       domain.RoomNumber `gorm:"uniqueIndex"`
-	Name         string
 	Owner        domain.UserNumber
 	SecretHash   string
-	Description  string
 	CurrentUsers int
 	MaxUsers     int
 }
