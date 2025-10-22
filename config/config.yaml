@@ -1,0 +1,68 @@
+Name: gochat
+Host: 0.0.0.0
+Port: 8888
+MachineNode: 1
+
+Cert:
+  HTTPSKeyFile: ${HTTPS_KEY_FILE}
+  HTTPSCertFile: ${HTTPS_CERT_FILE}
+
+Cookie:
+  Domain: ${COOKIE_DOMAIN}
+  Secure: ${COOKIE_SECURE}
+  HttpOnly: ${COOKIE_HTTPONLY}
+  Path: ${COOKIE_PATH}
+
+CORS:
+  Origins: ${CORS_ORIGINS}
+  AllowMethods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - OPTIONS
+  AllowHeaders:
+    - Origin
+    - Content-Type
+    - Authorization
+  ExposeHeaders:
+    - Content-Length
+    - Content-Type
+  AllowCredentials: true
+  MaxAge: 72h
+
+RefreshToken:
+  Length: 32
+
+AccessToken:
+  Secret: ${JWT_SECRET}
+  ValidityDuration: 1h
+
+RateLimit:
+  Period: 1s
+  Limit: 10
+
+Mysql:
+  Host: localhost
+  Port: 13306
+  Username: root
+  Password: ${DB_PASSWORD}
+  Database: gochat
+
+Redis:
+  Host: localhost
+  Port: 16379
+  Password: ${REDIS_PASSWORD}
+  Database: 0
+
+Logger:
+  Mode: debug
+  Level: info
+  Filename: logs/app.log
+  MaxSize: 100    # MB
+  MaxAge: 7       # days
+  MaxBackups: 3
+
+Hasher:
+  Cost: 10
+
