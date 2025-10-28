@@ -2,21 +2,22 @@ package repository
 
 import (
 	"context"
+	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
-	"gochat/internal/authorization/infrastructure/persistence/models"
-	gormutils "gochat/internal/shared/infrastructure/gorm"
-	"gochat/internal/shared/kernel"
+	"gochat/internal/authorization/infrastructure/persistence/model"
+	gormutils "gochat/internal/infrastructure/gorm"
+
 	"gorm.io/gorm"
 )
 
-var _ domain.UserRepository = (*UserRepository)(nil)
+var _ application.UserRepository = (*UserRepository)(nil)
 
 type UserRepository struct {
-	innerRepository *gormutils.Repository[models.User, domain.User]
+	innerRepository *gormutils.Repository[model.User, domain.User]
 	db              *gorm.DB
 }
 
-func NewUserRepository(db *gorm.DB, converter kernel.GenericModelConverter[*models.User, *domain.User]) *UserRepository {
+func NewUserRepository(db *gorm.DB, converter gormutils.GenericModelConverter[*model.User, *domain.User]) *UserRepository {
 	return &UserRepository{innerRepository: gormutils.NewRepository(db, converter), db: db}
 }
 

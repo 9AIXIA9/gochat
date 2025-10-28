@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"gochat/internal/delivery/http/api"
 	"log"
 	"net/http"
 	"os"
@@ -23,20 +24,30 @@ func main() {
 
 	dependencies, err := initializeDependencies(*path, *env)
 	if err != nil {
-		log.Fatalf("initialize dependencies failed,err:%v", err)
+		log.Fatalf("initialize Dependencies failed,err:%v", err)
 	}
 
 	// 创建HTTP服务器（用于 HTTPS）
 	srv := &http.Server{
-		Addr:    fmt.Sprintf("%s:%d", dependencies.Config.Host, dependencies.Config.Port),
-		Handler: setupRoutes(dependencies.Config, dependencies),
+		Addr: fmt.Sprintf("%s:%d", dependencies.config.Host, dependencies.config.Port),
+		Handler: api.SetupRoutes(
+			dependencies.signUpUseCase,
+			dependencies.loginUseCase,
+			dependencies.refreshAccessTokenUseCase,
+			dependencies.parseAccessTokenUseCase,
+			dependencies.validator,
+			dependencies.redisClient,
+			dependencies.config.RateLimit,
+			dependencies.config.Cookie,
+			dependencies.config.CORS,
+		),
 	}
 
 	// 启动 HTTPS 服务器
 	go func() {
 		log.Printf("starting https server on %s", srv.Addr)
 		// ListenAndServeTLS 会阻塞直到服务器返回错误
-		if err := srv.ListenAndServeTLS(dependencies.Config.Cert.HTTPSCertFile, dependencies.Config.Cert.HTTPSKeyFile); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err := srv.ListenAndServeTLS(dependencies.config.Cert.HTTPSCertFile, dependencies.config.Cert.HTTPSKeyFile); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("start https server failed: %s\n", err)
 		}
 	}()
@@ -52,6 +63,9 @@ func main() {
 
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Fatal("close server failed:", err)
+	}
+	if dependencies.cancelAll != nil {
+		dependencies.cancelAll()
 	}
 	log.Println("server has been closed")
 }

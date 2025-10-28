@@ -3,41 +3,42 @@ package repository
 import (
 	"context"
 	"errors"
-	"gochat/internal/authorization/infrastructure/persistence/models"
+	"gochat/internal/authorization/application"
+	"gochat/internal/authorization/infrastructure/persistence/model"
+	redisutils "gochat/internal/infrastructure/redis"
 	myErrors "gochat/internal/shared/errors"
-	redisutils "gochat/internal/shared/infrastructure/redis"
-	"gochat/internal/shared/kernel"
 	"time"
 
-	"github.com/redis/go-redis/v9"
 	"gochat/internal/authorization/domain"
+
+	"github.com/redis/go-redis/v9"
 )
 
-var _ domain.RefreshTokenRepository = (*RefreshTokenRepository)(nil)
+var _ application.RefreshTokenRepository = (*RefreshTokenRepository)(nil)
 
 const KeyPrefix = "gochat:authorization"
 const KeyRefreshToken = KeyPrefix + ":refresh_token:"
 
 type RefreshTokenRepository struct {
-	innerRepository *redisutils.Repository[models.RefreshToken, domain.RefreshToken]
+	innerRepository *redisutils.Repository[model.RefreshToken, domain.RefreshTokenEntity]
 	rdb             *redis.Client
 }
 
-func NewRefreshTokenRepository(rdb *redis.Client, converter kernel.GenericModelConverter[*models.RefreshToken, *domain.RefreshToken]) *RefreshTokenRepository {
+func NewRefreshTokenRepository(rdb *redis.Client, converter redisutils.GenericModelConverter[*model.RefreshToken, *domain.RefreshTokenEntity]) *RefreshTokenRepository {
 	return &RefreshTokenRepository{
 		innerRepository: redisutils.NewRepository(rdb, converter, KeyRefreshToken),
 		rdb:             rdb,
 	}
 }
 
-func (r *RefreshTokenRepository) Save(ctx context.Context, t *domain.RefreshToken) error {
-	// 确保 userID 与 RefreshToken 一一对应
+func (r *RefreshTokenRepository) Save(ctx context.Context, t *domain.RefreshTokenEntity) error {
+	// 确保 userID 与 Token 一一对应
 	existing, err := r.innerRepository.Find(ctx, string(t.UserID()))
 	if err != nil && !errors.Is(err, myErrors.ErrNotFound) {
 		return err
 	}
 	if err == nil {
-		if delErr := r.innerRepository.Delete(ctx, existing.String()); delErr != nil && !errors.Is(delErr, myErrors.ErrNotFound) {
+		if delErr := r.innerRepository.Delete(ctx, existing.Token().String()); delErr != nil && !errors.Is(delErr, myErrors.ErrNotFound) {
 			return delErr
 		}
 	}
@@ -47,9 +48,9 @@ func (r *RefreshTokenRepository) Save(ctx context.Context, t *domain.RefreshToke
 	if err := r.innerRepository.Save(ctx, string(t.UserID()), t, ttl); err != nil {
 		return err
 	}
-	return r.innerRepository.Save(ctx, t.String(), t, ttl)
+	return r.innerRepository.Save(ctx, t.Token().String(), t, ttl)
 }
 
-func (r *RefreshTokenRepository) FindByString(ctx context.Context, str string) (*domain.RefreshToken, error) {
-	return r.innerRepository.Find(ctx, str)
+func (r *RefreshTokenRepository) FindByToken(ctx context.Context, token domain.RefreshToken) (*domain.RefreshTokenEntity, error) {
+	return r.innerRepository.Find(ctx, token.String())
 }

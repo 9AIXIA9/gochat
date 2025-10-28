@@ -2,56 +2,68 @@ package main
 
 import (
 	"fmt"
+	"gochat/config"
+	authorizationUsecase "gochat/internal/authorization/application/usecase"
+	"gochat/internal/authorization/infrastructure/bcrypt"
 	"gochat/internal/authorization/infrastructure/crypto"
 	"gochat/internal/authorization/infrastructure/jwt"
-	authorizationConverters "gochat/internal/authorization/infrastructure/persistence/converters"
-	authorizationModels "gochat/internal/authorization/infrastructure/persistence/models"
+	authorizationConverters "gochat/internal/authorization/infrastructure/persistence/converter"
+	authorizationModels "gochat/internal/authorization/infrastructure/persistence/model"
 	authorizationRepository "gochat/internal/authorization/infrastructure/persistence/repository"
-	authorizationRouter "gochat/internal/authorization/ports/http/routers"
-	authorizationUseCase "gochat/internal/authorization/usecase"
-	"gochat/internal/shared/config"
-	"gochat/internal/shared/http/middlewares"
-	"gochat/internal/shared/infrastructure/bcrypt"
-	ginutils "gochat/internal/shared/infrastructure/gin"
-	"gochat/internal/shared/infrastructure/gorm"
-	"gochat/internal/shared/infrastructure/persistence/converters"
-	"gochat/internal/shared/infrastructure/persistence/models"
-	"gochat/internal/shared/infrastructure/persistence/repository"
-	"gochat/internal/shared/infrastructure/redis"
-	"gochat/internal/shared/infrastructure/snowflake"
-	"gochat/internal/shared/infrastructure/uuid"
-	"gochat/internal/shared/infrastructure/zap"
+	"gochat/internal/authorization/infrastructure/snowflake"
+	authorizationUuid "gochat/internal/authorization/infrastructure/uuid"
+	"gochat/internal/infrastructure/binlog"
+	infraEvent "gochat/internal/infrastructure/event"
+	ginutils "gochat/internal/infrastructure/gin"
+	"gochat/internal/infrastructure/godotenv"
+	gormutils "gochat/internal/infrastructure/gorm"
+	"gochat/internal/infrastructure/persistence/converter"
+	"gochat/internal/infrastructure/persistence/repository"
+	redisutils "gochat/internal/infrastructure/redis"
+	"gochat/internal/infrastructure/uuid"
+	"gochat/internal/infrastructure/viper"
+	zaputils "gochat/internal/infrastructure/zap"
+
+	"context"
+
+	"github.com/redis/go-redis/v9"
 )
 
 type Dependencies struct {
-	Config                    *config.App
-	AuthorizationDependencies *authorizationRouter.Dependencies
+	config                    *config.App
+	signUpUseCase             authorizationUsecase.SignUpUseCase
+	loginUseCase              authorizationUsecase.LoginUseCase
+	refreshAccessTokenUseCase authorizationUsecase.RefreshAccessTokenUseCase
+	parseAccessTokenUseCase   authorizationUsecase.ParseAccessTokenUseCase
+	validator                 *ginutils.Validator
+	redisClient               *redis.Client
+	cancelAll                 context.CancelFunc
 }
 
 func initializeDependencies(path string, env string) (*Dependencies, error) {
-	if err := loadEnvFile(env); err != nil {
+	if err := godotenv.LoadEnvFile(env); err != nil {
 		return nil, fmt.Errorf("load env failed,err:%w", err)
 	}
 
-	appConfig, err := loadConfigFile(path)
+	appConfig, err := viper.LoadConfigFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("load config file failed,err:%w", err)
 	}
 
-	if err := zap.Initialize(appConfig.Logger); err != nil {
+	if err := zaputils.Initialize(appConfig.Logger); err != nil {
 		return nil, fmt.Errorf("initialize zap logger failed, err:%w", err)
 	}
 
-	mysqlDatabase, err := gorm.ConnectToMysql(appConfig.Mysql)
+	mysqlDatabase, err := gormutils.ConnectToMysql(appConfig.Mysql)
 	if err != nil {
 		return nil, fmt.Errorf("connect to mysql failed, err:%w", err)
 	}
 
-	if err := gorm.AutoMigrate(mysqlDatabase, &authorizationModels.User{}, &models.Event{}); err != nil {
+	if err := gormutils.AutoMigrate(mysqlDatabase, &authorizationModels.User{}); err != nil {
 		return nil, fmt.Errorf("mysql mirgrate failed,err:%w", err)
 	}
 
-	redisClient, err := redis.ConnectToRedis(appConfig.Redis)
+	redisClient, err := redisutils.ConnectToRedis(appConfig.Redis)
 	if err != nil {
 		return nil, fmt.Errorf("connect to redis failed, err:%w", err)
 	}
@@ -66,38 +78,45 @@ func initializeDependencies(path string, env string) (*Dependencies, error) {
 		return nil, fmt.Errorf("number generator initialize failed, err:%w", err)
 	}
 
-	idGenerator := uuid.NewIDGenerator()
+	eventIDGenerator := uuid.NewEventIDGenerator()
+	userIDGenerator := authorizationUuid.NewUserIDGenerator()
 
 	hasher := bcrypt.NewHasher(appConfig.Hasher)
+
+	eventRepository := repository.NewEventRepository(mysqlDatabase, &converter.StandardEventConverter{})
 
 	authorizationUserRepository := authorizationRepository.NewUserRepository(mysqlDatabase, &authorizationConverters.UserConverter{})
 	authorizationRefreshTokenRepository := authorizationRepository.NewRefreshTokenRepository(redisClient, &authorizationConverters.RefreshTokenConverter{})
 
-	eventSaver := repository.NewEventSaver(mysqlDatabase, &converters.EventToModelConverter{})
-
 	accessTokenManager := jwt.NewAccessTokenManager(appConfig.AccessToken)
 	refreshTokenGenerator := crypto.NewRefreshTokenGenerator(appConfig.RefreshToken)
 
-	signUpUseCase := authorizationUseCase.NewSignUp(idGenerator, numberGenerator, hasher, authorizationUserRepository, eventSaver)
-	loginUseCase := authorizationUseCase.NewLogin(idGenerator, hasher, authorizationUserRepository, authorizationRefreshTokenRepository, accessTokenManager, refreshTokenGenerator, eventSaver)
-	refreshAccessTokenUseCase := authorizationUseCase.NewRefreshAccessToken(authorizationRefreshTokenRepository, authorizationRefreshTokenRepository, accessTokenManager, refreshTokenGenerator)
-	parseAccessTokenUseCase := authorizationUseCase.NewParseAccessToken(accessTokenManager)
+	signUpUseCase := authorizationUsecase.NewSignUpUseCase(eventIDGenerator, userIDGenerator, numberGenerator, hasher, authorizationUserRepository, eventRepository)
+	loginUseCase := authorizationUsecase.NewLoginUseCase(eventIDGenerator, hasher, authorizationUserRepository, authorizationRefreshTokenRepository, accessTokenManager, refreshTokenGenerator, eventRepository)
+	refreshAccessTokenUseCase := authorizationUsecase.NewRefreshAccessTokenUseCase(authorizationRefreshTokenRepository, authorizationRefreshTokenRepository, accessTokenManager, refreshTokenGenerator)
+	parseAccessTokenUseCase := authorizationUsecase.NewParseAccessTokenUseCase(accessTokenManager)
 
-	authorizationMiddleware := middlewares.Authorization(parseAccessTokenUseCase)
+	// start binlog outbox consumer
+	ctx, cancel := context.WithCancel(context.Background())
 
-	authorizationDependencies := &authorizationRouter.Dependencies{
-		AuthorizationMiddleware:   authorizationMiddleware,
-		SignUpUseCase:             signUpUseCase,
-		LoginUseCase:              loginUseCase,
-		RefreshAccessTokenUseCase: refreshAccessTokenUseCase,
-		Validator:                 validator,
-		RedisClient:               redisClient,
-		RateLimitConfig:           appConfig.RateLimit,
-		CookieConfig:              appConfig.Cookie,
+	publisher := infraEvent.NewLoggerPublisher()
+
+	consumer, err := binlog.NewOutboxConsumer(appConfig.BinlogReader, publisher, eventRepository, eventRepository)
+	if err != nil {
+		cancel()
+		return nil, fmt.Errorf("initialize outbox consumer failed, err:%w", err)
 	}
 
+	consumer.Start(ctx)
+
 	return &Dependencies{
-		Config:                    appConfig,
-		AuthorizationDependencies: authorizationDependencies,
+		config:                    appConfig,
+		signUpUseCase:             signUpUseCase,
+		loginUseCase:              loginUseCase,
+		refreshAccessTokenUseCase: refreshAccessTokenUseCase,
+		parseAccessTokenUseCase:   parseAccessTokenUseCase,
+		validator:                 validator,
+		redisClient:               redisClient,
+		cancelAll:                 cancel,
 	}, nil
 }

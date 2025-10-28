@@ -3,25 +3,26 @@ package crypto
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
 )
 
-var _ domain.RandomStringGenerator = (*RandomStringGenerator)(nil)
+var _ application.RefreshTokenGenerator = (*RefreshTokenGenerator)(nil)
 
-type RandomStringGenerator struct {
+type RefreshTokenGenerator struct {
 	length int
 }
 
-func NewRefreshTokenGenerator(config *RefreshTokenConfig) *RandomStringGenerator {
-	return &RandomStringGenerator{length: config.Length}
+func NewRefreshTokenGenerator(config *RefreshTokenConfig) *RefreshTokenGenerator {
+	return &RefreshTokenGenerator{length: config.Length}
 }
 
 // Generate 生成一个安全的随机令牌
-func (g *RandomStringGenerator) Generate() (string, error) {
+func (g *RefreshTokenGenerator) Generate() (domain.RefreshToken, error) {
 	b := make([]byte, g.length)
 	_, err := rand.Read(b)
 	if err != nil {
 		return "", err
 	}
-	return base64.RawURLEncoding.EncodeToString(b), nil
+	return domain.RefreshToken(base64.RawURLEncoding.EncodeToString(b)), nil
 }

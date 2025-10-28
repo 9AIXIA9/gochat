@@ -14,10 +14,6 @@ const (
 
 type Password string
 
-func (p Password) Hash(encryptor kernel.HashEncryptor) (string, error) {
-	return encryptor.Encrypt(string(p))
-}
-
 func (p Password) String() string {
 	return string(p)
 }

@@ -3,14 +3,17 @@ package jwt
 import (
 	"errors"
 	"fmt"
-	"github.com/golang-jwt/jwt/v4"
+	"gochat/internal/authorization/application"
+	"gochat/internal/authorization/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 	"time"
+
+	"github.com/golang-jwt/jwt/v4"
 )
 
-var _ kernel.AccessTokenParser = (*AccessTokenManager)(nil)
-var _ kernel.AccessTokenGenerator = (*AccessTokenManager)(nil)
+var _ application.AccessTokenParser = (*AccessTokenManager)(nil)
+var _ application.AccessTokenGenerator = (*AccessTokenManager)(nil)
 
 type AccessTokenManager struct {
 	secret           string
@@ -29,7 +32,7 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func (m *AccessTokenManager) Generate(userID kernel.UserID) (kernel.AccessToken, error) {
+func (m *AccessTokenManager) Generate(userID kernel.UserID) (domain.AccessToken, error) {
 	mySecret := []byte(m.secret)
 
 	c := Claims{
@@ -48,13 +51,13 @@ func (m *AccessTokenManager) Generate(userID kernel.UserID) (kernel.AccessToken,
 	if tokenStr, err := token.SignedString(mySecret); err != nil {
 		return "", fmt.Errorf("get token signed string failed,err:%w", err)
 	} else {
-		return kernel.AccessToken(tokenStr), nil
+		return domain.AccessToken(tokenStr), nil
 	}
 }
 
-func (m *AccessTokenManager) Parse(accessToken kernel.AccessToken) (kernel.UserID, error) {
+func (m *AccessTokenManager) Parse(accessToken domain.AccessToken) (kernel.UserID, error) {
 	//解析 Token
-	token, err := jwt.ParseWithClaims(string(accessToken), &Claims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(accessToken.String(), &Claims{}, func(token *jwt.Token) (any, error) {
 		return []byte(m.secret), nil
 	})
 
