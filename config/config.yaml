@@ -78,3 +78,18 @@ BinlogReader:
   Password: ${BINLOG_PASSWORD}
   TableDB: ${BINLOG_TABLEDB}
   ExecutionPath: ${BINLOG_EXECUTION_PATH}
+
+Kafka:
+  BootstrapServers: ${KAFKA_BOOTSTRAP_SERVERS}
+  ClientID: ${KAFKA_CLIENT_ID}
+  Acks: ${KAFKA_ACKS}
+  SecurityProtocol: ${KAFKA_SECURITY_PROTOCOL}
+  SASLMechanism: ${KAFKA_SASL_MECHANISM}
+  SASLUsername: ${KAFKA_SASL_USERNAME}
+  SASLPassword: ${KAFKA_SASL_PASSWORD}
+  EnableIdempotence: ${KAFKA_ENABLE_IDEMPOTENCE}
+  MessageTimeoutMs: ${KAFKA_MESSAGE_TIMEOUT_MS}
+  AllowAutoCreateTopics: ${KAFKA_ALLOW_AUTO_CREATE_TOPICS}
+  MaxInFlight: ${KAFKA_MAX_IN_FLIGHT}
+  MaxRetries: ${KAFKA_MAX_RETRIES}
+  BackoffMs: ${KAFKA_BACKOFF_MS}

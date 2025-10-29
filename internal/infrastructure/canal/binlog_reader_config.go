@@ -1,4 +1,4 @@
-package binlog
+package canal
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"github.com/go-mysql-org/go-mysql/canal"
 )
 
-type ReaderConfig struct {
+type BinlogReaderConfig struct {
 	Addr          string `mapstructure:"Addr"`
 	User          string `mapstructure:"User"`
 	Password      string `mapstructure:"Password"`
@@ -15,7 +15,7 @@ type ReaderConfig struct {
 	ExecutionPath string `mapstructure:"ExecutionPath"`
 }
 
-func (c *ReaderConfig) ToCanal() *canal.Config {
+func (c *BinlogReaderConfig) ToCanal() *canal.Config {
 	config := canal.NewDefaultConfig()
 	config.Addr = c.Addr
 	config.User = c.User
@@ -25,21 +25,21 @@ func (c *ReaderConfig) ToCanal() *canal.Config {
 	return config
 }
 
-func (c *ReaderConfig) Validate() error {
+func (c *BinlogReaderConfig) Validate() error {
 	if c == nil {
 		return myErrors.ErrEmptyPointer
 	}
 	if c.Addr == "" {
-		return fmt.Errorf("%w: ReaderConfig.Addr is empty", myErrors.ErrEmptyInput)
+		return fmt.Errorf("%w: BinlogReaderConfig.Addr is empty", myErrors.ErrEmptyInput)
 	}
 	if c.User == "" {
-		return fmt.Errorf("%w: ReaderConfig.User is empty", myErrors.ErrEmptyInput)
+		return fmt.Errorf("%w: BinlogReaderConfig.User is empty", myErrors.ErrEmptyInput)
 	}
 	if c.Password == "" {
-		return fmt.Errorf("%w: ReaderConfig.Password is empty", myErrors.ErrEmptyInput)
+		return fmt.Errorf("%w: BinlogReaderConfig.Password is empty", myErrors.ErrEmptyInput)
 	}
 	if c.TableDB == "" {
-		return fmt.Errorf("%w: ReaderConfig.TableDB is empty", myErrors.ErrEmptyInput)
+		return fmt.Errorf("%w: BinlogReaderConfig.TableDB is empty", myErrors.ErrEmptyInput)
 	}
 	//c.ExecutionPath == ""  是允许的 -> 不使用 mysqldump 工具
 	return nil

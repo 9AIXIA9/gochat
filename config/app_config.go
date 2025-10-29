@@ -6,8 +6,9 @@ import (
 	"gochat/internal/authorization/infrastructure/crypto"
 	"gochat/internal/authorization/infrastructure/jwt"
 	"gochat/internal/delivery/http/middleware"
-	"gochat/internal/infrastructure/binlog"
+	"gochat/internal/infrastructure/canal"
 	"gochat/internal/infrastructure/gorm"
+	"gochat/internal/infrastructure/kafka"
 	"gochat/internal/infrastructure/redis"
 	"gochat/internal/infrastructure/zap"
 	myErrors "gochat/internal/shared/errors"
@@ -28,10 +29,11 @@ type App struct {
 	Hasher       *bcrypt.HasherConfig        `mapstructure:"Hasher"`
 	Mysql        *gorm.MysqlConfig           `mapstructure:"Mysql"`
 	Redis        *redis.Config               `mapstructure:"Redis"`
+	Kafka        *kafka.Config               `mapstructure:"Kafka"`
 	Logger       *zap.LoggerConfig           `mapstructure:"Logger"`
 	RateLimit    *middleware.RateLimitConfig `mapstructure:"RateLimit"`
 	//Email        *gomail.EmailNotifierConfig `mapstructure:"Email"`
-	BinlogReader *binlog.ReaderConfig `mapstructure:"BinlogReader"`
+	BinlogReader *canal.BinlogReaderConfig `mapstructure:"BinlogReader"`
 }
 
 func (c *App) Validate() error {
@@ -72,6 +74,9 @@ func (c *App) Validate() error {
 	}
 	if err := c.Redis.Validate(); err != nil {
 		return fmt.Errorf("App.Redis: %w", err)
+	}
+	if err := c.Kafka.Validate(); err != nil {
+		return fmt.Errorf("App.Kafka: %w", err)
 	}
 	if err := c.Logger.Validate(); err != nil {
 		return fmt.Errorf("App.Logger: %w", err)

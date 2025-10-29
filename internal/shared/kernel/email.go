@@ -7,12 +7,16 @@ import (
 
 type Email string
 
+func (e Email) String() string {
+	return string(e)
+}
+
 // RFC 5322标准的正则表达式
 var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
 // Validate 方法验证邮箱格式
 func (e Email) Validate() error {
-	email := string(e)
+	email := e.String()
 
 	// 检查长度 (RFC 3696规定最大254字符)
 	if len(email) > 254 {

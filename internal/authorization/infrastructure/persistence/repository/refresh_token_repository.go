@@ -33,7 +33,7 @@ func NewRefreshTokenRepository(rdb *redis.Client, converter redisutils.GenericMo
 
 func (r *RefreshTokenRepository) Save(ctx context.Context, t *domain.RefreshTokenEntity) error {
 	// 确保 userID 与 Token 一一对应
-	existing, err := r.innerRepository.Find(ctx, string(t.UserID()))
+	existing, err := r.innerRepository.Find(ctx, t.UserID().String())
 	if err != nil && !errors.Is(err, myErrors.ErrNotFound) {
 		return err
 	}
@@ -45,7 +45,7 @@ func (r *RefreshTokenRepository) Save(ctx context.Context, t *domain.RefreshToke
 
 	ttl := time.Until(t.ExpiredAt())
 
-	if err := r.innerRepository.Save(ctx, string(t.UserID()), t, ttl); err != nil {
+	if err := r.innerRepository.Save(ctx, t.UserID().String(), t, ttl); err != nil {
 		return err
 	}
 	return r.innerRepository.Save(ctx, t.Token().String(), t, ttl)

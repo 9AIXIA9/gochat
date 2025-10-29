@@ -9,6 +9,10 @@ type ID kernel.ID
 
 type Topic string
 
+func (t Topic) String() string {
+	return string(t)
+}
+
 type Event interface {
 	ID() ID
 	AggregateID() kernel.ID

@@ -12,12 +12,13 @@ import (
 	authorizationRepository "gochat/internal/authorization/infrastructure/persistence/repository"
 	"gochat/internal/authorization/infrastructure/snowflake"
 	authorizationUuid "gochat/internal/authorization/infrastructure/uuid"
-	"gochat/internal/infrastructure/binlog"
-	infraEvent "gochat/internal/infrastructure/event"
+	"gochat/internal/infrastructure/canal"
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/infrastructure/godotenv"
 	gormutils "gochat/internal/infrastructure/gorm"
+	kafkapub "gochat/internal/infrastructure/kafka"
 	"gochat/internal/infrastructure/persistence/converter"
+	"gochat/internal/infrastructure/persistence/model"
 	"gochat/internal/infrastructure/persistence/repository"
 	redisutils "gochat/internal/infrastructure/redis"
 	"gochat/internal/infrastructure/uuid"
@@ -59,7 +60,7 @@ func initializeDependencies(path string, env string) (*Dependencies, error) {
 		return nil, fmt.Errorf("connect to mysql failed, err:%w", err)
 	}
 
-	if err := gormutils.AutoMigrate(mysqlDatabase, &authorizationModels.User{}); err != nil {
+	if err := gormutils.AutoMigrate(mysqlDatabase, &authorizationModels.User{}, &model.Event{}, &model.DeadEvent{}); err != nil {
 		return nil, fmt.Errorf("mysql mirgrate failed,err:%w", err)
 	}
 
@@ -99,9 +100,14 @@ func initializeDependencies(path string, env string) (*Dependencies, error) {
 	// start binlog outbox consumer
 	ctx, cancel := context.WithCancel(context.Background())
 
-	publisher := infraEvent.NewLoggerPublisher()
+	kafkaPublisher, err := kafkapub.NewEventPublisher(appConfig.Kafka, eventRepository, eventRepository)
+	if err != nil {
+		cancel()
+		return nil, fmt.Errorf("initialize kafka publisher failed, err:%w", err)
+	}
+	kafkaPublisher.Start()
 
-	consumer, err := binlog.NewOutboxConsumer(appConfig.BinlogReader, publisher, eventRepository, eventRepository)
+	consumer, err := canal.NewOutboxConsumer(appConfig.BinlogReader, kafkaPublisher, eventRepository)
 	if err != nil {
 		cancel()
 		return nil, fmt.Errorf("initialize outbox consumer failed, err:%w", err)

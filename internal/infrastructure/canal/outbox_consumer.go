@@ -1,4 +1,4 @@
-package binlog
+package canal
 
 import (
 	"context"
@@ -14,12 +14,11 @@ import (
 // using the provided event.Publisher. This is an infrastructure adapter implementing CDC for the outbox table.
 type OutboxConsumer struct {
 	publisher event.Publisher
-	marker    event.PublishedMarker
 	lister    event.UnpublishedLister
 	canal     *canal.Canal
 }
 
-func NewOutboxConsumer(config *ReaderConfig, publisher event.Publisher, lister event.UnpublishedLister, marker event.PublishedMarker) (*OutboxConsumer, error) {
+func NewOutboxConsumer(config *BinlogReaderConfig, publisher event.Publisher, lister event.UnpublishedLister) (*OutboxConsumer, error) {
 	canalConfig := config.ToCanal()
 
 	cn, err := canal.NewCanal(canalConfig)
@@ -29,7 +28,6 @@ func NewOutboxConsumer(config *ReaderConfig, publisher event.Publisher, lister e
 
 	return &OutboxConsumer{
 		publisher: publisher,
-		marker:    marker,
 		lister:    lister,
 		canal:     cn,
 	}, nil
@@ -39,7 +37,6 @@ func (c *OutboxConsumer) Start(ctx context.Context) {
 	c.canal.SetEventHandler(&outboxHandler{
 		DummyEventHandler: canal.DummyEventHandler{},
 		publisher:         c.publisher,
-		marker:            c.marker,
 		lister:            c.lister,
 	})
 
@@ -58,7 +55,6 @@ func (c *OutboxConsumer) Start(ctx context.Context) {
 type outboxHandler struct {
 	canal.DummyEventHandler
 	publisher event.Publisher
-	marker    event.PublishedMarker
 	lister    event.UnpublishedLister
 }
 
@@ -77,13 +73,5 @@ func (h *outboxHandler) OnRow(e *canal.RowsEvent) error {
 		return nil
 	}
 
-	if err := h.publisher.PublishEvents(context.Background(), events); err != nil {
-		return err
-	}
-
-	ids := make([]event.ID, 0, len(events))
-	for _, e := range events {
-		ids = append(ids, e.ID())
-	}
-	return h.marker.MarkPublished(context.Background(), ids)
+	return h.publisher.PublishEvents(events)
 }

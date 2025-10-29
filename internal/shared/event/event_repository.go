@@ -6,6 +6,7 @@ type Repository interface {
 	Saver
 	UnpublishedLister
 	PublishedMarker
+	DeadEventSaver
 }
 
 type Saver interface {
@@ -17,5 +18,9 @@ type UnpublishedLister interface {
 }
 
 type PublishedMarker interface {
-	MarkPublished(ctx context.Context, ID []ID) error
+	MarkPublished(ctx context.Context, ID ID) error
+}
+
+type DeadEventSaver interface {
+	SaveDeadEvent(ctx context.Context, event Event, reason error) error
 }

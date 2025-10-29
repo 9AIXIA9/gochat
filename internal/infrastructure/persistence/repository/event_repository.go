@@ -2,9 +2,11 @@ package repository
 
 import (
 	"context"
+	"errors"
 	gormutils "gochat/internal/infrastructure/gorm"
 	"gochat/internal/infrastructure/persistence/converter"
 	"gochat/internal/infrastructure/persistence/model"
+	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 
 	"gorm.io/gorm"
@@ -15,6 +17,7 @@ var _ event.Repository = (*EventRepository)(nil)
 type EventRepository struct {
 	db                 *gorm.DB
 	inner              *gormutils.Repository[model.Event, event.StandardEvent]
+	modelConverter     gormutils.GenericModelConverter[*model.Event, *event.StandardEvent]
 	interfaceConverter *converter.EventInterfaceConverter
 }
 
@@ -22,6 +25,7 @@ func NewEventRepository(db *gorm.DB, modelConverter gormutils.GenericModelConver
 	return &EventRepository{
 		db:                 db,
 		inner:              gormutils.NewRepository(db, modelConverter),
+		modelConverter:     modelConverter,
 		interfaceConverter: &converter.EventInterfaceConverter{},
 	}
 }
@@ -38,6 +42,18 @@ func (repo *EventRepository) UnpublishedList(ctx context.Context) ([]event.Event
 	return repo.interfaceConverter.ToInterfaces(events), nil
 }
 
-func (repo *EventRepository) MarkPublished(ctx context.Context, IDs []event.ID) error {
-	return repo.inner.Delete(ctx, "id IN ?", IDs)
+func (repo *EventRepository) MarkPublished(ctx context.Context, ID event.ID) error {
+
+	if err := repo.inner.Delete(ctx, "id = ?", ID); !errors.Is(err, myErrors.ErrNotFound) {
+		return err
+	}
+	return nil
+}
+
+func (repo *EventRepository) SaveDeadEvent(ctx context.Context, event event.Event, reason error) error {
+	if event == nil {
+		return nil
+	}
+	deadEventModel := model.NewDeadEvent(repo.modelConverter.ToModel(repo.interfaceConverter.ToStandard(event)), reason)
+	return gormutils.TranslateError(repo.db.WithContext(ctx).Create(deadEventModel).Error)
 }

@@ -25,21 +25,6 @@ func NewStandardEvent(id ID, aggregateID kernel.ID, occurredAt time.Time, topic 
 	}
 }
 
-// NewStandardEventFrom wraps any Event into a *StandardEvent. If the provided
-// Event is already a *StandardEvent, it returns it as-is.
-func NewStandardEventFrom(e Event) *StandardEvent {
-	if se, ok := any(e).(*StandardEvent); ok {
-		return se
-	}
-	return &StandardEvent{
-		id:          e.ID(),
-		aggregateID: e.AggregateID(),
-		occurredAt:  e.OccurredAt().UTC(),
-		topic:       e.Topic(),
-		payload:     e.Payload(),
-	}
-}
-
 func (e *StandardEvent) ID() ID {
 	return e.id
 }
