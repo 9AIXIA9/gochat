@@ -3,10 +3,10 @@ package converter
 import (
 	"gochat/internal/authorization/domain"
 	"gochat/internal/authorization/infrastructure/persistence/model"
-	redisutils "gochat/internal/infrastructure/redis"
+	gormutils "gochat/internal/infrastructure/gorm"
 )
 
-var _ redisutils.GenericModelConverter[*model.User, *domain.User] = (*UserConverter)(nil)
+var _ gormutils.GenericModelConverter[*model.User, *domain.User] = (*UserConverter)(nil)
 
 type UserConverter struct {
 }

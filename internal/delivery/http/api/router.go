@@ -5,13 +5,13 @@ import (
 	"gochat/internal/authorization/application/usecase"
 	authorizationHttp "gochat/internal/authorization/port/http"
 	"gochat/internal/delivery/http/middleware"
-	ginutils "gochat/internal/infrastructure/gin"
+	ginutils "gochat/internal/infrastructure/validator"
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 )
 
-func SetupRoutes(
+func NewRouter(
 	signUpUseCase usecase.SignUpUseCase,
 	loginUseCase usecase.LoginUseCase,
 	refreshAccessTokenUseCase usecase.RefreshAccessTokenUseCase,

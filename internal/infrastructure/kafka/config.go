@@ -2,91 +2,110 @@ package kafka
 
 import (
 	"fmt"
-	myErrors "gochat/internal/shared/errors"
-
-	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
+	"strings"
 )
 
-// Config wraps producer-related settings for Kafka
-// Only commonly used fields are exposed; extend as needed.
 type Config struct {
-	BootstrapServers      string `mapstructure:"BootstrapServers"`
-	ClientID              string `mapstructure:"ClientID"`
+	Common   *CommonConfig   `mapstructure:"Common"`
+	Consumer *ConsumerConfig `mapstructure:"Consumer"`
+	Producer *ProducerConfig `mapstructure:"Producer"`
+}
+
+type CommonConfig struct {
+	BootstrapServers string `mapstructure:"BootstrapServers"`
+	ClientID         string `mapstructure:"ClientID"`
+	SecurityProtocol string `mapstructure:"SecurityProtocol"`
+	SASLMechanism    string `mapstructure:"SASLMechanism"`
+	SASLUsername     string `mapstructure:"SASLUsername"`
+	SASLPassword     string `mapstructure:"SASLPassword"`
+}
+
+type ConsumerConfig struct {
+	GroupID              string `mapstructure:"GroupID"`
+	AutoOffsetReset      string `mapstructure:"AutoOffsetReset"`
+	EnableAutoCommit     *bool  `mapstructure:"EnableAutoCommit"`
+	AutoCommitIntervalMs int    `mapstructure:"AutoCommitIntervalMs"`
+	SessionTimeoutMs     int    `mapstructure:"SessionTimeoutMs"`
+	MaxPollIntervalMs    int    `mapstructure:"MaxPollIntervalMs"`
+}
+
+type ProducerConfig struct {
 	Acks                  string `mapstructure:"Acks"`
-	SecurityProtocol      string `mapstructure:"SecurityProtocol"`
-	SASLMechanism         string `mapstructure:"SASLMechanism"`
-	SASLUsername          string `mapstructure:"SASLUsername"`
-	SASLPassword          string `mapstructure:"SASLPassword"`
 	EnableIdempotence     bool   `mapstructure:"EnableIdempotence"`
 	MessageTimeoutMs      int    `mapstructure:"MessageTimeoutMs"`
 	AllowAutoCreateTopics bool   `mapstructure:"AllowAutoCreateTopics"`
-	MaxInFlight           int    `mapstructure:"MaxInFlight"` // in-flight requests per connection
-	MaxRetries            int    `mapstructure:"MaxRetries"`  // client-side retry on produce failure (queue full etc.)
-	BackoffMs             int    `mapstructure:"BackoffMs"`   // backoff between local retries
+	MaxInFlight           int    `mapstructure:"MaxInFlight"`
+	MaxRetries            int    `mapstructure:"MaxRetries"`
+	BackoffMs             int    `mapstructure:"BackoffMs"`
 }
+
+// ---- Validate ----
 
 func (c *Config) Validate() error {
 	if c == nil {
-		return myErrors.ErrEmptyPointer
+		return fmt.Errorf("kafka config: nil pointer")
 	}
-	if c.BootstrapServers == "" {
-		return fmt.Errorf("Kafka.BootstrapServers: %w", myErrors.ErrEmptyInput)
+	if err := c.Common.Validate(); err != nil {
+		return fmt.Errorf("common: %w", err)
 	}
-	// optional fields are fine
+	if err := c.Consumer.Validate(); err != nil {
+		return fmt.Errorf("consumer: %w", err)
+	}
+	if err := c.Producer.Validate(); err != nil {
+		return fmt.Errorf("producer: %w", err)
+	}
 	return nil
 }
 
-// toKafkaConfig converts to confluent-kafka-go ConfigMap
-func (c *Config) toKafkaConfig() (*ckafka.ConfigMap, error) {
-	cfg := &ckafka.ConfigMap{
-		"bootstrap.servers":        c.BootstrapServers,
-		"allow.auto.create.topics": c.AllowAutoCreateTopics,
+func (c *CommonConfig) Validate() error {
+	if c == nil {
+		return fmt.Errorf("common config: nil pointer")
 	}
-	if c.ClientID != "" {
-		if err := cfg.SetKey("client.id", c.ClientID); err != nil {
-			return nil, fmt.Errorf("Kafka.ClientID: %w", err)
+	if strings.TrimSpace(c.BootstrapServers) == "" {
+		return fmt.Errorf("bootstrap servers is required")
+	}
+	sp := strings.ToLower(strings.TrimSpace(c.SecurityProtocol))
+	isSASL := sp == "sasl_plaintext" || sp == "sasl_ssl"
+	if isSASL {
+		if strings.TrimSpace(c.SASLMechanism) == "" {
+			return fmt.Errorf("SASL mechanism is required when using SASL security protocol")
+		}
+		if strings.TrimSpace(c.SASLUsername) == "" || strings.TrimSpace(c.SASLPassword) == "" {
+			return fmt.Errorf("SASL username/password are required when using SASL security protocol")
 		}
 	}
-	if c.Acks != "" {
-		if err := cfg.SetKey("acks", c.Acks); err != nil {
-			return nil, fmt.Errorf("Kafka.Acks: %w", err)
-		}
+	return nil
+}
+
+func (c *ConsumerConfig) Validate() error {
+	if c == nil {
+		return fmt.Errorf("consumer config: nil pointer")
 	}
-	if c.EnableIdempotence {
-		if err := cfg.SetKey("enable.idempotence", true); err != nil {
-			return nil, fmt.Errorf("Kafka.EnableIdempotence: %w", err)
-		}
+	if strings.TrimSpace(c.GroupID) == "" {
+		return fmt.Errorf("group.id is required")
 	}
-	if c.MessageTimeoutMs > 0 {
-		if err := cfg.SetKey("message.timeout.ms", c.MessageTimeoutMs); err != nil {
-			return nil, fmt.Errorf("Kafka.MessageTimeoutMs: %w", err)
-		}
+	aor := strings.ToLower(strings.TrimSpace(c.AutoOffsetReset))
+	if aor != "earliest" && aor != "latest" {
+		return fmt.Errorf("auto.offset.reset must be earliest or latest")
 	}
-	if c.MaxInFlight > 0 {
-		if err := cfg.SetKey("max.in.flight.requests.per.connection", c.MaxInFlight); err != nil {
-			return nil, fmt.Errorf("Kafka.MaxInFlight: %w", err)
-		}
+	if c.EnableAutoCommit == nil {
+		return fmt.Errorf("enable.auto.commit is required")
 	}
-	// Security (optional)
-	if c.SecurityProtocol != "" {
-		if err := cfg.SetKey("security.protocol", c.SecurityProtocol); err != nil {
-			return nil, fmt.Errorf("Kafka.SecurityProtocol: %w", err)
-		}
+	// 其它数值边界由 tag 约束；此处不强制默认值
+	return nil
+}
+
+func (p *ProducerConfig) Validate() error {
+	if p == nil {
+		return fmt.Errorf("producer config: nil pointer")
 	}
-	if c.SASLMechanism != "" {
-		if err := cfg.SetKey("sasl.mechanism", c.SASLMechanism); err != nil {
-			return nil, fmt.Errorf("Kafka.SASLMechanism: %w", err)
-		}
+	acks := strings.TrimSpace(p.Acks)
+	if acks != "all" && acks != "-1" && acks != "0" && acks != "1" {
+		return fmt.Errorf("acks must be one of all|-1|0|1")
 	}
-	if c.SASLUsername != "" {
-		if err := cfg.SetKey("sasl.username", c.SASLUsername); err != nil {
-			return nil, fmt.Errorf("Kafka.SASLUsername: %w", err)
-		}
+	// 幂等性要求：MaxInFlight<=5（librdkafka 推荐）
+	if p.EnableIdempotence && p.MaxInFlight > 5 {
+		return fmt.Errorf("max.in.flight.requests.per.connection must be <= 5 when enable.idempotence=true")
 	}
-	if c.SASLPassword != "" {
-		if err := cfg.SetKey("sasl.password", c.SASLPassword); err != nil {
-			return nil, fmt.Errorf("Kafka.SASLPassword: %w", err)
-		}
-	}
-	return cfg, nil
+	return nil
 }

@@ -11,6 +11,7 @@ import (
 	"gochat/internal/infrastructure/kafka"
 	"gochat/internal/infrastructure/redis"
 	"gochat/internal/infrastructure/zap"
+	"gochat/internal/notification/infrastructure/gomail"
 	myErrors "gochat/internal/shared/errors"
 )
 
@@ -32,8 +33,8 @@ type App struct {
 	Kafka        *kafka.Config               `mapstructure:"Kafka"`
 	Logger       *zap.LoggerConfig           `mapstructure:"Logger"`
 	RateLimit    *middleware.RateLimitConfig `mapstructure:"RateLimit"`
-	//Email        *gomail.EmailNotifierConfig `mapstructure:"Email"`
-	BinlogReader *canal.BinlogReaderConfig `mapstructure:"BinlogReader"`
+	BinlogReader *canal.BinlogReaderConfig   `mapstructure:"BinlogReader"`
+	Email        *gomail.EmailNotifierConfig `mapstructure:"Email"`
 }
 
 func (c *App) Validate() error {
@@ -84,9 +85,9 @@ func (c *App) Validate() error {
 	if err := c.RateLimit.Validate(); err != nil {
 		return fmt.Errorf("App.RateLimit: %w", err)
 	}
-	//if err := c.Email.Validate(); err != nil {
-	//	return fmt.Errorf("App.Email: %w", err)
-	//}
+	if err := c.Email.Validate(); err != nil {
+		return fmt.Errorf("App.Email: %w", err)
+	}
 	if err := c.BinlogReader.Validate(); err != nil {
 		return fmt.Errorf("App.BinlogReader: %w", err)
 	}

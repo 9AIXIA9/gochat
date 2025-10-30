@@ -6,6 +6,7 @@ import (
 	"gochat/internal/authorization/application/usecase"
 	"gochat/internal/authorization/domain"
 	ginutils "gochat/internal/infrastructure/gin"
+	"gochat/internal/infrastructure/validator"
 	myErrors "gochat/internal/shared/errors"
 	sharedHttp "gochat/internal/shared/http"
 	"time"
@@ -29,7 +30,7 @@ func (r *LoginRequest) Bind(ginContext *gin.Context) error {
 	return ginContext.ShouldBind(r)
 }
 
-func NewLoginHandler(useCase usecase.LoginUseCase, validator *ginutils.Validator, cookieConfig *config.Cookie) gin.HandlerFunc {
+func NewLoginHandler(useCase usecase.LoginUseCase, validator *validator.Validator, cookieConfig *config.Cookie) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler[LoginRequest, *LoginRequest, *usecase.LoginInput, *usecase.LoginOutput](
 		useCase,
 		validator,

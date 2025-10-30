@@ -9,6 +9,8 @@ import (
 	"gorm.io/gorm"
 )
 
+//TODO 保证幂等性 Repository
+
 type Repository[
 	GormModel any,
 	DomainModel any,

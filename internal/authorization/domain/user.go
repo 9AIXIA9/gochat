@@ -29,7 +29,7 @@ func NewUser(id kernel.UserID, email kernel.Email, number UserNumber, passwordEn
 }
 
 func (u *User) SignUp(eventIDGenerator event.IDGenerator) error {
-	e, err := NewUserSignedUpEvent(eventIDGenerator.Generate(), u.id, u.email)
+	e, err := NewUserCreatedEvent(eventIDGenerator.Generate(), u.id, u.email)
 	if err != nil {
 		return err
 	}
@@ -37,15 +37,8 @@ func (u *User) SignUp(eventIDGenerator event.IDGenerator) error {
 	return nil
 }
 
-func (u *User) Login(eventIDGenerator event.IDGenerator) error {
+func (u *User) Login() {
 	u.lastLoggedInAt = time.Now()
-
-	e, err := NewUserLoggedInEvent(eventIDGenerator.Generate(), u.id)
-	if err != nil {
-		return err
-	}
-	u.eventManager.RecordEvent(e)
-	return nil
 }
 
 // getter

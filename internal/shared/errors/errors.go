@@ -7,8 +7,8 @@ import (
 // 系统相关错误
 
 var (
-	ErrEmptyPointer = errors.New("system: empty pointer")
-	//ErrHasBeenClosed = errors.New("has been closed")
+	ErrEmptyPointer  = errors.New("system: empty pointer")
+	ErrHasBeenClosed = errors.New("has been closed")
 )
 
 // 业务逻辑相关错误

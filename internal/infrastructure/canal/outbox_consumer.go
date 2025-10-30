@@ -2,6 +2,7 @@ package canal
 
 import (
 	"context"
+	"gochat/pkg/utils"
 	"strings"
 
 	"gochat/internal/shared/event"
@@ -33,7 +34,7 @@ func NewOutboxConsumer(config *BinlogReaderConfig, publisher event.Publisher, li
 	}, nil
 }
 
-func (c *OutboxConsumer) Start(ctx context.Context) {
+func (c *OutboxConsumer) Start() {
 	c.canal.SetEventHandler(&outboxHandler{
 		DummyEventHandler: canal.DummyEventHandler{},
 		publisher:         c.publisher,
@@ -41,15 +42,15 @@ func (c *OutboxConsumer) Start(ctx context.Context) {
 	})
 
 	// start from latest master position
-	go func() {
+	utils.GoSafe(func() {
 		if err := c.canal.Run(); err != nil && !strings.Contains(err.Error(), "context canceled") {
 			zap.L().Error("binlog canal run failed", zap.Error(err))
 		}
-	}()
-	go func() {
-		<-ctx.Done()
-		c.canal.Close()
-	}()
+	})
+}
+
+func (c *OutboxConsumer) Close() {
+	c.canal.Close()
 }
 
 type outboxHandler struct {
@@ -73,5 +74,5 @@ func (h *outboxHandler) OnRow(e *canal.RowsEvent) error {
 		return nil
 	}
 
-	return h.publisher.PublishEvents(events)
+	return h.publisher.Publish(events)
 }

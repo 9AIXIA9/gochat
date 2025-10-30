@@ -2,14 +2,13 @@ package event
 
 import "context"
 
-type Repository interface {
-	Saver
+type OutboxRepository interface {
+	UnpublishedSaver
 	UnpublishedLister
 	PublishedMarker
-	DeadEventSaver
 }
 
-type Saver interface {
+type UnpublishedSaver interface {
 	Saves(ctx context.Context, events []Event) error
 }
 
@@ -19,8 +18,4 @@ type UnpublishedLister interface {
 
 type PublishedMarker interface {
 	MarkPublished(ctx context.Context, ID ID) error
-}
-
-type DeadEventSaver interface {
-	SaveDeadEvent(ctx context.Context, event Event, reason error) error
 }

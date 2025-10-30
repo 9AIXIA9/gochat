@@ -30,7 +30,7 @@ func main() {
 	// 创建HTTP服务器（用于 HTTPS）
 	srv := &http.Server{
 		Addr: fmt.Sprintf("%s:%d", dependencies.config.Host, dependencies.config.Port),
-		Handler: api.SetupRoutes(
+		Handler: api.NewRouter(
 			dependencies.signUpUseCase,
 			dependencies.loginUseCase,
 			dependencies.refreshAccessTokenUseCase,
@@ -64,8 +64,8 @@ func main() {
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Fatal("close server failed:", err)
 	}
-	if dependencies.cancelAll != nil {
-		dependencies.cancelAll()
+	if dependencies.closeAll != nil {
+		dependencies.closeAll()
 	}
 	log.Println("server has been closed")
 }

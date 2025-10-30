@@ -1,10 +1,9 @@
-package gin
+package validator
 
 import (
 	"context"
 	"errors"
 	"fmt"
-	sharedHttp "gochat/internal/shared/http"
 	"reflect"
 	"strings"
 
@@ -13,6 +12,8 @@ import (
 	"github.com/go-playground/validator/v10"
 	enTranslations "github.com/go-playground/validator/v10/translations/en"
 )
+
+//TODO 编译前验证
 
 type Validator struct {
 	validator  *validator.Validate
@@ -50,16 +51,15 @@ func NewValidator() (*Validator, error) {
 func (b *Validator) Validator() *validator.Validate { return b.validator }
 func (b *Validator) Translator() ut.Translator      { return b.translator }
 
-func (b *Validator) Validate(ctx context.Context, model any) (*sharedHttp.ApiResponse, error) {
+func (b *Validator) Validate(ctx context.Context, model any) (string, error) {
 	if err := b.validator.StructCtx(ctx, model); err != nil {
 		var validationErrors validator.ValidationErrors
 		if errors.As(err, &validationErrors) {
-			message := b.buildValidationErrorMessage(validationErrors)
-			return sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, message), nil
+			return b.buildValidationErrorMessage(validationErrors), nil
 		}
-		return nil, err
+		return "", err
 	}
-	return nil, nil
+	return "", nil
 }
 
 func (b *Validator) buildValidationErrorMessage(typeErr validator.ValidationErrors) string {

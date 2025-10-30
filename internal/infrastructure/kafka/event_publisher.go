@@ -12,10 +12,6 @@ import (
 	"go.uber.org/zap"
 )
 
-const (
-	publisherResultCache = 4096
-)
-
 var _ event.Publisher = (*EventPublisher)(nil)
 
 // EventPublisher publishes domain events to Kafka and marks them published upon delivery.
@@ -25,19 +21,15 @@ type EventPublisher struct {
 	producer          *ckafka.Producer
 	converter         *EventConverter
 	publishedMarker   event.PublishedMarker
-	deadEventSaver    event.DeadEventSaver // optional
+	DeadLetterSaver   event.DeadLetterSaver // optional
 
 	maxRetries int
 	backoff    time.Duration
 }
 
 // NewEventPublisher creates a Kafka producer-based publisher.
-func NewEventPublisher(cfg *Config, publishedMarker event.PublishedMarker, deadEventSaver event.DeadEventSaver) (*EventPublisher, error) {
-	if err := cfg.Validate(); err != nil {
-		return nil, fmt.Errorf("invalid kafka config: %w", err)
-	}
-
-	kafkaConfig, err := cfg.toKafkaConfig()
+func NewEventPublisher(commonConfig *CommonConfig, producerConfig *ProducerConfig, publishedMarker event.PublishedMarker, DeadLetterSaver event.DeadLetterSaver) (*EventPublisher, error) {
+	kafkaConfig, err := getProducerConfig(commonConfig, producerConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -47,23 +39,14 @@ func NewEventPublisher(cfg *Config, publishedMarker event.PublishedMarker, deadE
 		return nil, fmt.Errorf("create kafka producer failed: %w", err)
 	}
 
-	maxRetries := cfg.MaxRetries
-	if maxRetries <= 0 {
-		maxRetries = 3
-	}
-	backoff := time.Duration(cfg.BackoffMs) * time.Millisecond
-	if backoff <= 0 {
-		backoff = 200 * time.Millisecond
-	}
-
 	return &EventPublisher{
-		publishResultChan: make(chan ckafka.Event, publisherResultCache),
+		publishResultChan: make(chan ckafka.Event, 4096),
 		producer:          producer,
 		converter:         &EventConverter{},
 		publishedMarker:   publishedMarker,
-		deadEventSaver:    deadEventSaver,
-		maxRetries:        maxRetries,
-		backoff:           backoff,
+		DeadLetterSaver:   DeadLetterSaver,
+		maxRetries:        producerConfig.MaxRetries,
+		backoff:           time.Duration(producerConfig.BackoffMs) * time.Millisecond,
 	}, nil
 }
 
@@ -80,7 +63,7 @@ func (p *EventPublisher) Close() {
 	close(p.publishResultChan)
 }
 
-func (p *EventPublisher) PublishEvents(events []event.Event) error {
+func (p *EventPublisher) Publish(events []event.Event) error {
 	if len(events) == 0 {
 		return nil
 	}
@@ -89,8 +72,8 @@ func (p *EventPublisher) PublishEvents(events []event.Event) error {
 		if err := p.produceWithRetry(p.converter.ToMessage(e)); err != nil {
 			zap.L().Error("produce message failed", zap.Error(err))
 			// As a last resort, attempt to send to dead letter store
-			if p.deadEventSaver != nil {
-				_ = p.deadEventSaver.SaveDeadEvent(context.Background(), e, err)
+			if p.DeadLetterSaver != nil {
+				_ = p.DeadLetterSaver.SaveDeadLetter(context.Background(), e, err)
 			}
 		}
 	}
@@ -122,13 +105,13 @@ func (p *EventPublisher) processSendingResponse() {
 		case *ckafka.Message:
 			if m.TopicPartition.Error != nil {
 				// 失败：从 Opaque 取回原事件，写入死信
-				if p.deadEventSaver != nil {
+				if p.DeadLetterSaver != nil {
 					if e, ok := m.Opaque.(event.Event); ok {
-						_ = p.deadEventSaver.SaveDeadEvent(context.Background(), e, m.TopicPartition.Error)
+						_ = p.DeadLetterSaver.SaveDeadLetter(context.Background(), e, m.TopicPartition.Error)
 					} else {
 						// 兜底：尝试从回执重建
 						if e2, ok := p.converter.ToEvent(m); ok {
-							_ = p.deadEventSaver.SaveDeadEvent(context.Background(), e2, m.TopicPartition.Error)
+							_ = p.DeadLetterSaver.SaveDeadLetter(context.Background(), e2, m.TopicPartition.Error)
 						}
 					}
 				}

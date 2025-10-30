@@ -9,6 +9,8 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+//TODO 保证幂等性 Repository
+
 type Repository[
 	RedisModel any,
 	DomainModel any,

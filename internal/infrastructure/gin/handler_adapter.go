@@ -12,11 +12,6 @@ import (
 	"go.uber.org/zap"
 )
 
-type RequestPointers[Request any] interface {
-	*Request
-	Bindable
-}
-
 func AdaptUseCaseToHandler[
 	Request any,
 	RequestPointer RequestPointers[Request],
@@ -24,7 +19,7 @@ func AdaptUseCaseToHandler[
 	Output any,
 ](
 	useCase kernel.UseCase[Input, Output],
-	validator *Validator,
+	validator Validator,
 	convertRequestToInput func(RequestPointer) Input,
 	handleOutput func(*gin.Context, Output),
 	handleError func(*gin.Context, error),
@@ -39,14 +34,14 @@ func AdaptUseCaseToHandler[
 			return
 		}
 
-		response, err := validator.Validate(ginContext.Request.Context(), request)
+		message, err := validator.Validate(ginContext.Request.Context(), request)
 		if err != nil {
 			Response(ginContext, http.ResponseServerError)
 			return
 		}
 
-		if response != nil {
-			Response(ginContext, response)
+		if len(message) != 0 {
+			Response(ginContext, http.NewApiResponseWithMessage(http.CodeInvalidParam, message))
 			return
 		}
 

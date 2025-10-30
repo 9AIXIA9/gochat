@@ -33,7 +33,7 @@ type signUpUseCase struct {
 	numberGenerator  application.UserNumberGenerator
 	encryptor        application.Encryptor
 	userSaver        application.UserSaver
-	eventSaver       event.Saver
+	eventSaver       event.UnpublishedSaver
 }
 
 func NewSignUpUseCase(
@@ -42,7 +42,7 @@ func NewSignUpUseCase(
 	numberGenerator application.UserNumberGenerator,
 	encryptor application.Encryptor,
 	userSaver application.UserSaver,
-	eventSaver event.Saver,
+	eventSaver event.UnpublishedSaver,
 ) SignUpUseCase {
 	return &signUpUseCase{
 		eventIDGenerator: eventIDGenerator,

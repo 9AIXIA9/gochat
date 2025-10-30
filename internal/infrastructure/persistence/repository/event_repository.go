@@ -12,7 +12,8 @@ import (
 	"gorm.io/gorm"
 )
 
-var _ event.Repository = (*EventRepository)(nil)
+var _ event.OutboxRepository = (*EventRepository)(nil)
+var _ event.DeadLetterRepository = (*EventRepository)(nil)
 
 type EventRepository struct {
 	db                 *gorm.DB
@@ -50,10 +51,10 @@ func (repo *EventRepository) MarkPublished(ctx context.Context, ID event.ID) err
 	return nil
 }
 
-func (repo *EventRepository) SaveDeadEvent(ctx context.Context, event event.Event, reason error) error {
+func (repo *EventRepository) SaveDeadLetter(ctx context.Context, event event.Event, reason error) error {
 	if event == nil {
 		return nil
 	}
-	deadEventModel := model.NewDeadEvent(repo.modelConverter.ToModel(repo.interfaceConverter.ToStandard(event)), reason)
-	return gormutils.TranslateError(repo.db.WithContext(ctx).Create(deadEventModel).Error)
+	DeadLetterModel := model.NewDeadLetter(repo.modelConverter.ToModel(repo.interfaceConverter.ToStandard(event)), reason)
+	return gormutils.TranslateError(repo.db.WithContext(ctx).Create(DeadLetterModel).Error)
 }

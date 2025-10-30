@@ -6,6 +6,7 @@ import (
 	"gochat/internal/authorization/application/usecase"
 	"gochat/internal/authorization/domain"
 	ginutils "gochat/internal/infrastructure/gin"
+	"gochat/internal/infrastructure/validator"
 	myErrors "gochat/internal/shared/errors"
 	http2 "gochat/internal/shared/http"
 	"time"
@@ -27,7 +28,7 @@ func (r *RefreshAccessTokenRequest) Bind(ginContext *gin.Context) error {
 	return nil
 }
 
-func NewRefreshAccessTokenHandler(useCase usecase.RefreshAccessTokenUseCase, validator *ginutils.Validator, cookieConfig *config.Cookie) gin.HandlerFunc {
+func NewRefreshAccessTokenHandler(useCase usecase.RefreshAccessTokenUseCase, validator *validator.Validator, cookieConfig *config.Cookie) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler[RefreshAccessTokenRequest, *RefreshAccessTokenRequest, *usecase.RefreshAccessTokenInput, *usecase.RefreshAccessTokenOutput](
 		useCase,
 		validator,
