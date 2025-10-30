@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gochat/internal/infrastructure/gin"
 	"reflect"
 	"strings"
 
@@ -13,7 +14,7 @@ import (
 	enTranslations "github.com/go-playground/validator/v10/translations/en"
 )
 
-//TODO 编译前验证
+var _ gin.Validator = (*Validator)(nil)
 
 type Validator struct {
 	validator  *validator.Validate
