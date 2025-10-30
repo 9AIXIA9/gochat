@@ -9,8 +9,6 @@ import (
 	"gorm.io/gorm"
 )
 
-//TODO 保证幂等性 Repository
-
 type Repository[
 	GormModel any,
 	DomainModel any,
@@ -140,28 +138,14 @@ func (repo *Repository[
 	GormModel,
 	DomainModel,
 ]) Delete(ctx context.Context, query interface{}, args ...interface{}) error {
-	result := repo.db.WithContext(ctx).Where(query, args...).Delete(new(GormModel))
-	if err := result.Error; err != nil {
-		return err
-	}
-	if result.RowsAffected == 0 {
-		return myErrors.ErrNotFound
-	}
-	return nil
+	return TranslateError(repo.db.WithContext(ctx).Where(query, args...).Delete(new(GormModel)).Error)
 }
 
 func (repo *Repository[
 	GormModel,
 	DomainModel,
 ]) HardDelete(ctx context.Context, query interface{}, args ...interface{}) error {
-	result := repo.db.WithContext(ctx).Unscoped().Where(query, args...).Delete(new(GormModel))
-	if err := result.Error; err != nil {
-		return err
-	}
-	if result.RowsAffected == 0 {
-		return myErrors.ErrNotFound
-	}
-	return nil
+	return TranslateError(repo.db.WithContext(ctx).Unscoped().Where(query, args...).Delete(new(GormModel)).Error)
 }
 
 func (repo *Repository[GormModel, DomainModel]) Update(

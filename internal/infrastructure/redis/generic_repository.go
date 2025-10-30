@@ -9,8 +9,6 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-//TODO 保证幂等性 Repository
-
 type Repository[
 	RedisModel any,
 	DomainModel any,
@@ -106,14 +104,8 @@ func (r *Repository[RedisModel, DomainModel]) Finds(ctx context.Context, keys []
 
 func (r *Repository[RedisModel, DomainModel]) Delete(ctx context.Context, key string) error {
 	fullKey := r.BuildKey(key)
-	n, err := r.client.Del(ctx, fullKey).Result()
-	if err != nil {
-		return TranslateError(err)
-	}
-	if n == 0 {
-		return myErrors.ErrNotFound
-	}
-	return nil
+	_, err := r.client.Del(ctx, fullKey).Result()
+	return TranslateError(err)
 }
 
 func (r *Repository[RedisModel, DomainModel]) Exists(ctx context.Context, key string) (bool, error) {
