@@ -7,7 +7,7 @@ import (
 )
 
 type CORSConfig struct {
-	Origins          []string      `mapstructure:"Origins"`
+	AllowOrigins     []string      `mapstructure:"AllowOrigins"`
 	AllowMethods     []string      `mapstructure:"AllowMethods"`
 	AllowHeaders     []string      `mapstructure:"AllowHeaders"`
 	ExposeHeaders    []string      `mapstructure:"ExposeHeaders"`

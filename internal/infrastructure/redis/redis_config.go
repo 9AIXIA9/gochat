@@ -6,6 +6,7 @@ import (
 )
 
 type Config struct {
+	User     string `mapstructure:"User"`
 	Host     string `mapstructure:"Host"`
 	Port     int    `mapstructure:"Port"`
 	Password string `mapstructure:"Password"`

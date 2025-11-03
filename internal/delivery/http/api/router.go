@@ -4,6 +4,7 @@ import (
 	"gochat/config"
 	"gochat/internal/authorization/application/usecase"
 	authorizationHttp "gochat/internal/authorization/port/http"
+	"gochat/internal/delivery/http/handler"
 	"gochat/internal/delivery/http/middleware"
 	ginutils "gochat/internal/infrastructure/validator"
 
@@ -30,6 +31,8 @@ func NewRouter(
 		middleware.NewCORSMiddleware(CORSConfig),
 		middleware.NewRateLimitMiddleware(redisClient, rateLimitConfig),
 	)
+
+	engine.Any("/health_check", handler.NewHealthCheckHandler())
 
 	baseGroup := engine.Group("/api/v1")
 

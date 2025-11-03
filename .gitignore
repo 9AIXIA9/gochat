@@ -76,7 +76,10 @@ go.work
 # ----- 环境配置 ----- #
 .env*
 *.env
-!.env.example
+!./config/docker/.env.template
+!./config/service/.env.*.template
+!.env.*.template
+
 
 # ----- IDE 配置 ----- #
 .idea/

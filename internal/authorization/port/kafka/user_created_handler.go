@@ -2,7 +2,6 @@ package kafka
 
 import (
 	"context"
-	"fmt"
 	"gochat/internal/authorization/domain"
 	notificationDomain "gochat/internal/notification/domain"
 	"gochat/internal/shared/event"
@@ -11,7 +10,6 @@ import (
 
 func NewUserCreatedHandler(publisher event.Publisher) event.Handler {
 	return func(ctx context.Context, e event.Event) error {
-		fmt.Println("user created event received")
 		userCreatedEvent, err := domain.ToUserCreatedEvent(e)
 		if err != nil {
 			return err

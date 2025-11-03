@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"fmt"
 	"gochat/internal/notification/application"
 	"gochat/internal/notification/domain"
 	"gochat/internal/shared/kernel"
@@ -40,7 +39,6 @@ func NewSendEmailUseCase(
 }
 
 func (uc *notifyUseCase) Execute(ctx context.Context, input *SendEmailInput) (*kernel.NoOutput, error) {
-	fmt.Println("SendEmailUseCase Execute called")
 	notice := domain.NewNotice(uc.IDGenerator.Generate(), input.Recipient, input.Theme, input.Title, input.Content, domain.Contact(input.RecipientEmail))
 
 	if err := uc.emailNotifier.Enqueue(ctx, input.RecipientEmail, notice, func() error {

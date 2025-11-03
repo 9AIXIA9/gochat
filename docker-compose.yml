@@ -1,33 +1,116 @@
-version: '3.8'
 services:
+  mysql:
+    image: mysql:8.0
+    container_name: gochat-mysql
+    env_file:
+      - config/service/.env.db
+    environment:
+      TZ: ${TZ}
+    command: [
+      "mysqld",
+      "--default-authentication-plugin=mysql_native_password",
+      "--binlog-format=ROW",
+      "--server-id=1",
+      "--gtid-mode=ON",
+      "--enforce-gtid-consistency=ON",
+      "--log-bin=mysql-bin",
+      "--binlog-row-image=FULL",
+      "--binlog_expire_logs_seconds=604800"
+    ]
+    ports:
+      - '${MYSQL_HOST_PORT:-13306}:3306'
+    volumes:
+      - mysql-data:/var/lib/mysql
+      # Ensure first-time initialization runs our user/grant setup
+      - ./deployment/mysql-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      # 使用应用用户进行健康检查，避免使用 root
+      test: [ "CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u$MYSQL_USER -p$MYSQL_PASSWORD || exit 1" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  redis:
+    image: redis:7.2-alpine
+    container_name: gochat-redis
+    env_file:
+      - config/service/.env.redis
+    # 使用 ACL 文件定义用户/权限
+    command: [ "sh", "-lc", "exec redis-server --appendonly yes --aclfile /etc/redis/users.acl" ]
+    ports:
+      - '${REDIS_HOST_PORT:-16379}:6379'
+    volumes:
+      - redis-data:/data
+      - ./deployment/redis_init/init_users.acl:/etc/redis/users.acl:ro
+    healthcheck:
+      # 默认用户仅允许 ping/info；密码来自 .env.redis 中的 REDIS_ROOT_PASSWORD
+      test: [ "CMD-SHELL", "redis-cli -a \"$REDIS_ROOT_PASSWORD\" ping || exit 1" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   broker:
     image: apache/kafka:4.1.0
     hostname: kafka-dev
     container_name: kafka-dev
-    user: "0:0"
+    user: '0:0'
     ports:
-      - '9092:9092'
+      # 将宿主机端口映射到容器内 EXTERNAL 监听端口 9092
+      - '${KAFKA_HOST_PORT:-9092}:9092'
+    env_file:
+      - config/service/.env.kafka
     environment:
-      KAFKA_NODE_ID: '1'
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
-      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT_HOST://localhost:9092,PLAINTEXT://broker:19092'
-      KAFKA_PROCESS_ROLES: 'broker,controller'
-      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@broker:29093'
-      KAFKA_LISTENERS: 'CONTROLLER://:29093,PLAINTEXT_HOST://:9092,PLAINTEXT://:19092'
-      KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
-      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
-      CLUSTER_ID: '4L6g3nShT-eMCtK--X86sw'
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: '1'
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: '0'
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: '1'
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: '1'
-      KAFKA_SHARE_COORDINATOR_STATE_TOPIC_REPLICATION_FACTOR: '1'
-      KAFKA_SHARE_COORDINATOR_STATE_TOPIC_MIN_ISR: '1'
-      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+      # 监听器配置需动态组合宿主机IP和端口，保留在environment中
+      KAFKA_ADVERTISED_LISTENERS: >-
+        PLAINTEXT://broker:19092,
+        EXTERNAL://localhost:${KAFKA_HOST_PORT:-9092}
+      KAFKA_LISTENERS: >-
+        CONTROLLER://:29093,
+        PLAINTEXT://:19092,
+        EXTERNAL://:9092
+      # 可以覆盖 .env.kafka 中的变量，例如针对开发环境关闭认证
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: >-
+        CONTROLLER:PLAINTEXT,
+        PLAINTEXT:PLAINTEXT,
+        EXTERNAL:PLAINTEXT
     volumes:
-      - kafka-data:/tmp/kraft-combined-logs
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      # 使用容器内可达的 PLAINTEXT 端口进行健康检查，避免端口不匹配
+      test: [ "CMD", "/opt/kafka/bin/kafka-topics.sh", "--bootstrap-server", "localhost:19092", "--list" ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gochat-backend
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      broker:
+        condition: service_healthy
+    restart: unless-stopped
+    env_file:
+      - config/service/.env.app
+    ports:
+      - '${APP_HOST_PORT:-8888}:8888'
+    volumes:
+      - ./config/config.yaml:/app/config/config.yaml:ro
+      - ./certs:/app/certs:ro
+      - ./logs:/app/logs
+    command: [ "/app/server", "-config", "./config/config.yaml" ]
 
 volumes:
+  mysql-data:
+    driver: local
+    name: gochat-mysql-data
+  redis-data:
+    driver: local
+    name: gochat-redis-data
   kafka-data:
-    name: kafka-data
+    name: gochat-kafka-data
     driver: local

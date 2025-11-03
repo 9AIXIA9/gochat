@@ -14,12 +14,13 @@ import (
 )
 
 const (
-	defaultConfigPath = "./config/config.yaml"
+	defaultConfigFilePath = "./config/config.yaml"
+	defaultENVFilePath    = "./.env.development"
 )
 
 func main() {
-	path := flag.String("config", defaultConfigPath, "config file path")
-	env := flag.String("env", "development", "environment (development, production)")
+	path := flag.String("config", defaultConfigFilePath, "config file path")
+	env := flag.String("env", defaultENVFilePath, "env file path")
 	flag.Parse()
 
 	dependencies, err := initializeDependencies(*path, *env)
@@ -27,7 +28,7 @@ func main() {
 		log.Fatalf("initialize Dependencies failed,err:%v", err)
 	}
 
-	// 创建HTTP服务器（用于 HTTPS）
+	// 创建HTTP服务器
 	srv := &http.Server{
 		Addr: fmt.Sprintf("%s:%d", dependencies.config.Host, dependencies.config.Port),
 		Handler: api.NewRouter(
@@ -43,12 +44,11 @@ func main() {
 		),
 	}
 
-	// 启动 HTTPS 服务器
+	// 启动 HTTP 服务器
 	go func() {
-		log.Printf("starting https server on %s", srv.Addr)
-		// ListenAndServeTLS 会阻塞直到服务器返回错误
-		if err := srv.ListenAndServeTLS(dependencies.config.Cert.HTTPSCertFile, dependencies.config.Cert.HTTPSKeyFile); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Fatalf("start https server failed: %s\n", err)
+		log.Printf("starting http server on %s", srv.Addr)
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("start http server failed: %s\n", err)
 		}
 	}()
 

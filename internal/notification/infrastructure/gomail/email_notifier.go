@@ -49,7 +49,6 @@ func NewEmailNotifier(senderName string, config *EmailNotifierConfig) *EmailNoti
 }
 
 func (n *EmailNotifier) Enqueue(ctx context.Context, email kernel.Email, notice *domain.Notice, onSuccess func() error) error {
-	fmt.Println("EmailNotifier Enqueue called")
 	n.mu.RLock()
 	if n.closed {
 		n.mu.RUnlock()

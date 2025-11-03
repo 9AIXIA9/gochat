@@ -22,7 +22,6 @@ type App struct {
 	Port        int    `mapstructure:"Port"`
 	MachineNode int64  `mapstructure:"MachineNode"`
 
-	Cert         *Cert                       `mapstructure:"Cert"`
 	Cookie       *Cookie                     `mapstructure:"Cookie"`
 	CORS         *middleware.CORSConfig      `mapstructure:"CORS"`
 	AccessToken  *jwt.AccessTokenConfig      `mapstructure:"AccessToken"`
@@ -55,9 +54,6 @@ func (c *App) Validate() error {
 		return fmt.Errorf("App.MachineNode: %w: must be in 0..1023, got %d", myErrors.ErrInvalidNumber, c.MachineNode)
 	}
 
-	if err := c.Cert.Validate(); err != nil {
-		return fmt.Errorf("App.Cert: %w", err)
-	}
 	if err := c.Cookie.Validate(); err != nil {
 		return fmt.Errorf("App.Cookie: %w", err)
 	}

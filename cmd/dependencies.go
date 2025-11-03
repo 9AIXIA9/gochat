@@ -47,12 +47,12 @@ type Dependencies struct {
 	redisClient               *redis.Client
 }
 
-func initializeDependencies(path string, env string) (*Dependencies, error) {
-	if err := godotenv.LoadEnvFile(env); err != nil {
+func initializeDependencies(configPath string, envPath string) (*Dependencies, error) {
+	if err := godotenv.LoadEnvFile(envPath); err != nil {
 		return nil, fmt.Errorf("load env failed,err:%w", err)
 	}
 
-	appConfig, err := viper.LoadConfigFile(path)
+	appConfig, err := viper.LoadConfigFile(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("load config file failed,err:%w", err)
 	}

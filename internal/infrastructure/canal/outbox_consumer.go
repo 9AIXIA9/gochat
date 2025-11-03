@@ -20,7 +20,13 @@ type OutboxConsumer struct {
 }
 
 func NewOutboxConsumer(config *BinlogReaderConfig, publisher event.Publisher, lister event.UnpublishedLister) (*OutboxConsumer, error) {
-	canalConfig := config.ToCanal()
+	canalConfig := canal.NewDefaultConfig()
+	canalConfig.User = config.User
+	canalConfig.Addr = config.Addr
+	canalConfig.Password = config.Password
+	canalConfig.Dump.TableDB = config.TableDB
+	canalConfig.Dump.ExecutionPath = "" // 不使用 mysqldump 工具
+	canalConfig.Flavor = "mysql"
 
 	cn, err := canal.NewCanal(canalConfig)
 	if err != nil {

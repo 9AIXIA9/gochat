@@ -1,0 +1,2 @@
+user default on >root -@all +ping +info
+user gochat_app on >gochat ~* +@all

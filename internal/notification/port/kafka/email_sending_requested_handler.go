@@ -2,7 +2,6 @@ package kafka
 
 import (
 	"context"
-	"fmt"
 	"gochat/internal/notification/application/usecase"
 	"gochat/internal/notification/domain"
 	"gochat/internal/shared/event"
@@ -11,8 +10,6 @@ import (
 
 func NewEmailSendingRequestedHandler(uc usecase.SendEmailUseCase) event.Handler {
 	return func(ctx context.Context, e event.Event) error {
-		fmt.Println("email sending requested event received")
-
 		emailSendingRequested, err := domain.ToEmailSendingRequestedEvent(e)
 		if err != nil {
 			return err

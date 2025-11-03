@@ -1,0 +1,48 @@
+# VCS
+.git
+.git/*
+.gitignore
+
+# IDE / Editor
+.idea
+.vscode
+*.swp
+*.swo
+
+# changlog
+.chglog
+
+# github
+.github
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+bin/
+build/
+dist/
+tmp/
+*.out
+
+# Logs (mounted at runtime)
+logs/
+*.log
+
+# Certificates (mounted at runtime)
+certs/
+
+# Environment files (injected via compose or CLI)
+.env.*
+
+# Config data files (mounted at runtime; keep Go sources in config/)
+config/*.yaml
+config/*.yml
+
+# Scripts (not needed at build time)
+scripts/
+
+# Compose files (not needed in build context)
+docker-compose.yml
+.dockerignore
