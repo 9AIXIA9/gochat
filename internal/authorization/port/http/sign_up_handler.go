@@ -15,8 +15,6 @@ import (
 	"go.uber.org/zap"
 )
 
-const DefaultRequestTimeout = 5 * time.Second
-
 type SignUpRequest struct {
 	Email    kernel.Email    `json:"email" validate:"required,email"`
 	Password domain.Password `json:"password" validate:"required,min=6,max=50"`
@@ -54,6 +52,6 @@ func NewSignUpHandler(useCase usecase.SignUpUseCase, validator *validator.Valida
 				ginutils.Response(ginContext, http2.ResponseServerError)
 			}
 		},
-		DefaultRequestTimeout,
+		5*time.Second,
 	)
 }

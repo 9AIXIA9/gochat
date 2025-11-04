@@ -38,7 +38,7 @@ func (u *User) SignUp(eventIDGenerator event.IDGenerator) error {
 }
 
 func (u *User) Login() {
-	u.lastLoggedInAt = time.Now()
+	u.lastLoggedInAt = time.Now().UTC()
 }
 
 // getter

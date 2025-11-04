@@ -5,11 +5,6 @@ import (
 	"gochat/internal/authorization/domain"
 )
 
-type UserRepository interface {
-	UserSaver
-	UserFinder
-}
-
 type UserSaver interface {
 	Save(ctx context.Context, user *domain.User) error
 }

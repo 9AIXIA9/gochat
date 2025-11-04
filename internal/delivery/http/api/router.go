@@ -2,8 +2,10 @@ package api
 
 import (
 	"gochat/config"
-	"gochat/internal/authorization/application/usecase"
+	authorizationUseCase "gochat/internal/authorization/application/usecase"
 	authorizationHttp "gochat/internal/authorization/port/http"
+	chatUseCase "gochat/internal/chat/application/usecase"
+	chatHttp "gochat/internal/chat/port/http"
 	"gochat/internal/delivery/http/handler"
 	"gochat/internal/delivery/http/middleware"
 	ginutils "gochat/internal/infrastructure/validator"
@@ -13,10 +15,11 @@ import (
 )
 
 func NewRouter(
-	signUpUseCase usecase.SignUpUseCase,
-	loginUseCase usecase.LoginUseCase,
-	refreshAccessTokenUseCase usecase.RefreshAccessTokenUseCase,
-	parseAccessTokenUseCase usecase.ParseAccessTokenUseCase,
+	signUpUseCase authorizationUseCase.SignUpUseCase,
+	loginUseCase authorizationUseCase.LoginUseCase,
+	refreshAccessTokenUseCase authorizationUseCase.RefreshAccessTokenUseCase,
+	parseAccessTokenUseCase authorizationUseCase.ParseAccessTokenUseCase,
+	sendPrivateMessageUseCase chatUseCase.SendPrivateMessageUseCase,
 	validator *ginutils.Validator,
 	redisClient *redis.Client,
 	rateLimitConfig *middleware.RateLimitConfig,
@@ -45,8 +48,13 @@ func NewRouter(
 		authorizationGroup.GET("/refresh_access_token", authorizationHttp.NewRefreshAccessTokenHandler(refreshAccessTokenUseCase, validator, cookieConfig))
 	}
 
-	//authorizationMiddleware := authorizationHttp.NewAuthorizationMiddleware(parseAccessTokenUseCase)
-	_ = authorizationHttp.NewAuthorizationMiddleware(parseAccessTokenUseCase)
+	authorizationMiddleware := authorizationHttp.NewAuthorizationMiddleware(parseAccessTokenUseCase)
+
+	chatGroup := baseGroup.Group("/chat")
+	chatGroup.Use(authorizationMiddleware)
+	{
+		chatGroup.POST("/private", chatHttp.NewSendPrivateMessageHandler(sendPrivateMessageUseCase, validator))
+	}
 
 	return engine
 }

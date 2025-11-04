@@ -7,14 +7,14 @@ import (
 	"github.com/google/uuid"
 )
 
-var _ application.NoticeIDGenerator = (*NoticeIDGenerator)(nil)
+var _ application.MailIDGenerator = (*MailIDGenerator)(nil)
 
-type NoticeIDGenerator struct{}
+type MailIDGenerator struct{}
 
-func NewNoticeIDGenerator() *NoticeIDGenerator {
-	return &NoticeIDGenerator{}
+func NewMailIDGenerator() *MailIDGenerator {
+	return &MailIDGenerator{}
 }
 
-func (NoticeIDGenerator) Generate() domain.NoticeID {
-	return domain.NoticeID(uuid.Must(uuid.NewV7()).String())
+func (MailIDGenerator) Generate() domain.MailID {
+	return domain.MailID(uuid.Must(uuid.NewV7()).String())
 }

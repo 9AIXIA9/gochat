@@ -8,15 +8,15 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-func NewUserCreatedHandler(publisher event.Publisher) event.Handler {
+func NewUserCreatedHandler(eventIDGenerator event.IDGenerator, publisher event.Publisher) event.Handler {
 	return func(ctx context.Context, e event.Event) error {
 		userCreatedEvent, err := domain.ToUserCreatedEvent(e)
 		if err != nil {
 			return err
 		}
 
-		emailSendingRequestedEvent, err := notificationDomain.NewEmailSendingRequestedEvent(
-			userCreatedEvent.ID(),
+		ev, err := notificationDomain.NewEmailNotificationRequestedEvent(
+			eventIDGenerator.Generate(),
 			kernel.UserID(userCreatedEvent.AggregateID()),
 			userCreatedEvent.Email(),
 			"signup",
@@ -27,7 +27,7 @@ func NewUserCreatedHandler(publisher event.Publisher) event.Handler {
 			return err
 		}
 
-		return publisher.Publish([]event.Event{emailSendingRequestedEvent})
+		return publisher.Publish(ev)
 	}
 }
 

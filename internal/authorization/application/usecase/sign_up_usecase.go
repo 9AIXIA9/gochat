@@ -55,7 +55,7 @@ func NewSignUpUseCase(
 }
 
 func (uc *signUpUseCase) Execute(ctx context.Context, input *SignUpInput) (*SignUpOutput, error) {
-	now := time.Now()
+	now := time.Now().UTC()
 	passwordEncrypted, err := uc.encryptor.Encrypt(input.Password.String())
 	if err != nil {
 		return nil, err

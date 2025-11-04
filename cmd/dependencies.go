@@ -8,11 +8,15 @@ import (
 	"gochat/internal/authorization/infrastructure/bcrypt"
 	"gochat/internal/authorization/infrastructure/crypto"
 	"gochat/internal/authorization/infrastructure/jwt"
-	authorizationConverters "gochat/internal/authorization/infrastructure/persistence/converter"
-	authorizationModels "gochat/internal/authorization/infrastructure/persistence/model"
+	authorizationConverter "gochat/internal/authorization/infrastructure/persistence/converter"
 	authorizationRepository "gochat/internal/authorization/infrastructure/persistence/repository"
 	"gochat/internal/authorization/infrastructure/snowflake"
 	authorizationUuid "gochat/internal/authorization/infrastructure/uuid"
+	chatUsecase "gochat/internal/chat/application/usecase"
+	chatConverter "gochat/internal/chat/infrastructure/persistence/converter"
+	chatModel "gochat/internal/chat/infrastructure/persistence/model"
+	chatRepository "gochat/internal/chat/infrastructure/persistence/repository"
+	chatUuid "gochat/internal/chat/infrastructure/uuid"
 	"gochat/internal/delivery/kafka"
 	"gochat/internal/infrastructure/canal"
 	"gochat/internal/infrastructure/godotenv"
@@ -25,11 +29,12 @@ import (
 	"gochat/internal/infrastructure/uuid"
 	ginutils "gochat/internal/infrastructure/validator"
 	"gochat/internal/infrastructure/viper"
+	"gochat/internal/infrastructure/websocket"
 	zaputils "gochat/internal/infrastructure/zap"
 	notificationUsecase "gochat/internal/notification/application/usecase"
 	"gochat/internal/notification/infrastructure/gomail"
-	notificationConverters "gochat/internal/notification/infrastructure/persistence/converter"
-	notificationModels "gochat/internal/notification/infrastructure/persistence/model"
+	notificationConverter "gochat/internal/notification/infrastructure/persistence/converter"
+	notificationModel "gochat/internal/notification/infrastructure/persistence/model"
 	notificationRepository "gochat/internal/notification/infrastructure/persistence/repository"
 	notificationUuid "gochat/internal/notification/infrastructure/uuid"
 
@@ -43,6 +48,7 @@ type Dependencies struct {
 	loginUseCase              authorizationUsecase.LoginUseCase
 	refreshAccessTokenUseCase authorizationUsecase.RefreshAccessTokenUseCase
 	parseAccessTokenUseCase   authorizationUsecase.ParseAccessTokenUseCase
+	sendPrivateMessageUseCase chatUsecase.SendPrivateMessageUseCase
 	validator                 *ginutils.Validator
 	redisClient               *redis.Client
 }
@@ -68,8 +74,9 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 
 	if err := gormutils.AutoMigrate(
 		mysqlDatabase,
-		&authorizationModels.User{},
-		&notificationModels.Notice{},
+		&model.User{},
+		&notificationModel.Mail{},
+		&chatModel.Message{},
 		&model.Event{},
 		&model.DeadLetter{},
 	); err != nil {
@@ -98,24 +105,60 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 
 	eventRepository := repository.NewEventRepository(mysqlDatabase, &converter.StandardEventConverter{})
 
-	authorizationUserRepository := authorizationRepository.NewUserRepository(mysqlDatabase, &authorizationConverters.UserConverter{})
-	authorizationRefreshTokenRepository := authorizationRepository.NewRefreshTokenRepository(redisClient, &authorizationConverters.RefreshTokenConverter{})
+	userRepository := repository.NewUserRepository(mysqlDatabase, &converter.UserConverter{})
+	refreshTokenRepository := authorizationRepository.NewRefreshTokenRepository(redisClient, &authorizationConverter.RefreshTokenConverter{})
 
-	noticeRepository := notificationRepository.NewNoticeRepository(mysqlDatabase, &notificationConverters.NoticeConverter{})
+	messageRepository := chatRepository.NewMessageRepository(mysqlDatabase, &chatConverter.MessageConverter{})
+
+	mailRepository := notificationRepository.NewMailRepository(mysqlDatabase, &notificationConverter.MailConverter{})
 
 	accessTokenManager := jwt.NewAccessTokenManager(appConfig.AccessToken)
 	refreshTokenGenerator := crypto.NewRefreshTokenGenerator(appConfig.RefreshToken)
 
+	messageNotifier := websocket.NewManager()
+
 	emailNotifier := gomail.NewEmailNotifier(appConfig.Name, appConfig.Email)
 
-	noticeIDGenerator := notificationUuid.NewNoticeIDGenerator()
+	messageIDGenerator := chatUuid.NewMessageIDGenerator()
 
-	signUpUseCase := authorizationUsecase.NewSignUpUseCase(eventIDGenerator, userIDGenerator, numberGenerator, hasher, authorizationUserRepository, eventRepository)
-	loginUseCase := authorizationUsecase.NewLoginUseCase(eventIDGenerator, hasher, authorizationUserRepository, authorizationRefreshTokenRepository, accessTokenManager, refreshTokenGenerator, eventRepository)
-	refreshAccessTokenUseCase := authorizationUsecase.NewRefreshAccessTokenUseCase(authorizationRefreshTokenRepository, authorizationRefreshTokenRepository, accessTokenManager, refreshTokenGenerator)
+	mailIDGenerator := notificationUuid.NewMailIDGenerator()
+
+	signUpUseCase := authorizationUsecase.NewSignUpUseCase(
+		eventIDGenerator,
+		userIDGenerator,
+		numberGenerator,
+		hasher,
+		userRepository,
+		eventRepository,
+	)
+	loginUseCase := authorizationUsecase.NewLoginUseCase(
+		eventIDGenerator,
+		hasher,
+		userRepository,
+		refreshTokenRepository,
+		accessTokenManager,
+		refreshTokenGenerator,
+		eventRepository,
+	)
+	refreshAccessTokenUseCase := authorizationUsecase.NewRefreshAccessTokenUseCase(
+		refreshTokenRepository,
+		refreshTokenRepository,
+		accessTokenManager,
+		refreshTokenGenerator,
+	)
 	parseAccessTokenUseCase := authorizationUsecase.NewParseAccessTokenUseCase(accessTokenManager)
 
-	sendEmailUseCase := notificationUsecase.NewSendEmailUseCase(emailNotifier, noticeRepository, noticeIDGenerator)
+	sendPrivateMessageUseCase := chatUsecase.NewSendPrivateMessageUseCase(
+		messageIDGenerator,
+		eventIDGenerator,
+		userRepository,
+		messageRepository,
+		eventRepository,
+	)
+
+	sendEmailUseCase := notificationUsecase.NewSendEmailUseCase(emailNotifier, mailRepository, mailIDGenerator)
+
+	sendMessageUseCase := notificationUsecase.NewSendMessageUseCase(messageNotifier)
 
 	kafkaPublisher, err := kafkautil.NewEventPublisher(appConfig.Kafka.Common, appConfig.Kafka.Producer, eventRepository, eventRepository)
 	if err != nil {
@@ -130,8 +173,10 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 	kafkaSubscriber, err := kafka.NewSubscriber(
 		appConfig.Kafka.Common,
 		appConfig.Kafka.Consumer,
+		eventIDGenerator,
 		kafkaPublisher,
 		sendEmailUseCase,
+		sendMessageUseCase,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("initialize kafka subscriber failed, err:%w", err)
@@ -161,6 +206,7 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 		loginUseCase:              loginUseCase,
 		refreshAccessTokenUseCase: refreshAccessTokenUseCase,
 		parseAccessTokenUseCase:   parseAccessTokenUseCase,
+		sendPrivateMessageUseCase: sendPrivateMessageUseCase,
 		validator:                 validator,
 		redisClient:               redisClient,
 	}, nil

@@ -2,15 +2,19 @@ package repository
 
 import (
 	"context"
-	"gochat/internal/authorization/application"
+	authorizationApplication "gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
-	"gochat/internal/authorization/infrastructure/persistence/model"
+	chatApplication "gochat/internal/chat/application"
 	gormutils "gochat/internal/infrastructure/gorm"
+	"gochat/internal/infrastructure/persistence/model"
+	"gochat/internal/shared/kernel"
 
 	"gorm.io/gorm"
 )
 
-var _ application.UserRepository = (*UserRepository)(nil)
+var _ authorizationApplication.UserSaver = (*UserRepository)(nil)
+var _ authorizationApplication.UserFinder = (*UserRepository)(nil)
+var _ chatApplication.UserExister = (*UserRepository)(nil)
 
 type UserRepository struct {
 	innerRepository *gormutils.Repository[model.User, domain.User]
@@ -27,4 +31,8 @@ func (repo *UserRepository) Save(ctx context.Context, user *domain.User) error {
 
 func (repo *UserRepository) FindByNumber(ctx context.Context, number domain.UserNumber) (*domain.User, error) {
 	return repo.innerRepository.Find(ctx, gormutils.Where("number = ?", number))
+}
+
+func (repo *UserRepository) ExistsByID(ctx context.Context, userID kernel.UserID) (bool, error) {
+	return repo.innerRepository.Exists(ctx, "id = ?", userID)
 }

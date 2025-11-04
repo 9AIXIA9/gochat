@@ -7,9 +7,13 @@ import (
 )
 
 type EmailNotifier interface {
-	Enqueue(ctx context.Context, email kernel.Email, notice *domain.Notice, onSuccess func() error) error
+	Enqueue(ctx context.Context, email kernel.Email, mail *domain.Mail, onSuccess func() error) error
 }
 
-type NoticeIDGenerator interface {
-	Generate() domain.NoticeID
+type MessageNotifier interface {
+	Enqueue(ctx context.Context, recipient kernel.UserID, message *domain.Message) error
+}
+
+type MailIDGenerator interface {
+	Generate() domain.MailID
 }

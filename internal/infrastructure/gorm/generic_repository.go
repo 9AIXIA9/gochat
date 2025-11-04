@@ -2,8 +2,6 @@ package gorm
 
 import (
 	"context"
-	"errors"
-
 	myErrors "gochat/internal/shared/errors"
 
 	"gorm.io/gorm"
@@ -122,16 +120,14 @@ func (repo *Repository[GormModel, DomainModel]) Exists(
 	query interface{},
 	args ...interface{},
 ) (bool, error) {
-	gm := new(GormModel)
-	err := repo.db.WithContext(ctx).Select("1").Where(query, args...).Take(gm).Error
-	switch {
-	case err == nil:
-		return true, nil
-	case errors.Is(err, gorm.ErrRecordNotFound):
-		return false, nil
-	default:
-		return false, err
+	var count int64
+	if err := repo.db.WithContext(ctx).
+		Model(new(GormModel)).
+		Where(query, args...).
+		Count(&count).Error; err != nil {
+		return false, TranslateError(err)
 	}
+	return count > 0, nil
 }
 
 func (repo *Repository[

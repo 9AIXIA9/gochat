@@ -22,7 +22,7 @@ const (
 	maxRetries         = 3
 	maxBackoffDuration = 30 * time.Second
 	maxWaitTime        = 300 * time.Second
-	maxNoticeCache     = 100
+	maxMailCache       = 100
 )
 
 type EmailNotifier struct {
@@ -41,14 +41,14 @@ func NewEmailNotifier(senderName string, config *EmailNotifierConfig) *EmailNoti
 	return &EmailNotifier{
 		senderName: senderName,
 		dialer:     gomail.NewDialer(config.Host, config.Port, config.Username, config.Password),
-		taskChan:   make(chan *task, maxNoticeCache),
+		taskChan:   make(chan *task, maxMailCache),
 		mu:         sync.RWMutex{},
 		closeOnce:  sync.Once{},
 		closed:     false,
 	}
 }
 
-func (n *EmailNotifier) Enqueue(ctx context.Context, email kernel.Email, notice *domain.Notice, onSuccess func() error) error {
+func (n *EmailNotifier) Enqueue(ctx context.Context, email kernel.Email, mail *domain.Mail, onSuccess func() error) error {
 	n.mu.RLock()
 	if n.closed {
 		n.mu.RUnlock()
@@ -59,7 +59,7 @@ func (n *EmailNotifier) Enqueue(ctx context.Context, email kernel.Email, notice 
 	defer cancel()
 
 	select {
-	case n.taskChan <- &task{notice: notice, email: email, onSuccess: onSuccess}:
+	case n.taskChan <- &task{mail: mail, email: email, onSuccess: onSuccess}:
 		n.mu.RUnlock()
 		return nil
 	case <-ctx.Done():
@@ -83,14 +83,14 @@ func (n *EmailNotifier) startWorker() {
 			if err := t.onSuccess(); err != nil {
 				zap.L().Error(
 					"EmailNotifier onSuccess callback error",
-					zap.String("notice_id", string(t.notice.ID())),
+					zap.String("mail_id", (t.mail.ID()).String()),
 					zap.Error(err),
 				)
 			}
 		}
 		zap.L().Error(
 			"EmailNotifier send error",
-			zap.String("notice_id", string(t.notice.ID())),
+			zap.String("mail_id", (t.mail.ID()).String()),
 			zap.Error(err),
 		)
 	}
@@ -137,11 +137,11 @@ func (n *EmailNotifier) composeMessage(t *task) (*gomail.Message, error) {
 	m.SetHeader("To", fmt.Sprint(t.email))
 
 	// Subject
-	subject := fmt.Sprintf("Notice %s", fmt.Sprint(t.notice.Theme()))
+	subject := fmt.Sprintf("Mail %s", fmt.Sprint(t.mail.Theme()))
 	m.SetHeader("Subject", subject)
 
 	// Body
-	m.SetBody("text/html", t.notice.Content())
+	m.SetBody("text/html", t.mail.Content())
 
 	return m, nil
 }

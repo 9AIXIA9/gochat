@@ -63,7 +63,22 @@ func (p *EventPublisher) Close() {
 	close(p.publishResultChan)
 }
 
-func (p *EventPublisher) Publish(events []event.Event) error {
+func (p *EventPublisher) Publish(event event.Event) error {
+	if event == nil {
+		return nil
+	}
+
+	if err := p.produceWithRetry(p.converter.ToMessage(event)); err != nil {
+		zap.L().Error("produce message failed", zap.Error(err))
+		// As a last resort, attempt to send to dead letter store
+		if p.DeadLetterSaver != nil {
+			_ = p.DeadLetterSaver.SaveDeadLetter(context.Background(), event, err)
+		}
+	}
+	return nil
+}
+
+func (p *EventPublisher) Publishes(events []event.Event) error {
 	if len(events) == 0 {
 		return nil
 	}
@@ -121,7 +136,7 @@ func (p *EventPublisher) processSendingResponse() {
 			// 成功：优先用 Opaque 中的事件 ID 标记已发布
 			if e, ok := m.Opaque.(event.Event); ok {
 				if err := p.publishedMarker.MarkPublished(context.Background(), e.ID()); err != nil {
-					zap.L().Error("mark published failed", zap.Error(err), zap.String("event_id", string(e.ID())))
+					zap.L().Error("mark published failed", zap.Error(err), zap.String("event_id", e.ID().String()))
 				}
 				continue
 			}
@@ -129,7 +144,7 @@ func (p *EventPublisher) processSendingResponse() {
 			// 兜底：尝试从 Headers 读取（大多情况下为空）
 			if id, ok := getEventIDFromHeaders(m.Headers); ok {
 				if err := p.publishedMarker.MarkPublished(context.Background(), id); err != nil {
-					zap.L().Error("mark published failed", zap.Error(err), zap.String("event_id", string(id)))
+					zap.L().Error("mark published failed", zap.Error(err), zap.String("event_id", id.String()))
 				}
 			} else {
 				zap.L().Warn("delivery ok but event_id not available in delivery report")

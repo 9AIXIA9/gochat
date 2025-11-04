@@ -1,5 +1,9 @@
 package kernel
 
+const (
+	EmptyUserID UserID = ""
+)
+
 type ID string
 
 type UserID ID

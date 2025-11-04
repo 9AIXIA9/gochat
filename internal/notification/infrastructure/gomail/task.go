@@ -6,7 +6,7 @@ import (
 )
 
 type task struct {
-	notice    *domain.Notice
+	mail      *domain.Mail
 	email     kernel.Email
 	onSuccess func() error
 }

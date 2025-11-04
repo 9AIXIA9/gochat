@@ -80,5 +80,5 @@ func (h *outboxHandler) OnRow(e *canal.RowsEvent) error {
 		return nil
 	}
 
-	return h.publisher.Publish(events)
+	return h.publisher.Publishes(events)
 }

@@ -8,7 +8,7 @@ import (
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/infrastructure/validator"
 	myErrors "gochat/internal/shared/errors"
-	http2 "gochat/internal/shared/http"
+	sharedHttp "gochat/internal/shared/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -17,6 +17,10 @@ import (
 
 type RefreshAccessTokenRequest struct {
 	RefreshToken domain.RefreshToken `json:"-" validate:"required"`
+}
+
+type RefreshAccessTokenResponseData struct {
+	AccessToken domain.AccessToken `json:"access_token"`
 }
 
 func (r *RefreshAccessTokenRequest) Bind(ginContext *gin.Context) error {
@@ -34,12 +38,12 @@ func NewRefreshAccessTokenHandler(useCase usecase.RefreshAccessTokenUseCase, val
 		validator,
 		func(request *RefreshAccessTokenRequest) *usecase.RefreshAccessTokenInput {
 			return &usecase.RefreshAccessTokenInput{
-				RefreshToken: "",
+				RefreshToken: request.RefreshToken,
 			}
 		},
 		func(ginContext *gin.Context, output *usecase.RefreshAccessTokenOutput) {
 			if time.Now().After(output.RefreshToken.ExpiredAt()) {
-				ginutils.Response(ginContext, http2.ResponseServerError)
+				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
 				return
 			}
 			ginContext.SetCookie(
@@ -51,21 +55,21 @@ func NewRefreshAccessTokenHandler(useCase usecase.RefreshAccessTokenUseCase, val
 				cookieConfig.Secure,
 				cookieConfig.HttpOnly,
 			)
-			ginutils.Response(ginContext, http2.ResponseSuccess)
+			ginutils.Response(ginContext, sharedHttp.NewApiResponseWithData(RefreshAccessTokenResponseData{AccessToken: output.AccessToken}))
 		},
 		func(ginContext *gin.Context, err error) {
 			switch {
 			case errors.Is(err, myErrors.ErrNotFound):
-				ginutils.Response(ginContext, http2.NewApiResponseWithMessage(http2.CodeInvalidParam, "refresh token does not exist"))
+				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "refresh token does not exist"))
 			case errors.Is(err, myErrors.ErrExpired):
-				ginutils.Response(ginContext, http2.NewApiResponseWithMessage(http2.CodeInvalidParam, "refresh token expired"))
+				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "refresh token expired"))
 			case errors.Is(err, myErrors.ErrExceedMaxValue):
-				ginutils.Response(ginContext, http2.NewApiResponseWithMessage(http2.CodeInvalidParam, "the number of token refreshes is exhausted"))
+				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "the number of token refreshes is exhausted"))
 			default:
 				zap.L().Error("refresh access token handler failed", zap.Error(err))
-				ginutils.Response(ginContext, http2.ResponseServerError)
+				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
 			}
 		},
-		DefaultRequestTimeout,
+		5*time.Second,
 	)
 }

@@ -7,6 +7,10 @@ import (
 
 type ID kernel.ID
 
+func (i ID) String() string {
+	return kernel.ID(i).String()
+}
+
 type Topic string
 
 func (t Topic) String() string {
