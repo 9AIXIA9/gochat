@@ -34,6 +34,8 @@ services:
     container_name: gochat-redis
     env_file:
       - config/service/.env.redis
+    environment:
+      TZ: ${TZ}
     # 使用 ACL 文件定义用户/权限
     command: [ "sh", "-lc", "exec redis-server --appendonly yes --aclfile /etc/redis/users.acl" ]
     ports:
@@ -59,6 +61,7 @@ services:
     env_file:
       - config/service/.env.kafka
     environment:
+      TZ: ${TZ}
       # 监听器配置需动态组合宿主机IP和端口，保留在environment中
       KAFKA_ADVERTISED_LISTENERS: >-
         PLAINTEXT://broker:19092,
@@ -96,6 +99,8 @@ services:
     restart: unless-stopped
     env_file:
       - config/service/.env.app
+    environment:
+      TZ: ${TZ}
     ports:
       - '${APP_HOST_PORT:-8888}:8888'
     volumes:
