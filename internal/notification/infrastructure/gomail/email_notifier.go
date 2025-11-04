@@ -78,7 +78,8 @@ func (n *EmailNotifier) Start() {
 
 func (n *EmailNotifier) startWorker() {
 	for t := range n.taskChan {
-		if err := n.sendWithRetry(t); err == nil && t.onSuccess != nil {
+		err := n.sendWithRetry(t)
+		if err == nil && t.onSuccess != nil {
 			if err := t.onSuccess(); err != nil {
 				zap.L().Error(
 					"EmailNotifier onSuccess callback error",
@@ -87,6 +88,11 @@ func (n *EmailNotifier) startWorker() {
 				)
 			}
 		}
+		zap.L().Error(
+			"EmailNotifier send error",
+			zap.String("notice_id", string(t.notice.ID())),
+			zap.Error(err),
+		)
 	}
 }
 
