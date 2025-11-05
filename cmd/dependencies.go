@@ -9,6 +9,7 @@ import (
 	"gochat/internal/authorization/infrastructure/crypto"
 	"gochat/internal/authorization/infrastructure/jwt"
 	authorizationConverter "gochat/internal/authorization/infrastructure/persistence/converter"
+	authorizationModel "gochat/internal/authorization/infrastructure/persistence/model"
 	authorizationRepository "gochat/internal/authorization/infrastructure/persistence/repository"
 	"gochat/internal/authorization/infrastructure/snowflake"
 	authorizationUuid "gochat/internal/authorization/infrastructure/uuid"
@@ -76,7 +77,7 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 
 	if err := gormutils.AutoMigrate(
 		mysqlDatabase,
-		&model.User{},
+		&authorizationModel.User{},
 		&notificationModel.Mail{},
 		&chatModel.MessageInformation{},
 		&chatModel.RecipientMessageState{},
@@ -108,7 +109,7 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 
 	eventRepository := repository.NewEventRepository(mysqlDatabase, &converter.StandardEventConverter{})
 
-	userRepository := repository.NewUserRepository(mysqlDatabase, &converter.UserConverter{})
+	userRepository := authorizationRepository.NewUserRepository(mysqlDatabase, &authorizationConverter.UserConverter{})
 	refreshTokenRepository := authorizationRepository.NewRefreshTokenRepository(redisClient, &authorizationConverter.RefreshTokenConverter{})
 
 	messageRepository := chatRepository.NewMessageRepository(mysqlDatabase)

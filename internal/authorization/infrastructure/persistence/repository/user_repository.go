@@ -4,9 +4,9 @@ import (
 	"context"
 	authorizationApplication "gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
+	"gochat/internal/authorization/infrastructure/persistence/model"
 	chatApplication "gochat/internal/chat/application"
 	gormutils "gochat/internal/infrastructure/gorm"
-	"gochat/internal/infrastructure/persistence/model"
 	"gochat/internal/shared/kernel"
 
 	"gorm.io/gorm"

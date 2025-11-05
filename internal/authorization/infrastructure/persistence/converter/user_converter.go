@@ -2,8 +2,8 @@ package converter
 
 import (
 	"gochat/internal/authorization/domain"
+	"gochat/internal/authorization/infrastructure/persistence/model"
 	gormutils "gochat/internal/infrastructure/gorm"
-	"gochat/internal/infrastructure/persistence/model"
 )
 
 var _ gormutils.GenericModelConverter[*model.User, *domain.User] = (*UserConverter)(nil)
