@@ -4,15 +4,14 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
 	"github.com/ulule/limiter/v3"
 	ginmiddleware "github.com/ulule/limiter/v3/drivers/middleware/gin"
 	"github.com/ulule/limiter/v3/drivers/store/memory"
-	rateLimiterRedis "github.com/ulule/limiter/v3/drivers/store/redis"
+	"github.com/ulule/limiter/v3/drivers/store/redis"
 )
 
 // NewRateLimitMiddleware 限流中间件
-func NewRateLimitMiddleware(rdb *redis.Client, config *RateLimitConfig) gin.HandlerFunc {
+func NewRateLimitMiddleware(client redis.Client, config *RateLimitConfig) gin.HandlerFunc {
 	// 创建速率配置
 	rate := limiter.Rate{
 		Period: config.Period,
@@ -20,8 +19,8 @@ func NewRateLimitMiddleware(rdb *redis.Client, config *RateLimitConfig) gin.Hand
 	}
 
 	var store limiter.Store
-	if rdb != nil {
-		s, err := rateLimiterRedis.NewStore(rdb)
+	if client != nil {
+		s, err := redis.NewStore(client)
 		if err != nil {
 			log.Printf("ratelimit middleware redis store initialize failed, fallback to memory store, err: %v", err)
 			store = memory.NewStore()
