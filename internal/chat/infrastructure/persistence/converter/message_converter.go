@@ -3,37 +3,19 @@ package converter
 import (
 	"gochat/internal/chat/domain"
 	"gochat/internal/chat/infrastructure/persistence/model"
-	gormutils "gochat/internal/infrastructure/gorm"
-
-	"gorm.io/gorm"
 )
-
-var _ gormutils.GenericModelConverter[*model.Message, *domain.Message] = (*MessageConverter)(nil)
 
 type MessageConverter struct {
 }
 
-func (c *MessageConverter) ToModel(message *domain.Message) *model.Message {
-	return &model.Message{
-		Model:     gorm.Model{},
-		ID:        message.ID(),
-		Type:      message.Type(),
+func (c *MessageConverter) PrivateMessageToState(message *domain.PrivateMessage) *model.MessageState {
+	return &model.MessageState{
+		MessageID: message.ID(),
 		Recipient: message.Recipient(),
 		State:     message.State(),
-		Sender:    message.Sender(),
-		Content:   message.Content(),
-		SentAt:    message.SentAt(),
 	}
 }
 
-func (c *MessageConverter) ToDomain(message *model.Message) *domain.Message {
-	return domain.NewMessage(
-		message.ID,
-		message.Type,
-		message.Recipient,
-		message.State,
-		message.Sender,
-		message.Content,
-		message.SentAt,
-	)
+func (c *MessageConverter) ToPrivateMessage(state *model.MessageState, information *model.MessageInformation) *domain.PrivateMessage {
+	return domain.NewPrivateMessage(information.ID, information.Sender, information.Content, information.SentAt, state.State, state.Recipient)
 }

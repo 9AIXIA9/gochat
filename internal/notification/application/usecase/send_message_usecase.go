@@ -5,6 +5,7 @@ import (
 	"gochat/internal/notification/application"
 	"gochat/internal/notification/domain"
 	myErrors "gochat/internal/shared/errors"
+	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"time"
 )
@@ -14,6 +15,7 @@ var _ SendMessageUseCase = (*sendMessageUseCase)(nil)
 type SendMessageUseCase kernel.UseCase[*SendMessageInput, *kernel.NoOutput]
 
 type SendMessageInput struct {
+	MessageID domain.MessageID
 	Sender    kernel.UserID
 	Recipient kernel.UserID
 	Content   string
@@ -28,17 +30,32 @@ func (i *SendMessageInput) Validate() error {
 }
 
 type sendMessageUseCase struct {
-	messageNotifier application.MessageNotifier
+	eventIDGenerator event.IDGenerator
+	messageNotifier  application.MessageNotifier
+	eventPublisher   event.Publisher
 }
 
-func NewSendMessageUseCase(messageNotifier application.MessageNotifier) SendMessageUseCase {
-	return &sendMessageUseCase{messageNotifier: messageNotifier}
+func NewSendMessageUseCase(eventIDGenerator event.IDGenerator, messageNotifier application.MessageNotifier, eventPublisher event.Publisher) SendMessageUseCase {
+	return &sendMessageUseCase{
+		eventIDGenerator: eventIDGenerator,
+		messageNotifier:  messageNotifier,
+		eventPublisher:   eventPublisher,
+	}
 }
 
 func (uc *sendMessageUseCase) Execute(ctx context.Context, input *SendMessageInput) (*kernel.NoOutput, error) {
-	message := domain.NewMessage(input.Sender, input.Content, input.SentAt)
+	message := domain.NewMessage(input.MessageID, input.Recipient, input.Sender, input.Content, input.SentAt)
 
-	if err := uc.messageNotifier.Enqueue(ctx, input.Recipient, message); err != nil {
+	if err := uc.messageNotifier.Notify(ctx, message); err != nil {
+		return nil, err
+	}
+
+	ev, err := domain.NewMessageDeliveredEvent(uc.eventIDGenerator.Generate(), input.MessageID, input.Recipient)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := uc.eventPublisher.Publish(ev); err != nil {
 		return nil, err
 	}
 

@@ -14,7 +14,7 @@ func (i MessageID) String() string {
 type MessageType string
 
 const (
-	MessageTypePrivate MessageType = "private"
+	PrivateType MessageType = "private"
 )
 
 func (t MessageType) String() string {
@@ -24,77 +24,55 @@ func (t MessageType) String() string {
 type MessageState string
 
 const (
-	MessageStateSent      MessageState = "sent"
+	MessageStateCreated   MessageState = "created"
 	MessageStateDelivered MessageState = "delivered"
-	MessageStateRead      MessageState = "read"
+	//MessageStateRead      MessageState = "read"
 )
 
 func (s MessageState) String() string {
 	return string(s)
 }
 
-type Message struct {
-	id        MessageID
-	mType     MessageType
-	sender    kernel.UserID
-	recipient kernel.ID
-	state     MessageState
-	content   string
-	sentAt    time.Time
+type MessageInformation struct {
+	id      MessageID
+	mType   MessageType
+	sender  kernel.UserID
+	content string
+	sentAt  time.Time
 }
 
-func NewMessage(
+func NewMessageInformation(
 	id MessageID,
 	mType MessageType,
-	recipient kernel.ID,
-	state MessageState,
 	sender kernel.UserID,
 	content string,
 	sentAt time.Time,
-) *Message {
-	return &Message{
-		id:        id,
-		mType:     mType,
-		recipient: recipient,
-		state:     state,
-		sender:    sender,
-		content:   content,
-		sentAt:    sentAt,
+) *MessageInformation {
+	return &MessageInformation{
+		id:      id,
+		mType:   mType,
+		sender:  sender,
+		content: content,
+		sentAt:  sentAt,
 	}
 }
 
-func (m *Message) BeDelivered() {
-	m.state = MessageStateDelivered
-}
-
-func (m *Message) BeRead() {
-	m.state = MessageStateRead
-}
-
-func (m *Message) ID() MessageID {
+func (m *MessageInformation) ID() MessageID {
 	return m.id
 }
 
-func (m *Message) Type() MessageType {
+func (m *MessageInformation) Type() MessageType {
 	return m.mType
 }
 
-func (m *Message) Recipient() kernel.ID {
-	return m.recipient
-}
-
-func (m *Message) State() MessageState {
-	return m.state
-}
-
-func (m *Message) Sender() kernel.UserID {
+func (m *MessageInformation) Sender() kernel.UserID {
 	return m.sender
 }
 
-func (m *Message) Content() string {
+func (m *MessageInformation) Content() string {
 	return m.content
 }
 
-func (m *Message) SentAt() time.Time {
+func (m *MessageInformation) SentAt() time.Time {
 	return m.sentAt
 }

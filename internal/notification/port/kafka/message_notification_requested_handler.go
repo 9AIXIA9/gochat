@@ -21,6 +21,7 @@ func NewMessageNotificationRequestedHandler(uc usecase.SendMessageUseCase) event
 			}
 
 			return &usecase.SendMessageInput{
+				MessageID: ev.MessageID(),
 				Sender:    ev.Sender(),
 				Recipient: ev.Recipient(),
 				Content:   ev.Content(),

@@ -34,7 +34,7 @@ type sendPrivateMessageUseCase struct {
 	messageIDGenerator    application.MessageIDGenerator
 	eventIDGenerator      event.IDGenerator
 	userExister           application.UserExister
-	messageSaver          application.MessagesSaver
+	messageSaver          application.PrivateMessagesSaver
 	unpublishedEventSaver event.UnpublishedSaver
 }
 
@@ -42,7 +42,7 @@ func NewSendPrivateMessageUseCase(
 	messageIDGenerator application.MessageIDGenerator,
 	eventIDGenerator event.IDGenerator,
 	userExister application.UserExister,
-	messageSaver application.MessagesSaver,
+	messageSaver application.PrivateMessagesSaver,
 	unpublishedEventSaver event.UnpublishedSaver,
 ) SendPrivateMessageUseCase {
 	return &sendPrivateMessageUseCase{
@@ -61,23 +61,22 @@ func (uc *sendPrivateMessageUseCase) Execute(ctx context.Context, input *SendPri
 		return nil, myErrors.ErrNotFound
 	}
 
-	message := domain.NewMessage(
+	message := domain.NewPrivateMessage(
 		uc.messageIDGenerator.Generate(),
-		domain.MessageTypePrivate,
-		kernel.ID(input.RecipientID),
-		domain.MessageStateSent,
 		input.SenderID,
 		input.Content,
 		time.Now().UTC(),
+		domain.MessageStateCreated,
+		input.RecipientID,
 	)
 
-	user := domain.NewUser(input.SenderID, make([]*domain.Message, 0, 1))
+	user := domain.NewUser(input.SenderID, make([]*domain.PrivateMessage, 0, 1))
 
-	if err := user.SendMessage(message, uc.eventIDGenerator); err != nil {
+	if err := user.SendPrivateMessage(message, uc.eventIDGenerator); err != nil {
 		return nil, err
 	}
 
-	if err := uc.messageSaver.Save(ctx, user.Messages()); err != nil {
+	if err := uc.messageSaver.SavePrivateMessages(ctx, user.PrivateMessages()); err != nil {
 		return nil, err
 	}
 

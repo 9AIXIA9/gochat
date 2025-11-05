@@ -76,7 +76,8 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 		mysqlDatabase,
 		&model.User{},
 		&notificationModel.Mail{},
-		&chatModel.Message{},
+		&chatModel.MessageInformation{},
+		&chatModel.MessageState{},
 		&model.Event{},
 		&model.DeadLetter{},
 	); err != nil {
@@ -108,7 +109,7 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 	userRepository := repository.NewUserRepository(mysqlDatabase, &converter.UserConverter{})
 	refreshTokenRepository := authorizationRepository.NewRefreshTokenRepository(redisClient, &authorizationConverter.RefreshTokenConverter{})
 
-	messageRepository := chatRepository.NewMessageRepository(mysqlDatabase, &chatConverter.MessageConverter{})
+	messageRepository := chatRepository.NewMessageRepository(mysqlDatabase, &chatConverter.MessageInformationConverter{})
 
 	mailRepository := notificationRepository.NewMailRepository(mysqlDatabase, &notificationConverter.MailConverter{})
 
@@ -122,6 +123,16 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 	messageIDGenerator := chatUuid.NewMessageIDGenerator()
 
 	mailIDGenerator := notificationUuid.NewMailIDGenerator()
+
+	kafkaPublisher, err := kafkautil.NewEventPublisher(appConfig.Kafka.Common, appConfig.Kafka.Producer, eventRepository, eventRepository)
+	if err != nil {
+		return nil, fmt.Errorf("initialize kafka publisher failed, err:%w", err)
+	}
+
+	consumer, err := canal.NewOutboxConsumer(appConfig.BinlogReader, kafkaPublisher, eventRepository)
+	if err != nil {
+		return nil, fmt.Errorf("initialize outbox consumer failed, err:%w", err)
+	}
 
 	signUpUseCase := authorizationUsecase.NewSignUpUseCase(
 		eventIDGenerator,
@@ -155,26 +166,18 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 		messageRepository,
 		eventRepository,
 	)
+	updateMessageStateUseCase := chatUsecase.NewUpdateMessageStateUseCase(messageRepository)
 
 	sendEmailUseCase := notificationUsecase.NewSendEmailUseCase(emailNotifier, mailRepository, mailIDGenerator)
 
-	sendMessageUseCase := notificationUsecase.NewSendMessageUseCase(messageNotifier)
-
-	kafkaPublisher, err := kafkautil.NewEventPublisher(appConfig.Kafka.Common, appConfig.Kafka.Producer, eventRepository, eventRepository)
-	if err != nil {
-		return nil, fmt.Errorf("initialize kafka publisher failed, err:%w", err)
-	}
-
-	consumer, err := canal.NewOutboxConsumer(appConfig.BinlogReader, kafkaPublisher, eventRepository)
-	if err != nil {
-		return nil, fmt.Errorf("initialize outbox consumer failed, err:%w", err)
-	}
+	sendMessageUseCase := notificationUsecase.NewSendMessageUseCase(eventIDGenerator, messageNotifier, kafkaPublisher)
 
 	kafkaSubscriber, err := kafka.NewSubscriber(
 		appConfig.Kafka.Common,
 		appConfig.Kafka.Consumer,
 		eventIDGenerator,
 		kafkaPublisher,
+		updateMessageStateUseCase,
 		sendEmailUseCase,
 		sendMessageUseCase,
 	)

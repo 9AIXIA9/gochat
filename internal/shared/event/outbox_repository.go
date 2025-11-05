@@ -2,12 +2,6 @@ package event
 
 import "context"
 
-type OutboxRepository interface {
-	UnpublishedSaver
-	UnpublishedLister
-	PublishedMarker
-}
-
 type UnpublishedSaver interface {
 	Saves(ctx context.Context, events []Event) error
 }

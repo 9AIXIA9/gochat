@@ -6,26 +6,27 @@ import (
 )
 
 type User struct {
-	id       kernel.UserID
-	messages []*Message
+	id              kernel.UserID
+	privateMessages []*PrivateMessage
 
 	eventManager *event.Manager
 }
 
-func NewUser(id kernel.UserID, messages []*Message) *User {
+func NewUser(id kernel.UserID, privateMessages []*PrivateMessage) *User {
 	return &User{
-		id:           id,
-		messages:     messages,
-		eventManager: event.NewEventManager(),
+		id:              id,
+		privateMessages: privateMessages,
+		eventManager:    event.NewEventManager(),
 	}
 }
 
-func (u *User) SendMessage(message *Message, generator event.IDGenerator) error {
-	u.messages = append(u.messages, message)
-	ev, err := NewMessageSentEvent(
+func (u *User) SendPrivateMessage(message *PrivateMessage, generator event.IDGenerator) error {
+	u.privateMessages = append(u.privateMessages, message)
+	ev, err := NewMessageCreatedEvent(
 		generator.Generate(),
+		message.id,
 		message.sender,
-		message.recipient,
+		kernel.ID(message.recipient),
 		message.content,
 		message.mType,
 		message.sentAt,
@@ -37,16 +38,12 @@ func (u *User) SendMessage(message *Message, generator event.IDGenerator) error 
 	return nil
 }
 
-func (u *User) ReceiveMessage(message *Message) {
-	u.messages = append(u.messages, message)
-}
-
 func (u *User) ID() kernel.UserID {
 	return u.id
 }
 
-func (u *User) Messages() []*Message {
-	return u.messages
+func (u *User) PrivateMessages() []*PrivateMessage {
+	return u.privateMessages
 }
 
 func (u *User) GetEvents() []event.Event {

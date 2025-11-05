@@ -1,0 +1,19 @@
+package model
+
+import (
+	"gochat/internal/chat/domain"
+	"gochat/internal/shared/kernel"
+
+	"gorm.io/gorm"
+)
+
+type MessageState struct {
+	gorm.Model
+	MessageID domain.MessageID `gorm:"uniqueIndex:idx_message_recipient;type:char(36)"`
+	Recipient kernel.UserID    `gorm:"uniqueIndex:idx_message_recipient;type:char(36)"`
+	State     domain.MessageState
+}
+
+func (m *MessageState) TableName() string {
+	return "gochat.chat_messages_states"
+}

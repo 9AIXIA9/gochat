@@ -12,6 +12,7 @@ const TopicMessageNotificationRequested event.Topic = "notification.message_noti
 var _ event.SpecificEvent = (*MessageNotificationRequestedEvent)(nil)
 
 type MessageNotificationRequestedEvent struct {
+	messageID MessageID
 	sender    kernel.UserID
 	recipient kernel.UserID
 	content   string
@@ -31,12 +32,14 @@ func ToMessageNotificationRequestedEvent(ev event.Event) (*MessageNotificationRe
 
 func NewMessageNotificationRequestedEvent(
 	id event.ID,
+	messageID MessageID,
 	sender kernel.UserID,
 	recipient kernel.UserID,
 	content string,
 	sentAt time.Time,
 ) (*MessageNotificationRequestedEvent, error) {
 	e := &MessageNotificationRequestedEvent{
+		messageID: messageID,
 		sender:    sender,
 		recipient: recipient,
 		content:   content,
@@ -53,12 +56,14 @@ func NewMessageNotificationRequestedEvent(
 
 func (e *MessageNotificationRequestedEvent) Marshal() ([]byte, error) {
 	type Alias struct {
+		MessageID MessageID
 		Sender    kernel.UserID
 		Recipient kernel.UserID
 		Content   string
 		SentAt    time.Time
 	}
 	return json.Marshal(Alias{
+		MessageID: e.messageID,
 		Sender:    e.sender,
 		Recipient: e.recipient,
 		Content:   e.content,
@@ -68,6 +73,7 @@ func (e *MessageNotificationRequestedEvent) Marshal() ([]byte, error) {
 
 func (e *MessageNotificationRequestedEvent) Unmarshal(data []byte) error {
 	type Alias struct {
+		MessageID MessageID
 		Sender    kernel.UserID
 		Recipient kernel.UserID
 		Content   string
@@ -77,11 +83,16 @@ func (e *MessageNotificationRequestedEvent) Unmarshal(data []byte) error {
 	if err := json.Unmarshal(data, &tmp); err != nil {
 		return err
 	}
+	e.messageID = tmp.MessageID
 	e.sender = tmp.Sender
 	e.content = tmp.Content
 	e.sentAt = tmp.SentAt
 	e.recipient = tmp.Recipient
 	return nil
+}
+
+func (e *MessageNotificationRequestedEvent) MessageID() MessageID {
+	return e.messageID
 }
 
 func (e *MessageNotificationRequestedEvent) Sender() kernel.UserID {

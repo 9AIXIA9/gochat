@@ -7,11 +7,12 @@ import (
 	"time"
 )
 
-const TopicMessageSent event.Topic = "chat.message.sent"
+const TopicMessageCreated event.Topic = "chat.message.created"
 
-var _ event.SpecificEvent = (*MessageSentEvent)(nil)
+var _ event.SpecificEvent = (*MessageCreatedEvent)(nil)
 
-type MessageSentEvent struct {
+type MessageCreatedEvent struct {
+	messageID MessageID
 	sender    kernel.UserID
 	recipient kernel.ID
 	content   string
@@ -20,8 +21,8 @@ type MessageSentEvent struct {
 	*event.StandardEvent
 }
 
-func ToMessageSentEvent(ev event.Event) (*MessageSentEvent, error) {
-	e := &MessageSentEvent{StandardEvent: event.NewStandardEventFrom(ev)}
+func ToMessageCreatedEvent(ev event.Event) (*MessageCreatedEvent, error) {
+	e := &MessageCreatedEvent{StandardEvent: event.NewStandardEventFrom(ev)}
 	if len(ev.Payload()) > 0 {
 		if err := e.Unmarshal(ev.Payload()); err != nil {
 			return nil, err
@@ -30,15 +31,17 @@ func ToMessageSentEvent(ev event.Event) (*MessageSentEvent, error) {
 	return e, nil
 }
 
-func NewMessageSentEvent(
+func NewMessageCreatedEvent(
 	id event.ID,
+	messageID MessageID,
 	sender kernel.UserID,
 	recipient kernel.ID,
 	content string,
 	mType MessageType,
 	sentAt time.Time,
-) (*MessageSentEvent, error) {
-	e := &MessageSentEvent{
+) (*MessageCreatedEvent, error) {
+	e := &MessageCreatedEvent{
+		messageID: messageID,
 		sender:    sender,
 		recipient: recipient,
 		content:   content,
@@ -50,12 +53,13 @@ func NewMessageSentEvent(
 		return nil, err
 	}
 
-	e.StandardEvent = event.NewStandardEvent(id, kernel.ID(sender), time.Now().UTC(), TopicMessageSent, payload)
+	e.StandardEvent = event.NewStandardEvent(id, kernel.ID(sender), time.Now().UTC(), TopicMessageCreated, payload)
 	return e, nil
 }
 
-func (e *MessageSentEvent) Marshal() ([]byte, error) {
+func (e *MessageCreatedEvent) Marshal() ([]byte, error) {
 	type Alias struct {
+		MessageID MessageID
 		Sender    kernel.UserID
 		Recipient kernel.ID
 		Content   string
@@ -63,6 +67,7 @@ func (e *MessageSentEvent) Marshal() ([]byte, error) {
 		SentAt    time.Time
 	}
 	return json.Marshal(Alias{
+		MessageID: e.messageID,
 		Sender:    e.sender,
 		Recipient: e.recipient,
 		Content:   e.content,
@@ -71,8 +76,9 @@ func (e *MessageSentEvent) Marshal() ([]byte, error) {
 	})
 }
 
-func (e *MessageSentEvent) Unmarshal(data []byte) error {
+func (e *MessageCreatedEvent) Unmarshal(data []byte) error {
 	type Alias struct {
+		MessageID MessageID
 		Sender    kernel.UserID
 		Recipient kernel.ID
 		Content   string
@@ -83,6 +89,7 @@ func (e *MessageSentEvent) Unmarshal(data []byte) error {
 	if err := json.Unmarshal(data, &tmp); err != nil {
 		return err
 	}
+	e.messageID = tmp.MessageID
 	e.sender = tmp.Sender
 	e.recipient = tmp.Recipient
 	e.content = tmp.Content
@@ -91,22 +98,26 @@ func (e *MessageSentEvent) Unmarshal(data []byte) error {
 	return nil
 }
 
-func (e *MessageSentEvent) Sender() kernel.UserID {
+func (e *MessageCreatedEvent) MessageID() MessageID {
+	return e.messageID
+}
+
+func (e *MessageCreatedEvent) Sender() kernel.UserID {
 	return e.sender
 }
 
-func (e *MessageSentEvent) Recipient() kernel.ID {
+func (e *MessageCreatedEvent) Recipient() kernel.ID {
 	return e.recipient
 }
 
-func (e *MessageSentEvent) Content() string {
+func (e *MessageCreatedEvent) Content() string {
 	return e.content
 }
 
-func (e *MessageSentEvent) Type() MessageType {
+func (e *MessageCreatedEvent) Type() MessageType {
 	return e.mType
 }
 
-func (e *MessageSentEvent) SentAt() time.Time {
+func (e *MessageCreatedEvent) SentAt() time.Time {
 	return e.sentAt
 }

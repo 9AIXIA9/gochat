@@ -12,8 +12,10 @@ import (
 	"gorm.io/gorm"
 )
 
-var _ event.OutboxRepository = (*EventRepository)(nil)
-var _ event.DeadLetterRepository = (*EventRepository)(nil)
+var _ event.UnpublishedSaver = (*EventRepository)(nil)
+var _ event.UnpublishedLister = (*EventRepository)(nil)
+var _ event.PublishedMarker = (*EventRepository)(nil)
+var _ event.DeadLetterSaver = (*EventRepository)(nil)
 
 type EventRepository struct {
 	db                 *gorm.DB

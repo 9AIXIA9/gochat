@@ -11,7 +11,7 @@ type EmailNotifier interface {
 }
 
 type MessageNotifier interface {
-	Enqueue(ctx context.Context, recipient kernel.UserID, message *domain.Message) error
+	Notify(ctx context.Context, message *domain.Message) error
 }
 
 type MailIDGenerator interface {

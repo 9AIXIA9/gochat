@@ -10,15 +10,15 @@ import (
 	"go.uber.org/zap"
 )
 
-func NewMessageSentHandler(eventIDGenerator event.IDGenerator, publisher event.Publisher) event.Handler {
+func NewMessageCreatedHandler(eventIDGenerator event.IDGenerator, publisher event.Publisher) event.Handler {
 	return func(ctx context.Context, e event.Event) error {
-		ev, err := domain.ToMessageSentEvent(e)
+		ev, err := domain.ToMessageCreatedEvent(e)
 		if err != nil {
 			return err
 		}
 
 		switch ev.Type() {
-		case domain.MessageTypePrivate:
+		case domain.PrivateType:
 			return handlePrivateMessageNotification(ev, eventIDGenerator, publisher)
 		default:
 			zap.L().Error(
@@ -30,9 +30,10 @@ func NewMessageSentHandler(eventIDGenerator event.IDGenerator, publisher event.P
 	}
 }
 
-func handlePrivateMessageNotification(ev *domain.MessageSentEvent, eventIDGenerator event.IDGenerator, publisher event.Publisher) error {
+func handlePrivateMessageNotification(ev *domain.MessageCreatedEvent, eventIDGenerator event.IDGenerator, publisher event.Publisher) error {
 	e, err := notificationDomain.NewMessageNotificationRequestedEvent(
 		eventIDGenerator.Generate(),
+		notificationDomain.MessageID(ev.MessageID()),
 		ev.Sender(),
 		kernel.UserID(ev.Recipient()),
 		ev.Content(),
