@@ -7,7 +7,6 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"time"
 )
 
 var _ SendRoomMessageUseCase = (*sendRoomMessageUseCase)(nil)
@@ -34,7 +33,7 @@ type sendRoomMessageUseCase struct {
 	messageIDGenerator    application.MessageIDGenerator
 	eventIDGenerator      event.IDGenerator
 	roomMembersFinder     application.RoomMembersFinder
-	messageSaver          application.RoomMessagesSaver
+	messageSaver          application.MessageSaver
 	unpublishedEventSaver event.UnpublishedSaver
 }
 
@@ -42,7 +41,7 @@ func NewSendRoomMessageUseCase(
 	messageIDGenerator application.MessageIDGenerator,
 	eventIDGenerator event.IDGenerator,
 	roomMembersFinder application.RoomMembersFinder,
-	messageSaver application.RoomMessagesSaver,
+	messageSaver application.MessageSaver,
 	unpublishedEventSaver event.UnpublishedSaver,
 ) SendRoomMessageUseCase {
 	return &sendRoomMessageUseCase{
@@ -69,26 +68,17 @@ func (uc *sendRoomMessageUseCase) Execute(ctx context.Context, input *SendRoomMe
 		states = append(states, state)
 	}
 
-	message := domain.NewRoomMessage(
-		uc.messageIDGenerator.Generate(),
-		input.RoomID,
-		input.SenderID,
-		input.Content,
-		time.Now().UTC(),
-		states,
-	)
+	room := domain.NewRoom(input.RoomID, members, make([]*domain.Message, 0, 1))
 
-	user := domain.NewUser(input.SenderID, nil, make([]*domain.RoomMessage, 0, 1))
-
-	if err := user.SendRoomMessage(message, uc.eventIDGenerator); err != nil {
+	if err := room.SendMessage(uc.messageIDGenerator.Generate(), input.SenderID, input.Content, uc.eventIDGenerator); err != nil {
 		return nil, err
 	}
 
-	if err := uc.messageSaver.SaveRoomMessages(ctx, user.RoomMessages()); err != nil {
+	if err := uc.messageSaver.Saves(ctx, room.Messages()); err != nil {
 		return nil, err
 	}
 
-	events := user.GetEvents()
+	events := room.GetEvents()
 	if err := uc.unpublishedEventSaver.Saves(ctx, events); err != nil {
 		return nil, err
 	}

@@ -14,6 +14,7 @@ import (
 	"gochat/internal/authorization/infrastructure/snowflake"
 	authorizationUuid "gochat/internal/authorization/infrastructure/uuid"
 	chatUsecase "gochat/internal/chat/application/usecase"
+	messageConverter "gochat/internal/chat/infrastructure/persistence/converter"
 	chatModel "gochat/internal/chat/infrastructure/persistence/model"
 	chatRepository "gochat/internal/chat/infrastructure/persistence/repository"
 	chatUuid "gochat/internal/chat/infrastructure/uuid"
@@ -79,7 +80,7 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 		mysqlDatabase,
 		&authorizationModel.User{},
 		&notificationModel.Mail{},
-		&chatModel.MessageInformation{},
+		&chatModel.Message{},
 		&chatModel.RecipientMessageState{},
 		&model.Event{},
 		&model.DeadLetter{},
@@ -112,7 +113,7 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 	userRepository := authorizationRepository.NewUserRepository(mysqlDatabase, &authorizationConverter.UserConverter{})
 	refreshTokenRepository := authorizationRepository.NewRefreshTokenRepository(redisClient, &authorizationConverter.RefreshTokenConverter{})
 
-	messageRepository := chatRepository.NewMessageRepository(mysqlDatabase)
+	messageRepository := chatRepository.NewMessageRepository(mysqlDatabase, &messageConverter.MessageConverter{})
 
 	roomRepository := socialRepository.NewRoomRepository(mysqlDatabase, &socialConverter.RoomConverter{})
 

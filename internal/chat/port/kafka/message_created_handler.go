@@ -9,9 +9,9 @@ import (
 	"go.uber.org/zap"
 )
 
-func NewRoomMessageCreatedHandler(eventIDGenerator event.IDGenerator, publisher event.Publisher) event.Handler {
+func NewMessageCreatedHandler(eventIDGenerator event.IDGenerator, publisher event.Publisher) event.Handler {
 	return func(ctx context.Context, e event.Event) error {
-		roomMessageCreatedEvent, err := domain.ToRoomMessageCreatedEvent(e)
+		roomMessageCreatedEvent, err := domain.ToMessageCreatedEvent(e)
 		if err != nil {
 			return err
 		}

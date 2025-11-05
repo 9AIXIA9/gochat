@@ -29,8 +29,7 @@ func NewSubscriber(
 
 	kafkaSubscriber.Subscribe(authorizationDomain.TopicUserCreated, authorizationKafka.NewUserCreatedHandler(eventIDGenerator, publisher))
 
-	kafkaSubscriber.Subscribe(chatDomain.TopicPrivateMessageCreated, chatKafka.NewPrivateMessageCreatedHandler(eventIDGenerator, publisher))
-	kafkaSubscriber.Subscribe(chatDomain.TopicRoomMessageCreated, chatKafka.NewRoomMessageCreatedHandler(eventIDGenerator, publisher))
+	kafkaSubscriber.Subscribe(chatDomain.TopicMessageCreated, chatKafka.NewMessageCreatedHandler(eventIDGenerator, publisher))
 	kafkaSubscriber.Subscribe(notificationDomain.TopicMessageDelivered, chatKafka.NewMessageDeliveredHandler(updateMessageStateUseCase))
 
 	kafkaSubscriber.Subscribe(notificationDomain.TopicEmailNotificationRequested, notificationKafka.NewEmailNotificationRequestedHandler(sendEmailUseCase))

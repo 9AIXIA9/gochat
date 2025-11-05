@@ -7,11 +7,11 @@ import (
 	"time"
 )
 
-const TopicRoomMessageCreated event.Topic = "chat.private_message.created"
+const TopicMessageCreated event.Topic = "chat.message.created"
 
-var _ event.SpecificEvent = (*RoomMessageCreatedEvent)(nil)
+var _ event.SpecificEvent = (*MessageCreatedEvent)(nil)
 
-type RoomMessageCreatedEvent struct {
+type MessageCreatedEvent struct {
 	messageID  MessageID
 	sender     kernel.UserID
 	recipients []kernel.UserID
@@ -20,8 +20,8 @@ type RoomMessageCreatedEvent struct {
 	*event.StandardEvent
 }
 
-func ToRoomMessageCreatedEvent(ev event.Event) (*RoomMessageCreatedEvent, error) {
-	e := &RoomMessageCreatedEvent{StandardEvent: event.NewStandardEventFrom(ev)}
+func ToMessageCreatedEvent(ev event.Event) (*MessageCreatedEvent, error) {
+	e := &MessageCreatedEvent{StandardEvent: event.NewStandardEventFrom(ev)}
 	if len(ev.Payload()) > 0 {
 		if err := e.Unmarshal(ev.Payload()); err != nil {
 			return nil, err
@@ -30,15 +30,15 @@ func ToRoomMessageCreatedEvent(ev event.Event) (*RoomMessageCreatedEvent, error)
 	return e, nil
 }
 
-func NewRoomMessageCreatedEvent(
+func NewMessageCreatedEvent(
 	id event.ID,
 	messageID MessageID,
 	sender kernel.UserID,
 	recipients []kernel.UserID,
 	content string,
 	sentAt time.Time,
-) (*RoomMessageCreatedEvent, error) {
-	e := &RoomMessageCreatedEvent{
+) (*MessageCreatedEvent, error) {
+	e := &MessageCreatedEvent{
 		messageID:  messageID,
 		sender:     sender,
 		recipients: recipients,
@@ -50,11 +50,11 @@ func NewRoomMessageCreatedEvent(
 		return nil, err
 	}
 
-	e.StandardEvent = event.NewStandardEvent(id, kernel.ID(sender), time.Now().UTC(), TopicRoomMessageCreated, payload)
+	e.StandardEvent = event.NewStandardEvent(id, kernel.ID(sender), time.Now().UTC(), TopicMessageCreated, payload)
 	return e, nil
 }
 
-func (e *RoomMessageCreatedEvent) Marshal() ([]byte, error) {
+func (e *MessageCreatedEvent) Marshal() ([]byte, error) {
 	type Alias struct {
 		MessageID  MessageID
 		Sender     kernel.UserID
@@ -71,7 +71,7 @@ func (e *RoomMessageCreatedEvent) Marshal() ([]byte, error) {
 	})
 }
 
-func (e *RoomMessageCreatedEvent) Unmarshal(data []byte) error {
+func (e *MessageCreatedEvent) Unmarshal(data []byte) error {
 	type Alias struct {
 		MessageID  MessageID
 		Sender     kernel.UserID
@@ -91,22 +91,22 @@ func (e *RoomMessageCreatedEvent) Unmarshal(data []byte) error {
 	return nil
 }
 
-func (e *RoomMessageCreatedEvent) MessageID() MessageID {
+func (e *MessageCreatedEvent) MessageID() MessageID {
 	return e.messageID
 }
 
-func (e *RoomMessageCreatedEvent) Sender() kernel.UserID {
+func (e *MessageCreatedEvent) Sender() kernel.UserID {
 	return e.sender
 }
 
-func (e *RoomMessageCreatedEvent) Recipients() []kernel.UserID {
+func (e *MessageCreatedEvent) Recipients() []kernel.UserID {
 	return e.recipients
 }
 
-func (e *RoomMessageCreatedEvent) Content() string {
+func (e *MessageCreatedEvent) Content() string {
 	return e.content
 }
 
-func (e *RoomMessageCreatedEvent) SentAt() time.Time {
+func (e *MessageCreatedEvent) SentAt() time.Time {
 	return e.sentAt
 }

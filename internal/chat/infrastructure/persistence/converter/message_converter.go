@@ -3,32 +3,51 @@ package converter
 import (
 	"gochat/internal/chat/domain"
 	"gochat/internal/chat/infrastructure/persistence/model"
+	gormutils "gochat/internal/infrastructure/gorm"
+
+	"gorm.io/gorm"
 )
+
+var _ gormutils.GenericModelConverter[*model.Message, *domain.Message] = (*MessageConverter)(nil)
 
 type MessageConverter struct {
 }
 
-func (c *MessageConverter) ToInformation(id domain.MessageID, information *domain.MessageInformation) *model.MessageInformation {
-	return &model.MessageInformation{
-		ID:      id,
-		Sender:  information.Sender(),
-		Content: information.Content(),
-		SentAt:  information.SentAt(),
+func (c *MessageConverter) ToModel(message *domain.Message) *model.Message {
+	domainStates := message.States()
+
+	states := make([]*model.RecipientMessageState, 0, len(domainStates))
+	for _, domainState := range domainStates {
+		states = append(states, &model.RecipientMessageState{
+			MessageID: message.ID(),
+			Recipient: domainState.Recipient(),
+			State:     domainState.State(),
+		})
+	}
+	return &model.Message{
+		Model:   gorm.Model{},
+		ID:      message.ID(),
+		Sender:  message.Sender(),
+		Content: message.Content(),
+		SentAt:  message.SentAt(),
+		States:  states,
 	}
 }
 
-func (c *MessageConverter) ToRecipientState(id domain.MessageID, recipientMessageState *domain.RecipientMessageState) *model.RecipientMessageState {
-	return &model.RecipientMessageState{
-		MessageID: id,
-		Recipient: recipientMessageState.Recipient(),
-		State:     recipientMessageState.State(),
+func (c *MessageConverter) ToDomain(message *model.Message) *domain.Message {
+	domainStates := make([]*domain.RecipientMessageState, 0, len(message.States))
+	for _, state := range message.States {
+		domainStates = append(domainStates, domain.NewRecipientMessageState(
+			state.Recipient,
+			state.State,
+		))
 	}
-}
 
-func (c *MessageConverter) ToRecipientStates(id domain.MessageID, recipientMessageStates []*domain.RecipientMessageState) []*model.RecipientMessageState {
-	states := make([]*model.RecipientMessageState, 0, len(recipientMessageStates))
-	for _, state := range recipientMessageStates {
-		states = append(states, c.ToRecipientState(id, state))
-	}
-	return states
+	return domain.NewMessage(
+		message.ID,
+		message.Sender,
+		message.Content,
+		message.SentAt,
+		domainStates,
+	)
 }

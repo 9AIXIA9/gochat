@@ -6,14 +6,10 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-type PrivateMessagesSaver interface {
-	SavePrivateMessages(ctx context.Context, messages []*domain.PrivateMessage) error
-}
-
-type RoomMessagesSaver interface {
-	SaveRoomMessages(ctx context.Context, messages []*domain.RoomMessage) error
+type MessageSaver interface {
+	Saves(ctx context.Context, messages []*domain.Message) error
 }
 
 type MessageStateUpdater interface {
-	Update(ctx context.Context, messageID domain.MessageID, recipientID kernel.UserID, newState domain.State) error
+	Update(ctx context.Context, messageID domain.MessageID, recipientID kernel.UserID, newState domain.MessageState) error
 }

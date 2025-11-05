@@ -9,6 +9,8 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
+//TODO request 失败后发布事件
+
 func NewEmailNotificationRequestedHandler(uc usecase.SendEmailUseCase) event.Handler {
 	return kafka.AdaptUseCaseToHandler(
 		uc,

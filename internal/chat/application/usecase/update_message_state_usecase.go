@@ -13,7 +13,7 @@ var _ UpdateMessageStateUseCase = (*updateMessageStateUseCase)(nil)
 type UpdateMessageStateUseCase kernel.UseCase[*UpdateMessageStateInput, *kernel.NoOutput]
 
 type UpdateMessageStateInput struct {
-	NewState    domain.State
+	NewState    domain.MessageState
 	MessageID   domain.MessageID
 	RecipientID kernel.UserID
 }

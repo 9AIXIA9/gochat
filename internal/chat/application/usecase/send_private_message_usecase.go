@@ -7,7 +7,6 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"time"
 )
 
 var _ SendPrivateMessageUseCase = (*sendPrivateMessageUseCase)(nil)
@@ -34,7 +33,7 @@ type sendPrivateMessageUseCase struct {
 	messageIDGenerator    application.MessageIDGenerator
 	eventIDGenerator      event.IDGenerator
 	userExister           application.UserExister
-	messageSaver          application.PrivateMessagesSaver
+	messageSaver          application.MessageSaver
 	unpublishedEventSaver event.UnpublishedSaver
 }
 
@@ -42,7 +41,7 @@ func NewSendPrivateMessageUseCase(
 	messageIDGenerator application.MessageIDGenerator,
 	eventIDGenerator event.IDGenerator,
 	userExister application.UserExister,
-	messageSaver application.PrivateMessagesSaver,
+	messageSaver application.MessageSaver,
 	unpublishedEventSaver event.UnpublishedSaver,
 ) SendPrivateMessageUseCase {
 	return &sendPrivateMessageUseCase{
@@ -61,22 +60,13 @@ func (uc *sendPrivateMessageUseCase) Execute(ctx context.Context, input *SendPri
 		return nil, myErrors.ErrNotFound
 	}
 
-	message := domain.NewPrivateMessage(
-		uc.messageIDGenerator.Generate(),
-		input.SenderID,
-		input.Content,
-		time.Now().UTC(),
-		domain.MessageStateCreated,
-		input.RecipientID,
-	)
+	user := domain.NewUser(input.SenderID, make([]*domain.Message, 0, 1))
 
-	user := domain.NewUser(input.SenderID, make([]*domain.PrivateMessage, 0, 1), nil)
-
-	if err := user.SendPrivateMessage(message, uc.eventIDGenerator); err != nil {
+	if err := user.SendMessage(uc.messageIDGenerator.Generate(), input.RecipientID, input.Content, uc.eventIDGenerator); err != nil {
 		return nil, err
 	}
 
-	if err := uc.messageSaver.SavePrivateMessages(ctx, user.PrivateMessages()); err != nil {
+	if err := uc.messageSaver.Saves(ctx, user.Messages()); err != nil {
 		return nil, err
 	}
 
