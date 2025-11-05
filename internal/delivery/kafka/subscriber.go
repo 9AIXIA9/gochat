@@ -33,7 +33,7 @@ func NewSubscriber(
 	kafkaSubscriber.Subscribe(notificationDomain.TopicMessageDelivered, chatKafka.NewMessageDeliveredHandler(updateMessageStateUseCase))
 
 	kafkaSubscriber.Subscribe(notificationDomain.TopicEmailNotificationRequested, notificationKafka.NewEmailNotificationRequestedHandler(sendEmailUseCase))
-	kafkaSubscriber.Subscribe(notificationDomain.TopicMessageNotificationRequested, notificationKafka.NewMessageNotificationRequestedHandler(sendMessageUseCase))
+	kafkaSubscriber.Subscribe(notificationDomain.TopicMessageNotificationRequested, notificationKafka.NewMessageNotificationRequestedHandler(sendMessageUseCase, publisher, eventIDGenerator))
 
 	return kafkaSubscriber, nil
 }

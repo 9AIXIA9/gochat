@@ -39,6 +39,7 @@ import (
 	notificationRepository "gochat/internal/notification/infrastructure/persistence/repository"
 	notificationUuid "gochat/internal/notification/infrastructure/uuid"
 	socialConverter "gochat/internal/social/infrastructure/persistence/converter"
+	socialModel "gochat/internal/social/infrastructure/persistence/model"
 	socialRepository "gochat/internal/social/infrastructure/persistence/repository"
 
 	"github.com/redis/go-redis/v9"
@@ -76,16 +77,19 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 		return nil, fmt.Errorf("connect to mysql failed, err:%w", err)
 	}
 
-	if err := gormutils.AutoMigrate(
-		mysqlDatabase,
-		&authorizationModel.User{},
-		&notificationModel.Mail{},
-		&chatModel.Message{},
-		&chatModel.RecipientMessageState{},
-		&model.Event{},
-		&model.DeadLetter{},
-	); err != nil {
-		return nil, fmt.Errorf("mysql mirgrate failed,err:%w", err)
+	if appConfig.NeedMigrate {
+		if err := gormutils.AutoMigrate(
+			mysqlDatabase,
+			&authorizationModel.User{},
+			&notificationModel.Mail{},
+			&chatModel.Message{},
+			&chatModel.RecipientMessageState{},
+			&socialModel.Room{},
+			&model.Event{},
+			&model.DeadLetter{},
+		); err != nil {
+			return nil, fmt.Errorf("mysql mirgrate failed,err:%w", err)
+		}
 	}
 
 	redisClient, err := redisutils.ConnectToRedis(appConfig.Redis)
@@ -181,9 +185,16 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 	)
 	updateMessageStateUseCase := chatUsecase.NewUpdateMessageStateUseCase(messageRepository)
 
-	sendEmailUseCase := notificationUsecase.NewSendEmailUseCase(emailNotifier, mailRepository, mailIDGenerator)
+	sendEmailUseCase := notificationUsecase.NewSendEmailUseCase(
+		emailNotifier,
+		mailRepository,
+		mailIDGenerator,
+	)
 
-	sendMessageUseCase := notificationUsecase.NewSendMessageUseCase(eventIDGenerator, messageNotifier, kafkaPublisher)
+	sendMessageUseCase := notificationUsecase.NewSendMessageUseCase(
+		eventIDGenerator,
+		messageNotifier,
+	)
 
 	kafkaSubscriber, err := kafka.NewSubscriber(
 		appConfig.Kafka.Common,

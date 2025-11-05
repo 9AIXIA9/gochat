@@ -21,6 +21,7 @@ type App struct {
 	Host        string `mapstructure:"Host"`
 	Port        int    `mapstructure:"Port"`
 	MachineNode int64  `mapstructure:"MachineNode"`
+	NeedMigrate bool   `mapstructure:"NeedMigrate"`
 
 	Cookie       *Cookie                     `mapstructure:"Cookie"`
 	CORS         *middleware.CORSConfig      `mapstructure:"CORS"`

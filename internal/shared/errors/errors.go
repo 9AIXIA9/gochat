@@ -20,7 +20,7 @@ var (
 	ErrEmptyInput        = errors.New("logic: input is empty")
 	ErrExpired           = errors.New("logic: expired")
 	ErrExceedMaxValue    = errors.New("logic: exceed max value")
-	//ErrTimeout           = errors.New("logic:timeout")
+	ErrNotBelongTo       = errors.New("logic: not belong to")
 )
 
 // 数据库相关错误

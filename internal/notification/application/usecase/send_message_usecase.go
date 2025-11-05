@@ -32,14 +32,12 @@ func (i *SendMessageInput) Validate() error {
 type sendMessageUseCase struct {
 	eventIDGenerator event.IDGenerator
 	messageNotifier  application.MessageNotifier
-	eventPublisher   event.Publisher
 }
 
-func NewSendMessageUseCase(eventIDGenerator event.IDGenerator, messageNotifier application.MessageNotifier, eventPublisher event.Publisher) SendMessageUseCase {
+func NewSendMessageUseCase(eventIDGenerator event.IDGenerator, messageNotifier application.MessageNotifier) SendMessageUseCase {
 	return &sendMessageUseCase{
 		eventIDGenerator: eventIDGenerator,
 		messageNotifier:  messageNotifier,
-		eventPublisher:   eventPublisher,
 	}
 }
 
@@ -47,15 +45,6 @@ func (uc *sendMessageUseCase) Execute(ctx context.Context, input *SendMessageInp
 	message := domain.NewMessage(input.MessageID, input.Recipient, input.Sender, input.Content, input.SentAt)
 
 	if err := uc.messageNotifier.Notify(ctx, message); err != nil {
-		return nil, err
-	}
-
-	ev, err := domain.NewMessageDeliveredEvent(uc.eventIDGenerator.Generate(), input.MessageID, input.Recipient)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := uc.eventPublisher.Publish(ev); err != nil {
 		return nil, err
 	}
 

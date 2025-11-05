@@ -1,6 +1,7 @@
 package domain
 
 import (
+	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"time"
@@ -26,12 +27,19 @@ func NewRoom(id RoomID, members []kernel.UserID, messages []*Message) *Room {
 }
 
 func (r *Room) SendMessage(id MessageID, sender kernel.UserID, content string, generator event.IDGenerator) error {
+	var ok bool
 	states := make([]*RecipientMessageState, 0, len(r.members)-1)
 	for _, member := range r.members {
 		if member != sender {
 			state := NewRecipientMessageState(member, MessageStateCreated)
 			states = append(states, state)
+		} else {
+			ok = true
 		}
+	}
+
+	if !ok {
+		return myErrors.ErrNotBelongTo
 	}
 
 	message := NewMessage(id, sender, content, time.Now().UTC(), states)

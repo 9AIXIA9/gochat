@@ -13,7 +13,8 @@ const CodeServerError BusinessCode = 500
 const (
 	CodeTimeout BusinessCode = 400 + iota
 	CodeInvalidParam
-	CodeInvalidToken //auth token
+	CodeInvalidToken
+	CodeNotBelongTo
 )
 
 func (c BusinessCode) ToHTTPCode() int {
@@ -28,6 +29,8 @@ func (c BusinessCode) ToHTTPCode() int {
 		return http.StatusBadRequest
 	case CodeInvalidToken:
 		return http.StatusUnauthorized
+	case CodeNotBelongTo:
+		return http.StatusConflict
 	default:
 		return http.StatusInternalServerError
 	}
@@ -43,6 +46,8 @@ func (c BusinessCode) String() string {
 		return "invalid token"
 	case CodeTimeout:
 		return "request timeout"
+	case CodeNotBelongTo:
+		return "not belong to"
 	default:
 		return "unknown error"
 	}
