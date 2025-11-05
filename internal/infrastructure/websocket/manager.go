@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"context"
+	"fmt"
 	"gochat/internal/notification/application"
 	"gochat/internal/notification/domain"
 	"gochat/internal/shared/kernel"
@@ -18,6 +19,7 @@ func NewManager() *Manager {
 	return &Manager{}
 }
 
-func (m *Manager) Enqueue(_ context.Context, _ kernel.UserID, _ *domain.Message) error {
+func (m *Manager) Enqueue(_ context.Context, id kernel.UserID, message *domain.Message) error {
+	fmt.Println("websocket notify user:", id, "message:", message.Content())
 	return nil
 }
