@@ -20,6 +20,7 @@ func NewRouter(
 	refreshAccessTokenUseCase authorizationUseCase.RefreshAccessTokenUseCase,
 	parseAccessTokenUseCase authorizationUseCase.ParseAccessTokenUseCase,
 	sendPrivateMessageUseCase chatUseCase.SendPrivateMessageUseCase,
+	sendRoomMessageUseCase chatUseCase.SendRoomMessageUseCase,
 	validator *ginutils.Validator,
 	redisClient *redis.Client,
 	rateLimitConfig *middleware.RateLimitConfig,
@@ -54,6 +55,7 @@ func NewRouter(
 	chatGroup.Use(authorizationMiddleware)
 	{
 		chatGroup.POST("/private", chatHttp.NewSendPrivateMessageHandler(sendPrivateMessageUseCase, validator))
+		chatGroup.POST("/room", chatHttp.NewSendRoomMessageHandler(sendRoomMessageUseCase, validator))
 	}
 
 	return engine

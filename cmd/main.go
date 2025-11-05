@@ -37,6 +37,7 @@ func main() {
 			dependencies.refreshAccessTokenUseCase,
 			dependencies.parseAccessTokenUseCase,
 			dependencies.sendPrivateMessageUseCase,
+			dependencies.sendRoomMessageUseCase,
 			dependencies.validator,
 			dependencies.redisClient,
 			dependencies.config.RateLimit,

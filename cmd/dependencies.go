@@ -13,7 +13,6 @@ import (
 	"gochat/internal/authorization/infrastructure/snowflake"
 	authorizationUuid "gochat/internal/authorization/infrastructure/uuid"
 	chatUsecase "gochat/internal/chat/application/usecase"
-	chatConverter "gochat/internal/chat/infrastructure/persistence/converter"
 	chatModel "gochat/internal/chat/infrastructure/persistence/model"
 	chatRepository "gochat/internal/chat/infrastructure/persistence/repository"
 	chatUuid "gochat/internal/chat/infrastructure/uuid"
@@ -37,6 +36,8 @@ import (
 	notificationModel "gochat/internal/notification/infrastructure/persistence/model"
 	notificationRepository "gochat/internal/notification/infrastructure/persistence/repository"
 	notificationUuid "gochat/internal/notification/infrastructure/uuid"
+	socialConverter "gochat/internal/social/infrastructure/persistence/converter"
+	socialRepository "gochat/internal/social/infrastructure/persistence/repository"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -49,6 +50,7 @@ type Dependencies struct {
 	refreshAccessTokenUseCase authorizationUsecase.RefreshAccessTokenUseCase
 	parseAccessTokenUseCase   authorizationUsecase.ParseAccessTokenUseCase
 	sendPrivateMessageUseCase chatUsecase.SendPrivateMessageUseCase
+	sendRoomMessageUseCase    chatUsecase.SendRoomMessageUseCase
 	validator                 *ginutils.Validator
 	redisClient               *redis.Client
 }
@@ -77,7 +79,7 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 		&model.User{},
 		&notificationModel.Mail{},
 		&chatModel.MessageInformation{},
-		&chatModel.MessageState{},
+		&chatModel.RecipientMessageState{},
 		&model.Event{},
 		&model.DeadLetter{},
 	); err != nil {
@@ -109,7 +111,9 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 	userRepository := repository.NewUserRepository(mysqlDatabase, &converter.UserConverter{})
 	refreshTokenRepository := authorizationRepository.NewRefreshTokenRepository(redisClient, &authorizationConverter.RefreshTokenConverter{})
 
-	messageRepository := chatRepository.NewMessageRepository(mysqlDatabase, &chatConverter.MessageInformationConverter{})
+	messageRepository := chatRepository.NewMessageRepository(mysqlDatabase)
+
+	roomRepository := socialRepository.NewRoomRepository(mysqlDatabase, &socialConverter.RoomConverter{})
 
 	mailRepository := notificationRepository.NewMailRepository(mysqlDatabase, &notificationConverter.MailConverter{})
 
@@ -166,6 +170,13 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 		messageRepository,
 		eventRepository,
 	)
+	sendRoomMessageUseCase := chatUsecase.NewSendRoomMessageUseCase(
+		messageIDGenerator,
+		eventIDGenerator,
+		roomRepository,
+		messageRepository,
+		eventRepository,
+	)
 	updateMessageStateUseCase := chatUsecase.NewUpdateMessageStateUseCase(messageRepository)
 
 	sendEmailUseCase := notificationUsecase.NewSendEmailUseCase(emailNotifier, mailRepository, mailIDGenerator)
@@ -210,6 +221,7 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 		refreshAccessTokenUseCase: refreshAccessTokenUseCase,
 		parseAccessTokenUseCase:   parseAccessTokenUseCase,
 		sendPrivateMessageUseCase: sendPrivateMessageUseCase,
+		sendRoomMessageUseCase:    sendRoomMessageUseCase,
 		validator:                 validator,
 		redisClient:               redisClient,
 	}, nil

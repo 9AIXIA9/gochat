@@ -6,9 +6,9 @@ import (
 )
 
 type PrivateMessage struct {
+	id MessageID
 	*MessageInformation
-	recipient kernel.UserID
-	state     MessageState
+	*RecipientMessageState
 }
 
 func NewPrivateMessage(
@@ -16,20 +16,16 @@ func NewPrivateMessage(
 	sender kernel.UserID,
 	content string,
 	sentAt time.Time,
-	state MessageState,
+	state State,
 	recipient kernel.UserID,
 ) *PrivateMessage {
 	return &PrivateMessage{
-		MessageInformation: NewMessageInformation(id, PrivateType, sender, content, sentAt),
-		recipient:          recipient,
-		state:              state,
+		id:                    id,
+		MessageInformation:    NewMessageInformation(sender, content, sentAt),
+		RecipientMessageState: NewRecipientMessageState(recipient, state),
 	}
 }
 
-func (m *PrivateMessage) Recipient() kernel.UserID {
-	return m.recipient
-}
-
-func (m *PrivateMessage) State() MessageState {
-	return m.state
+func (m *PrivateMessage) ID() MessageID {
+	return m.id
 }

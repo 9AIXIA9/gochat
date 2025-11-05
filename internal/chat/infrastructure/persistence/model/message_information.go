@@ -11,7 +11,6 @@ import (
 type MessageInformation struct {
 	gorm.Model
 	ID      domain.MessageID `gorm:"primaryKey;type:char(36)"`
-	Type    domain.MessageType
 	Sender  kernel.UserID
 	Content string
 	SentAt  time.Time

@@ -9,8 +9,6 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-//TODO 可以做一个通用的事件处理器生成器
-
 func NewMessageNotificationRequestedHandler(uc usecase.SendMessageUseCase) event.Handler {
 	return kafka.AdaptUseCaseToHandler(
 		uc,

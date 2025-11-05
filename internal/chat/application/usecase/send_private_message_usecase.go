@@ -70,7 +70,7 @@ func (uc *sendPrivateMessageUseCase) Execute(ctx context.Context, input *SendPri
 		input.RecipientID,
 	)
 
-	user := domain.NewUser(input.SenderID, make([]*domain.PrivateMessage, 0, 1))
+	user := domain.NewUser(input.SenderID, make([]*domain.PrivateMessage, 0, 1), nil)
 
 	if err := user.SendPrivateMessage(message, uc.eventIDGenerator); err != nil {
 		return nil, err

@@ -10,6 +10,10 @@ type PrivateMessagesSaver interface {
 	SavePrivateMessages(ctx context.Context, messages []*domain.PrivateMessage) error
 }
 
+type RoomMessagesSaver interface {
+	SaveRoomMessages(ctx context.Context, messages []*domain.RoomMessage) error
+}
+
 type MessageStateUpdater interface {
-	Update(ctx context.Context, messageID domain.MessageID, recipientID kernel.UserID, newState domain.MessageState) error
+	Update(ctx context.Context, messageID domain.MessageID, recipientID kernel.UserID, newState domain.State) error
 }
