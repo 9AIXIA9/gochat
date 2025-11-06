@@ -9,6 +9,8 @@ import (
 	"gochat/internal/delivery/http/handler"
 	"gochat/internal/delivery/http/middleware"
 	ginutils "gochat/internal/infrastructure/validator"
+	socialUseCase "gochat/internal/social/application/usecase"
+	socialHttp "gochat/internal/social/port/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
@@ -21,6 +23,9 @@ func NewRouter(
 	parseAccessTokenUseCase authorizationUseCase.ParseAccessTokenUseCase,
 	sendPrivateMessageUseCase chatUseCase.SendPrivateMessageUseCase,
 	sendRoomMessageUseCase chatUseCase.SendRoomMessageUseCase,
+	createRoomUseCase socialUseCase.CreateRoomUseCase,
+	joinRoomUseCase socialUseCase.JoinRoomUseCase,
+	leaveRoomUseCase socialUseCase.LeaveRoomUseCase,
 	validator *ginutils.Validator,
 	redisClient *redis.Client,
 	rateLimitConfig *middleware.RateLimitConfig,
@@ -56,6 +61,14 @@ func NewRouter(
 	{
 		chatGroup.POST("/private", chatHttp.NewSendPrivateMessageHandler(sendPrivateMessageUseCase, validator))
 		chatGroup.POST("/room", chatHttp.NewSendRoomMessageHandler(sendRoomMessageUseCase, validator))
+	}
+
+	socialGroup := baseGroup.Group("/social")
+	socialGroup.Use(authorizationMiddleware)
+	{
+		socialGroup.POST("/room", socialHttp.NewCreateRoomHandler(createRoomUseCase, validator))
+		socialGroup.POST("/room/member", socialHttp.NewJoinRoomHandler(joinRoomUseCase, validator))
+		socialGroup.DELETE("/room/member", socialHttp.NewLeaveRoomHandler(leaveRoomUseCase, validator))
 	}
 
 	return engine

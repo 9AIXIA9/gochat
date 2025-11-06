@@ -3,14 +3,17 @@ package bcrypt
 import (
 	"errors"
 	"fmt"
-	"gochat/internal/authorization/application"
+	authorizationApplication "gochat/internal/authorization/application"
 	myErrors "gochat/internal/shared/errors"
+	socialApplication "gochat/internal/social/application"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
-var _ application.Comparator = (*Hasher)(nil)
-var _ application.Encryptor = (*Hasher)(nil)
+var _ authorizationApplication.Comparator = (*Hasher)(nil)
+var _ authorizationApplication.Encryptor = (*Hasher)(nil)
+var _ socialApplication.Comparator = (*Hasher)(nil)
+var _ socialApplication.Encryptor = (*Hasher)(nil)
 
 type Hasher struct {
 	cost int

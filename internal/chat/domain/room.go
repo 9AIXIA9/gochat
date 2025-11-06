@@ -7,7 +7,13 @@ import (
 	"time"
 )
 
+//TODO 把通过id删除换成通过Number
+
 type RoomID kernel.ID
+
+func (r RoomID) String() string {
+	return string(r)
+}
 
 type Room struct {
 	id       RoomID
@@ -27,6 +33,10 @@ func NewRoom(id RoomID, members []kernel.UserID, messages []*Message) *Room {
 }
 
 func (r *Room) SendMessage(id MessageID, sender kernel.UserID, content string, generator event.IDGenerator) error {
+	if len(r.members) <= 1 {
+		return myErrors.ErrInvalidLength
+	}
+
 	var ok bool
 	states := make([]*RecipientMessageState, 0, len(r.members)-1)
 	for _, member := range r.members {

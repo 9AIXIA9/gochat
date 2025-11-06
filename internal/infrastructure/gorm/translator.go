@@ -15,7 +15,7 @@ func TranslateError(err error) error {
 		return nil
 	}
 	switch {
-	case errors.Is(err, gorm.ErrDuplicatedKey) || strings.Contains(err.Error(), "Duplicate entry"):
+	case errors.Is(err, gorm.ErrDuplicatedKey) || strings.Contains(strings.ToLower(err.Error()), "duplicate"):
 		return errors.Join(myErrors.ErrDuplicatedKey, err)
 	case errors.Is(err, gorm.ErrForeignKeyViolated):
 		return errors.Join(myErrors.ErrForeignKeyViolated, err)

@@ -21,6 +21,7 @@ var (
 	ErrExpired           = errors.New("logic: expired")
 	ErrExceedMaxValue    = errors.New("logic: exceed max value")
 	ErrNotBelongTo       = errors.New("logic: not belong to")
+	ErrHasBeenDone       = errors.New("logic: has been done")
 )
 
 // 数据库相关错误

@@ -28,7 +28,6 @@ func (repo *MessageRepository) Saves(ctx context.Context, messages []*domain.Mes
 }
 
 func (repo *MessageRepository) Update(ctx context.Context, messageID domain.MessageID, recipientID kernel.UserID, newState domain.MessageState) error {
-	// Update the state record for the specific recipient of a message
 	return gormutils.TranslateError(repo.db.WithContext(ctx).
 		Model(&model.RecipientMessageState{}).
 		Where("message_id = ? AND recipient = ?", messageID, recipientID).

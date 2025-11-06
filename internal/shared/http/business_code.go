@@ -15,6 +15,9 @@ const (
 	CodeInvalidParam
 	CodeInvalidToken
 	CodeNotBelongTo
+	CodeMaxReached
+	CodeInvalidRoom
+	CodeHasBeenDone
 )
 
 func (c BusinessCode) ToHTTPCode() int {
@@ -31,6 +34,12 @@ func (c BusinessCode) ToHTTPCode() int {
 		return http.StatusUnauthorized
 	case CodeNotBelongTo:
 		return http.StatusConflict
+	case CodeInvalidRoom:
+		return http.StatusNotAcceptable
+	case CodeMaxReached:
+		return http.StatusBadRequest
+	case CodeHasBeenDone:
+		return http.StatusBadRequest
 	default:
 		return http.StatusInternalServerError
 	}
@@ -48,6 +57,12 @@ func (c BusinessCode) String() string {
 		return "request timeout"
 	case CodeNotBelongTo:
 		return "not belong to"
+	case CodeMaxReached:
+		return "reach max"
+	case CodeHasBeenDone:
+		return "has been done"
+	case CodeInvalidRoom:
+		return "invalid room"
 	default:
 		return "unknown error"
 	}

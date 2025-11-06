@@ -8,6 +8,8 @@ import (
 	"gorm.io/gorm"
 )
 
+//TODO 用gorm的Model来完全操作所有数据库操作
+
 type Message struct {
 	gorm.Model
 	ID      domain.MessageID `gorm:"primaryKey;type:char(36)"`

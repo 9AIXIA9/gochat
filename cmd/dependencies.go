@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"gochat/config"
 	authorizationUsecase "gochat/internal/authorization/application/usecase"
-	"gochat/internal/authorization/infrastructure/bcrypt"
 	"gochat/internal/authorization/infrastructure/crypto"
 	"gochat/internal/authorization/infrastructure/jwt"
 	authorizationConverter "gochat/internal/authorization/infrastructure/persistence/converter"
 	authorizationModel "gochat/internal/authorization/infrastructure/persistence/model"
 	authorizationRepository "gochat/internal/authorization/infrastructure/persistence/repository"
-	"gochat/internal/authorization/infrastructure/snowflake"
+	authorizationSnowflake "gochat/internal/authorization/infrastructure/snowflake"
 	authorizationUuid "gochat/internal/authorization/infrastructure/uuid"
 	chatUsecase "gochat/internal/chat/application/usecase"
 	messageConverter "gochat/internal/chat/infrastructure/persistence/converter"
@@ -19,6 +18,7 @@ import (
 	chatRepository "gochat/internal/chat/infrastructure/persistence/repository"
 	chatUuid "gochat/internal/chat/infrastructure/uuid"
 	"gochat/internal/delivery/kafka"
+	"gochat/internal/infrastructure/bcrypt"
 	"gochat/internal/infrastructure/canal"
 	"gochat/internal/infrastructure/godotenv"
 	gormutils "gochat/internal/infrastructure/gorm"
@@ -38,9 +38,12 @@ import (
 	notificationModel "gochat/internal/notification/infrastructure/persistence/model"
 	notificationRepository "gochat/internal/notification/infrastructure/persistence/repository"
 	notificationUuid "gochat/internal/notification/infrastructure/uuid"
+	socialUseCase "gochat/internal/social/application/usecase"
 	socialConverter "gochat/internal/social/infrastructure/persistence/converter"
 	socialModel "gochat/internal/social/infrastructure/persistence/model"
 	socialRepository "gochat/internal/social/infrastructure/persistence/repository"
+	socialSnowflake "gochat/internal/social/infrastructure/snowflake"
+	socialUuid "gochat/internal/social/infrastructure/uuid"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -54,6 +57,9 @@ type Dependencies struct {
 	parseAccessTokenUseCase   authorizationUsecase.ParseAccessTokenUseCase
 	sendPrivateMessageUseCase chatUsecase.SendPrivateMessageUseCase
 	sendRoomMessageUseCase    chatUsecase.SendRoomMessageUseCase
+	createRoomUseCase         socialUseCase.CreateRoomUseCase
+	joinRoomUseCase           socialUseCase.JoinRoomUseCase
+	leaveRoomUseCase          socialUseCase.LeaveRoomUseCase
 	validator                 *ginutils.Validator
 	redisClient               *redis.Client
 }
@@ -85,6 +91,7 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 			&chatModel.Message{},
 			&chatModel.RecipientMessageState{},
 			&socialModel.Room{},
+			&socialModel.RoomMember{},
 			&model.Event{},
 			&model.DeadLetter{},
 		); err != nil {
@@ -102,7 +109,7 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 		return nil, fmt.Errorf("validator initialize failed, err:%w", err)
 	}
 
-	numberGenerator, err := snowflake.NewNumberGenerator(appConfig.MachineNode)
+	numberGenerator, err := authorizationSnowflake.NewUserNumberGenerator(appConfig.MachineNode)
 	if err != nil {
 		return nil, fmt.Errorf("number generator initialize failed, err:%w", err)
 	}
@@ -133,6 +140,13 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 	messageIDGenerator := chatUuid.NewMessageIDGenerator()
 
 	mailIDGenerator := notificationUuid.NewMailIDGenerator()
+
+	roomIDGenerator := socialUuid.NewRoomIDGenerator()
+
+	roomNumberGenerator, err := socialSnowflake.NewRoomNumberGenerator(appConfig.MachineNode)
+	if err != nil {
+		return nil, err
+	}
 
 	kafkaPublisher, err := kafkautil.NewEventPublisher(appConfig.Kafka.Common, appConfig.Kafka.Producer, eventRepository, eventRepository)
 	if err != nil {
@@ -196,6 +210,28 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 		messageNotifier,
 	)
 
+	createRoomUseCase := socialUseCase.NewCreateRoomUseCase(
+		eventIDGenerator,
+		roomIDGenerator,
+		roomNumberGenerator,
+		hasher,
+		roomRepository,
+		eventRepository,
+	)
+	joinRoomUseCase := socialUseCase.NewJoinRoomUseCase(
+		eventIDGenerator,
+		eventRepository,
+		roomRepository,
+		hasher,
+		roomRepository,
+	)
+	leaveRoomUseCase := socialUseCase.NewLeaveRoomUseCase(
+		eventIDGenerator,
+		roomRepository,
+		roomRepository,
+		eventRepository,
+	)
+
 	kafkaSubscriber, err := kafka.NewSubscriber(
 		appConfig.Kafka.Common,
 		appConfig.Kafka.Consumer,
@@ -235,6 +271,9 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 		parseAccessTokenUseCase:   parseAccessTokenUseCase,
 		sendPrivateMessageUseCase: sendPrivateMessageUseCase,
 		sendRoomMessageUseCase:    sendRoomMessageUseCase,
+		createRoomUseCase:         createRoomUseCase,
+		joinRoomUseCase:           joinRoomUseCase,
+		leaveRoomUseCase:          leaveRoomUseCase,
 		validator:                 validator,
 		redisClient:               redisClient,
 	}, nil

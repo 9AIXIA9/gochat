@@ -15,7 +15,7 @@ type SendRoomMessageUseCase kernel.UseCase[*SendRoomMessageInput, *kernel.NoOutp
 
 type SendRoomMessageInput struct {
 	SenderID kernel.UserID
-	RoomID   domain.RoomID
+	RoomID   domain.RoomID //TODO 通过Number来指定接收者 而不是ID
 	Content  string
 }
 
@@ -54,7 +54,7 @@ func NewSendRoomMessageUseCase(
 }
 
 func (uc *sendRoomMessageUseCase) Execute(ctx context.Context, input *SendRoomMessageInput) (*kernel.NoOutput, error) {
-	members, err := uc.roomMembersFinder.FindByRoomID(ctx, input.RoomID)
+	members, err := uc.roomMembersFinder.FindMembersByRoomID(ctx, input.RoomID)
 	if err != nil {
 		return nil, err
 	}

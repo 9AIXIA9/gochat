@@ -12,8 +12,6 @@ import (
 	"gorm.io/gorm"
 )
 
-//TODO 移动回authorization模块
-
 var _ authorizationApplication.UserSaver = (*UserRepository)(nil)
 var _ authorizationApplication.UserFinder = (*UserRepository)(nil)
 var _ chatApplication.UserExister = (*UserRepository)(nil)

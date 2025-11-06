@@ -7,21 +7,21 @@ import (
 	"github.com/bwmarrin/snowflake"
 )
 
-var _ application.UserNumberGenerator = (*NumberGenerator)(nil)
+var _ application.UserNumberGenerator = (*UserNumberGenerator)(nil)
 
-type NumberGenerator struct {
+type UserNumberGenerator struct {
 	node *snowflake.Node
 }
 
-func NewNumberGenerator(machineNode int64) (*NumberGenerator, error) {
+func NewUserNumberGenerator(machineNode int64) (*UserNumberGenerator, error) {
 	node, err := snowflake.NewNode(machineNode)
 	if err != nil {
 		return nil, err
 	}
 
-	return &NumberGenerator{node: node}, nil
+	return &UserNumberGenerator{node: node}, nil
 }
 
-func (g *NumberGenerator) Generate() domain.UserNumber {
+func (g *UserNumberGenerator) Generate() domain.UserNumber {
 	return domain.UserNumber(g.node.Generate().String())
 }

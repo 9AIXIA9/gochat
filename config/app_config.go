@@ -2,10 +2,10 @@ package config
 
 import (
 	"fmt"
-	"gochat/internal/authorization/infrastructure/bcrypt"
 	"gochat/internal/authorization/infrastructure/crypto"
 	"gochat/internal/authorization/infrastructure/jwt"
 	"gochat/internal/delivery/http/middleware"
+	"gochat/internal/infrastructure/bcrypt"
 	"gochat/internal/infrastructure/canal"
 	"gochat/internal/infrastructure/gorm"
 	"gochat/internal/infrastructure/kafka"

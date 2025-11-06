@@ -15,7 +15,7 @@ type SendPrivateMessageUseCase kernel.UseCase[*SendPrivateMessageInput, *kernel.
 
 type SendPrivateMessageInput struct {
 	SenderID    kernel.UserID
-	RecipientID kernel.UserID
+	RecipientID kernel.UserID //TODO 通过Number来指定接收者 而不是ID
 	Content     string
 }
 

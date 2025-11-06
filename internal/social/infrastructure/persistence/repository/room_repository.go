@@ -6,6 +6,7 @@ import (
 	chatDomain "gochat/internal/chat/domain"
 	gormutils "gochat/internal/infrastructure/gorm"
 	"gochat/internal/shared/kernel"
+	socialApplication "gochat/internal/social/application"
 	"gochat/internal/social/domain"
 	"gochat/internal/social/infrastructure/persistence/model"
 
@@ -13,6 +14,10 @@ import (
 )
 
 var _ chatApplication.RoomMembersFinder = (*RoomRepository)(nil)
+var _ socialApplication.RoomFinder = (*RoomRepository)(nil)
+var _ socialApplication.RoomSaver = (*RoomRepository)(nil)
+var _ socialApplication.RoomJoiner = (*RoomRepository)(nil)
+var _ socialApplication.RoomLeaver = (*RoomRepository)(nil)
 
 type RoomRepository struct {
 	innerRepository *gormutils.Repository[model.Room, domain.Room]
@@ -23,7 +28,63 @@ func NewRoomRepository(db *gorm.DB, converter gormutils.GenericModelConverter[*m
 	return &RoomRepository{innerRepository: gormutils.NewRepository(db, converter), db: db}
 }
 
-func (repo *RoomRepository) FindByRoomID(_ context.Context, _ chatDomain.RoomID) ([]kernel.UserID, error) {
-	//TODO 还未实现
-	return []kernel.UserID{"019a4df2-d7c2-7a5d-8f9c-809077bd8a33", "019a51da-3844-7129-b89c-381faf9b3e88", "019a52d1-f9e0-7702-adff-2346d52745a2"}, nil
+func (repo *RoomRepository) Save(ctx context.Context, room *domain.Room) error {
+	return repo.innerRepository.Save(ctx, room)
+}
+
+func (repo *RoomRepository) FindByNumber(ctx context.Context, number domain.RoomNumber) (*domain.Room, error) {
+	room, err := repo.innerRepository.Find(ctx, gormutils.Where("number = ?", number))
+	if err != nil {
+		return nil, err
+	}
+	return room, nil
+}
+
+func (repo *RoomRepository) FindMembersByRoomID(ctx context.Context, id chatDomain.RoomID) ([]kernel.UserID, error) {
+	var models []model.RoomMember
+	if err := gormutils.TranslateError(repo.db.WithContext(ctx).
+		Where("room_id = ?", id).
+		Find(&models).Error); err != nil {
+		return nil, err
+	}
+
+	userIDs := make([]kernel.UserID, len(models))
+	for i, m := range models {
+		userIDs[i] = m.Member
+	}
+	return userIDs, nil
+}
+
+func (repo *RoomRepository) Join(ctx context.Context, roomID domain.RoomID, userID kernel.UserID) error {
+	return gormutils.TranslateError(repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&model.RoomMember{
+			RoomID: roomID,
+			Member: userID,
+		}).Error; err != nil {
+			return err
+		}
+
+		if err := tx.Model(&model.Room{}).Where("id = ?", roomID).UpdateColumn("member_count", gorm.Expr("member_count + ?", 1)).Error; err != nil {
+			return err
+		}
+		return nil
+	}))
+}
+
+func (repo *RoomRepository) Leave(ctx context.Context, roomID domain.RoomID, userID kernel.UserID) error {
+	return gormutils.TranslateError(repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		result := tx.Where("room_id = ? AND member = ?", roomID, userID).Delete(&model.RoomMember{})
+		if err := result.Error; err != nil {
+			return gormutils.TranslateError(err)
+		}
+
+		if result.RowsAffected == 0 {
+			return nil
+		}
+
+		if err := tx.Model(&model.Room{}).Where("id = ?", roomID).UpdateColumn("member_count", gorm.Expr("member_count - ?", 1)).Error; err != nil {
+			return err
+		}
+		return nil
+	}))
 }

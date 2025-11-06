@@ -7,5 +7,5 @@ import (
 )
 
 type RoomMembersFinder interface {
-	FindByRoomID(ctx context.Context, roomID domain.RoomID) ([]kernel.UserID, error)
+	FindMembersByRoomID(ctx context.Context, roomID domain.RoomID) ([]kernel.UserID, error)
 }
