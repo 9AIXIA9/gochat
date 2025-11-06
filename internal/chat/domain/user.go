@@ -21,8 +21,9 @@ func (n UserNumber) Validate() error {
 }
 
 type User struct {
-	id               kernel.UserID
-	number           UserNumber
+	id     kernel.UserID
+	number UserNumber
+
 	messagesReceived []*Message
 
 	eventManager *event.Manager
@@ -42,7 +43,7 @@ func (u *User) ReceiveMessage(id MessageID, sender kernel.UserID, content string
 
 	u.messagesReceived = append(u.messagesReceived, state)
 
-	ev, err := NewMessageReceivedEvent(generator.Generate(), id, u.id, sender, content, sentAt)
+	ev, err := NewPrivateMessageReceivedEvent(generator.Generate(), id, u.id, sender, content, sentAt)
 	if err != nil {
 		return err
 	}

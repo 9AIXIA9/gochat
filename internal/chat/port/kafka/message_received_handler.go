@@ -7,20 +7,20 @@ import (
 	"gochat/internal/shared/event"
 )
 
-func NewMessageReceivedHandler(eventIDGenerator event.IDGenerator, publisher event.Publisher) event.Handler {
+func NewPrivateMessageReceivedHandler(eventIDGenerator event.IDGenerator, publisher event.Publisher) event.Handler {
 	return func(ctx context.Context, e event.Event) error {
-		messageReceivedEvent, err := domain.ToMessageReceivedEvent(e)
+		privateMessageReceivedEvent, err := domain.ToPrivateMessageReceivedEvent(e)
 		if err != nil {
 			return err
 		}
 
 		messageNotificationRequestedEvent, err := notificationDomain.NewMessageNotificationRequestedEvent(
 			eventIDGenerator.Generate(),
-			notificationDomain.MessageID(messageReceivedEvent.MessageID()),
-			messageReceivedEvent.Sender(),
-			messageReceivedEvent.Recipient(),
-			messageReceivedEvent.Content(),
-			messageReceivedEvent.SentAt(),
+			notificationDomain.MessageID(privateMessageReceivedEvent.MessageID()),
+			privateMessageReceivedEvent.Sender(),
+			privateMessageReceivedEvent.Recipient(),
+			privateMessageReceivedEvent.Content(),
+			privateMessageReceivedEvent.SentAt(),
 		)
 		if err != nil {
 			return err

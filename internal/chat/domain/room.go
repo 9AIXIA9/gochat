@@ -27,12 +27,16 @@ func (n RoomNumber) Validate() error {
 }
 
 type Room struct {
-	id      RoomID
-	number  RoomNumber
-	members []*User
+	id     RoomID
+	number RoomNumber
+
+	members          []kernel.UserID
+	messagesReceived []*Message
+
+	eventManager *event.Manager
 }
 
-func NewRoom(id RoomID, number RoomNumber, members []*User) *Room {
+func NewRoom(id RoomID, number RoomNumber, members []kernel.UserID) *Room {
 	return &Room{
 		id:      id,
 		number:  number,
@@ -45,19 +49,19 @@ func (r *Room) ReceiveMessage(id MessageID, sender kernel.UserID, content string
 		return myErrors.ErrNotBelongTo
 	}
 
-	for _, member := range r.members {
-		if member.id != sender {
-			if err := member.ReceiveMessage(id, sender, content, time.Now().UTC(), generator); err != nil {
-				return err
-			}
-		}
+	r.messagesReceived = append(r.messagesReceived, NewMessage(id, MessageStateReceived, sender, content, time.Now().UTC()))
+
+	ev, err := NewRoomMessageReceivedEvent(generator.Generate(), id, r.id, sender, r.members, content, time.Now().UTC())
+	if err != nil {
+		return err
 	}
+	r.eventManager.RecordEvent(ev)
 	return nil
 }
 
 func (r *Room) IsMember(id kernel.UserID) bool {
 	for _, member := range r.members {
-		if member.id == id {
+		if member == id {
 			return true
 		}
 	}
@@ -72,14 +76,14 @@ func (r *Room) Number() RoomNumber {
 	return r.number
 }
 
-func (r *Room) Members() []*User {
+func (r *Room) MessagesReceived() []*Message {
+	return r.messagesReceived
+}
+
+func (r *Room) Members() []kernel.UserID {
 	return r.members
 }
 
 func (r *Room) GetEvents() []event.Event {
-	var events []event.Event
-	for _, member := range r.members {
-		events = append(events, member.GetEvents()...)
-	}
-	return events
+	return r.eventManager.GetEvents()
 }

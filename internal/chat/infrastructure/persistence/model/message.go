@@ -12,12 +12,11 @@ type Message struct {
 	ID      domain.MessageID `gorm:"primaryKey;type:char(36)"`
 	Content string           `gorm:"type:text;not null"`
 
-	Sender      kernel.UserID `gorm:"not null;index"`
-	RecipientID kernel.UserID `gorm:"not null;index"`
+	SenderID kernel.UserID `gorm:"type:char(36);not null;index"`
+	Sender   *User         `gorm:"foreignKey:SenderID;references:ID"`
 
-	// 关联到发送者与接收者
-	SenderUser *User `gorm:"foreignKey:Sender;references:ID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
-	Recipient  *User `gorm:"foreignKey:RecipientID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
+	// “用户+消息”组合，便于取状态
+	Combos []*MessageUser `gorm:"foreignKey:MessageID;references:ID"`
 }
 
 func (m *Message) TableName() string {

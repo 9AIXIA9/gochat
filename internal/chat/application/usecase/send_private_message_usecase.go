@@ -34,7 +34,7 @@ type sendPrivateMessageUseCase struct {
 	messageIDGenerator    application.MessageIDGenerator
 	eventIDGenerator      event.IDGenerator
 	userFinder            application.UserFinder
-	messageSaver          application.MessageSaver
+	messageSaver          application.PrivateMessageSaver
 	unpublishedEventSaver event.UnpublishedSaver
 }
 
@@ -42,7 +42,7 @@ func NewSendPrivateMessageUseCase(
 	messageIDGenerator application.MessageIDGenerator,
 	eventIDGenerator event.IDGenerator,
 	userFinder application.UserFinder,
-	messageSaver application.MessageSaver,
+	messageSaver application.PrivateMessageSaver,
 	unpublishedEventSaver event.UnpublishedSaver,
 ) SendPrivateMessageUseCase {
 	return &sendPrivateMessageUseCase{
@@ -64,7 +64,7 @@ func (uc *sendPrivateMessageUseCase) Execute(ctx context.Context, input *SendPri
 		return nil, err
 	}
 
-	if err := uc.messageSaver.Saves(ctx, user.MessagesReceived()); err != nil {
+	if err := uc.messageSaver.SavePrivateMessages(ctx, user.ID(), user.MessagesReceived()); err != nil {
 		return nil, err
 	}
 

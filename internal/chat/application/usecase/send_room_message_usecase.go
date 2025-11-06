@@ -33,7 +33,7 @@ type sendRoomMessageUseCase struct {
 	messageIDGenerator    application.MessageIDGenerator
 	eventIDGenerator      event.IDGenerator
 	roomFinder            application.RoomFinder
-	messageSaver          application.MessageSaver
+	messageSaver          application.RoomMessageSaver
 	unpublishedEventSaver event.UnpublishedSaver
 }
 
@@ -41,7 +41,7 @@ func NewSendRoomMessageUseCase(
 	messageIDGenerator application.MessageIDGenerator,
 	eventIDGenerator event.IDGenerator,
 	roomFinder application.RoomFinder,
-	messageSaver application.MessageSaver,
+	messageSaver application.RoomMessageSaver,
 	unpublishedEventSaver event.UnpublishedSaver,
 ) SendRoomMessageUseCase {
 	return &sendRoomMessageUseCase{
@@ -63,14 +63,11 @@ func (uc *sendRoomMessageUseCase) Execute(ctx context.Context, input *SendRoomMe
 		return nil, err
 	}
 
-	for _, user := range room.Members() {
-		if err := uc.messageSaver.Saves(ctx, user.MessagesReceived()); err != nil {
-			return nil, err
-		}
+	if err := uc.messageSaver.SaveRoomMessages(ctx, room.ID(), room.MessagesReceived()); err != nil {
+		return nil, err
 	}
 
-	events := room.GetEvents()
-	if err := uc.unpublishedEventSaver.Saves(ctx, events); err != nil {
+	if err := uc.unpublishedEventSaver.Saves(ctx, room.GetEvents()); err != nil {
 		return nil, err
 	}
 	return nil, nil

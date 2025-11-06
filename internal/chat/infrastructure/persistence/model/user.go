@@ -12,11 +12,14 @@ type User struct {
 	ID     kernel.UserID     `gorm:"primaryKey;type:char(36)"`
 	Number domain.UserNumber `gorm:"type:varchar(20);uniqueIndex;not null"`
 
-	// 收到的消息（一对多）
-	MessagesReceived []*Message `gorm:"foreignKey:RecipientID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
+	// 用户 <-> 房间 多对多
+	Rooms []*Room `gorm:"many2many:gochat.chat_room_members;foreignKey:ID;joinForeignKey:UserID;references:ID;joinReferences:RoomID"`
 
-	// 加入的房间（多对多）
-	Rooms []Room `gorm:"many2many:room_members;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	// 用户 <-> 发送的消息 一对多
+	MessageSent []*Message `gorm:"foreignKey:SenderID;references:ID"`
+
+	// “用户+接收消息”组合（用于关联状态）
+	MessageLinks []*MessageUser `gorm:"foreignKey:UserID;references:ID"`
 }
 
 func (u *User) TableName() string {

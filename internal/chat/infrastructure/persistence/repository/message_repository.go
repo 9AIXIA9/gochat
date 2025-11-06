@@ -9,7 +9,8 @@ import (
 	"gorm.io/gorm"
 )
 
-var _ application.MessageSaver = (*MessageRepository)(nil)
+var _ application.PrivateMessageSaver = (*MessageRepository)(nil)
+var _ application.RoomMessageSaver = (*MessageRepository)(nil)
 var _ application.MessageStateUpdater = (*MessageRepository)(nil)
 
 type MessageRepository struct {
@@ -20,12 +21,17 @@ func NewMessageRepository(db *gorm.DB) *MessageRepository {
 	return &MessageRepository{db: db}
 }
 
-func (m *MessageRepository) Saves(ctx context.Context, message []*domain.Message) error {
+func (repo *MessageRepository) SavePrivateMessages(ctx context.Context, recipient kernel.UserID, message []*domain.Message) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (m *MessageRepository) Update(ctx context.Context, messageID domain.MessageID, recipientID kernel.UserID, newState domain.MessageState) error {
+func (repo *MessageRepository) SaveRoomMessages(ctx context.Context, roomID domain.RoomID, message []*domain.Message) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (repo *MessageRepository) Update(ctx context.Context, messageID domain.MessageID, recipientID kernel.UserID, newState domain.MessageState) error {
 	//TODO implement me
 	panic("implement me")
 }

@@ -90,6 +90,7 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 			&chatModel.User{},
 			&chatModel.Room{},
 			&chatModel.Message{},
+			&chatModel.MessageUser{},
 			&socialModel.Room{},
 			&socialModel.RoomMember{},
 			&model.Event{},
