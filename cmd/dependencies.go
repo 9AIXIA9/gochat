@@ -170,6 +170,7 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 		eventIDGenerator,
 		hasher,
 		userRepository,
+		userRepository,
 		refreshTokenRepository,
 		accessTokenManager,
 		refreshTokenGenerator,

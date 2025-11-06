@@ -31,6 +31,7 @@ type loginUseCase struct {
 	eventIDGenerator      event.IDGenerator
 	comparator            application.Comparator
 	userFinder            application.UserFinder
+	userUpdater           application.UserUpdater
 	refreshTokenSaver     application.RefreshTokenSaver
 	accessTokenGenerator  application.AccessTokenGenerator
 	refreshTokenGenerator application.RefreshTokenGenerator
@@ -41,6 +42,7 @@ func NewLoginUseCase(
 	idGenerator event.IDGenerator,
 	comparator application.Comparator,
 	userFinder application.UserFinder,
+	userUpdater application.UserUpdater,
 	refreshTokenSaver application.RefreshTokenSaver,
 	accessTokenGenerator application.AccessTokenGenerator,
 	refreshTokenGenerator application.RefreshTokenGenerator,
@@ -50,6 +52,7 @@ func NewLoginUseCase(
 		eventIDGenerator:      idGenerator,
 		comparator:            comparator,
 		userFinder:            userFinder,
+		userUpdater:           userUpdater,
 		refreshTokenSaver:     refreshTokenSaver,
 		accessTokenGenerator:  accessTokenGenerator,
 		refreshTokenGenerator: refreshTokenGenerator,
@@ -82,6 +85,10 @@ func (uc *loginUseCase) Execute(ctx context.Context, input *LoginInput) (*LoginO
 	refreshToken := domain.CreateRefreshToken(token, user.ID())
 
 	if err := uc.refreshTokenSaver.Save(ctx, refreshToken); err != nil {
+		return nil, err
+	}
+
+	if err := uc.userUpdater.UpdateLoggedInAt(ctx, user.ID(), user.LastLoggedInAt()); err != nil {
 		return nil, err
 	}
 

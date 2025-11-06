@@ -8,12 +8,14 @@ import (
 	chatApplication "gochat/internal/chat/application"
 	gormutils "gochat/internal/infrastructure/gorm"
 	"gochat/internal/shared/kernel"
+	"time"
 
 	"gorm.io/gorm"
 )
 
 var _ authorizationApplication.UserSaver = (*UserRepository)(nil)
 var _ authorizationApplication.UserFinder = (*UserRepository)(nil)
+var _ authorizationApplication.UserUpdater = (*UserRepository)(nil)
 var _ chatApplication.UserExister = (*UserRepository)(nil)
 
 type UserRepository struct {
@@ -31,6 +33,10 @@ func (repo *UserRepository) Save(ctx context.Context, user *domain.User) error {
 
 func (repo *UserRepository) FindByNumber(ctx context.Context, number domain.UserNumber) (*domain.User, error) {
 	return repo.innerRepository.Find(ctx, gormutils.Where("number = ?", number))
+}
+
+func (repo *UserRepository) UpdateLoggedInAt(ctx context.Context, userID kernel.UserID, time time.Time) error {
+	return repo.innerRepository.Update(ctx, "id = ?", "last_logged_in_at", time, userID)
 }
 
 func (repo *UserRepository) ExistsByID(ctx context.Context, userID kernel.UserID) (bool, error) {
