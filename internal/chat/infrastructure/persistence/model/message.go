@@ -8,16 +8,14 @@ import (
 	"gorm.io/gorm"
 )
 
-//TODO 用gorm的Model来完全操作所有数据库操作
-
 type Message struct {
 	gorm.Model
 	ID      domain.MessageID `gorm:"primaryKey;type:char(36)"`
-	Sender  kernel.UserID
-	Content string
-	SentAt  time.Time
-	// 一对多关系：一条消息对应多个接收状态
-	States []*RecipientMessageState `gorm:"foreignKey:MessageID;references:ID"`
+	Content string           `gorm:"type:text;not null"`
+	SentAt  time.Time        `gorm:"not null"`
+
+	Sender      kernel.UserID `gorm:"not null"`
+	RecipientID kernel.UserID `gorm:"foreignKey:RecipientID"`
 }
 
 func (m *Message) TableName() string {

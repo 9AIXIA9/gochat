@@ -2,9 +2,9 @@ package application
 
 import (
 	"context"
-	"gochat/internal/shared/kernel"
+	"gochat/internal/chat/domain"
 )
 
-type UserExister interface {
-	ExistsByID(ctx context.Context, userID kernel.UserID) (bool, error)
+type UserFinder interface {
+	FindByNumber(ctx context.Context, number domain.UserNumber) (*domain.User, error)
 }

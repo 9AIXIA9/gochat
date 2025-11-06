@@ -3,6 +3,7 @@ package http
 import (
 	"errors"
 	"gochat/internal/chat/application/usecase"
+	"gochat/internal/chat/domain"
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/infrastructure/validator"
 	myErrors "gochat/internal/shared/errors"
@@ -15,9 +16,9 @@ import (
 )
 
 type SendPrivateMessageRequest struct {
-	SenderID    kernel.UserID `json:"-" validate:"required"`
-	RecipientID kernel.UserID `json:"recipient_id" validate:"required"`
-	Content     string        `json:"content" validate:"required,max=1000"`
+	SenderID        kernel.UserID     `json:"-" validate:"required"`
+	RecipientNumber domain.UserNumber `json:"recipient_number" validate:"required"`
+	Content         string            `json:"content" validate:"required,max=1000"`
 }
 
 func (r *SendPrivateMessageRequest) Bind(ginContext *gin.Context) error {
@@ -32,9 +33,9 @@ func NewSendPrivateMessageHandler(useCase usecase.SendPrivateMessageUseCase, val
 		validator,
 		func(request *SendPrivateMessageRequest) *usecase.SendPrivateMessageInput {
 			return &usecase.SendPrivateMessageInput{
-				SenderID:    request.SenderID,
-				RecipientID: request.RecipientID,
-				Content:     request.Content,
+				SenderID:        request.SenderID,
+				RecipientNumber: request.RecipientNumber,
+				Content:         request.Content,
 			}
 		},
 		func(ginContext *gin.Context, _ *kernel.NoOutput) {

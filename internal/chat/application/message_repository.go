@@ -7,7 +7,7 @@ import (
 )
 
 type MessageSaver interface {
-	Saves(ctx context.Context, messages []*domain.Message) error
+	Saves(ctx context.Context, message []*domain.Message) error
 }
 
 type MessageStateUpdater interface {

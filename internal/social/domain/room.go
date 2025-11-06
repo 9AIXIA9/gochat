@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+//TODO 不要单独使用ID来表示实体 使用对象表示
+
 type RoomID kernel.ID
 
 func (i RoomID) String() string {
@@ -68,10 +70,8 @@ func (r *Room) Join(userID kernel.UserID, generator event.IDGenerator) error {
 		return myErrors.ErrExceedMaxValue
 	}
 
-	for _, member := range r.members {
-		if member == userID {
-			return myErrors.ErrHasBeenDone
-		}
+	if r.IsMember(userID) {
+		return myErrors.ErrHasBeenDone
 	}
 
 	r.members = append(r.members, userID)
@@ -106,6 +106,15 @@ func (r *Room) Leave(userID kernel.UserID, generator event.IDGenerator) error {
 		r.eventManager.RecordEvent(ev)
 	}
 	return nil
+}
+
+func (r *Room) IsMember(id kernel.UserID) bool {
+	for _, member := range r.members {
+		if member == id {
+			return true
+		}
+	}
+	return false
 }
 
 func (r *Room) ID() RoomID {

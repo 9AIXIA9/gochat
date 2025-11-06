@@ -7,6 +7,7 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
+	"time"
 )
 
 var _ SendPrivateMessageUseCase = (*sendPrivateMessageUseCase)(nil)
@@ -14,16 +15,16 @@ var _ SendPrivateMessageUseCase = (*sendPrivateMessageUseCase)(nil)
 type SendPrivateMessageUseCase kernel.UseCase[*SendPrivateMessageInput, *kernel.NoOutput]
 
 type SendPrivateMessageInput struct {
-	SenderID    kernel.UserID
-	RecipientID kernel.UserID //TODO 通过Number来指定接收者 而不是ID
-	Content     string
+	SenderID        kernel.UserID
+	RecipientNumber domain.UserNumber
+	Content         string
 }
 
 func (i *SendPrivateMessageInput) Validate() error {
 	if len(i.Content) == 0 {
 		return myErrors.ErrEmptyInput
 	}
-	if len(i.SenderID) == 0 || len(i.RecipientID) == 0 {
+	if len(i.SenderID) == 0 || len(i.RecipientNumber) == 0 {
 		return myErrors.ErrEmptyInput
 	}
 	return nil
@@ -32,7 +33,7 @@ func (i *SendPrivateMessageInput) Validate() error {
 type sendPrivateMessageUseCase struct {
 	messageIDGenerator    application.MessageIDGenerator
 	eventIDGenerator      event.IDGenerator
-	userExister           application.UserExister
+	userFinder            application.UserFinder
 	messageSaver          application.MessageSaver
 	unpublishedEventSaver event.UnpublishedSaver
 }
@@ -40,33 +41,30 @@ type sendPrivateMessageUseCase struct {
 func NewSendPrivateMessageUseCase(
 	messageIDGenerator application.MessageIDGenerator,
 	eventIDGenerator event.IDGenerator,
-	userExister application.UserExister,
+	userFinder application.UserFinder,
 	messageSaver application.MessageSaver,
 	unpublishedEventSaver event.UnpublishedSaver,
 ) SendPrivateMessageUseCase {
 	return &sendPrivateMessageUseCase{
 		messageIDGenerator:    messageIDGenerator,
 		eventIDGenerator:      eventIDGenerator,
-		userExister:           userExister,
+		userFinder:            userFinder,
 		messageSaver:          messageSaver,
 		unpublishedEventSaver: unpublishedEventSaver,
 	}
 }
 
 func (uc *sendPrivateMessageUseCase) Execute(ctx context.Context, input *SendPrivateMessageInput) (*kernel.NoOutput, error) {
-	if ok, err := uc.userExister.ExistsByID(ctx, input.RecipientID); err != nil {
-		return nil, err
-	} else if !ok {
-		return nil, myErrors.ErrNotFound
-	}
-
-	user := domain.NewUser(input.SenderID, make([]*domain.Message, 0, 1))
-
-	if err := user.SendMessage(uc.messageIDGenerator.Generate(), input.RecipientID, input.Content, uc.eventIDGenerator); err != nil {
+	user, err := uc.userFinder.FindByNumber(ctx, input.RecipientNumber)
+	if err != nil {
 		return nil, err
 	}
 
-	if err := uc.messageSaver.Saves(ctx, user.Messages()); err != nil {
+	if err := user.ReceiveMessage(uc.messageIDGenerator.Generate(), input.SenderID, input.Content, time.Now().UTC(), uc.eventIDGenerator); err != nil {
+		return nil, err
+	}
+
+	if err := uc.messageSaver.Saves(ctx, user.MessagesReceived()); err != nil {
 		return nil, err
 	}
 

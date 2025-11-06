@@ -2,22 +2,19 @@ package repository
 
 import (
 	"context"
-	chatApplication "gochat/internal/chat/application"
-	chatDomain "gochat/internal/chat/domain"
 	gormutils "gochat/internal/infrastructure/gorm"
 	"gochat/internal/shared/kernel"
-	socialApplication "gochat/internal/social/application"
+	"gochat/internal/social/application"
 	"gochat/internal/social/domain"
 	"gochat/internal/social/infrastructure/persistence/model"
 
 	"gorm.io/gorm"
 )
 
-var _ chatApplication.RoomMembersFinder = (*RoomRepository)(nil)
-var _ socialApplication.RoomFinder = (*RoomRepository)(nil)
-var _ socialApplication.RoomSaver = (*RoomRepository)(nil)
-var _ socialApplication.RoomJoiner = (*RoomRepository)(nil)
-var _ socialApplication.RoomLeaver = (*RoomRepository)(nil)
+var _ application.RoomFinder = (*RoomRepository)(nil)
+var _ application.RoomSaver = (*RoomRepository)(nil)
+var _ application.RoomJoiner = (*RoomRepository)(nil)
+var _ application.RoomLeaver = (*RoomRepository)(nil)
 
 type RoomRepository struct {
 	innerRepository *gormutils.Repository[model.Room, domain.Room]
@@ -38,21 +35,6 @@ func (repo *RoomRepository) FindByNumber(ctx context.Context, number domain.Room
 		return nil, err
 	}
 	return room, nil
-}
-
-func (repo *RoomRepository) FindMembersByRoomID(ctx context.Context, id chatDomain.RoomID) ([]kernel.UserID, error) {
-	var models []model.RoomMember
-	if err := gormutils.TranslateError(repo.db.WithContext(ctx).
-		Where("room_id = ?", id).
-		Find(&models).Error); err != nil {
-		return nil, err
-	}
-
-	userIDs := make([]kernel.UserID, len(models))
-	for i, m := range models {
-		userIDs[i] = m.Member
-	}
-	return userIDs, nil
 }
 
 func (repo *RoomRepository) Join(ctx context.Context, roomID domain.RoomID, userID kernel.UserID) error {

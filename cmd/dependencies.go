@@ -13,7 +13,6 @@ import (
 	authorizationSnowflake "gochat/internal/authorization/infrastructure/snowflake"
 	authorizationUuid "gochat/internal/authorization/infrastructure/uuid"
 	chatUsecase "gochat/internal/chat/application/usecase"
-	messageConverter "gochat/internal/chat/infrastructure/persistence/converter"
 	chatModel "gochat/internal/chat/infrastructure/persistence/model"
 	chatRepository "gochat/internal/chat/infrastructure/persistence/repository"
 	chatUuid "gochat/internal/chat/infrastructure/uuid"
@@ -88,8 +87,9 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 			mysqlDatabase,
 			&authorizationModel.User{},
 			&notificationModel.Mail{},
+			&chatModel.User{},
+			&chatModel.Room{},
 			&chatModel.Message{},
-			&chatModel.RecipientMessageState{},
 			&socialModel.Room{},
 			&socialModel.RoomMember{},
 			&model.Event{},
@@ -121,14 +121,16 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 
 	eventRepository := repository.NewEventRepository(mysqlDatabase, &converter.StandardEventConverter{})
 
-	userRepository := authorizationRepository.NewUserRepository(mysqlDatabase, &authorizationConverter.UserConverter{})
-	refreshTokenRepository := authorizationRepository.NewRefreshTokenRepository(redisClient, &authorizationConverter.RefreshTokenConverter{})
+	authorizationUserRepository := authorizationRepository.NewUserRepository(mysqlDatabase, &authorizationConverter.UserConverter{})
+	authorizationRefreshTokenRepository := authorizationRepository.NewRefreshTokenRepository(redisClient, &authorizationConverter.RefreshTokenConverter{})
 
-	messageRepository := chatRepository.NewMessageRepository(mysqlDatabase, &messageConverter.MessageConverter{})
+	chatUserRepository := chatRepository.NewUserRepository(mysqlDatabase)
+	chatRoomRepository := chatRepository.NewRoomRepository(mysqlDatabase)
+	chatMessageRepository := chatRepository.NewMessageRepository(mysqlDatabase)
 
-	roomRepository := socialRepository.NewRoomRepository(mysqlDatabase, &socialConverter.RoomConverter{})
+	socialRoomRepository := socialRepository.NewRoomRepository(mysqlDatabase, &socialConverter.RoomConverter{})
 
-	mailRepository := notificationRepository.NewMailRepository(mysqlDatabase, &notificationConverter.MailConverter{})
+	notificationMailRepository := notificationRepository.NewMailRepository(mysqlDatabase, &notificationConverter.MailConverter{})
 
 	accessTokenManager := jwt.NewAccessTokenManager(appConfig.AccessToken)
 	refreshTokenGenerator := crypto.NewRefreshTokenGenerator(appConfig.RefreshToken)
@@ -163,22 +165,22 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 		userIDGenerator,
 		numberGenerator,
 		hasher,
-		userRepository,
+		authorizationUserRepository,
 		eventRepository,
 	)
 	loginUseCase := authorizationUsecase.NewLoginUseCase(
 		eventIDGenerator,
 		hasher,
-		userRepository,
-		userRepository,
-		refreshTokenRepository,
+		authorizationUserRepository,
+		authorizationUserRepository,
+		authorizationRefreshTokenRepository,
 		accessTokenManager,
 		refreshTokenGenerator,
 		eventRepository,
 	)
 	refreshAccessTokenUseCase := authorizationUsecase.NewRefreshAccessTokenUseCase(
-		refreshTokenRepository,
-		refreshTokenRepository,
+		authorizationRefreshTokenRepository,
+		authorizationRefreshTokenRepository,
 		accessTokenManager,
 		refreshTokenGenerator,
 	)
@@ -187,22 +189,22 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 	sendPrivateMessageUseCase := chatUsecase.NewSendPrivateMessageUseCase(
 		messageIDGenerator,
 		eventIDGenerator,
-		userRepository,
-		messageRepository,
+		chatUserRepository,
+		chatMessageRepository,
 		eventRepository,
 	)
 	sendRoomMessageUseCase := chatUsecase.NewSendRoomMessageUseCase(
 		messageIDGenerator,
 		eventIDGenerator,
-		roomRepository,
-		messageRepository,
+		chatRoomRepository,
+		chatMessageRepository,
 		eventRepository,
 	)
-	updateMessageStateUseCase := chatUsecase.NewUpdateMessageStateUseCase(messageRepository)
+	updateMessageStateUseCase := chatUsecase.NewUpdateMessageStateUseCase(chatMessageRepository)
 
 	sendEmailUseCase := notificationUsecase.NewSendEmailUseCase(
 		emailNotifier,
-		mailRepository,
+		notificationMailRepository,
 		mailIDGenerator,
 	)
 
@@ -216,20 +218,20 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 		roomIDGenerator,
 		roomNumberGenerator,
 		hasher,
-		roomRepository,
+		socialRoomRepository,
 		eventRepository,
 	)
 	joinRoomUseCase := socialUseCase.NewJoinRoomUseCase(
 		eventIDGenerator,
 		eventRepository,
-		roomRepository,
+		socialRoomRepository,
 		hasher,
-		roomRepository,
+		socialRoomRepository,
 	)
 	leaveRoomUseCase := socialUseCase.NewLeaveRoomUseCase(
 		eventIDGenerator,
-		roomRepository,
-		roomRepository,
+		socialRoomRepository,
+		socialRoomRepository,
 		eventRepository,
 	)
 

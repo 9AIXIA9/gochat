@@ -133,7 +133,7 @@ func (p *EventPublisher) processSendingResponse() {
 				continue
 			}
 
-			// 成功：优先用 Opaque 中的事件 ID 标记已发布
+			// 成功：优先用 Opaque 中的事件 MessageID 标记已发布
 			if e, ok := m.Opaque.(event.Event); ok {
 				if err := p.publishedMarker.MarkPublished(context.Background(), e.ID()); err != nil {
 					zap.L().Error("mark published failed", zap.Error(err), zap.String("event_id", e.ID().String()))

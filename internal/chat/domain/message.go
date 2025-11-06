@@ -13,30 +13,22 @@ func (i MessageID) String() string {
 
 type Message struct {
 	id      MessageID
+	state   MessageState
 	sender  kernel.UserID
 	content string
 	sentAt  time.Time
-	states  []*RecipientMessageState
 }
 
-func NewMessage(
-	id MessageID,
-	sender kernel.UserID,
-	content string,
-	sentAt time.Time,
-	states []*RecipientMessageState,
-) *Message {
-	return &Message{
-		id:      id,
-		sender:  sender,
-		content: content,
-		sentAt:  sentAt,
-		states:  states,
-	}
+func NewMessage(id MessageID, state MessageState, sender kernel.UserID, content string, sentAt time.Time) *Message {
+	return &Message{id: id, state: state, sender: sender, content: content, sentAt: sentAt}
 }
 
 func (m *Message) ID() MessageID {
 	return m.id
+}
+
+func (m *Message) State() MessageState {
+	return m.state
 }
 
 func (m *Message) Sender() kernel.UserID {
@@ -49,16 +41,4 @@ func (m *Message) Content() string {
 
 func (m *Message) SentAt() time.Time {
 	return m.sentAt
-}
-
-func (m *Message) States() []*RecipientMessageState {
-	return m.states
-}
-
-func (m *Message) Recipients() []kernel.UserID {
-	recipients := make([]kernel.UserID, 0, len(m.states))
-	for _, state := range m.states {
-		recipients = append(recipients, state.recipient)
-	}
-	return recipients
 }
