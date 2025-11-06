@@ -1,8 +1,8 @@
 package model
 
 type DeadLetter struct {
-	*Event
-	Reason string
+	*Event `gorm:"embedded"`
+	Reason string `gorm:"type:text;not null"`
 }
 
 func NewDeadLetter(event *Event, reason error) *DeadLetter {

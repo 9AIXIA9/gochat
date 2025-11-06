@@ -10,13 +10,13 @@ import (
 type User struct {
 	gorm.Model
 	ID     kernel.UserID     `gorm:"primaryKey;type:char(36)"`
-	Number domain.UserNumber `gorm:"type:varchar(20);uniqueIndex"`
+	Number domain.UserNumber `gorm:"type:varchar(20);uniqueIndex;not null"`
 
-	// 发送的消息（一对多）
-	MessagesReceived []*Message `gorm:"foreignKey:RecipientID"`
+	// 收到的消息（一对多）
+	MessagesReceived []*Message `gorm:"foreignKey:RecipientID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT"`
 
 	// 加入的房间（多对多）
-	Rooms []Room `gorm:"many2many:room_members;"`
+	Rooms []Room `gorm:"many2many:room_members;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 func (u *User) TableName() string {

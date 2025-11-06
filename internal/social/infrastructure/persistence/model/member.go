@@ -9,10 +9,10 @@ import (
 
 type RoomMember struct {
 	gorm.Model
-	RoomID domain.RoomID `gorm:"uniqueIndex:idx_room_member;type:char(36)"`
-	Member kernel.UserID `gorm:"uniqueIndex:idx_room_member;type:char(36)"`
+	RoomID domain.RoomID `gorm:"uniqueIndex:idx_room_member;type:char(36);not null"`
+	Member kernel.UserID `gorm:"uniqueIndex:idx_room_member;type:char(36);not null"`
 
-	Room *Room `gorm:"foreignKey:RoomID;references:ID"`
+	Room *Room `gorm:"foreignKey:RoomID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
 
 func (m *RoomMember) TableName() string {

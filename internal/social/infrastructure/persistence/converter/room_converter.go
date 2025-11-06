@@ -25,14 +25,15 @@ func (c *RoomConverter) ToModel(room *domain.Room) *model.Room {
 	}
 
 	return &model.Room{
-		Model:             gorm.Model{},
+		Model: gorm.Model{
+			CreatedAt: room.CreatedAt(),
+		},
 		ID:                room.ID(),
 		Owner:             room.Owner(),
 		Number:            room.Number(),
 		PasswordEncrypted: room.PasswordEncrypted(),
 		MemberCount:       room.MemberCount(),
 		MaxMemberCount:    room.MaxMemberCount(),
-		CreatedAt:         room.CreatedAt(),
 		Members:           members,
 	}
 }
