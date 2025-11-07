@@ -10,6 +10,10 @@ type MessageUser struct {
 	MessageID domain.MessageID    `gorm:"primaryKey;type:char(36)"`
 	UserID    kernel.UserID       `gorm:"primaryKey;type:char(36)"`
 	State     domain.MessageState `gorm:"type:varchar(20);not null;index"`
+
+	// 关联
+	Message *Message `gorm:"foreignKey:MessageID;references:ID"`
+	User    *User    `gorm:"foreignKey:UserID;references:ID"`
 }
 
 func (MessageUser) TableName() string {

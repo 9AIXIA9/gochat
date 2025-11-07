@@ -29,11 +29,11 @@ type User struct {
 	eventManager *event.Manager
 }
 
-func NewUser(id kernel.UserID, number UserNumber, messages []*Message) *User {
+func NewUser(id kernel.UserID, number UserNumber, messagesReceived []*Message) *User {
 	return &User{
 		id:               id,
 		number:           number,
-		messagesReceived: messages,
+		messagesReceived: messagesReceived,
 		eventManager:     event.NewEventManager(),
 	}
 }
