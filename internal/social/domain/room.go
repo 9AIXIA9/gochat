@@ -7,8 +7,6 @@ import (
 	"time"
 )
 
-//TODO 不要单独使用ID来表示实体 使用对象表示
-
 type RoomID kernel.ID
 
 func (i RoomID) String() string {

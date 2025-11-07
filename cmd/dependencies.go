@@ -201,15 +201,15 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 		chatMessageRepository,
 		eventRepository,
 	)
-	updateMessageStateUseCase := chatUsecase.NewUpdateMessageStateUseCase(chatMessageRepository)
+	_ = chatUsecase.NewUpdateMessageStateUseCase(chatMessageRepository)
 
-	sendEmailUseCase := notificationUsecase.NewSendEmailUseCase(
+	_ = notificationUsecase.NewSendEmailUseCase(
 		emailNotifier,
 		notificationMailRepository,
 		mailIDGenerator,
 	)
 
-	sendMessageUseCase := notificationUsecase.NewSendMessageUseCase(
+	_ = notificationUsecase.NewSendMessageUseCase(
 		eventIDGenerator,
 		messageNotifier,
 	)
@@ -239,11 +239,6 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 	kafkaSubscriber, err := kafka.NewSubscriber(
 		appConfig.Kafka.Common,
 		appConfig.Kafka.Consumer,
-		eventIDGenerator,
-		kafkaPublisher,
-		updateMessageStateUseCase,
-		sendEmailUseCase,
-		sendMessageUseCase,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("initialize kafka subscriber failed, err:%w", err)

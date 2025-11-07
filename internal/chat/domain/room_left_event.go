@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-const TopicRoomLeft event.Topic = "social.room.left"
+const TopicRoomLeft event.Topic = "chat.room.left"
 
 var _ event.SpecificEvent = (*RoomLeftEvent)(nil)
 

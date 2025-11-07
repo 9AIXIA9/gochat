@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-const TopicUserCreated event.Topic = "authorization.user.created"
+const TopicUserCreated event.Topic = "chat.user.created"
 
 var _ event.SpecificEvent = (*UserCreatedEvent)(nil)
 

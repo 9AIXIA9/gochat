@@ -43,7 +43,7 @@ func (u *User) ReceiveMessage(id MessageID, sender kernel.UserID, content string
 
 	u.messagesReceived = append(u.messagesReceived, state)
 
-	ev, err := NewPrivateMessageReceivedEvent(generator.Generate(), id, u.id, sender, content, sentAt)
+	ev, err := NewPrivateMessageReceivedEvent(generator.Generate(), id, u.id)
 	if err != nil {
 		return err
 	}

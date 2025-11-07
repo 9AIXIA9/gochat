@@ -7,17 +7,17 @@ import (
 	"time"
 )
 
-const TopicRoomLeft event.Topic = "social.room.left"
+const TopicRoomJoined event.Topic = "chat.room.joined"
 
-var _ event.SpecificEvent = (*RoomLeftEvent)(nil)
+var _ event.SpecificEvent = (*RoomJoinedEvent)(nil)
 
-type RoomLeftEvent struct {
+type RoomJoinedEvent struct {
 	userID kernel.UserID
 	*event.StandardEvent
 }
 
-func ToRoomLeftEvent(ev event.Event) (*RoomLeftEvent, error) {
-	e := &RoomLeftEvent{StandardEvent: event.NewStandardEventFrom(ev)}
+func ToRoomJoinedEvent(ev event.Event) (*RoomJoinedEvent, error) {
+	e := &RoomJoinedEvent{StandardEvent: event.NewStandardEventFrom(ev)}
 	if len(ev.Payload()) > 0 {
 		if err := e.Unmarshal(ev.Payload()); err != nil {
 			return nil, err
@@ -26,8 +26,8 @@ func ToRoomLeftEvent(ev event.Event) (*RoomLeftEvent, error) {
 	return e, nil
 }
 
-func NewRoomLeftEvent(id event.ID, userID kernel.UserID, roomID RoomID) (*RoomLeftEvent, error) {
-	e := &RoomLeftEvent{
+func NewRoomJoinedEvent(id event.ID, userID kernel.UserID, roomID RoomID) (*RoomJoinedEvent, error) {
+	e := &RoomJoinedEvent{
 		userID: userID,
 	}
 	payload, err := e.Marshal()
@@ -35,11 +35,11 @@ func NewRoomLeftEvent(id event.ID, userID kernel.UserID, roomID RoomID) (*RoomLe
 		return nil, err
 	}
 
-	e.StandardEvent = event.NewStandardEvent(id, kernel.ID(roomID), time.Now().UTC(), TopicRoomLeft, payload)
+	e.StandardEvent = event.NewStandardEvent(id, kernel.ID(roomID), time.Now().UTC(), TopicRoomJoined, payload)
 	return e, nil
 }
 
-func (e *RoomLeftEvent) Marshal() ([]byte, error) {
+func (e *RoomJoinedEvent) Marshal() ([]byte, error) {
 	type Alias struct {
 		UserID kernel.UserID
 	}
@@ -48,7 +48,7 @@ func (e *RoomLeftEvent) Marshal() ([]byte, error) {
 	})
 }
 
-func (e *RoomLeftEvent) Unmarshal(data []byte) error {
+func (e *RoomJoinedEvent) Unmarshal(data []byte) error {
 	type Alias struct {
 		UserID kernel.UserID
 	}

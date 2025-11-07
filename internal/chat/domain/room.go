@@ -51,7 +51,7 @@ func (r *Room) ReceiveMessage(id MessageID, sender kernel.UserID, content string
 
 	r.messagesReceived = append(r.messagesReceived, NewMessage(id, MessageStateReceived, sender, content, time.Now().UTC()))
 
-	ev, err := NewRoomMessageReceivedEvent(generator.Generate(), id, r.id, sender, r.members, content, time.Now().UTC())
+	ev, err := NewRoomMessageReceivedEvent(generator.Generate(), id, r.id)
 	if err != nil {
 		return err
 	}

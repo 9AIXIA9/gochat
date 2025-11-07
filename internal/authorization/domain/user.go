@@ -29,7 +29,7 @@ func NewUser(id kernel.UserID, email kernel.Email, number UserNumber, passwordEn
 }
 
 func (u *User) SignUp(eventIDGenerator event.IDGenerator) error {
-	e, err := NewUserCreatedEvent(eventIDGenerator.Generate(), u.id, u.email)
+	e, err := NewUserCreatedEvent(eventIDGenerator.Generate(), u.id)
 	if err != nil {
 		return err
 	}
