@@ -29,11 +29,11 @@ type User struct {
 	eventManager *event.Manager
 }
 
-func NewUser(id kernel.UserID, number UserNumber, messagesReceived []*Message) *User {
+func NewUser(id kernel.UserID, number UserNumber) *User {
 	return &User{
 		id:               id,
 		number:           number,
-		messagesReceived: messagesReceived,
+		messagesReceived: make([]*Message, 0),
 		eventManager:     event.NewEventManager(),
 	}
 }
@@ -43,7 +43,7 @@ func (u *User) ReceiveMessage(id MessageID, sender kernel.UserID, content string
 
 	u.messagesReceived = append(u.messagesReceived, state)
 
-	ev, err := NewPrivateMessageReceivedEvent(generator.Generate(), id, u.id)
+	ev, err := NewPrivateMessageCreatedEvent(generator.Generate(), id, u.id)
 	if err != nil {
 		return err
 	}

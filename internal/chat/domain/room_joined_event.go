@@ -26,7 +26,7 @@ func ToRoomJoinedEvent(ev event.Event) (*RoomJoinedEvent, error) {
 	return e, nil
 }
 
-func NewRoomJoinedEvent(id event.ID, userID kernel.UserID, roomID RoomID) (*RoomJoinedEvent, error) {
+func NewRoomJoinedEvent(id event.ID, roomID RoomID, userID kernel.UserID) (*RoomJoinedEvent, error) {
 	e := &RoomJoinedEvent{
 		userID: userID,
 	}
@@ -58,4 +58,8 @@ func (e *RoomJoinedEvent) Unmarshal(data []byte) error {
 	}
 	e.userID = tmp.UserID
 	return nil
+}
+
+func (e *RoomJoinedEvent) UserID() kernel.UserID {
+	return e.userID
 }

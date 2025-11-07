@@ -16,7 +16,7 @@ type Message struct {
 	Sender   *User         `gorm:"foreignKey:SenderID;references:ID"`
 
 	// “用户+消息”组合，便于取状态
-	Combos []*MessageUser `gorm:"foreignKey:MessageID;references:ID"`
+	UserStates []*UserMessageState `gorm:"foreignKey:MessageID;references:ID"`
 }
 
 func (m *Message) TableName() string {

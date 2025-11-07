@@ -59,3 +59,7 @@ func (e *RoomJoinedEvent) Unmarshal(data []byte) error {
 	e.userID = tmp.UserID
 	return nil
 }
+
+func (e *RoomJoinedEvent) UserID() kernel.UserID {
+	return e.userID
+}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"gochat/config"
 	authorizationUsecase "gochat/internal/authorization/application/usecase"
+	authorizationDomain "gochat/internal/authorization/domain"
 	"gochat/internal/authorization/infrastructure/crypto"
 	"gochat/internal/authorization/infrastructure/jwt"
 	authorizationConverter "gochat/internal/authorization/infrastructure/persistence/converter"
@@ -12,11 +13,13 @@ import (
 	authorizationRepository "gochat/internal/authorization/infrastructure/persistence/repository"
 	authorizationSnowflake "gochat/internal/authorization/infrastructure/snowflake"
 	authorizationUuid "gochat/internal/authorization/infrastructure/uuid"
+	authorizationKafka "gochat/internal/authorization/port/kafka"
 	chatUsecase "gochat/internal/chat/application/usecase"
+	chatDomain "gochat/internal/chat/domain"
 	chatModel "gochat/internal/chat/infrastructure/persistence/model"
 	chatRepository "gochat/internal/chat/infrastructure/persistence/repository"
 	chatUuid "gochat/internal/chat/infrastructure/uuid"
-	"gochat/internal/delivery/kafka"
+	chatKafka "gochat/internal/chat/port/kafka"
 	"gochat/internal/infrastructure/bcrypt"
 	"gochat/internal/infrastructure/canal"
 	"gochat/internal/infrastructure/godotenv"
@@ -32,17 +35,20 @@ import (
 	"gochat/internal/infrastructure/websocket"
 	zaputils "gochat/internal/infrastructure/zap"
 	notificationUsecase "gochat/internal/notification/application/usecase"
+	notificationDomain "gochat/internal/notification/domain"
 	"gochat/internal/notification/infrastructure/gomail"
 	notificationConverter "gochat/internal/notification/infrastructure/persistence/converter"
 	notificationModel "gochat/internal/notification/infrastructure/persistence/model"
 	notificationRepository "gochat/internal/notification/infrastructure/persistence/repository"
 	notificationUuid "gochat/internal/notification/infrastructure/uuid"
+	notificationKafka "gochat/internal/notification/port/kafka"
 	socialUseCase "gochat/internal/social/application/usecase"
-	socialConverter "gochat/internal/social/infrastructure/persistence/converter"
+	socialDomain "gochat/internal/social/domain"
 	socialModel "gochat/internal/social/infrastructure/persistence/model"
 	socialRepository "gochat/internal/social/infrastructure/persistence/repository"
 	socialSnowflake "gochat/internal/social/infrastructure/snowflake"
 	socialUuid "gochat/internal/social/infrastructure/uuid"
+	socialKafka "gochat/internal/social/port/kafka"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -87,12 +93,14 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 			mysqlDatabase,
 			&authorizationModel.User{},
 			&notificationModel.Mail{},
+			&notificationModel.User{},
+			&notificationModel.Room{},
 			&chatModel.User{},
 			&chatModel.Room{},
 			&chatModel.Message{},
-			&chatModel.MessageUser{},
+			&chatModel.UserMessageState{},
+			&socialModel.User{},
 			&socialModel.Room{},
-			&socialModel.RoomMember{},
 			&model.Event{},
 			&model.DeadLetter{},
 		); err != nil {
@@ -129,9 +137,12 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 	chatRoomRepository := chatRepository.NewRoomRepository(mysqlDatabase)
 	chatMessageRepository := chatRepository.NewMessageRepository(mysqlDatabase)
 
-	socialRoomRepository := socialRepository.NewRoomRepository(mysqlDatabase, &socialConverter.RoomConverter{})
+	socialUserRepository := socialRepository.NewUserRepository(mysqlDatabase)
+	socialRoomRepository := socialRepository.NewRoomRepository(mysqlDatabase)
 
 	notificationMailRepository := notificationRepository.NewMailRepository(mysqlDatabase, &notificationConverter.MailConverter{})
+	notificationUserRepository := notificationRepository.NewUserRepository(mysqlDatabase)
+	notificationRoomRepository := notificationRepository.NewRoomRepository(mysqlDatabase)
 
 	accessTokenManager := jwt.NewAccessTokenManager(appConfig.AccessToken)
 	refreshTokenGenerator := crypto.NewRefreshTokenGenerator(appConfig.RefreshToken)
@@ -236,20 +247,76 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 		eventRepository,
 	)
 
-	kafkaSubscriber, err := kafka.NewSubscriber(
-		appConfig.Kafka.Common,
-		appConfig.Kafka.Consumer,
-	)
+	kafkaSubscriber, err := kafkautil.NewEventSubscriber(appConfig.Kafka.Common, appConfig.Kafka.Consumer)
 	if err != nil {
-		return nil, fmt.Errorf("initialize kafka subscriber failed, err:%w", err)
+		return nil, fmt.Errorf("initialize kafka kafkaSubscriber failed, err:%w", err)
 	}
+
+	kafkaSubscriber.Subscribe(authorizationDomain.TopicUserCreated, authorizationKafka.NewUserCreatedEventHandler(
+		eventIDGenerator,
+		kafkaPublisher,
+		authorizationUserRepository,
+	))
+
+	kafkaSubscriber.Subscribe(socialDomain.TopicUserCreated, socialKafka.NewUserCreatedEventHandler(
+		socialUserRepository,
+	))
+	kafkaSubscriber.Subscribe(socialDomain.TopicRoomCreated, socialKafka.NewRoomCreatedEventHandler(
+		eventIDGenerator,
+		kafkaPublisher,
+		socialRoomRepository,
+	))
+	kafkaSubscriber.Subscribe(socialDomain.TopicRoomJoined, socialKafka.NewRoomJoinedEventHandler(
+		eventIDGenerator,
+		kafkaPublisher,
+	))
+	kafkaSubscriber.Subscribe(socialDomain.TopicRoomLeft, socialKafka.NewRoomLeftEventHandler(
+		eventIDGenerator,
+		kafkaPublisher,
+	))
+
+	kafkaSubscriber.Subscribe(chatDomain.TopicUserCreated, chatKafka.NewUserCreatedEventHandler(
+		chatUserRepository,
+	))
+	kafkaSubscriber.Subscribe(chatDomain.TopicRoomCreated, chatKafka.NewRoomCreatedEventHandler(
+		chatRoomRepository,
+	))
+	kafkaSubscriber.Subscribe(chatDomain.TopicRoomJoined, chatKafka.NewRoomJoinedEventHandler(
+		chatRoomRepository,
+	))
+	kafkaSubscriber.Subscribe(chatDomain.TopicRoomLeft, chatKafka.NewRoomLeftEventHandler(
+		chatRoomRepository,
+	))
+	kafkaSubscriber.Subscribe(chatDomain.TopicPrivateMessageCreated, chatKafka.NewPrivateMessageCreatedEventHandler(
+		eventIDGenerator,
+		kafkaPublisher,
+	))
+	kafkaSubscriber.Subscribe(chatDomain.TopicRoomMessageCreated, chatKafka.NewRoomMessageCreatedEventHandler(
+		eventIDGenerator,
+		kafkaPublisher,
+	))
+
+	kafkaSubscriber.Subscribe(notificationDomain.TopicUserCreated, notificationKafka.NewUserCreatedEventHandler(
+		notificationUserRepository,
+	))
+	kafkaSubscriber.Subscribe(notificationDomain.TopicRoomCreated, notificationKafka.NewRoomCreatedEventHandler(
+		notificationRoomRepository,
+	))
+	kafkaSubscriber.Subscribe(notificationDomain.TopicRoomJoined, notificationKafka.NewRoomJoinedEventHandler(
+		notificationRoomRepository,
+	))
+	kafkaSubscriber.Subscribe(notificationDomain.TopicRoomLeft, notificationKafka.NewRoomLeftEventHandler(
+		notificationRoomRepository,
+	))
+	kafkaSubscriber.Subscribe(notificationDomain.TopicPrivateMessageCreated, notificationKafka.NewPrivateMessageCreatedEventHandler())
+	kafkaSubscriber.Subscribe(notificationDomain.TopicRoomMessageCreated, notificationKafka.NewRoomMessageCreatedEventHandler())
 
 	// Start background components
 	ctx, cancel := context.WithCancel(context.Background())
 
 	if err := kafkaSubscriber.Start(ctx); err != nil {
 		cancel()
-		return nil, fmt.Errorf("start kafka subscriber failed, err:%w", err)
+		return nil, fmt.Errorf("start kafka kafkaSubscriber failed, err:%w", err)
 	}
 	consumer.Start()
 	kafkaPublisher.Start()

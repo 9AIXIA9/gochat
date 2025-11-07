@@ -30,7 +30,7 @@ func (i *LoginInput) Validate() error {
 type loginUseCase struct {
 	eventIDGenerator      event.IDGenerator
 	comparator            application.Comparator
-	userFinder            application.UserFinder
+	userFinder            application.UserFinderByNumber
 	userUpdater           application.UserUpdater
 	refreshTokenSaver     application.RefreshTokenSaver
 	accessTokenGenerator  application.AccessTokenGenerator
@@ -41,7 +41,7 @@ type loginUseCase struct {
 func NewLoginUseCase(
 	idGenerator event.IDGenerator,
 	comparator application.Comparator,
-	userFinder application.UserFinder,
+	userFinder application.UserFinderByNumber,
 	userUpdater application.UserUpdater,
 	refreshTokenSaver application.RefreshTokenSaver,
 	accessTokenGenerator application.AccessTokenGenerator,

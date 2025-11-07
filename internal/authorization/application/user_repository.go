@@ -7,11 +7,13 @@ import (
 	"time"
 )
 
+//TODO 重构所有仓库接口命名
+
 type UserSaver interface {
 	Save(ctx context.Context, user *domain.User) error
 }
 
-type UserFinder interface {
+type UserFinderByNumber interface {
 	FindByNumber(ctx context.Context, number domain.UserNumber) (*domain.User, error)
 }
 

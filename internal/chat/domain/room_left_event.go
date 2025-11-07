@@ -26,7 +26,7 @@ func ToRoomLeftEvent(ev event.Event) (*RoomLeftEvent, error) {
 	return e, nil
 }
 
-func NewRoomLeftEvent(id event.ID, userID kernel.UserID, roomID RoomID) (*RoomLeftEvent, error) {
+func NewRoomLeftEvent(id event.ID, roomID RoomID, userID kernel.UserID) (*RoomLeftEvent, error) {
 	e := &RoomLeftEvent{
 		userID: userID,
 	}
@@ -58,4 +58,8 @@ func (e *RoomLeftEvent) Unmarshal(data []byte) error {
 	}
 	e.userID = tmp.UserID
 	return nil
+}
+
+func (e *RoomLeftEvent) UserID() kernel.UserID {
+	return e.userID
 }

@@ -2,12 +2,9 @@ package model
 
 import (
 	"gochat/internal/chat/domain"
-
-	"gorm.io/gorm"
 )
 
 type Room struct {
-	gorm.Model
 	ID     domain.RoomID     `gorm:"primaryKey;type:char(36)"`
 	Number domain.RoomNumber `gorm:"type:varchar(20);uniqueIndex;not null"`
 

@@ -63,7 +63,7 @@ func (uc *sendRoomMessageUseCase) Execute(ctx context.Context, input *SendRoomMe
 		return nil, err
 	}
 
-	if err := uc.messageSaver.SaveRoomMessages(ctx, room.ID(), room.MessagesReceived()); err != nil {
+	if err := uc.messageSaver.SaveRoomMessages(ctx, room.Members(), room.MessagesReceived()); err != nil {
 		return nil, err
 	}
 

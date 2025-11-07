@@ -5,7 +5,7 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-type MessageUser struct {
+type UserMessageState struct {
 	// 复合主键：一个用户-消息的组合
 	MessageID domain.MessageID    `gorm:"primaryKey;type:char(36)"`
 	UserID    kernel.UserID       `gorm:"primaryKey;type:char(36)"`
@@ -16,6 +16,6 @@ type MessageUser struct {
 	User    *User    `gorm:"foreignKey:UserID;references:ID"`
 }
 
-func (MessageUser) TableName() string {
-	return "gochat.chat_message_users"
+func (UserMessageState) TableName() string {
+	return "gochat.chat_user_message_states"
 }

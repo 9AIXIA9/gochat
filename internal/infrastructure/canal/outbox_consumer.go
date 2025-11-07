@@ -19,6 +19,8 @@ type OutboxConsumer struct {
 	canal     *canal.Canal
 }
 
+//TODO 禁止过多日志
+
 func NewOutboxConsumer(config *BinlogReaderConfig, publisher event.Publisher, lister event.UnpublishedLister) (*OutboxConsumer, error) {
 	canalConfig := canal.NewDefaultConfig()
 	canalConfig.User = config.User

@@ -38,9 +38,11 @@ type Room struct {
 
 func NewRoom(id RoomID, number RoomNumber, members []kernel.UserID) *Room {
 	return &Room{
-		id:      id,
-		number:  number,
-		members: members,
+		id:               id,
+		number:           number,
+		members:          members,
+		messagesReceived: make([]*Message, 0),
+		eventManager:     event.NewEventManager(),
 	}
 }
 
@@ -51,7 +53,7 @@ func (r *Room) ReceiveMessage(id MessageID, sender kernel.UserID, content string
 
 	r.messagesReceived = append(r.messagesReceived, NewMessage(id, MessageStateReceived, sender, content, time.Now().UTC()))
 
-	ev, err := NewRoomMessageReceivedEvent(generator.Generate(), id, r.id)
+	ev, err := NewRoomMessageCreatedEvent(generator.Generate(), id, r.id)
 	if err != nil {
 		return err
 	}

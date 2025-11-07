@@ -15,6 +15,7 @@ func NewMessageIDGenerator() *MessageIDGenerator {
 	return &MessageIDGenerator{}
 }
 
-func (MessageIDGenerator) Generate() domain.MessageID {
-	return domain.MessageID(uuid.Must(uuid.NewV7()).String())
+func (m *MessageIDGenerator) Generate() domain.MessageID {
+	id := domain.MessageID(uuid.Must(uuid.NewV7()).String())
+	return id
 }

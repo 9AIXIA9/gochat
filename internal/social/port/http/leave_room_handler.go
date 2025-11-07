@@ -45,6 +45,9 @@ func NewLeaveRoomHandler(useCase usecase.LeaveRoomUseCase, validator *validator.
 				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty"))
 			case errors.Is(err, myErrors.ErrNotFound):
 				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "room not found"))
+			case errors.Is(err, myErrors.ErrOwnerCantLeave):
+				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeOwnerCantLeave, "owner can't leave the room"))
+
 			default:
 				zap.L().Error("leave room handler failed", zap.Error(err))
 				ginutils.Response(ginContext, sharedHttp.ResponseServerError)

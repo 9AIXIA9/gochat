@@ -15,7 +15,8 @@ type Room struct {
 	PasswordEncrypted string            `gorm:"type:varchar(255);not null"`
 	MemberCount       int               `gorm:"not null;default:0;check:member_count >= 0"`
 	MaxMemberCount    int               `gorm:"not null;default:0;check:max_member_count >= 0"`
-	Members           []*RoomMember     `gorm:"foreignKey:RoomID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+
+	Members []*User `gorm:"many2many:gochat.social_room_members;foreignKey:ID;joinForeignKey:RoomID;references:ID;joinReferences:UserID"`
 }
 
 func (r *Room) TableName() string {

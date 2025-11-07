@@ -5,6 +5,7 @@ import (
 	"gochat/internal/chat/application"
 	"gochat/internal/chat/domain"
 	"gochat/internal/chat/infrastructure/persistence/model"
+	"gochat/internal/chat/port/kafka"
 	gormutils "gochat/internal/infrastructure/gorm"
 	"gochat/internal/shared/kernel"
 
@@ -12,6 +13,9 @@ import (
 )
 
 var _ application.RoomFinder = (*RoomRepository)(nil)
+var _ kafka.RoomNumberSaver = (*RoomRepository)(nil)
+var _ kafka.RoomMemberSaver = (*RoomRepository)(nil)
+var _ kafka.RoomMemberDeleter = (*RoomRepository)(nil)
 
 type RoomRepository struct {
 	db *gorm.DB
@@ -33,4 +37,34 @@ func (repo *RoomRepository) FindByNumber(ctx context.Context, number domain.Room
 	}
 
 	return domain.NewRoom(room.ID, room.Number, members), nil
+}
+
+func (repo *RoomRepository) SaveNumber(ctx context.Context, roomID domain.RoomID, number domain.RoomNumber) error {
+	return gormutils.TranslateError(repo.db.WithContext(ctx).Create(&model.Room{
+		ID:     roomID,
+		Number: number,
+	}).Error)
+}
+
+func (repo *RoomRepository) SaveMember(ctx context.Context, roomID domain.RoomID, userID kernel.UserID) error {
+	room := model.Room{ID: roomID}
+	user := model.User{ID: userID}
+
+	return gormutils.TranslateError(
+		repo.db.WithContext(ctx).
+			Model(&room).
+			Association("Members").
+			Append(&user),
+	)
+}
+func (repo *RoomRepository) DeleteMember(ctx context.Context, roomID domain.RoomID, userID kernel.UserID) error {
+	room := model.Room{ID: roomID}
+	user := model.User{ID: userID}
+
+	return gormutils.TranslateError(
+		repo.db.WithContext(ctx).
+			Model(&room).
+			Association("Members").
+			Delete(&user),
+	)
 }

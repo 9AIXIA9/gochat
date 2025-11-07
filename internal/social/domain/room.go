@@ -85,23 +85,23 @@ func (r *Room) Join(userID kernel.UserID, generator event.IDGenerator) error {
 }
 
 func (r *Room) Leave(userID kernel.UserID, generator event.IDGenerator) error {
-	var exist bool
+	if userID == r.owner {
+		return myErrors.ErrOwnerCantLeave
+	}
+
 	for i, member := range r.members {
 		if member == userID {
 			r.members = append(r.members[:i], r.members[i+1:]...)
 			r.memberCount--
-			exist = true
-			break
-		}
-	}
 
-	if exist {
-		ev, err := NewRoomLeftEvent(generator.Generate(), userID, r.id)
-		if err != nil {
-			return err
-		}
+			ev, err := NewRoomLeftEvent(generator.Generate(), userID, r.id)
+			if err != nil {
+				return err
+			}
 
-		r.eventManager.RecordEvent(ev)
+			r.eventManager.RecordEvent(ev)
+			return nil
+		}
 	}
 	return nil
 }

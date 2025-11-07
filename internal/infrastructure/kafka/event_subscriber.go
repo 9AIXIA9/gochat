@@ -110,8 +110,8 @@ func (s *EventSubscriber) Start(ctx context.Context) error {
 
 				// Dispatch with a per-message context (inherits parent)
 				msgCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
-				if err := handler(msgCtx, e); err != nil {
-					// Handler error: log and do not commit to allow redelivery
+				if err := handler.Handle(msgCtx, e); err != nil {
+					// HandlerFunc error: log and do not commit to allow redelivery
 					zap.L().Error("kafka handler error", zap.Error(err), zap.String("topic", topic.String()))
 					cancel()
 					continue

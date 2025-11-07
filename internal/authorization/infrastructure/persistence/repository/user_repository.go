@@ -5,6 +5,7 @@ import (
 	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
 	"gochat/internal/authorization/infrastructure/persistence/model"
+	"gochat/internal/authorization/port/kafka"
 	gormutils "gochat/internal/infrastructure/gorm"
 	"gochat/internal/shared/kernel"
 	"time"
@@ -13,8 +14,9 @@ import (
 )
 
 var _ application.UserSaver = (*UserRepository)(nil)
-var _ application.UserFinder = (*UserRepository)(nil)
+var _ application.UserFinderByNumber = (*UserRepository)(nil)
 var _ application.UserUpdater = (*UserRepository)(nil)
+var _ kafka.UserFinderByID = (*UserRepository)(nil)
 
 type UserRepository struct {
 	innerRepository *gormutils.Repository[model.User, domain.User]
@@ -35,4 +37,8 @@ func (repo *UserRepository) FindByNumber(ctx context.Context, number domain.User
 
 func (repo *UserRepository) UpdateLoggedInAt(ctx context.Context, userID kernel.UserID, time time.Time) error {
 	return repo.innerRepository.Update(ctx, "id = ?", "last_logged_in_at", time, userID)
+}
+
+func (repo *UserRepository) FindByID(ctx context.Context, id kernel.UserID) (*domain.User, error) {
+	return repo.innerRepository.Find(ctx, gormutils.Where("id = ?", id))
 }

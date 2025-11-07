@@ -11,7 +11,7 @@ type PrivateMessageSaver interface {
 }
 
 type RoomMessageSaver interface {
-	SaveRoomMessages(ctx context.Context, roomID domain.RoomID, message []*domain.Message) error
+	SaveRoomMessages(ctx context.Context, members []kernel.UserID, messages []*domain.Message) error
 }
 
 type MessageStateUpdater interface {

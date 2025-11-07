@@ -3,12 +3,9 @@ package model
 import (
 	"gochat/internal/chat/domain"
 	"gochat/internal/shared/kernel"
-
-	"gorm.io/gorm"
 )
 
 type User struct {
-	gorm.Model
 	ID     kernel.UserID     `gorm:"primaryKey;type:char(36)"`
 	Number domain.UserNumber `gorm:"type:varchar(20);uniqueIndex;not null"`
 
@@ -19,7 +16,7 @@ type User struct {
 	MessageSent []*Message `gorm:"foreignKey:SenderID;references:ID"`
 
 	// “用户+接收消息”组合（用于关联状态）
-	MessageLinks []*MessageUser `gorm:"foreignKey:UserID;references:ID"`
+	MessageStates []*UserMessageState `gorm:"foreignKey:UserID;references:ID"`
 }
 
 func (u *User) TableName() string {
