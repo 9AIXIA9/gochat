@@ -17,6 +17,6 @@ type UserFinderByNumber interface {
 	FindByNumber(ctx context.Context, number domain.UserNumber) (*domain.User, error)
 }
 
-type UserUpdater interface {
+type UserLoggedInAtUpdater interface {
 	UpdateLoggedInAt(ctx context.Context, userID kernel.UserID, time time.Time) error
 }

@@ -63,7 +63,7 @@ func (repo *MessageRepository) SaveRoomMessages(ctx context.Context, members []k
 	}))
 }
 
-func (repo *MessageRepository) Update(ctx context.Context, messageID domain.MessageID, recipientID kernel.UserID, newState domain.MessageState) error {
+func (repo *MessageRepository) UpdateState(ctx context.Context, messageID domain.MessageID, recipientID kernel.UserID, newState domain.MessageState) error {
 	return gormutils.TranslateError(
 		repo.db.WithContext(ctx).
 			Model(&model.UserMessageState{}).

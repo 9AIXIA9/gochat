@@ -15,7 +15,7 @@ import (
 
 var _ application.UserSaver = (*UserRepository)(nil)
 var _ application.UserFinderByNumber = (*UserRepository)(nil)
-var _ application.UserUpdater = (*UserRepository)(nil)
+var _ application.UserLoggedInAtUpdater = (*UserRepository)(nil)
 var _ kafka.UserFinderByID = (*UserRepository)(nil)
 
 type UserRepository struct {

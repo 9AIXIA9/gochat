@@ -34,5 +34,5 @@ func NewUpdateMessageStateUseCase(messageStateUpdater application.MessageStateUp
 }
 
 func (uc *updateMessageStateUseCase) Execute(ctx context.Context, input *UpdateMessageStateInput) (*kernel.NoOutput, error) {
-	return nil, uc.messageStateUpdater.Update(ctx, input.MessageID, input.RecipientID, input.NewState)
+	return nil, uc.messageStateUpdater.UpdateState(ctx, input.MessageID, input.RecipientID, input.NewState)
 }

@@ -23,5 +23,5 @@ type RoomFinder interface {
 }
 
 //type RoomMemberUpdater interface {
-//	Update(ctx context.Context,)
+//	UpdateState(ctx context.Context,)
 //}

@@ -15,5 +15,5 @@ type RoomMessageSaver interface {
 }
 
 type MessageStateUpdater interface {
-	Update(ctx context.Context, messageID domain.MessageID, recipientID kernel.UserID, newState domain.MessageState) error
+	UpdateState(ctx context.Context, messageID domain.MessageID, recipientID kernel.UserID, newState domain.MessageState) error
 }

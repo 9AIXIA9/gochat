@@ -31,7 +31,7 @@ type loginUseCase struct {
 	eventIDGenerator      event.IDGenerator
 	comparator            application.Comparator
 	userFinder            application.UserFinderByNumber
-	userUpdater           application.UserUpdater
+	userUpdater           application.UserLoggedInAtUpdater
 	refreshTokenSaver     application.RefreshTokenSaver
 	accessTokenGenerator  application.AccessTokenGenerator
 	refreshTokenGenerator application.RefreshTokenGenerator
@@ -42,7 +42,7 @@ func NewLoginUseCase(
 	idGenerator event.IDGenerator,
 	comparator application.Comparator,
 	userFinder application.UserFinderByNumber,
-	userUpdater application.UserUpdater,
+	userUpdater application.UserLoggedInAtUpdater,
 	refreshTokenSaver application.RefreshTokenSaver,
 	accessTokenGenerator application.AccessTokenGenerator,
 	refreshTokenGenerator application.RefreshTokenGenerator,
