@@ -2,9 +2,9 @@ package kafka
 
 import (
 	"context"
-	"gochat/internal/notification/domain"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
+	"gochat/internal/social/domain"
 )
 
 type UserCreatedEventHandler struct {

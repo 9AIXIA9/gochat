@@ -24,32 +24,27 @@ type User struct {
 	id     kernel.UserID
 	number UserNumber
 
-	messagesReceived []*Message
-
 	eventManager *event.Manager
 }
 
 func NewUser(id kernel.UserID, number UserNumber) *User {
 	return &User{
-		id:               id,
-		number:           number,
-		messagesReceived: make([]*Message, 0),
-		eventManager:     event.NewEventManager(),
+		id:           id,
+		number:       number,
+		eventManager: event.NewEventManager(),
 	}
 }
 
-func (u *User) ReceiveMessage(id MessageID, sender kernel.UserID, content string, sentAt time.Time, generator event.IDGenerator) error {
-	state := NewMessage(id, MessageStateReceived, sender, content, sentAt)
-
-	u.messagesReceived = append(u.messagesReceived, state)
+func (u *User) ReceiveMessage(id MessageID, sender kernel.UserID, content string, sentAt time.Time, generator event.IDGenerator) (*Message, error) {
+	message := NewMessage(id, MessageStateReceived, sender, content, sentAt)
 
 	ev, err := NewPrivateMessageCreatedEvent(generator.Generate(), id, u.id)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	u.eventManager.RecordEvent(ev)
-	return nil
+	return message, nil
 }
 
 func (u *User) ID() kernel.UserID {
@@ -58,10 +53,6 @@ func (u *User) ID() kernel.UserID {
 
 func (u *User) Number() UserNumber {
 	return u.number
-}
-
-func (u *User) MessagesReceived() []*Message {
-	return u.messagesReceived
 }
 
 func (u *User) GetEvents() []event.Event {

@@ -60,11 +60,12 @@ func (uc *sendPrivateMessageUseCase) Execute(ctx context.Context, input *SendPri
 		return nil, err
 	}
 
-	if err := user.ReceiveMessage(uc.messageIDGenerator.Generate(), input.SenderID, input.Content, time.Now().UTC(), uc.eventIDGenerator); err != nil {
+	message, err := user.ReceiveMessage(uc.messageIDGenerator.Generate(), input.SenderID, input.Content, time.Now().UTC(), uc.eventIDGenerator)
+	if err != nil {
 		return nil, err
 	}
 
-	if err := uc.messageSaver.SavePrivateMessages(ctx, user.ID(), user.MessagesReceived()); err != nil {
+	if err := uc.messageSaver.SavePrivateMessage(ctx, user.ID(), message); err != nil {
 		return nil, err
 	}
 

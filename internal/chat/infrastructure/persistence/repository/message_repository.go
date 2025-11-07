@@ -23,40 +23,36 @@ func NewMessageRepository(db *gorm.DB) *MessageRepository {
 	return &MessageRepository{db: db}
 }
 
-func (repo *MessageRepository) SavePrivateMessages(ctx context.Context, recipient kernel.UserID, messages []*domain.Message) error {
+func (repo *MessageRepository) SavePrivateMessage(ctx context.Context, recipient kernel.UserID, message *domain.Message) error {
 	return gormutils.TranslateError(repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		for _, message := range messages {
-			if err := tx.Create(toModelMessage(message)).Error; err != nil {
-				return err
-			}
+		if err := tx.Create(toModelMessage(message)).Error; err != nil {
+			return err
+		}
 
-			if err := tx.Create(&model.UserMessageState{
-				MessageID: message.ID(),
-				UserID:    recipient,
-				State:     message.State(),
-			}).Error; err != nil {
-				return err
-			}
+		if err := tx.Create(&model.UserMessageState{
+			MessageID: message.ID(),
+			UserID:    recipient,
+			State:     message.State(),
+		}).Error; err != nil {
+			return err
 		}
 		return nil
 	}))
 }
 
-func (repo *MessageRepository) SaveRoomMessages(ctx context.Context, members []kernel.UserID, messages []*domain.Message) error {
+func (repo *MessageRepository) SaveRoomMessage(ctx context.Context, members []kernel.UserID, message *domain.Message) error {
 	return gormutils.TranslateError(repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		for _, message := range messages {
-			if err := tx.Create(toModelMessage(message)).Error; err != nil {
-				return err
-			}
+		if err := tx.Create(toModelMessage(message)).Error; err != nil {
+			return err
+		}
 
-			for _, member := range members {
-				if err := tx.Create(&model.UserMessageState{
-					MessageID: message.ID(),
-					UserID:    member,
-					State:     message.State(),
-				}).Error; err != nil {
-					return err
-				}
+		for _, member := range members {
+			if err := tx.Create(&model.UserMessageState{
+				MessageID: message.ID(),
+				UserID:    member,
+				State:     message.State(),
+			}).Error; err != nil {
+				return err
 			}
 		}
 		return nil

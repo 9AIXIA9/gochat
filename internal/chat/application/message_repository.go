@@ -7,11 +7,11 @@ import (
 )
 
 type PrivateMessageSaver interface {
-	SavePrivateMessages(ctx context.Context, recipient kernel.UserID, message []*domain.Message) error
+	SavePrivateMessage(ctx context.Context, recipient kernel.UserID, message *domain.Message) error
 }
 
 type RoomMessageSaver interface {
-	SaveRoomMessages(ctx context.Context, members []kernel.UserID, messages []*domain.Message) error
+	SaveRoomMessage(ctx context.Context, members []kernel.UserID, messages *domain.Message) error
 }
 
 type MessageStateUpdater interface {

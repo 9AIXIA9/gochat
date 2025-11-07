@@ -59,11 +59,12 @@ func (uc *sendRoomMessageUseCase) Execute(ctx context.Context, input *SendRoomMe
 		return nil, err
 	}
 
-	if err := room.ReceiveMessage(uc.messageIDGenerator.Generate(), input.SenderID, input.Content, uc.eventIDGenerator); err != nil {
+	message, err := room.ReceiveMessage(uc.messageIDGenerator.Generate(), input.SenderID, input.Content, uc.eventIDGenerator)
+	if err != nil {
 		return nil, err
 	}
 
-	if err := uc.messageSaver.SaveRoomMessages(ctx, room.Members(), room.MessagesReceived()); err != nil {
+	if err := uc.messageSaver.SaveRoomMessage(ctx, room.Members(), message); err != nil {
 		return nil, err
 	}
 

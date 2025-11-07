@@ -14,7 +14,7 @@ func NewRoomMessageCreatedEventHandler() event.Handler {
 	return &RoomMessageCreatedEventHandler{}
 }
 
-func (h *RoomMessageCreatedEventHandler) Handle(ctx context.Context, e event.Event) error {
+func (h *RoomMessageCreatedEventHandler) Handle(_ context.Context, e event.Event) error {
 	ev, err := domain.ToRoomMessageCreatedEvent(e)
 	if err != nil {
 		return err

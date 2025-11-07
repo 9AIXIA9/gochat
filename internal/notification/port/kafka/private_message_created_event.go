@@ -14,7 +14,7 @@ func NewPrivateMessageCreatedEventHandler() event.Handler {
 	return &PrivateMessageCreatedEventHandler{}
 }
 
-func (h *PrivateMessageCreatedEventHandler) Handle(ctx context.Context, e event.Event) error {
+func (h *PrivateMessageCreatedEventHandler) Handle(_ context.Context, e event.Event) error {
 	ev, err := domain.ToPrivateMessageCreatedEvent(e)
 	if err != nil {
 		return err
