@@ -2,9 +2,8 @@ package repository
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	gormutils "gochat/internal/infrastructure/gorm"
+	myErrors "gochat/internal/shared/errors"
 
 	"gochat/internal/shared/kernel"
 	"gochat/internal/social/application"
@@ -32,47 +31,35 @@ func NewRoomRepository(db *gorm.DB) *RoomRepository {
 
 // Save upsert 房间并同步成员关系
 func (repo *RoomRepository) Save(ctx context.Context, room *domain.Room) error {
-	tx := repo.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return gormutils.TranslateError(tx.Error)
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
+	return repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// Upsert room basic fields (不含 Members)
+		if err := tx.Clauses(
+			clause.OnConflict{
+				Columns:   []clause.Column{{Name: "id"}},
+				DoUpdates: clause.AssignmentColumns([]string{"owner", "number", "password_encrypted", "member_count", "max_member_count"}),
+			},
+		).Create(toModelRoom(room)).Error; err != nil {
+			return err
 		}
-	}()
 
-	// Upsert room basic fields (不含 Members)
-	if err := tx.Clauses(
-		clause.OnConflict{
-			Columns:   []clause.Column{{Name: "id"}},
-			DoUpdates: clause.AssignmentColumns([]string{"owner", "number", "password_encrypted", "member_count", "max_member_count"}),
-		},
-	).Create(toModelRoom(room)).Error; err != nil {
-		tx.Rollback()
-		return gormutils.TranslateError(err)
-	}
+		// 确保取到持久化后的房间实体用于关联操作
+		var persisted model.Room
+		if err := tx.First(&persisted, "id = ?", room.ID()).Error; err != nil {
+			return err
+		}
 
-	// 确保取到持久化后的房间实体用于关联操作
-	var persisted model.Room
-	if err := tx.First(&persisted, "id = ?", room.ID()).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
+		// 同步成员关系到多对多表
+		memberUsers, err := repo.findUsersByIDsTx(tx, room.Members())
+		if err != nil {
+			return err
+		}
+		// Replace 将以传入集合为准，原子同步
+		if err := tx.Model(&persisted).Association("Members").Replace(memberUsers); err != nil {
+			return err
+		}
 
-	// 同步成员关系到多对多表
-	memberUsers, err := repo.findUsersByIDsTx(tx, room.Members())
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-	// Replace 将以传入集合为准，原子同步
-	if err := tx.Model(&persisted).Association("Members").Replace(memberUsers); err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	return tx.Commit().Error
+		return nil
+	})
 }
 
 // FindByNumber 通过房间号查询
@@ -90,116 +77,88 @@ func (repo *RoomRepository) FindByNumber(ctx context.Context, number domain.Room
 
 // Join 将用户加入房间（原子更新成员和计数）
 func (repo *RoomRepository) Join(ctx context.Context, roomID domain.RoomID, userID kernel.UserID) error {
-	tx := repo.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return tx.Error
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
+	return gormutils.TranslateError(repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var r model.Room
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			First(&r, "id = ?", roomID.String()).Error; err != nil {
+			return err
 		}
-	}()
 
-	var r model.Room
-	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
-		First(&r, "id = ?", roomID.String()).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
+		// 检查是否已加入
+		var cnt int64
+		if err := tx.Table("gochat.social_room_members").
+			Where("room_id = ? AND user_id = ?", roomID.String(), userID).
+			Count(&cnt).Error; err != nil {
+			return err
+		}
+		if cnt > 0 {
+			return nil
+		}
 
-	// 检查是否已加入
-	var cnt int64
-	if err := tx.Table("gochat.social_room_members").
-		Where("room_id = ? AND user_id = ?", roomID.String(), userID).
-		Count(&cnt).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-	if cnt > 0 {
-		// 已是成员则视为幂等
-		return tx.Commit().Error
-	}
+		// 检查人数上限
+		if r.MaxMemberCount > 0 && r.MemberCount >= r.MaxMemberCount {
+			return myErrors.ErrExceedMaxValue
+		}
 
-	// 检查人数上限
-	if r.MaxMemberCount > 0 && r.MemberCount >= r.MaxMemberCount {
-		tx.Rollback()
-		return fmt.Errorf("room member limit reached")
-	}
+		// 确认用户存在
+		var u model.User
+		if err := tx.First(&u, "id = ?", userID).Error; err != nil {
+			return err
+		}
 
-	// 确认用户存在
-	var u model.User
-	if err := tx.First(&u, "id = ?", userID).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
+		// 建立关联
+		if err := tx.Model(&r).Association("Members").Append(&u); err != nil {
+			return err
+		}
 
-	// 建立关联
-	if err := tx.Model(&r).Association("Members").Append(&u); err != nil {
-		tx.Rollback()
-		return err
-	}
+		// 增加计数
+		if err := tx.Model(&r).UpdateColumn("member_count", gorm.Expr("member_count + ?", 1)).Error; err != nil {
+			return err
+		}
 
-	// 增加计数
-	if err := tx.Model(&r).UpdateColumn("member_count", gorm.Expr("member_count + ?", 1)).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	return tx.Commit().Error
+		return nil
+	}))
 }
 
 // Leave 将用户从房间移除（原子更新成员和计数）
 func (repo *RoomRepository) Leave(ctx context.Context, roomID domain.RoomID, userID kernel.UserID) error {
-	tx := repo.db.WithContext(ctx).Begin()
-	if tx.Error != nil {
-		return tx.Error
-	}
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
+	return gormutils.TranslateError(repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		var r model.Room
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			First(&r, "id = ?", roomID.String()).Error; err != nil {
+			return err
 		}
-	}()
 
-	var r model.Room
-	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
-		First(&r, "id = ?", roomID.String()).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
+		// 拥有者不能退出
+		if r.Owner == userID {
+			return myErrors.ErrOwnerCantLeave
+		}
 
-	// 拥有者不能退出
-	if r.Owner == userID {
-		tx.Rollback()
-		return errors.New("owner can't leave the room")
-	}
+		// 检查是否成员
+		var cnt int64
+		if err := tx.Table("gochat.social_room_members").
+			Where("room_id = ? AND user_id = ?", roomID.String(), userID).
+			Count(&cnt).Error; err != nil {
+			return err
+		}
+		if cnt == 0 {
+			// 非成员，幂等返回
+			return nil
+		}
 
-	// 检查是否成员
-	var cnt int64
-	if err := tx.Table("gochat.social_room_members").
-		Where("room_id = ? AND user_id = ?", roomID.String(), userID).
-		Count(&cnt).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-	if cnt == 0 {
-		// 非成员，幂等返回
-		return tx.Commit().Error
-	}
+		// 删除关联
+		if err := tx.Model(&r).Association("Members").Delete(&model.User{ID: userID}); err != nil {
+			return err
+		}
 
-	// 删除关联
-	if err := tx.Model(&r).Association("Members").Delete(&model.User{ID: userID}); err != nil {
-		tx.Rollback()
-		return err
-	}
+		// 减少计数（不小于 0）
+		if err := tx.Model(&r).Where("member_count > 0").
+			UpdateColumn("member_count", gorm.Expr("member_count - ?", 1)).Error; err != nil {
+			return err
+		}
 
-	// 减少计数（不小于 0）
-	if err := tx.Model(&r).Where("member_count > 0").
-		UpdateColumn("member_count", gorm.Expr("member_count - ?", 1)).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	return tx.Commit().Error
+		return nil
+	}))
 }
 
 // FindByID 通过房间ID查询
@@ -224,7 +183,7 @@ func (repo *RoomRepository) findUsersByIDsTx(tx *gorm.DB, ids []kernel.UserID) (
 	}
 	// 可选：严格校验全部存在
 	if len(users) != len(ids) {
-		return nil, fmt.Errorf("some users not found when syncing room members")
+		return nil, myErrors.ErrNotFound
 	}
 	return users, nil
 }
