@@ -2,25 +2,30 @@ package kafka
 
 import (
 	"context"
+	"gochat/internal/chat/application/usecase"
 	"gochat/internal/chat/domain"
 	"gochat/internal/shared/event"
 )
 
-type RoomLeftEventHandler struct {
-	roomMemberDeleter RoomMemberDeleter
-}
+func NewRoomLeftEventHandler(uc usecase.RoomLeftUseCase) event.HandlerFunc {
+	return func(ctx context.Context, e event.Event) error {
+		ev, err := domain.ToRoomLeftEvent(e)
+		if err != nil {
+			return err
+		}
 
-func NewRoomLeftEventHandler(roomMemberDeleter RoomMemberDeleter) event.Handler {
-	return &RoomLeftEventHandler{
-		roomMemberDeleter: roomMemberDeleter,
+		input := usecase.RoomLeftInput{
+			RoomID: domain.RoomID(e.AggregateID()),
+			UserID: ev.UserID(),
+		}
+
+		if err := input.Validate(); err != nil {
+			return err
+		}
+
+		if _, err := uc.Execute(ctx, &input); err != nil {
+			return err
+		}
+		return nil
 	}
-}
-
-func (h *RoomLeftEventHandler) Handle(ctx context.Context, e event.Event) error {
-	ev, err := domain.ToRoomLeftEvent(e)
-	if err != nil {
-		return err
-	}
-
-	return h.roomMemberDeleter.DeleteMember(ctx, domain.RoomID(ev.AggregateID()), ev.UserID())
 }

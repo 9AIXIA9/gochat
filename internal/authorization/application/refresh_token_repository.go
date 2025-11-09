@@ -5,6 +5,11 @@ import (
 	"gochat/internal/authorization/domain"
 )
 
+type RefreshTokenRepository interface {
+	RefreshTokenSaver
+	RefreshTokenFinder
+}
+
 type RefreshTokenSaver interface {
 	Save(ctx context.Context, token *domain.RefreshTokenEntity) error
 }

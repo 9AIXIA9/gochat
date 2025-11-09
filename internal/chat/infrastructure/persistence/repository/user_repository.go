@@ -5,15 +5,13 @@ import (
 	"gochat/internal/chat/application"
 	"gochat/internal/chat/domain"
 	"gochat/internal/chat/infrastructure/persistence/model"
-	"gochat/internal/chat/port/kafka"
 	gormutils "gochat/internal/infrastructure/gorm"
 	"gochat/internal/shared/kernel"
 
 	"gorm.io/gorm"
 )
 
-var _ application.UserFinder = (*UserRepository)(nil)
-var _ kafka.UserNumberSaver = (*UserRepository)(nil)
+var _ application.UserRepository = (*UserRepository)(nil)
 
 type UserRepository struct {
 	db *gorm.DB

@@ -2,25 +2,29 @@ package kafka
 
 import (
 	"context"
+	"gochat/internal/notification/application/usecase"
 	"gochat/internal/notification/domain"
 	"gochat/internal/shared/event"
 )
 
-type RoomCreatedEventHandler struct {
-	roomIDSaver RoomIDSaver
-}
+func NewRoomCreatedEventHandler(uc usecase.RoomCreatedUseCase) event.HandlerFunc {
+	return func(ctx context.Context, e event.Event) error {
+		ev, err := domain.ToRoomCreatedEvent(e)
+		if err != nil {
+			return err
+		}
 
-func NewRoomCreatedEventHandler(roomIDSaver RoomIDSaver) event.Handler {
-	return &RoomCreatedEventHandler{
-		roomIDSaver: roomIDSaver,
+		input := usecase.RoomCreatedInput{
+			RoomID: domain.RoomID(ev.AggregateID()),
+		}
+
+		if err := input.Validate(); err != nil {
+			return err
+		}
+
+		if _, err := uc.Execute(ctx, &input); err != nil {
+			return err
+		}
+		return nil
 	}
-}
-
-func (h *RoomCreatedEventHandler) Handle(ctx context.Context, e event.Event) error {
-	ev, err := domain.ToRoomCreatedEvent(e)
-	if err != nil {
-		return err
-	}
-
-	return h.roomIDSaver.SaveID(ctx, domain.RoomID(ev.AggregateID()))
 }

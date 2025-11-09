@@ -11,9 +11,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var _ application.PrivateMessageSaver = (*MessageRepository)(nil)
-var _ application.RoomMessageSaver = (*MessageRepository)(nil)
-var _ application.MessageStateUpdater = (*MessageRepository)(nil)
+var _ application.MessageRepository = (*MessageRepository)(nil)
 
 type MessageRepository struct {
 	db *gorm.DB

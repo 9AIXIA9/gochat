@@ -3,14 +3,14 @@ package repository
 import (
 	"context"
 	gormutils "gochat/internal/infrastructure/gorm"
+	"gochat/internal/notification/application"
 	"gochat/internal/notification/infrastructure/persistence/model"
-	"gochat/internal/notification/port/kafka"
 	"gochat/internal/shared/kernel"
 
 	"gorm.io/gorm"
 )
 
-var _ kafka.UserEmailSaver = (*UserRepository)(nil)
+var _ application.UserRepository = (*UserRepository)(nil)
 
 type UserRepository struct {
 	db *gorm.DB

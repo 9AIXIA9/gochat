@@ -1,17 +1,19 @@
-package kafka
+package application
 
 import (
 	"context"
-	"gochat/internal/chat/domain"
+	"gochat/internal/notification/domain"
 	"gochat/internal/shared/kernel"
 )
 
-type UserNumberSaver interface {
-	SaveNumber(ctx context.Context, userID kernel.UserID, number domain.UserNumber) error
+type RoomRepository interface {
+	RoomIDSaver
+	RoomMemberSaver
+	RoomMemberDeleter
 }
 
-type RoomNumberSaver interface {
-	SaveNumber(ctx context.Context, roomID domain.RoomID, number domain.RoomNumber) error
+type RoomIDSaver interface {
+	SaveID(ctx context.Context, roomID domain.RoomID) error
 }
 
 type RoomMemberSaver interface {

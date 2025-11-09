@@ -2,25 +2,27 @@ package kafka
 
 import (
 	"context"
-	"fmt"
+	"gochat/internal/notification/application/usecase"
 	"gochat/internal/notification/domain"
 	"gochat/internal/shared/event"
 )
 
-type RoomMessageCreatedEventHandler struct {
-}
+func NewRoomMessageCreatedEventHandler(uc usecase.RoomMessageCreatedUseCase) event.HandlerFunc {
+	return func(ctx context.Context, e event.Event) error {
+		_, err := domain.ToRoomMessageCreatedEvent(e)
+		if err != nil {
+			return err
+		}
 
-func NewRoomMessageCreatedEventHandler() event.Handler {
-	return &RoomMessageCreatedEventHandler{}
-}
+		input := usecase.RoomMessageCreatedInput{}
 
-func (h *RoomMessageCreatedEventHandler) Handle(_ context.Context, e event.Event) error {
-	ev, err := domain.ToRoomMessageCreatedEvent(e)
-	if err != nil {
-		return err
+		if err := input.Validate(); err != nil {
+			return err
+		}
+
+		if _, err := uc.Execute(ctx, &input); err != nil {
+			return err
+		}
+		return nil
 	}
-
-	fmt.Println("Handled RoomMessageCreatedEvent:", ev)
-
-	return nil
 }

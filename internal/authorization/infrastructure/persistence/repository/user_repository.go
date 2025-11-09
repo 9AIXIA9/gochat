@@ -5,7 +5,6 @@ import (
 	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
 	"gochat/internal/authorization/infrastructure/persistence/model"
-	"gochat/internal/authorization/port/kafka"
 	gormutils "gochat/internal/infrastructure/gorm"
 	"gochat/internal/shared/kernel"
 	"time"
@@ -13,10 +12,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var _ application.UserSaver = (*UserRepository)(nil)
-var _ application.UserFinderByNumber = (*UserRepository)(nil)
-var _ application.UserLoggedInAtUpdater = (*UserRepository)(nil)
-var _ kafka.UserFinderByID = (*UserRepository)(nil)
+var _ application.UserRepository = (*UserRepository)(nil)
 
 type UserRepository struct {
 	innerRepository *gormutils.Repository[model.User, domain.User]

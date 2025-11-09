@@ -2,25 +2,27 @@ package kafka
 
 import (
 	"context"
-	"fmt"
+	"gochat/internal/notification/application/usecase"
 	"gochat/internal/notification/domain"
 	"gochat/internal/shared/event"
 )
 
-type PrivateMessageCreatedEventHandler struct {
-}
+func NewPrivateMessageCreatedEventHandler(uc usecase.PrivateMessageCreatedUseCase) event.HandlerFunc {
+	return func(ctx context.Context, e event.Event) error {
+		_, err := domain.ToPrivateMessageCreatedEvent(e)
+		if err != nil {
+			return err
+		}
 
-func NewPrivateMessageCreatedEventHandler() event.Handler {
-	return &PrivateMessageCreatedEventHandler{}
-}
+		input := usecase.PrivateMessageCreatedInput{}
 
-func (h *PrivateMessageCreatedEventHandler) Handle(_ context.Context, e event.Event) error {
-	ev, err := domain.ToPrivateMessageCreatedEvent(e)
-	if err != nil {
-		return err
+		if err := input.Validate(); err != nil {
+			return err
+		}
+
+		if _, err := uc.Execute(ctx, &input); err != nil {
+			return err
+		}
+		return nil
 	}
-
-	fmt.Println("Handled PrivateMessageCreatedEvent:", ev)
-
-	return nil
 }

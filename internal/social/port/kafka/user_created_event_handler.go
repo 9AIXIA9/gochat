@@ -4,24 +4,28 @@ import (
 	"context"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
+	"gochat/internal/social/application/usecase"
 	"gochat/internal/social/domain"
 )
 
-type UserCreatedEventHandler struct {
-	userIDSaver UserIDSaver
-}
+func NewUserCreatedEventHandler(uc usecase.UserCreatedUseCase) event.HandlerFunc {
+	return func(ctx context.Context, e event.Event) error {
+		ev, err := domain.ToUserCreatedEvent(e)
+		if err != nil {
+			return err
+		}
 
-func NewUserCreatedEventHandler(userIDSaver UserIDSaver) event.Handler {
-	return &UserCreatedEventHandler{
-		userIDSaver: userIDSaver,
+		input := usecase.UserCreatedInput{
+			UserID: kernel.UserID(ev.AggregateID()),
+		}
+
+		if err := input.Validate(); err != nil {
+			return err
+		}
+
+		if _, err := uc.Execute(ctx, &input); err != nil {
+			return err
+		}
+		return nil
 	}
-}
-
-func (h *UserCreatedEventHandler) Handle(ctx context.Context, e event.Event) error {
-	ev, err := domain.ToUserCreatedEvent(e)
-	if err != nil {
-		return err
-	}
-
-	return h.userIDSaver.SaveID(ctx, kernel.UserID(ev.AggregateID()))
 }

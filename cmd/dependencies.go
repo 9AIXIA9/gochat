@@ -247,45 +247,94 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 		eventRepository,
 	)
 
+	// Initialize event-consumer usecases before subscriptions
+	authUserCreatedUseCase := authorizationUsecase.NewUserCreatedUseCase(
+		eventIDGenerator,
+		kafkaPublisher,
+		authorizationUserRepository,
+	)
+
+	socialUserCreatedUseCase := socialUseCase.NewUserCreatedUseCase(
+		socialUserRepository,
+	)
+	socialRoomCreatedUseCase := socialUseCase.NewRoomCreatedUseCase(
+		eventIDGenerator,
+		kafkaPublisher,
+		socialRoomRepository,
+	)
+	socialRoomJoinedUseCase := socialUseCase.NewRoomJoinedUseCase(
+		eventIDGenerator,
+		kafkaPublisher,
+	)
+	socialRoomLeftUseCase := socialUseCase.NewRoomLeftUseCase(
+		eventIDGenerator,
+		kafkaPublisher,
+	)
+
+	chatUserCreatedUseCase := chatUsecase.NewUserCreatedUseCase(
+		chatUserRepository,
+	)
+	chatRoomCreatedUseCase := chatUsecase.NewRoomCreatedUseCase(
+		chatRoomRepository,
+	)
+	chatRoomJoinedUseCase := chatUsecase.NewRoomJoinedUseCase(
+		chatRoomRepository,
+	)
+	chatRoomLeftUseCase := chatUsecase.NewRoomLeftUseCase(
+		chatRoomRepository,
+	)
+
+	notificationUserCreatedUseCase := notificationUsecase.NewUserCreatedUseCase(
+		notificationUserRepository,
+	)
+	notificationRoomCreatedUseCase := notificationUsecase.NewRoomCreatedUseCase(
+		notificationRoomRepository,
+	)
+	notificationRoomJoinedUseCase := notificationUsecase.NewRoomJoinedUseCase(
+		notificationRoomRepository,
+	)
+	notificationRoomLeftUseCase := notificationUsecase.NewRoomLeftUseCase(
+		notificationRoomRepository,
+	)
+	notificationPrivateMessageCreatedUseCase := notificationUsecase.NewPrivateMessageCreatedUseCase()
+	notificationRoomMessageCreatedUseCase := notificationUsecase.NewRoomMessageCreatedUseCase()
+
 	kafkaSubscriber, err := kafkautil.NewEventSubscriber(appConfig.Kafka.Common, appConfig.Kafka.Consumer)
 	if err != nil {
 		return nil, fmt.Errorf("initialize kafka kafkaSubscriber failed, err:%w", err)
 	}
 
+	// Authorization domain events -> usecase handler
 	kafkaSubscriber.Subscribe(authorizationDomain.TopicUserCreated, authorizationKafka.NewUserCreatedEventHandler(
-		eventIDGenerator,
-		kafkaPublisher,
-		authorizationUserRepository,
+		authUserCreatedUseCase,
 	))
 
+	// Social domain events -> usecase handlers
 	kafkaSubscriber.Subscribe(socialDomain.TopicUserCreated, socialKafka.NewUserCreatedEventHandler(
-		socialUserRepository,
+		socialUserCreatedUseCase,
 	))
 	kafkaSubscriber.Subscribe(socialDomain.TopicRoomCreated, socialKafka.NewRoomCreatedEventHandler(
-		eventIDGenerator,
-		kafkaPublisher,
-		socialRoomRepository,
+		socialRoomCreatedUseCase,
 	))
 	kafkaSubscriber.Subscribe(socialDomain.TopicRoomJoined, socialKafka.NewRoomJoinedEventHandler(
-		eventIDGenerator,
-		kafkaPublisher,
+		socialRoomJoinedUseCase,
 	))
 	kafkaSubscriber.Subscribe(socialDomain.TopicRoomLeft, socialKafka.NewRoomLeftEventHandler(
-		eventIDGenerator,
-		kafkaPublisher,
+		socialRoomLeftUseCase,
 	))
 
+	// Chat domain events -> usecase handlers or bridging handlers
 	kafkaSubscriber.Subscribe(chatDomain.TopicUserCreated, chatKafka.NewUserCreatedEventHandler(
-		chatUserRepository,
+		chatUserCreatedUseCase,
 	))
 	kafkaSubscriber.Subscribe(chatDomain.TopicRoomCreated, chatKafka.NewRoomCreatedEventHandler(
-		chatRoomRepository,
+		chatRoomCreatedUseCase,
 	))
 	kafkaSubscriber.Subscribe(chatDomain.TopicRoomJoined, chatKafka.NewRoomJoinedEventHandler(
-		chatRoomRepository,
+		chatRoomJoinedUseCase,
 	))
 	kafkaSubscriber.Subscribe(chatDomain.TopicRoomLeft, chatKafka.NewRoomLeftEventHandler(
-		chatRoomRepository,
+		chatRoomLeftUseCase,
 	))
 	kafkaSubscriber.Subscribe(chatDomain.TopicPrivateMessageCreated, chatKafka.NewPrivateMessageCreatedEventHandler(
 		eventIDGenerator,
@@ -296,20 +345,25 @@ func initializeDependencies(configPath string, envPath string) (*Dependencies, e
 		kafkaPublisher,
 	))
 
+	// Notification domain events -> usecase handlers
 	kafkaSubscriber.Subscribe(notificationDomain.TopicUserCreated, notificationKafka.NewUserCreatedEventHandler(
-		notificationUserRepository,
+		notificationUserCreatedUseCase,
 	))
 	kafkaSubscriber.Subscribe(notificationDomain.TopicRoomCreated, notificationKafka.NewRoomCreatedEventHandler(
-		notificationRoomRepository,
+		notificationRoomCreatedUseCase,
 	))
 	kafkaSubscriber.Subscribe(notificationDomain.TopicRoomJoined, notificationKafka.NewRoomJoinedEventHandler(
-		notificationRoomRepository,
+		notificationRoomJoinedUseCase,
 	))
 	kafkaSubscriber.Subscribe(notificationDomain.TopicRoomLeft, notificationKafka.NewRoomLeftEventHandler(
-		notificationRoomRepository,
+		notificationRoomLeftUseCase,
 	))
-	kafkaSubscriber.Subscribe(notificationDomain.TopicPrivateMessageCreated, notificationKafka.NewPrivateMessageCreatedEventHandler())
-	kafkaSubscriber.Subscribe(notificationDomain.TopicRoomMessageCreated, notificationKafka.NewRoomMessageCreatedEventHandler())
+	kafkaSubscriber.Subscribe(notificationDomain.TopicPrivateMessageCreated, notificationKafka.NewPrivateMessageCreatedEventHandler(
+		notificationPrivateMessageCreatedUseCase,
+	))
+	kafkaSubscriber.Subscribe(notificationDomain.TopicRoomMessageCreated, notificationKafka.NewRoomMessageCreatedEventHandler(
+		notificationRoomMessageCreatedUseCase,
+	))
 
 	// Start background components
 	ctx, cancel := context.WithCancel(context.Background())

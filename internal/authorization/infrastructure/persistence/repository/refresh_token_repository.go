@@ -14,8 +14,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-var _ application.RefreshTokenSaver = (*RefreshTokenRepository)(nil)
-var _ application.RefreshTokenFinder = (*RefreshTokenRepository)(nil)
+var _ application.RefreshTokenRepository = (*RefreshTokenRepository)(nil)
 
 const KeyPrefix = "gochat:authorization"
 const KeyRefreshToken = KeyPrefix + ":refresh_token:"

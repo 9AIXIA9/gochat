@@ -2,26 +2,31 @@ package kafka
 
 import (
 	"context"
-	chatDomain "gochat/internal/chat/domain"
+	"gochat/internal/chat/application/usecase"
+	"gochat/internal/chat/domain"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 )
 
-type UserCreatedEventHandler struct {
-	userNumberSaver UserNumberSaver
-}
+func NewUserCreatedEventHandler(uc usecase.UserCreatedUseCase) event.HandlerFunc {
+	return func(ctx context.Context, e event.Event) error {
+		ev, err := domain.ToUserCreatedEvent(e)
+		if err != nil {
+			return err
+		}
 
-func NewUserCreatedEventHandler(userNumberSaver UserNumberSaver) event.Handler {
-	return &UserCreatedEventHandler{
-		userNumberSaver: userNumberSaver,
+		input := usecase.UserCreatedInput{
+			UserID:     kernel.UserID(ev.AggregateID()),
+			UserNumber: ev.Number(),
+		}
+
+		if err := input.Validate(); err != nil {
+			return err
+		}
+
+		if _, err := uc.Execute(ctx, &input); err != nil {
+			return err
+		}
+		return nil
 	}
-}
-
-func (h *UserCreatedEventHandler) Handle(ctx context.Context, e event.Event) error {
-	ev, err := chatDomain.ToUserCreatedEvent(e)
-	if err != nil {
-		return err
-	}
-
-	return h.userNumberSaver.SaveNumber(ctx, kernel.UserID(ev.AggregateID()), ev.Number())
 }

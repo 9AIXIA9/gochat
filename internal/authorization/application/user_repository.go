@@ -7,6 +7,13 @@ import (
 	"time"
 )
 
+type UserRepository interface {
+	UserSaver
+	UserFinderByNumber
+	UserLoggedInAtUpdater
+	UserFinderByID
+}
+
 type UserSaver interface {
 	Save(ctx context.Context, user *domain.User) error
 }
@@ -17,4 +24,8 @@ type UserFinderByNumber interface {
 
 type UserLoggedInAtUpdater interface {
 	UpdateLoggedInAt(ctx context.Context, userID kernel.UserID, time time.Time) error
+}
+
+type UserFinderByID interface {
+	FindByID(ctx context.Context, id kernel.UserID) (*domain.User, error)
 }

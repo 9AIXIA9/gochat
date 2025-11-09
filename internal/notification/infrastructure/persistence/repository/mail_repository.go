@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var _ application.MailSaver = (*MailRepository)(nil)
+var _ application.MailRepository = (*MailRepository)(nil)
 
 type MailRepository struct {
 	innerRepository *gormutils.Repository[model.Mail, domain.Mail]

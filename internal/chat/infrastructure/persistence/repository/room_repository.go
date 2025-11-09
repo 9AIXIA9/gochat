@@ -5,17 +5,13 @@ import (
 	"gochat/internal/chat/application"
 	"gochat/internal/chat/domain"
 	"gochat/internal/chat/infrastructure/persistence/model"
-	"gochat/internal/chat/port/kafka"
 	gormutils "gochat/internal/infrastructure/gorm"
 	"gochat/internal/shared/kernel"
 
 	"gorm.io/gorm"
 )
 
-var _ application.RoomFinder = (*RoomRepository)(nil)
-var _ kafka.RoomNumberSaver = (*RoomRepository)(nil)
-var _ kafka.RoomMemberSaver = (*RoomRepository)(nil)
-var _ kafka.RoomMemberDeleter = (*RoomRepository)(nil)
+var _ application.RoomRepository = (*RoomRepository)(nil)
 
 type RoomRepository struct {
 	db *gorm.DB

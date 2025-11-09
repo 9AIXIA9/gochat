@@ -12,10 +12,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var _ event.UnpublishedSaver = (*EventRepository)(nil)
-var _ event.UnpublishedLister = (*EventRepository)(nil)
-var _ event.PublishedMarker = (*EventRepository)(nil)
-var _ event.DeadLetterSaver = (*EventRepository)(nil)
+var _ event.Repository = (*EventRepository)(nil)
 
 type EventRepository struct {
 	db                 *gorm.DB
