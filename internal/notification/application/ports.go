@@ -6,14 +6,10 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-type EmailNotifier interface {
-	Enqueue(ctx context.Context, email kernel.Email, mail *domain.Mail, onSuccess func() error) error
+type UserCreatedEmailNotifier interface {
+	AddUserCreatedEmail(ctx context.Context, email kernel.Email, number domain.UserNumber) error
 }
 
 type MessageNotifier interface {
 	Notify(ctx context.Context, message *domain.Message) error
-}
-
-type MailIDGenerator interface {
-	Generate() domain.MailID
 }

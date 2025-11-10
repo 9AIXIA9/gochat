@@ -12,7 +12,8 @@ const TopicUserCreated event.Topic = "notification.user.created"
 var _ event.SpecificEvent = (*UserCreatedEvent)(nil)
 
 type UserCreatedEvent struct {
-	email kernel.Email
+	email  kernel.Email
+	number UserNumber
 	*event.StandardEvent
 }
 
@@ -26,9 +27,10 @@ func ToUserCreatedEvent(ev event.Event) (*UserCreatedEvent, error) {
 	return e, nil
 }
 
-func NewUserCreatedEvent(id event.ID, userID kernel.UserID, email kernel.Email) (*UserCreatedEvent, error) {
+func NewUserCreatedEvent(id event.ID, userID kernel.UserID, email kernel.Email, number UserNumber) (*UserCreatedEvent, error) {
 	e := &UserCreatedEvent{
-		email: email,
+		email:  email,
+		number: number,
 	}
 	payload, err := e.Marshal()
 	if err != nil {
@@ -41,16 +43,19 @@ func NewUserCreatedEvent(id event.ID, userID kernel.UserID, email kernel.Email) 
 
 func (e *UserCreatedEvent) Marshal() ([]byte, error) {
 	type Alias struct {
-		Email kernel.Email
+		Email  kernel.Email
+		Number UserNumber
 	}
 	return json.Marshal(&Alias{
-		Email: e.email,
+		Email:  e.email,
+		Number: e.number,
 	})
 }
 
 func (e *UserCreatedEvent) Unmarshal(data []byte) error {
 	type Alias struct {
-		Email kernel.Email
+		Email  kernel.Email
+		Number UserNumber
 	}
 	var tmp Alias
 	if err := json.Unmarshal(data, &tmp); err != nil {
@@ -58,6 +63,10 @@ func (e *UserCreatedEvent) Unmarshal(data []byte) error {
 	}
 	e.email = tmp.Email
 	return nil
+}
+
+func (e *UserCreatedEvent) Number() UserNumber {
+	return e.number
 }
 
 func (e *UserCreatedEvent) Email() kernel.Email {

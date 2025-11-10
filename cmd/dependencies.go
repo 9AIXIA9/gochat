@@ -280,8 +280,8 @@ func provideChatRoomJoinedUseCase(roomRepo *chatRepository.RoomRepository) chatU
 func provideChatRoomLeftUseCase(roomRepo *chatRepository.RoomRepository) chatUsecase.RoomLeftUseCase {
 	return chatUsecase.NewRoomLeftUseCase(roomRepo)
 }
-func provideNotificationUserCreatedUseCase(userRepo *notificationRepository.UserRepository) notificationUsecase.UserCreatedUseCase {
-	return notificationUsecase.NewUserCreatedUseCase(userRepo)
+func provideNotificationUserCreatedUseCase(userRepo *notificationRepository.UserRepository, emailNotifier *gomail.EmailNotifier) notificationUsecase.UserCreatedUseCase {
+	return notificationUsecase.NewUserCreatedUseCase(userRepo, emailNotifier)
 }
 func provideNotificationRoomCreatedUseCase(roomRepo *notificationRepository.RoomRepository) notificationUsecase.RoomCreatedUseCase {
 	return notificationUsecase.NewRoomCreatedUseCase(roomRepo)
@@ -373,10 +373,20 @@ func BuildDependencies(
 ) (*Dependencies, error) {
 	// Migrations (side-effect). Performed here to keep initialize logic centralized.
 	if appConfig.NeedMigrate {
-		if err := gormutils.AutoMigrate(mysql,
-			&authorizationModel.User{}, &notificationModel.Mail{}, &notificationModel.User{}, &notificationModel.Room{},
-			&chatModel.User{}, &chatModel.Room{}, &chatModel.Message{}, &chatModel.UserMessageState{},
-			&socialModel.User{}, &socialModel.Room{}, &model.Event{}, &model.DeadLetter{}); err != nil {
+		if err := gormutils.AutoMigrate(
+			mysql,
+			&authorizationModel.User{},
+			&notificationModel.User{},
+			&notificationModel.Room{},
+			&chatModel.User{},
+			&chatModel.Room{},
+			&chatModel.Message{},
+			&chatModel.UserMessageState{},
+			&socialModel.User{},
+			&socialModel.Room{},
+			&model.Event{},
+			&model.DeadLetter{},
+		); err != nil {
 			return nil, fmt.Errorf("mysql migrate failed, err:%w", err)
 		}
 	}

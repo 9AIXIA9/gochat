@@ -16,8 +16,9 @@ func NewUserCreatedEventHandler(uc usecase.UserCreatedUseCase) event.HandlerFunc
 		}
 
 		input := usecase.UserCreatedInput{
-			UserID: kernel.UserID(ev.AggregateID()),
-			Email:  ev.Email(),
+			UserID:     kernel.UserID(ev.AggregateID()),
+			UserNumber: ev.Number(),
+			Email:      ev.Email(),
 		}
 
 		if err := input.Validate(); err != nil {

@@ -81,7 +81,7 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 	usecaseRoomJoinedUseCase := provideChatRoomJoinedUseCase(roomRepository)
 	usecaseRoomLeftUseCase := provideChatRoomLeftUseCase(roomRepository)
 	userRepository3 := provideNotificationUserRepository(db)
-	userCreatedUseCase3 := provideNotificationUserCreatedUseCase(userRepository3)
+	userCreatedUseCase3 := provideNotificationUserCreatedUseCase(userRepository3, emailNotifier)
 	roomRepository2 := provideNotificationRoomRepository(db)
 	roomCreatedUseCase2 := provideNotificationRoomCreatedUseCase(roomRepository2)
 	roomJoinedUseCase2 := provideNotificationRoomJoinedUseCase(roomRepository2)

@@ -20,9 +20,8 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (repo *UserRepository) SaveEmail(ctx context.Context, userID kernel.UserID, email kernel.Email) error {
+func (repo *UserRepository) SaveID(ctx context.Context, userID kernel.UserID) error {
 	return gormutils.TranslateError(repo.db.WithContext(ctx).Create(&model.User{
-		ID:    userID,
-		Email: email,
+		ID: userID,
 	}).Error)
 }

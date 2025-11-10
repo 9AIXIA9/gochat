@@ -2,7 +2,6 @@ package gomail
 
 import (
 	"context"
-	"fmt"
 	"gochat/internal/notification/application"
 	"gochat/internal/notification/domain"
 	myErrors "gochat/internal/shared/errors"
@@ -15,7 +14,7 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
-var _ application.EmailNotifier = (*EmailNotifier)(nil)
+var _ application.UserCreatedEmailNotifier = (*EmailNotifier)(nil)
 
 const (
 	maxWorkers         = 3
@@ -26,9 +25,9 @@ const (
 )
 
 type EmailNotifier struct {
-	senderName string
-
 	dialer *gomail.Dialer
+
+	taskGenerator *taskGenerator
 
 	taskChan  chan *task
 	mu        sync.RWMutex
@@ -39,16 +38,21 @@ type EmailNotifier struct {
 
 func NewEmailNotifier(senderName string, config *EmailNotifierConfig) *EmailNotifier {
 	return &EmailNotifier{
-		senderName: senderName,
-		dialer:     gomail.NewDialer(config.Host, config.Port, config.Username, config.Password),
-		taskChan:   make(chan *task, maxMailCache),
-		mu:         sync.RWMutex{},
-		closeOnce:  sync.Once{},
-		closed:     false,
+		dialer: gomail.NewDialer(config.Host, config.Port, config.Username, config.Password),
+		taskGenerator: &taskGenerator{
+			senderName: senderName,
+			address:    config.Username,
+		},
+		taskChan: make(chan *task, maxMailCache),
+		closed:   false,
 	}
 }
 
-func (n *EmailNotifier) Enqueue(ctx context.Context, email kernel.Email, mail *domain.Mail, onSuccess func() error) error {
+func (n *EmailNotifier) AddUserCreatedEmail(ctx context.Context, email kernel.Email, number domain.UserNumber) error {
+	return n.enqueue(ctx, n.taskGenerator.generateUserCreatedTask(email, number))
+}
+
+func (n *EmailNotifier) enqueue(ctx context.Context, task *task) error {
 	n.mu.RLock()
 	if n.closed {
 		n.mu.RUnlock()
@@ -59,7 +63,7 @@ func (n *EmailNotifier) Enqueue(ctx context.Context, email kernel.Email, mail *d
 	defer cancel()
 
 	select {
-	case n.taskChan <- &task{mail: mail, email: email, onSuccess: onSuccess}:
+	case n.taskChan <- task:
 		n.mu.RUnlock()
 		return nil
 	case <-ctx.Done():
@@ -71,42 +75,28 @@ func (n *EmailNotifier) Enqueue(ctx context.Context, email kernel.Email, mail *d
 func (n *EmailNotifier) Start() {
 	n.startOnce.Do(func() {
 		for i := 0; i < maxWorkers; i++ {
-			utils.GoSafe(n.startWorker)
+			go n.startWorker()
 		}
 	})
 }
 
 func (n *EmailNotifier) startWorker() {
 	for t := range n.taskChan {
-		err := n.sendWithRetry(t)
-		if err == nil && t.onSuccess != nil {
-			if err := t.onSuccess(); err != nil {
-				zap.L().Error(
-					"EmailNotifier onSuccess callback error",
-					zap.String("mail_id", (t.mail.ID()).String()),
-					zap.Error(err),
-				)
-			}
+		if err := n.sendWithRetry(t.message); err != nil {
+			zap.L().Error(
+				"UserCreatedEmailNotifier send error",
+				zap.String("email", t.email.String()),
+				zap.Error(err),
+			)
 		}
-		zap.L().Error(
-			"EmailNotifier send error",
-			zap.String("mail_id", (t.mail.ID()).String()),
-			zap.Error(err),
-		)
 	}
 }
 
-func (n *EmailNotifier) sendWithRetry(t *task) error {
+func (n *EmailNotifier) sendWithRetry(msg *gomail.Message) error {
 	var lastErr error
 	for attempt := 0; attempt <= maxRetries; attempt++ {
 		if attempt > 0 {
 			utils.BackoffWait(maxBackoffDuration, attempt)
-		}
-
-		msg, buildErr := n.composeMessage(t)
-		if buildErr != nil {
-			// 构造错误为非重试错误
-			return buildErr
 		}
 
 		if err := n.dialer.DialAndSend(msg); err == nil {
@@ -116,34 +106,6 @@ func (n *EmailNotifier) sendWithRetry(t *task) error {
 		}
 	}
 	return lastErr
-}
-
-func (n *EmailNotifier) composeMessage(t *task) (*gomail.Message, error) {
-	if t == nil {
-		return nil, myErrors.ErrEmptyPointer
-	}
-
-	m := gomail.NewMessage()
-
-	// From
-	fromAddr := n.dialer.Username
-	if n.senderName != "" {
-		m.SetAddressHeader("From", fromAddr, n.senderName)
-	} else {
-		m.SetHeader("From", fromAddr)
-	}
-
-	// To
-	m.SetHeader("To", fmt.Sprint(t.email))
-
-	// Subject
-	subject := fmt.Sprintf("Mail %s", fmt.Sprint(t.mail.Theme()))
-	m.SetHeader("Subject", subject)
-
-	// Body
-	m.SetBody("text/html", t.mail.Content())
-
-	return m, nil
 }
 
 func (n *EmailNotifier) Close() {

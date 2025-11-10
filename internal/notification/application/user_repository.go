@@ -6,9 +6,9 @@ import (
 )
 
 type UserRepository interface {
-	UserEmailSaver
+	UserIDSaver
 }
 
-type UserEmailSaver interface {
-	SaveEmail(ctx context.Context, userID kernel.UserID, email kernel.Email) error
+type UserIDSaver interface {
+	SaveID(ctx context.Context, userID kernel.UserID) error
 }
