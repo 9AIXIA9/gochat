@@ -5,10 +5,12 @@ import (
 )
 
 type Room struct {
-	ID      domain.RoomID `gorm:"primaryKey;type:char(36)"`
-	Members []*User       `gorm:"many2many:gochat.notification_room_members;foreignKey:ID;joinForeignKey:RoomID;references:ID;joinReferences:UserID"`
+	ID domain.RoomID `gorm:"primaryKey;type:char(36)"`
+
+	// 房间 <-> 用户 多对多
+	Members []*User `gorm:"many2many:gochat.chat_room_members;foreignKey:ID;joinForeignKey:RoomID;references:ID;joinReferences:UserID"`
 }
 
-func (r *Room) TableName() string {
+func (*Room) TableName() string {
 	return "gochat.notification_rooms"
 }

@@ -10,8 +10,11 @@ type Room struct {
 
 	// 房间 <-> 用户 多对多
 	Members []*User `gorm:"many2many:gochat.chat_room_members;foreignKey:ID;joinForeignKey:RoomID;references:ID;joinReferences:UserID"`
+
+	// 房间 <-> 收到的消息 一对多
+	MessagesReceived []*RoomMessage `gorm:"foreignKey:RoomID;references:ID"`
 }
 
-func (r *Room) TableName() string {
+func (*Room) TableName() string {
 	return "gochat.chat_rooms"
 }

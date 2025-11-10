@@ -54,7 +54,7 @@ func (r *Room) ReceiveMessage(id MessageID, sender kernel.UserID, content string
 		return nil, err
 	}
 	r.eventManager.RecordEvent(ev)
-	return NewMessage(id, MessageStateReceived, sender, content, time.Now().UTC()), nil
+	return NewMessage(id, sender, content, time.Now().UTC()), nil
 }
 
 func (r *Room) IsMember(id kernel.UserID) bool {

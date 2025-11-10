@@ -22,57 +22,23 @@ func NewMessageRepository(db *gorm.DB) *MessageRepository {
 }
 
 func (repo *MessageRepository) SavePrivateMessage(ctx context.Context, recipient kernel.UserID, message *domain.Message) error {
-	return gormutils.TranslateError(repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(toModelMessage(message)).Error; err != nil {
-			return err
-		}
-
-		if err := tx.Create(&model.UserMessageState{
-			MessageID: message.ID(),
-			UserID:    recipient,
-			State:     message.State(),
-		}).Error; err != nil {
-			return err
-		}
-		return nil
-	}))
-}
-
-func (repo *MessageRepository) SaveRoomMessage(ctx context.Context, members []kernel.UserID, message *domain.Message) error {
-	return gormutils.TranslateError(repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(toModelMessage(message)).Error; err != nil {
-			return err
-		}
-
-		for _, member := range members {
-			if err := tx.Create(&model.UserMessageState{
-				MessageID: message.ID(),
-				UserID:    member,
-				State:     message.State(),
-			}).Error; err != nil {
-				return err
-			}
-		}
-		return nil
-	}))
-}
-
-func (repo *MessageRepository) UpdateState(ctx context.Context, messageID domain.MessageID, recipientID kernel.UserID, newState domain.MessageState) error {
-	return gormutils.TranslateError(
-		repo.db.WithContext(ctx).
-			Model(&model.UserMessageState{}).
-			Where("message_id = ? AND user_id = ?", messageID, recipientID).
-			Update("state", newState).Error,
-	)
-}
-
-func toModelMessage(message *domain.Message) *model.Message {
-	return &model.Message{
+	return gormutils.TranslateError(repo.db.WithContext(ctx).Create(&model.PrivateMessage{
 		Model: gorm.Model{
 			CreatedAt: message.SentAt(),
 		},
+		ID:          message.ID(),
+		Content:     message.Content(),
+		RecipientID: recipient,
+		SenderID:    message.Sender(),
+	}).Error)
+}
+
+func (repo *MessageRepository) SaveRoomMessage(ctx context.Context, roomID domain.RoomID, message *domain.Message) error {
+	return gormutils.TranslateError(repo.db.WithContext(ctx).Create(&model.RoomMessage{
+		Model:    gorm.Model{},
 		ID:       message.ID(),
 		Content:  message.Content(),
+		RoomID:   roomID,
 		SenderID: message.Sender(),
-	}
+	}).Error)
 }

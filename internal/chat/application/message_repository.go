@@ -9,7 +9,6 @@ import (
 type MessageRepository interface {
 	PrivateMessageSaver
 	RoomMessageSaver
-	MessageStateUpdater
 }
 
 type PrivateMessageSaver interface {
@@ -17,9 +16,5 @@ type PrivateMessageSaver interface {
 }
 
 type RoomMessageSaver interface {
-	SaveRoomMessage(ctx context.Context, members []kernel.UserID, messages *domain.Message) error
-}
-
-type MessageStateUpdater interface {
-	UpdateState(ctx context.Context, messageID domain.MessageID, recipientID kernel.UserID, newState domain.MessageState) error
+	SaveRoomMessage(ctx context.Context, roomID domain.RoomID, messages *domain.Message) error
 }

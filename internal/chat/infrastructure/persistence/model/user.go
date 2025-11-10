@@ -13,12 +13,11 @@ type User struct {
 	Rooms []*Room `gorm:"many2many:gochat.chat_room_members;foreignKey:ID;joinForeignKey:UserID;references:ID;joinReferences:RoomID"`
 
 	// 用户 <-> 发送的消息 一对多
-	MessageSent []*Message `gorm:"foreignKey:SenderID;references:ID"`
-
-	// “用户+接收消息”组合（用于关联状态）
-	MessageStates []*UserMessageState `gorm:"foreignKey:UserID;references:ID"`
+	PrivateMessagesSent     []*PrivateMessage `gorm:"foreignKey:SenderID;references:ID"`
+	RoomMessagesSent        []*RoomMessage    `gorm:"foreignKey:SenderID;references:ID"`
+	PrivateMessagesReceived []*PrivateMessage `gorm:"foreignKey:RecipientID;references:ID"`
 }
 
-func (u *User) TableName() string {
+func (*User) TableName() string {
 	return "gochat.chat_users"
 }
