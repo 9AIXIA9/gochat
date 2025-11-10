@@ -12,26 +12,26 @@ func (i MessageID) String() string {
 }
 
 type Message struct {
-	id        MessageID
-	sender    kernel.UserID
-	recipient kernel.UserID
-	content   string
-	sentAt    time.Time
+	id      MessageID
+	sender  kernel.UserID
+	state   MessageState
+	content string
+	sentAt  time.Time
 }
 
 func NewMessage(
 	id MessageID,
-	recipient kernel.UserID,
 	sender kernel.UserID,
+	state MessageState,
 	content string,
 	sentAt time.Time,
 ) *Message {
 	return &Message{
-		id:        id,
-		recipient: recipient,
-		sender:    sender,
-		content:   content,
-		sentAt:    sentAt,
+		id:      id,
+		sender:  sender,
+		state:   state,
+		content: content,
+		sentAt:  sentAt,
 	}
 }
 
@@ -39,12 +39,12 @@ func (m *Message) ID() MessageID {
 	return m.id
 }
 
-func (m *Message) Recipient() kernel.UserID {
-	return m.recipient
-}
-
 func (m *Message) Sender() kernel.UserID {
 	return m.sender
+}
+
+func (m *Message) State() MessageState {
+	return m.state
 }
 
 func (m *Message) Content() string {

@@ -2,8 +2,8 @@ package kafka
 
 import (
 	"context"
-	"gochat/internal/chat/application/usecase"
-	"gochat/internal/chat/domain"
+	"gochat/internal/notification/application/usecase"
+	"gochat/internal/notification/domain"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 )
@@ -16,8 +16,11 @@ func NewPrivateMessageCreatedEventHandler(uc usecase.PrivateMessageCreatedUseCas
 		}
 
 		input := usecase.PrivateMessageCreatedInput{
-			RecipientID: kernel.UserID(ev.AggregateID()),
 			MessageID:   ev.MessageID(),
+			RecipientID: kernel.UserID(ev.AggregateID()),
+			SenderID:    ev.Sender(),
+			Content:     ev.Content(),
+			SentAt:      ev.SentAt(),
 		}
 
 		if err := input.Validate(); err != nil {

@@ -42,3 +42,25 @@ func (repo *MessageRepository) SaveRoomMessage(ctx context.Context, roomID domai
 		SenderID: message.Sender(),
 	}).Error)
 }
+
+func (repo *MessageRepository) FindPrivateMessage(ctx context.Context, recipient kernel.UserID, messageID domain.MessageID) (*domain.Message, error) {
+	var m model.PrivateMessage
+	err := repo.db.WithContext(ctx).
+		Where("id = ? AND recipient_id = ?", messageID, recipient).
+		First(&m).Error
+	if err != nil {
+		return nil, gormutils.TranslateError(err)
+	}
+	return domain.NewMessage(m.ID, m.SenderID, m.Content, m.Model.CreatedAt), nil
+}
+
+func (repo *MessageRepository) FindRoomMessage(ctx context.Context, roomID domain.RoomID, messageID domain.MessageID) (*domain.Message, error) {
+	var m model.RoomMessage
+	err := repo.db.WithContext(ctx).
+		Where("id = ? AND room_id = ?", messageID, roomID).
+		First(&m).Error
+	if err != nil {
+		return nil, gormutils.TranslateError(err)
+	}
+	return domain.NewMessage(m.ID, m.SenderID, m.Content, m.Model.CreatedAt), nil
+}

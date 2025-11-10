@@ -49,12 +49,22 @@ func (r *Room) ReceiveMessage(id MessageID, sender kernel.UserID, content string
 		return nil, myErrors.ErrNotBelongTo
 	}
 
-	ev, err := NewRoomMessageCreatedEvent(generator.Generate(), id, r.id)
+	now := time.Now().UTC()
+
+	ev, err := NewRoomMessageCreatedEvent(
+		generator.Generate(),
+		id,
+		r.id,
+		r.members,
+		sender,
+		content,
+		now,
+	)
 	if err != nil {
 		return nil, err
 	}
 	r.eventManager.RecordEvent(ev)
-	return NewMessage(id, sender, content, time.Now().UTC()), nil
+	return NewMessage(id, sender, content, now), nil
 }
 
 func (r *Room) IsMember(id kernel.UserID) bool {

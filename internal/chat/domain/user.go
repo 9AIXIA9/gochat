@@ -35,10 +35,11 @@ func NewUser(id kernel.UserID, number UserNumber) *User {
 	}
 }
 
-func (u *User) ReceiveMessage(id MessageID, sender kernel.UserID, content string, sentAt time.Time, generator event.IDGenerator) (*Message, error) {
-	message := NewMessage(id, sender, content, sentAt)
+func (u *User) ReceiveMessage(id MessageID, sender kernel.UserID, content string, generator event.IDGenerator) (*Message, error) {
+	now := time.Now().UTC()
+	message := NewMessage(id, sender, content, now)
 
-	ev, err := NewPrivateMessageCreatedEvent(generator.Generate(), id, u.id)
+	ev, err := NewPrivateMessageCreatedEvent(generator.Generate(), id, u.id, sender, content, now)
 	if err != nil {
 		return nil, err
 	}

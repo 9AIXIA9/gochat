@@ -12,7 +12,11 @@ const TopicRoomMessageCreated event.Topic = "notification.room_message.created"
 var _ event.SpecificEvent = (*RoomMessageCreatedEvent)(nil)
 
 type RoomMessageCreatedEvent struct {
-	messageID MessageID
+	messageID  MessageID
+	sender     kernel.UserID
+	recipients []kernel.UserID
+	content    string
+	sentAt     time.Time
 	*event.StandardEvent
 }
 
@@ -28,11 +32,19 @@ func ToRoomMessageCreatedEvent(ev event.Event) (*RoomMessageCreatedEvent, error)
 
 func NewRoomMessageCreatedEvent(
 	id event.ID,
-	messageID MessageID,
 	roomID RoomID,
+	messageID MessageID,
+	recipients []kernel.UserID,
+	sender kernel.UserID,
+	content string,
+	sentAt time.Time,
 ) (*RoomMessageCreatedEvent, error) {
 	e := &RoomMessageCreatedEvent{
-		messageID: messageID,
+		messageID:  messageID,
+		sender:     sender,
+		recipients: recipients,
+		content:    content,
+		sentAt:     sentAt,
 	}
 	payload, err := e.Marshal()
 	if err != nil {
@@ -45,25 +57,57 @@ func NewRoomMessageCreatedEvent(
 
 func (e *RoomMessageCreatedEvent) Marshal() ([]byte, error) {
 	type Alias struct {
-		MessageID MessageID
+		MessageID  MessageID
+		Sender     kernel.UserID
+		Recipients []kernel.UserID
+		Content    string
+		SentAt     time.Time
 	}
 	return json.Marshal(Alias{
-		MessageID: e.messageID,
+		MessageID:  e.messageID,
+		Sender:     e.sender,
+		Recipients: e.recipients,
+		Content:    e.content,
+		SentAt:     e.sentAt,
 	})
 }
 
 func (e *RoomMessageCreatedEvent) Unmarshal(data []byte) error {
 	type Alias struct {
-		MessageID MessageID
+		MessageID  MessageID
+		Sender     kernel.UserID
+		Recipients []kernel.UserID
+		Content    string
+		SentAt     time.Time
 	}
 	var tmp Alias
 	if err := json.Unmarshal(data, &tmp); err != nil {
 		return err
 	}
 	e.messageID = tmp.MessageID
+	e.sender = tmp.Sender
+	e.content = tmp.Content
+	e.sentAt = tmp.SentAt
+	e.recipients = tmp.Recipients
 	return nil
 }
 
 func (e *RoomMessageCreatedEvent) MessageID() MessageID {
 	return e.messageID
+}
+
+func (e *RoomMessageCreatedEvent) Sender() kernel.UserID {
+	return e.sender
+}
+
+func (e *RoomMessageCreatedEvent) Recipients() []kernel.UserID {
+	return e.recipients
+}
+
+func (e *RoomMessageCreatedEvent) Content() string {
+	return e.content
+}
+
+func (e *RoomMessageCreatedEvent) SentAt() time.Time {
+	return e.sentAt
 }

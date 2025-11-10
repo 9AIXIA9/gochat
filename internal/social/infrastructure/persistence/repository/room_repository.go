@@ -26,7 +26,7 @@ func NewRoomRepository(db *gorm.DB) *RoomRepository {
 
 // Save upsert 房间并同步成员关系
 func (repo *RoomRepository) Save(ctx context.Context, room *domain.Room) error {
-	return repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	return gormutils.TranslateError(repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// Upsert room basic fields (不含 Members)
 		if err := tx.Clauses(
 			clause.OnConflict{
@@ -54,7 +54,7 @@ func (repo *RoomRepository) Save(ctx context.Context, room *domain.Room) error {
 		}
 
 		return nil
-	})
+	}))
 }
 
 // FindByNumber 通过房间号查询
@@ -65,7 +65,7 @@ func (repo *RoomRepository) FindByNumber(ctx context.Context, number domain.Room
 		Where("number = ?", number.String()).
 		First(&m).Error
 	if err != nil {
-		return nil, err
+		return nil, gormutils.TranslateError(err)
 	}
 	return toDomainRoom(&m), nil
 }

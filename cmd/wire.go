@@ -71,6 +71,7 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 		provideAccessTokenManager,
 		provideRefreshTokenGenerator,
 		provideEmailNotifier,
+		provideMessageNotifier,
 		// Repositories
 		provideEventRepository,
 		provideAuthorizationUserRepository,
@@ -82,6 +83,7 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 		provideSocialRoomRepository,
 		provideNotificationUserRepository,
 		provideNotificationRoomRepository,
+		provideNotificationMessageRepository,
 		// Kafka & Canal
 		provideKafkaPublisher,
 		provideKafkaSubscriber,
@@ -106,6 +108,8 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 		provideChatRoomCreatedUseCase,
 		provideChatRoomJoinedUseCase,
 		provideChatRoomLeftUseCase,
+		provideChatRoomMessageCreatedUseCase,
+		provideChatPrivateMessageCreatedUseCase,
 		provideNotificationUserCreatedUseCase,
 		provideNotificationRoomCreatedUseCase,
 		provideNotificationRoomJoinedUseCase,

@@ -7,14 +7,21 @@ import (
 	"gochat/internal/shared/event"
 )
 
-func NewPrivateMessageCreatedEventHandler(uc usecase.PrivateMessageCreatedUseCase) event.HandlerFunc {
+func NewRoomMessageCreatedEventHandler(uc usecase.RoomMessageCreatedUseCase) event.HandlerFunc {
 	return func(ctx context.Context, e event.Event) error {
-		_, err := domain.ToPrivateMessageCreatedEvent(e)
+		ev, err := domain.ToRoomMessageCreatedEvent(e)
 		if err != nil {
 			return err
 		}
 
-		input := usecase.PrivateMessageCreatedInput{}
+		input := usecase.RoomMessageCreatedInput{
+			MessageID:    ev.MessageID(),
+			RoomID:       domain.RoomID(ev.AggregateID()),
+			RecipientIDs: ev.Recipients(),
+			SenderID:     ev.Sender(),
+			Content:      ev.Content(),
+			SentAt:       ev.SentAt(),
+		}
 
 		if err := input.Validate(); err != nil {
 			return err

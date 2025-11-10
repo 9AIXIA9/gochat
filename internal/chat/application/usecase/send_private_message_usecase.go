@@ -7,7 +7,6 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"time"
 )
 
 var _ SendPrivateMessageUseCase = (*sendPrivateMessageUseCase)(nil)
@@ -60,7 +59,7 @@ func (uc *sendPrivateMessageUseCase) Execute(ctx context.Context, input *SendPri
 		return nil, err
 	}
 
-	message, err := user.ReceiveMessage(uc.messageIDGenerator.Generate(), input.SenderID, input.Content, time.Now().UTC(), uc.eventIDGenerator)
+	message, err := user.ReceiveMessage(uc.messageIDGenerator.Generate(), input.SenderID, input.Content, uc.eventIDGenerator)
 	if err != nil {
 		return nil, err
 	}

@@ -32,6 +32,7 @@ import (
 	"gochat/internal/infrastructure/uuid"
 	ginutils "gochat/internal/infrastructure/validator"
 	"gochat/internal/infrastructure/viper"
+	"gochat/internal/infrastructure/websocket"
 	zaputils "gochat/internal/infrastructure/zap"
 	notificationUsecase "gochat/internal/notification/application/usecase"
 	notificationDomain "gochat/internal/notification/domain"
@@ -127,6 +128,9 @@ func provideRefreshTokenGenerator(appConfig *config.App) *crypto.RefreshTokenGen
 func provideEmailNotifier(appConfig *config.App) *gomail.EmailNotifier {
 	return gomail.NewEmailNotifier(appConfig.Name, appConfig.Email)
 }
+func provideMessageNotifier(appConfig *config.App) *websocket.Manager {
+	return websocket.NewManager()
+}
 
 // -------------------- Repositories --------------------
 func provideEventRepository(mysql *gorm.DB) *repository.EventRepository {
@@ -158,6 +162,9 @@ func provideNotificationUserRepository(mysql *gorm.DB) *notificationRepository.U
 }
 func provideNotificationRoomRepository(mysql *gorm.DB) *notificationRepository.RoomRepository {
 	return notificationRepository.NewRoomRepository(mysql)
+}
+func provideNotificationMessageRepository(mysql *gorm.DB) *notificationRepository.MessageRepository {
+	return notificationRepository.NewMessageRepository(mysql)
 }
 
 // -------------------- Kafka & Canal --------------------
@@ -280,6 +287,12 @@ func provideChatRoomJoinedUseCase(roomRepo *chatRepository.RoomRepository) chatU
 func provideChatRoomLeftUseCase(roomRepo *chatRepository.RoomRepository) chatUsecase.RoomLeftUseCase {
 	return chatUsecase.NewRoomLeftUseCase(roomRepo)
 }
+func provideChatPrivateMessageCreatedUseCase(eventIDGen *uuid.EventIDGenerator, publisher *kafkautil.EventPublisher, messageRepo *chatRepository.MessageRepository) chatUsecase.PrivateMessageCreatedUseCase {
+	return chatUsecase.NewPrivateMessageCreatedUseCase(eventIDGen, messageRepo, publisher)
+}
+func provideChatRoomMessageCreatedUseCase(eventIDGen *uuid.EventIDGenerator, publisher *kafkautil.EventPublisher, messageRepo *chatRepository.MessageRepository, roomRepo *chatRepository.RoomRepository) chatUsecase.RoomMessageCreatedUseCase {
+	return chatUsecase.NewRoomMessageCreatedUseCase(eventIDGen, messageRepo, roomRepo, publisher)
+}
 func provideNotificationUserCreatedUseCase(userRepo *notificationRepository.UserRepository, emailNotifier *gomail.EmailNotifier) notificationUsecase.UserCreatedUseCase {
 	return notificationUsecase.NewUserCreatedUseCase(userRepo, emailNotifier)
 }
@@ -292,11 +305,11 @@ func provideNotificationRoomJoinedUseCase(roomRepo *notificationRepository.RoomR
 func provideNotificationRoomLeftUseCase(roomRepo *notificationRepository.RoomRepository) notificationUsecase.RoomLeftUseCase {
 	return notificationUsecase.NewRoomLeftUseCase(roomRepo)
 }
-func provideNotificationPrivateMessageCreatedUseCase() notificationUsecase.PrivateMessageCreatedUseCase {
-	return notificationUsecase.NewPrivateMessageCreatedUseCase()
+func provideNotificationPrivateMessageCreatedUseCase(messageRepo *notificationRepository.MessageRepository, manager *websocket.Manager) notificationUsecase.PrivateMessageCreatedUseCase {
+	return notificationUsecase.NewPrivateMessageCreatedUseCase(messageRepo, manager)
 }
-func provideNotificationRoomMessageCreatedUseCase() notificationUsecase.RoomMessageCreatedUseCase {
-	return notificationUsecase.NewRoomMessageCreatedUseCase()
+func provideNotificationRoomMessageCreatedUseCase(messageRepo *notificationRepository.MessageRepository, manager *websocket.Manager) notificationUsecase.RoomMessageCreatedUseCase {
+	return notificationUsecase.NewRoomMessageCreatedUseCase(messageRepo, manager)
 }
 
 // -------------------- Kafka Subscriptions --------------------
@@ -313,6 +326,8 @@ func provideKafkaSubscriptions(subscriber *kafkautil.EventSubscriber,
 	chatRoomCreated chatUsecase.RoomCreatedUseCase,
 	chatRoomJoined chatUsecase.RoomJoinedUseCase,
 	chatRoomLeft chatUsecase.RoomLeftUseCase,
+	chatPrivateMessageCreated chatUsecase.PrivateMessageCreatedUseCase,
+	chatRoomMessageCreated chatUsecase.RoomMessageCreatedUseCase,
 	// notification
 	notificationUserCreated notificationUsecase.UserCreatedUseCase,
 	notificationRoomCreated notificationUsecase.RoomCreatedUseCase,
@@ -320,9 +335,6 @@ func provideKafkaSubscriptions(subscriber *kafkautil.EventSubscriber,
 	notificationRoomLeft notificationUsecase.RoomLeftUseCase,
 	notificationPrivateMessageCreated notificationUsecase.PrivateMessageCreatedUseCase,
 	notificationRoomMessageCreated notificationUsecase.RoomMessageCreatedUseCase,
-	// bridging handlers (chat events require eventID & publisher)
-	eventIDGen *uuid.EventIDGenerator,
-	publisher *kafkautil.EventPublisher,
 ) error {
 	// Authorization
 	subscriber.Subscribe(authorizationDomain.TopicUserCreated, authorizationKafka.NewUserCreatedEventHandler(authUserCreated))
@@ -336,8 +348,8 @@ func provideKafkaSubscriptions(subscriber *kafkautil.EventSubscriber,
 	subscriber.Subscribe(chatDomain.TopicRoomCreated, chatKafka.NewRoomCreatedEventHandler(chatRoomCreated))
 	subscriber.Subscribe(chatDomain.TopicRoomJoined, chatKafka.NewRoomJoinedEventHandler(chatRoomJoined))
 	subscriber.Subscribe(chatDomain.TopicRoomLeft, chatKafka.NewRoomLeftEventHandler(chatRoomLeft))
-	subscriber.Subscribe(chatDomain.TopicPrivateMessageCreated, chatKafka.NewPrivateMessageCreatedEventHandler(eventIDGen, publisher))
-	subscriber.Subscribe(chatDomain.TopicRoomMessageCreated, chatKafka.NewRoomMessageCreatedEventHandler(eventIDGen, publisher))
+	subscriber.Subscribe(chatDomain.TopicPrivateMessageCreated, chatKafka.NewPrivateMessageCreatedEventHandler(chatPrivateMessageCreated))
+	subscriber.Subscribe(chatDomain.TopicRoomMessageCreated, chatKafka.NewRoomMessageCreatedEventHandler(chatRoomMessageCreated))
 	// Notification
 	subscriber.Subscribe(notificationDomain.TopicUserCreated, notificationKafka.NewUserCreatedEventHandler(notificationUserCreated))
 	subscriber.Subscribe(notificationDomain.TopicRoomCreated, notificationKafka.NewRoomCreatedEventHandler(notificationRoomCreated))
