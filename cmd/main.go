@@ -23,7 +23,7 @@ func main() {
 	env := flag.String("env", defaultENVFilePath, "env file path")
 	flag.Parse()
 
-	dependencies, err := initializeDependencies(*path, *env)
+	dependencies, err := initializeDependencies(ConfigPath(*path), EnvPath(*env))
 	if err != nil {
 		log.Fatalf("initialize Dependencies failed,err:%v", err)
 	}
