@@ -2,13 +2,16 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"gochat/internal/chat/application"
 	"gochat/internal/chat/domain"
 	"gochat/internal/chat/infrastructure/persistence/model"
 	gormutils "gochat/internal/infrastructure/gorm"
+	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 var _ application.RoomRepository = (*RoomRepository)(nil)
@@ -36,7 +39,11 @@ func (repo *RoomRepository) FindByNumber(ctx context.Context, number domain.Room
 }
 
 func (repo *RoomRepository) SaveNumber(ctx context.Context, roomID domain.RoomID, number domain.RoomNumber) error {
-	return gormutils.TranslateError(repo.db.WithContext(ctx).Create(&model.Room{
+
+	return gormutils.TranslateError(repo.db.WithContext(ctx).Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "id"}}, // 冲突的列
+		DoNothing: true,
+	}).Create(&model.Room{
 		ID:     roomID,
 		Number: number,
 	}).Error)
@@ -46,12 +53,18 @@ func (repo *RoomRepository) SaveMember(ctx context.Context, roomID domain.RoomID
 	room := model.Room{ID: roomID}
 	user := model.User{ID: userID}
 
-	return gormutils.TranslateError(
+	if err := gormutils.TranslateError(
 		repo.db.WithContext(ctx).
 			Model(&room).
 			Association("Members").
 			Append(&user),
-	)
+	); err != nil {
+		if errors.Is(err, myErrors.ErrDuplicatedKey) {
+			return nil
+		}
+		return err
+	}
+	return nil
 }
 
 func (repo *RoomRepository) FindMember(ctx context.Context, roomID domain.RoomID) ([]kernel.UserID, error) {
@@ -74,10 +87,16 @@ func (repo *RoomRepository) DeleteMember(ctx context.Context, roomID domain.Room
 	room := model.Room{ID: roomID}
 	user := model.User{ID: userID}
 
-	return gormutils.TranslateError(
+	if err := gormutils.TranslateError(
 		repo.db.WithContext(ctx).
 			Model(&room).
 			Association("Members").
 			Delete(&user),
-	)
+	); err != nil {
+		if errors.Is(err, myErrors.ErrNotFound) {
+			return nil
+		}
+		return err
+	}
+	return nil
 }

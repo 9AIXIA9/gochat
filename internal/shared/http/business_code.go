@@ -17,7 +17,6 @@ const (
 	CodeNotBelongTo
 	CodeMaxReached
 	CodeInvalidRoom
-	CodeHasBeenDone
 	CodeOwnerCantLeave
 )
 
@@ -38,8 +37,6 @@ func (c BusinessCode) ToHTTPCode() int {
 	case CodeInvalidRoom:
 		return http.StatusNotAcceptable
 	case CodeMaxReached:
-		return http.StatusBadRequest
-	case CodeHasBeenDone:
 		return http.StatusBadRequest
 	case CodeOwnerCantLeave:
 		return http.StatusBadRequest
@@ -62,8 +59,6 @@ func (c BusinessCode) String() string {
 		return "not belong to"
 	case CodeMaxReached:
 		return "reach max"
-	case CodeHasBeenDone:
-		return "has been done"
 	case CodeInvalidRoom:
 		return "invalid room"
 	case CodeOwnerCantLeave:

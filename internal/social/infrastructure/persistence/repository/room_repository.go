@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	gormutils "gochat/internal/infrastructure/gorm"
 	myErrors "gochat/internal/shared/errors"
 
@@ -24,16 +25,10 @@ func NewRoomRepository(db *gorm.DB) *RoomRepository {
 	return &RoomRepository{db: db}
 }
 
-// Save upsert 房间并同步成员关系
 func (repo *RoomRepository) Save(ctx context.Context, room *domain.Room) error {
 	return gormutils.TranslateError(repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// Upsert room basic fields (不含 Members)
-		if err := tx.Clauses(
-			clause.OnConflict{
-				Columns:   []clause.Column{{Name: "id"}},
-				DoUpdates: clause.AssignmentColumns([]string{"owner", "number", "password_encrypted", "member_count", "max_member_count"}),
-			},
-		).Create(toModelRoom(room)).Error; err != nil {
+		if err := tx.Create(toModelRoom(room)).Error; err != nil {
 			return err
 		}
 
@@ -72,7 +67,7 @@ func (repo *RoomRepository) FindByNumber(ctx context.Context, number domain.Room
 
 // Join 将用户加入房间（原子更新成员和计数）
 func (repo *RoomRepository) Join(ctx context.Context, roomID domain.RoomID, userID kernel.UserID) error {
-	return gormutils.TranslateError(repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	if err := gormutils.TranslateError(repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var r model.Room
 		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
 			First(&r, "id = ?", roomID.String()).Error; err != nil {
@@ -112,12 +107,18 @@ func (repo *RoomRepository) Join(ctx context.Context, roomID domain.RoomID, user
 		}
 
 		return nil
-	}))
+	})); err != nil {
+		if errors.Is(err, myErrors.ErrDuplicatedKey) {
+			return nil
+		}
+		return err
+	}
+	return nil
 }
 
 // Leave 将用户从房间移除（原子更新成员和计数）
 func (repo *RoomRepository) Leave(ctx context.Context, roomID domain.RoomID, userID kernel.UserID) error {
-	return gormutils.TranslateError(repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	if err := gormutils.TranslateError(repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		var r model.Room
 		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
 			First(&r, "id = ?", roomID.String()).Error; err != nil {
@@ -153,7 +154,13 @@ func (repo *RoomRepository) Leave(ctx context.Context, roomID domain.RoomID, use
 		}
 
 		return nil
-	}))
+	})); err != nil {
+		if errors.Is(err, myErrors.ErrNotFound) {
+			return nil
+		}
+		return err
+	}
+	return nil
 }
 
 // FindByID 通过房间ID查询

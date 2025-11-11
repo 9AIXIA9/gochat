@@ -69,7 +69,7 @@ func (r *Room) Join(userID kernel.UserID, generator event.IDGenerator) error {
 	}
 
 	if r.IsMember(userID) {
-		return myErrors.ErrHasBeenDone
+		return nil
 	}
 
 	r.members = append(r.members, userID)

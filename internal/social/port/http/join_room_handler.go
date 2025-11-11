@@ -51,9 +51,6 @@ func NewJoinRoomHandler(useCase usecase.JoinRoomUseCase, validator *validator.Va
 				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeMaxReached, "room members exceed max value"))
 			case errors.Is(err, myErrors.ErrInvalidCredential):
 				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "invalid room password"))
-			case errors.Is(err, myErrors.ErrHasBeenDone) || errors.Is(err, myErrors.ErrDuplicatedKey):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeHasBeenDone, "user already in room"))
-
 			default:
 				zap.L().Error("join room handler failed", zap.Error(err))
 				ginutils.Response(ginContext, sharedHttp.ResponseServerError)

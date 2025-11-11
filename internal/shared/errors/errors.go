@@ -22,7 +22,6 @@ var (
 	ErrExceedMaxValue    = errors.New("logic: exceed max value")
 	ErrChanIsFull        = errors.New("logic: chan is full")
 	ErrNotBelongTo       = errors.New("logic: not belong to")
-	ErrHasBeenDone       = errors.New("logic: has been done")
 	ErrOwnerCantLeave    = errors.New("logic: owner cannot leave the room")
 )
 

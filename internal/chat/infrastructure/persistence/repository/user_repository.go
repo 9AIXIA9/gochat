@@ -9,6 +9,7 @@ import (
 	"gochat/internal/shared/kernel"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 var _ application.UserRepository = (*UserRepository)(nil)
@@ -32,8 +33,13 @@ func (repo *UserRepository) FindByNumber(ctx context.Context, number domain.User
 }
 
 func (repo *UserRepository) SaveNumber(ctx context.Context, userID kernel.UserID, number domain.UserNumber) error {
-	return gormutils.TranslateError(repo.db.WithContext(ctx).Create(&model.User{
-		ID:     userID,
-		Number: number,
-	}).Error)
+	return gormutils.TranslateError(
+		repo.db.WithContext(ctx).Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "id"}}, // 冲突的列
+			DoNothing: true,
+		}).Create(&model.User{
+			ID:     userID,
+			Number: number,
+		}).Error,
+	)
 }
