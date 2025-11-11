@@ -3,17 +3,15 @@ package model
 import (
 	"gochat/internal/notification/domain"
 	"gochat/internal/shared/kernel"
-
-	"gorm.io/gorm"
+	"time"
 )
 
-// TODO 删除对 gorm model的依赖
-
 type Message struct {
-	gorm.Model
 	ID       domain.MessageID `gorm:"primaryKey;type:char(36)"`
 	Content  string           `gorm:"type:text;not null"`
 	SenderID kernel.UserID    `gorm:"type:char(36);not null;index"`
+
+	CreatedAt time.Time
 
 	// 用户 <-> 消息 一对多
 	Sender *User `gorm:"foreignKey:SenderID;references:ID"`

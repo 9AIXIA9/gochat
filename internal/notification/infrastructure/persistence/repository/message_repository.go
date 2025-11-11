@@ -28,12 +28,10 @@ func (repo *MessageRepository) SaveMessage(ctx context.Context, recipient kernel
 	return repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// 持久化消息主体
 		msgModel := &model.Message{
-			Model: gorm.Model{
-				CreatedAt: message.SentAt(),
-			},
-			ID:       message.ID(),
-			Content:  message.Content(),
-			SenderID: message.Sender(),
+			ID:        message.ID(),
+			Content:   message.Content(),
+			SenderID:  message.Sender(),
+			CreatedAt: message.SentAt(),
 		}
 		if err := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(msgModel).Error; err != nil {
 			return gormutils.TranslateError(err)

@@ -23,19 +23,16 @@ func NewMessageRepository(db *gorm.DB) *MessageRepository {
 
 func (repo *MessageRepository) SavePrivateMessage(ctx context.Context, recipient kernel.UserID, message *domain.Message) error {
 	return gormutils.TranslateError(repo.db.WithContext(ctx).Create(&model.PrivateMessage{
-		Model: gorm.Model{
-			CreatedAt: message.SentAt(),
-		},
 		ID:          message.ID(),
 		Content:     message.Content(),
 		RecipientID: recipient,
 		SenderID:    message.Sender(),
+		CreatedAt:   message.SentAt(),
 	}).Error)
 }
 
 func (repo *MessageRepository) SaveRoomMessage(ctx context.Context, roomID domain.RoomID, message *domain.Message) error {
 	return gormutils.TranslateError(repo.db.WithContext(ctx).Create(&model.RoomMessage{
-		Model:    gorm.Model{},
 		ID:       message.ID(),
 		Content:  message.Content(),
 		RoomID:   roomID,
@@ -51,7 +48,7 @@ func (repo *MessageRepository) FindPrivateMessage(ctx context.Context, recipient
 	if err != nil {
 		return nil, gormutils.TranslateError(err)
 	}
-	return domain.NewMessage(m.ID, m.SenderID, m.Content, m.Model.CreatedAt), nil
+	return domain.NewMessage(m.ID, m.SenderID, m.Content, m.CreatedAt), nil
 }
 
 func (repo *MessageRepository) FindRoomMessage(ctx context.Context, roomID domain.RoomID, messageID domain.MessageID) (*domain.Message, error) {
@@ -62,5 +59,5 @@ func (repo *MessageRepository) FindRoomMessage(ctx context.Context, roomID domai
 	if err != nil {
 		return nil, gormutils.TranslateError(err)
 	}
-	return domain.NewMessage(m.ID, m.SenderID, m.Content, m.Model.CreatedAt), nil
+	return domain.NewMessage(m.ID, m.SenderID, m.Content, m.CreatedAt), nil
 }
