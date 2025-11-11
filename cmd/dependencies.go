@@ -32,13 +32,13 @@ import (
 	"gochat/internal/infrastructure/uuid"
 	ginutils "gochat/internal/infrastructure/validator"
 	"gochat/internal/infrastructure/viper"
-	"gochat/internal/infrastructure/websocket"
 	zaputils "gochat/internal/infrastructure/zap"
 	notificationUsecase "gochat/internal/notification/application/usecase"
 	notificationDomain "gochat/internal/notification/domain"
 	"gochat/internal/notification/infrastructure/gomail"
 	notificationModel "gochat/internal/notification/infrastructure/persistence/model"
 	notificationRepository "gochat/internal/notification/infrastructure/persistence/repository"
+	"gochat/internal/notification/infrastructure/websocket"
 	notificationKafka "gochat/internal/notification/port/kafka"
 	"gochat/internal/shared/event"
 	socialUseCase "gochat/internal/social/application/usecase"
@@ -74,8 +74,10 @@ type Dependencies struct {
 	createRoomUseCase         socialUseCase.CreateRoomUseCase
 	joinRoomUseCase           socialUseCase.JoinRoomUseCase
 	leaveRoomUseCase          socialUseCase.LeaveRoomUseCase
+	userConnectedUseCase      notificationUsecase.UserConnectedUseCase
 	validator                 *ginutils.Validator
 	redisClient               *redis.Client
+	websocketManager          *websocket.Manager
 }
 
 // -------------------- Base Providers --------------------
@@ -128,8 +130,8 @@ func provideRefreshTokenGenerator(appConfig *config.App) *crypto.RefreshTokenGen
 func provideEmailNotifier(appConfig *config.App) *gomail.EmailNotifier {
 	return gomail.NewEmailNotifier(appConfig.Name, appConfig.Email)
 }
-func provideMessageNotifier(appConfig *config.App) *websocket.Manager {
-	return websocket.NewManager()
+func provideWebsocketManager(appConfig *config.App) *websocket.Manager {
+	return websocket.NewManager(appConfig.CORS.AllowOrigins)
 }
 
 // -------------------- Repositories --------------------
@@ -306,10 +308,13 @@ func provideNotificationRoomLeftUseCase(roomRepo *notificationRepository.RoomRep
 	return notificationUsecase.NewRoomLeftUseCase(roomRepo)
 }
 func provideNotificationPrivateMessageCreatedUseCase(messageRepo *notificationRepository.MessageRepository, manager *websocket.Manager) notificationUsecase.PrivateMessageCreatedUseCase {
-	return notificationUsecase.NewPrivateMessageCreatedUseCase(messageRepo, manager)
+	return notificationUsecase.NewPrivateMessageCreatedUseCase(messageRepo, manager, messageRepo)
 }
 func provideNotificationRoomMessageCreatedUseCase(messageRepo *notificationRepository.MessageRepository, manager *websocket.Manager) notificationUsecase.RoomMessageCreatedUseCase {
-	return notificationUsecase.NewRoomMessageCreatedUseCase(messageRepo, manager)
+	return notificationUsecase.NewRoomMessageCreatedUseCase(messageRepo, manager, messageRepo)
+}
+func provideNotificationUserConnectedUseCase(messageRepo *notificationRepository.MessageRepository, manager *websocket.Manager) notificationUsecase.UserConnectedUseCase {
+	return notificationUsecase.NewUserConnectedUseCase(messageRepo, manager, messageRepo)
 }
 
 // -------------------- Kafka Subscriptions --------------------
@@ -370,6 +375,7 @@ func BuildDependencies(
 	kafkaSubscriber *kafkautil.EventSubscriber,
 	outboxConsumer *canal.OutboxConsumer,
 	emailNotifier *gomail.EmailNotifier,
+	websocketManager *websocket.Manager,
 	// usecases
 	signUp authorizationUsecase.SignUpUseCase,
 	login authorizationUsecase.LoginUseCase,
@@ -380,6 +386,7 @@ func BuildDependencies(
 	createRoom socialUseCase.CreateRoomUseCase,
 	joinRoom socialUseCase.JoinRoomUseCase,
 	leaveRoom socialUseCase.LeaveRoomUseCase,
+	userConnected notificationUsecase.UserConnectedUseCase,
 	// subscriptions side-effect
 	_ error, // ensure subscriptions provider executed (ignored)
 ) (*Dependencies, error) {
@@ -432,8 +439,10 @@ func BuildDependencies(
 		createRoomUseCase:         createRoom,
 		joinRoomUseCase:           joinRoom,
 		leaveRoomUseCase:          leaveRoom,
+		userConnectedUseCase:      userConnected,
 		validator:                 validator,
 		redisClient:               redisClient,
+		websocketManager:          websocketManager,
 	}
 	return deps, nil
 }

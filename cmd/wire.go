@@ -71,7 +71,7 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 		provideAccessTokenManager,
 		provideRefreshTokenGenerator,
 		provideEmailNotifier,
-		provideMessageNotifier,
+		provideWebsocketManager,
 		// Repositories
 		provideEventRepository,
 		provideAuthorizationUserRepository,
@@ -98,6 +98,7 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 		provideCreateRoomUseCase,
 		provideJoinRoomUseCase,
 		provideLeaveRoomUseCase,
+		provideNotificationUserConnectedUseCase,
 		// Event UseCases (consumer side)
 		provideAuthUserCreatedUseCase,
 		provideSocialUserCreatedUseCase,

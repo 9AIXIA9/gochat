@@ -20,9 +20,10 @@ var (
 	ErrEmptyInput        = errors.New("logic: input is empty")
 	ErrExpired           = errors.New("logic: expired")
 	ErrExceedMaxValue    = errors.New("logic: exceed max value")
+	ErrChanIsFull        = errors.New("logic: chan is full")
 	ErrNotBelongTo       = errors.New("logic: not belong to")
 	ErrHasBeenDone       = errors.New("logic: has been done")
-	ErrOwnerCantLeave    = errors.New("owner cannot leave the room")
+	ErrOwnerCantLeave    = errors.New("logic: owner cannot leave the room")
 )
 
 // 数据库相关错误

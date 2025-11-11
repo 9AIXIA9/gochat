@@ -3,8 +3,8 @@ package domain
 type MessageState string
 
 const (
-	MessageStateReceived MessageState = "received"
-	//MessageStateDelivered MessageState = "delivered"
+	MessageStateReceived  MessageState = "received"
+	MessageStateDelivered MessageState = "delivered"
 	//MessageStateRead      MessageState = "read"
 )
 

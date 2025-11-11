@@ -28,7 +28,7 @@ func NewAuthorizationMiddleware(useCase usecase.ParseAccessTokenUseCase) gin.Han
 				return
 			}
 			accessToken = domain.AccessToken(parts[1])
-		} else if authorizationQuery := ginContext.Query("NewAuthorizationMiddleware"); authorizationQuery != "" {
+		} else if authorizationQuery := ginContext.Query("Authorization"); authorizationQuery != "" {
 			accessToken = domain.AccessToken(authorizationQuery)
 		} else {
 			ginutils.Response(ginContext, http.ResponseInvalidToken)

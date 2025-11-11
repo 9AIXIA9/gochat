@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"gochat/internal/notification/application"
 	"gochat/internal/notification/domain"
 	myErrors "gochat/internal/shared/errors"
@@ -33,14 +34,20 @@ func (r *RoomMessageCreatedInput) Validate() error {
 }
 
 type roomMessageCreatedUseCase struct {
-	messageSaver    application.MessageSaver
-	messageNotifier application.MessageNotifier
+	messageSaver         application.MessageSaver
+	messageNotifier      application.MessageNotifier
+	messageStatesUpdater application.MessageStatesUpdater
 }
 
-func NewRoomMessageCreatedUseCase(messageSaver application.MessageSaver, messageNotifier application.MessageNotifier) RoomMessageCreatedUseCase {
+func NewRoomMessageCreatedUseCase(
+	messageSaver application.MessageSaver,
+	messageNotifier application.MessageNotifier,
+	messageStatesUpdater application.MessageStatesUpdater,
+) RoomMessageCreatedUseCase {
 	return &roomMessageCreatedUseCase{
-		messageSaver:    messageSaver,
-		messageNotifier: messageNotifier,
+		messageSaver:         messageSaver,
+		messageNotifier:      messageNotifier,
+		messageStatesUpdater: messageStatesUpdater,
 	}
 }
 
@@ -58,7 +65,14 @@ func (uc *roomMessageCreatedUseCase) Execute(ctx context.Context, input *RoomMes
 			return nil, err
 		}
 
-		if err := uc.messageNotifier.Notify(ctx, recipientID, message); err != nil {
+		if err := uc.messageNotifier.Notify(recipientID, message); err != nil {
+			if errors.Is(err, myErrors.ErrNotFound) {
+				continue
+			}
+			return nil, err
+		}
+
+		if err := uc.messageStatesUpdater.UpdateMessageStates(ctx, recipientID, []domain.MessageID{input.MessageID}, domain.MessageStateDelivered); err != nil {
 			return nil, err
 		}
 	}

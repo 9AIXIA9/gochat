@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"encoding/json"
 	"gochat/internal/shared/kernel"
 	"time"
 )
@@ -53,4 +54,41 @@ func (m *Message) Content() string {
 
 func (m *Message) SentAt() time.Time {
 	return m.sentAt
+}
+
+func (m *Message) Marshal() ([]byte, error) {
+	type Alias struct {
+		ID      MessageID
+		Sender  kernel.UserID
+		State   MessageState
+		Content string
+		SentAt  time.Time
+	}
+	return json.Marshal(Alias{
+		ID:      m.id,
+		Sender:  m.sender,
+		State:   m.state,
+		Content: m.content,
+		SentAt:  m.sentAt,
+	})
+}
+
+func (m *Message) Unmarshal(data []byte) error {
+	type Alias struct {
+		ID      MessageID
+		Sender  kernel.UserID
+		State   MessageState
+		Content string
+		SentAt  time.Time
+	}
+	var tmp Alias
+	if err := json.Unmarshal(data, &tmp); err != nil {
+		return err
+	}
+	m.id = tmp.ID
+	m.sender = tmp.Sender
+	m.state = tmp.State
+	m.content = tmp.Content
+	m.sentAt = tmp.SentAt
+	return nil
 }
