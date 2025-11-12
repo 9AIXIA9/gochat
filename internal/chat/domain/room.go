@@ -45,35 +45,27 @@ func NewRoom(id RoomID, number RoomNumber, members []kernel.UserID) *Room {
 }
 
 func (r *Room) ReceiveMessage(id MessageID, sender kernel.UserID, content string, generator event.IDGenerator) (*Message, error) {
-	if !r.IsMember(sender) {
-		return nil, myErrors.ErrNotBelongTo
-	}
+	for i, member := range r.members {
+		if member == sender {
+			now := time.Now().UTC()
 
-	now := time.Now().UTC()
-
-	ev, err := NewRoomMessageCreatedEvent(
-		generator.Generate(),
-		id,
-		r.id,
-		r.members,
-		sender,
-		content,
-		now,
-	)
-	if err != nil {
-		return nil, err
-	}
-	r.eventManager.RecordEvent(ev)
-	return NewMessage(id, sender, content, now), nil
-}
-
-func (r *Room) IsMember(id kernel.UserID) bool {
-	for _, member := range r.members {
-		if member == id {
-			return true
+			ev, err := NewRoomMessageCreatedEvent(
+				generator.Generate(),
+				id,
+				r.id,
+				append(r.members[:i], r.members[i+1:]...),
+				sender,
+				content,
+				now,
+			)
+			if err != nil {
+				return nil, err
+			}
+			r.eventManager.RecordEvent(ev)
+			return NewMessage(id, sender, content, now), nil
 		}
 	}
-	return false
+	return nil, myErrors.ErrNotBelongTo
 }
 
 func (r *Room) ID() RoomID {

@@ -8,7 +8,9 @@ import (
 
 var (
 	ErrEmptyPointer  = errors.New("system: empty pointer")
-	ErrHasBeenClosed = errors.New("has been closed")
+	ErrHasBeenClosed = errors.New("system: has been closed")
+	ErrDecode        = errors.New("system: decode error")
+	ErrChanIsFull    = errors.New("system: chan is full")
 )
 
 // 业务逻辑相关错误
@@ -20,7 +22,6 @@ var (
 	ErrEmptyInput        = errors.New("logic: input is empty")
 	ErrExpired           = errors.New("logic: expired")
 	ErrExceedMaxValue    = errors.New("logic: exceed max value")
-	ErrChanIsFull        = errors.New("logic: chan is full")
 	ErrNotBelongTo       = errors.New("logic: not belong to")
 	ErrOwnerCantLeave    = errors.New("logic: owner cannot leave the room")
 )

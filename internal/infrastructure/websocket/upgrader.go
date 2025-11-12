@@ -10,7 +10,7 @@ import (
 
 const bufferSize = 1024
 
-func newUpgrader(origins []string) *websocket.Upgrader {
+func NewUpgrader(origins []string) *websocket.Upgrader {
 	allowed := make(map[string]struct{}, len(origins))
 	for _, o := range origins {
 		if o != "" {

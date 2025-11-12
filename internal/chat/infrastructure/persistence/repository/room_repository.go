@@ -67,22 +67,6 @@ func (repo *RoomRepository) SaveMember(ctx context.Context, roomID domain.RoomID
 	return nil
 }
 
-func (repo *RoomRepository) FindMember(ctx context.Context, roomID domain.RoomID) ([]kernel.UserID, error) {
-	var members []model.User
-	if err := repo.db.WithContext(ctx).
-		Model(&model.Room{ID: roomID}).
-		Association("Members").
-		Find(&members); err != nil {
-		return nil, gormutils.TranslateError(err)
-	}
-
-	ids := make([]kernel.UserID, 0, len(members))
-	for _, m := range members {
-		ids = append(ids, m.ID)
-	}
-	return ids, nil
-}
-
 func (repo *RoomRepository) DeleteMember(ctx context.Context, roomID domain.RoomID, userID kernel.UserID) error {
 	room := model.Room{ID: roomID}
 	user := model.User{ID: userID}

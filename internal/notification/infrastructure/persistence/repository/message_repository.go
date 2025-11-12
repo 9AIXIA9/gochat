@@ -13,6 +13,8 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+//TODO 目标：一次请求一次数据库IO
+
 var _ application.MessageRepository = (*MessageRepository)(nil)
 
 type MessageRepository struct {
@@ -27,12 +29,7 @@ func NewMessageRepository(db *gorm.DB) *MessageRepository {
 func (repo *MessageRepository) SaveMessage(ctx context.Context, recipient kernel.UserID, message *domain.Message) error {
 	return repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// 持久化消息主体
-		msgModel := &model.Message{
-			ID:        message.ID(),
-			Content:   message.Content(),
-			SenderID:  message.Sender(),
-			CreatedAt: message.SentAt(),
-		}
+		msgModel := messageToModel(message)
 		if err := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(msgModel).Error; err != nil {
 			return gormutils.TranslateError(err)
 		}
@@ -93,4 +90,13 @@ func (repo *MessageRepository) UpdateMessageStates(ctx context.Context, userID k
 	return gormutils.TranslateError(repo.db.WithContext(ctx).Model(&model.MessageState{}).
 		Where("user_id = ? AND message_id IN ?", userID, messageIDs).
 		Update("state", newState).Error)
+}
+
+func messageToModel(message *domain.Message) *model.Message {
+	return &model.Message{
+		ID:        message.ID(),
+		Content:   message.Content(),
+		SenderID:  message.Sender(),
+		CreatedAt: message.SentAt(),
+	}
 }

@@ -12,6 +12,8 @@ import (
 	"go.uber.org/zap"
 )
 
+//TODO 避免直接调用死信存储接口，改为通过领域事件
+
 var _ event.Publisher = (*EventPublisher)(nil)
 
 // EventPublisher publishes domain events to Kafka and marks them published upon delivery.

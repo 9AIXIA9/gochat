@@ -9,9 +9,7 @@ import (
 	"gochat/internal/delivery/http/handler"
 	"gochat/internal/delivery/http/middleware"
 	ginutils "gochat/internal/infrastructure/validator"
-	notificationUsecase "gochat/internal/notification/application/usecase"
-	"gochat/internal/notification/infrastructure/websocket"
-	notificationHttp "gochat/internal/notification/port/http"
+	"gochat/internal/infrastructure/websocket"
 	socialUseCase "gochat/internal/social/application/usecase"
 	socialHttp "gochat/internal/social/port/http"
 
@@ -29,10 +27,9 @@ func NewRouter(
 	createRoomUseCase socialUseCase.CreateRoomUseCase,
 	joinRoomUseCase socialUseCase.JoinRoomUseCase,
 	leaveRoomUseCase socialUseCase.LeaveRoomUseCase,
-	userConnectedUseCase notificationUsecase.UserConnectedUseCase,
 	validator *ginutils.Validator,
 	redisClient *redis.Client,
-	manager *websocket.Manager,
+	websocketServer *websocket.Server,
 	rateLimitConfig *middleware.RateLimitConfig,
 	cookieConfig *config.Cookie,
 	CORSConfig *middleware.CORSConfig,
@@ -76,10 +73,10 @@ func NewRouter(
 		socialGroup.DELETE("/room/member", socialHttp.NewLeaveRoomHandler(leaveRoomUseCase, validator))
 	}
 
-	notificationGroup := baseGroup.Group("/notification")
-	notificationGroup.Use(authorizationMiddleware)
+	websocketGroup := baseGroup.Group("/ws")
+	websocketGroup.Use(authorizationMiddleware)
 	{
-		notificationGroup.GET("/ws/connect", notificationHttp.NewUserConnectedHandler(userConnectedUseCase, manager))
+		websocketGroup.GET("/", handler.NewWebsocketHandler(websocketServer))
 	}
 
 	return engine

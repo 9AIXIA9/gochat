@@ -24,7 +24,7 @@ import (
 	"github.com/google/wire"
 )
 
-//go:generate go run github.com/google/wire/cmd/wire@latest ./...
+//go:generate go run wire ./...
 
 // initializeDependencies builds the application Dependencies using Google Wire.
 func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependencies, error) {
@@ -71,7 +71,7 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 		provideAccessTokenManager,
 		provideRefreshTokenGenerator,
 		provideEmailNotifier,
-		provideWebsocketManager,
+		provideMessageNotifier,
 		// Repositories
 		provideEventRepository,
 		provideAuthorizationUserRepository,
@@ -84,10 +84,14 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 		provideNotificationUserRepository,
 		provideNotificationRoomRepository,
 		provideNotificationMessageRepository,
-		// Kafka & Canal
+		// Kafka & Canal & Websocket
 		provideKafkaPublisher,
 		provideKafkaSubscriber,
 		provideOutboxConsumer,
+		provideWebsocketUpgrader,
+		provideWebsocketRouter,
+		provideWebsocketManager,
+		provideWebsocketServer,
 		// HTTP UseCases
 		provideSignUpUseCase,
 		provideLoginUseCase,

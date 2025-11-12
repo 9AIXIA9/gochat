@@ -40,7 +40,10 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 		return nil, err
 	}
 	emailNotifier := provideEmailNotifier(app)
-	manager := provideWebsocketManager(app)
+	upgrader := provideWebsocketUpgrader(app)
+	manager := provideWebsocketManager(upgrader)
+	router := provideWebsocketRouter()
+	server := provideWebsocketServer(manager, router)
 	eventIDGenerator := provideEventIDGenerator()
 	userIDGenerator := provideAuthorizationUserIDGenerator()
 	userNumberGenerator, err := provideAuthorizationUserNumberGenerator(app)
@@ -72,7 +75,8 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 	joinRoomUseCase := provideJoinRoomUseCase(eventIDGenerator, eventRepository, repositoryRoomRepository, hasher, repositoryRoomRepository)
 	leaveRoomUseCase := provideLeaveRoomUseCase(eventIDGenerator, repositoryRoomRepository, repositoryRoomRepository, eventRepository)
 	repositoryMessageRepository := provideNotificationMessageRepository(db)
-	userConnectedUseCase := provideNotificationUserConnectedUseCase(repositoryMessageRepository, manager)
+	messageNotifier := provideMessageNotifier(manager)
+	userConnectedUseCase := provideNotificationUserConnectedUseCase(repositoryMessageRepository, messageNotifier)
 	userCreatedUseCase := provideAuthUserCreatedUseCase(eventIDGenerator, eventPublisher, userRepository)
 	userRepository2 := provideSocialUserRepository(db)
 	usecaseUserCreatedUseCase := provideSocialUserCreatedUseCase(userRepository2)
@@ -84,17 +88,17 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 	usecaseRoomJoinedUseCase := provideChatRoomJoinedUseCase(roomRepository)
 	usecaseRoomLeftUseCase := provideChatRoomLeftUseCase(roomRepository)
 	privateMessageCreatedUseCase := provideChatPrivateMessageCreatedUseCase(eventIDGenerator, eventPublisher, messageRepository)
-	roomMessageCreatedUseCase := provideChatRoomMessageCreatedUseCase(eventIDGenerator, eventPublisher, messageRepository, roomRepository)
+	roomMessageCreatedUseCase := provideChatRoomMessageCreatedUseCase(eventIDGenerator, eventPublisher, messageRepository)
 	userRepository3 := provideNotificationUserRepository(db)
 	userCreatedUseCase3 := provideNotificationUserCreatedUseCase(userRepository3, emailNotifier)
 	roomRepository2 := provideNotificationRoomRepository(db)
 	roomCreatedUseCase2 := provideNotificationRoomCreatedUseCase(roomRepository2)
 	roomJoinedUseCase2 := provideNotificationRoomJoinedUseCase(roomRepository2)
 	roomLeftUseCase2 := provideNotificationRoomLeftUseCase(roomRepository2)
-	usecasePrivateMessageCreatedUseCase := provideNotificationPrivateMessageCreatedUseCase(repositoryMessageRepository, manager)
-	usecaseRoomMessageCreatedUseCase := provideNotificationRoomMessageCreatedUseCase(repositoryMessageRepository, manager)
+	usecasePrivateMessageCreatedUseCase := provideNotificationPrivateMessageCreatedUseCase(repositoryMessageRepository, messageNotifier)
+	usecaseRoomMessageCreatedUseCase := provideNotificationRoomMessageCreatedUseCase(repositoryMessageRepository, messageNotifier)
 	error2 := provideKafkaSubscriptions(eventSubscriber, userCreatedUseCase, usecaseUserCreatedUseCase, roomCreatedUseCase, roomJoinedUseCase, roomLeftUseCase, userCreatedUseCase2, usecaseRoomCreatedUseCase, usecaseRoomJoinedUseCase, usecaseRoomLeftUseCase, privateMessageCreatedUseCase, roomMessageCreatedUseCase, userCreatedUseCase3, roomCreatedUseCase2, roomJoinedUseCase2, roomLeftUseCase2, usecasePrivateMessageCreatedUseCase, usecaseRoomMessageCreatedUseCase)
-	dependencies, err := BuildDependencies(app, db, client, validator, eventPublisher, eventSubscriber, outboxConsumer, emailNotifier, manager, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, createRoomUseCase, joinRoomUseCase, leaveRoomUseCase, userConnectedUseCase, error2)
+	dependencies, err := BuildDependencies(app, db, client, validator, eventPublisher, eventSubscriber, outboxConsumer, emailNotifier, server, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, createRoomUseCase, joinRoomUseCase, leaveRoomUseCase, userConnectedUseCase, error2)
 	if err != nil {
 		return nil, err
 	}

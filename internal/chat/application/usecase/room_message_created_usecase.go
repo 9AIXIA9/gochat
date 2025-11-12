@@ -15,12 +15,13 @@ var _ RoomMessageCreatedUseCase = (*roomMessageCreatedUseCase)(nil)
 type RoomMessageCreatedUseCase kernel.UseCase[*RoomMessageCreatedInput, *kernel.NoOutput]
 
 type RoomMessageCreatedInput struct {
-	RoomID    domain.RoomID
-	MessageID domain.MessageID
+	RoomID     domain.RoomID
+	MessageID  domain.MessageID
+	Recipients []kernel.UserID
 }
 
 func (i *RoomMessageCreatedInput) Validate() error {
-	if len(i.RoomID) == 0 || len(i.MessageID) == 0 {
+	if len(i.RoomID) == 0 || len(i.MessageID) == 0 || len(i.Recipients) == 0 {
 		return myErrors.ErrEmptyInput
 	}
 	return nil
@@ -30,20 +31,17 @@ type roomMessageCreatedUseCase struct {
 	eventIDGenerator  event.IDGenerator
 	publisher         event.Publisher
 	roomMessageFinder application.RoomMessageFinder
-	roomMemberFinder  application.RoomMemberFinder
 }
 
 func NewRoomMessageCreatedUseCase(
 	eventIDGenerator event.IDGenerator,
 	roomMessageFinder application.RoomMessageFinder,
-	roomMemberFinder application.RoomMemberFinder,
 	publisher event.Publisher,
 ) RoomMessageCreatedUseCase {
 	return &roomMessageCreatedUseCase{
 		eventIDGenerator:  eventIDGenerator,
 		publisher:         publisher,
 		roomMessageFinder: roomMessageFinder,
-		roomMemberFinder:  roomMemberFinder,
 	}
 }
 
@@ -53,16 +51,11 @@ func (uc *roomMessageCreatedUseCase) Execute(ctx context.Context, input *RoomMes
 		return nil, err
 	}
 
-	members, err := uc.roomMemberFinder.FindMember(ctx, input.RoomID)
-	if err != nil {
-		return nil, err
-	}
-
 	ev, err := notificationDomain.NewRoomMessageCreatedEvent(
 		uc.eventIDGenerator.Generate(),
 		notificationDomain.RoomID(input.RoomID),
 		notificationDomain.MessageID(message.ID()),
-		members,
+		input.Recipients,
 		message.Sender(),
 		message.Content(),
 		message.SentAt(),

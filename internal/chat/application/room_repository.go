@@ -10,7 +10,6 @@ type RoomRepository interface {
 	RoomFinder
 	RoomNumberSaver
 	RoomMemberSaver
-	RoomMemberFinder
 	RoomMemberDeleter
 }
 
@@ -24,10 +23,6 @@ type RoomNumberSaver interface {
 
 type RoomMemberSaver interface {
 	SaveMember(ctx context.Context, roomID domain.RoomID, userID kernel.UserID) error
-}
-
-type RoomMemberFinder interface {
-	FindMember(ctx context.Context, roomID domain.RoomID) ([]kernel.UserID, error)
 }
 
 type RoomMemberDeleter interface {

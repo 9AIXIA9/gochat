@@ -32,13 +32,14 @@ import (
 	"gochat/internal/infrastructure/uuid"
 	ginutils "gochat/internal/infrastructure/validator"
 	"gochat/internal/infrastructure/viper"
+	"gochat/internal/infrastructure/websocket"
 	zaputils "gochat/internal/infrastructure/zap"
 	notificationUsecase "gochat/internal/notification/application/usecase"
 	notificationDomain "gochat/internal/notification/domain"
 	"gochat/internal/notification/infrastructure/gomail"
 	notificationModel "gochat/internal/notification/infrastructure/persistence/model"
 	notificationRepository "gochat/internal/notification/infrastructure/persistence/repository"
-	"gochat/internal/notification/infrastructure/websocket"
+	notificationWebsocket "gochat/internal/notification/infrastructure/websocket"
 	notificationKafka "gochat/internal/notification/port/kafka"
 	"gochat/internal/shared/event"
 	socialUseCase "gochat/internal/social/application/usecase"
@@ -53,6 +54,7 @@ import (
 	chatApp "gochat/internal/chat/application"
 	socialApp "gochat/internal/social/application"
 
+	gorillaWebsocket "github.com/gorilla/websocket"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
@@ -77,7 +79,7 @@ type Dependencies struct {
 	userConnectedUseCase      notificationUsecase.UserConnectedUseCase
 	validator                 *ginutils.Validator
 	redisClient               *redis.Client
-	websocketManager          *websocket.Manager
+	websocketServer           *websocket.Server
 }
 
 // -------------------- Base Providers --------------------
@@ -102,7 +104,7 @@ func provideRedis(appConfig *config.App) (*redis.Client, error) {
 }
 func provideValidator() (*ginutils.Validator, error) { return ginutils.NewValidator() }
 
-// -------------------- Generators & Managers --------------------
+// -------------------- Generators & Notifiers --------------------
 func provideEventIDGenerator() *uuid.EventIDGenerator { return uuid.NewEventIDGenerator() }
 func provideAuthorizationUserIDGenerator() *authorizationUuid.UserIDGenerator {
 	return authorizationUuid.NewUserIDGenerator()
@@ -130,8 +132,8 @@ func provideRefreshTokenGenerator(appConfig *config.App) *crypto.RefreshTokenGen
 func provideEmailNotifier(appConfig *config.App) *gomail.EmailNotifier {
 	return gomail.NewEmailNotifier(appConfig.Name, appConfig.Email)
 }
-func provideWebsocketManager(appConfig *config.App) *websocket.Manager {
-	return websocket.NewManager(appConfig.CORS.AllowOrigins)
+func provideMessageNotifier(manager *websocket.Manager) *notificationWebsocket.MessageNotifier {
+	return notificationWebsocket.NewMessageNotifier(manager)
 }
 
 // -------------------- Repositories --------------------
@@ -169,7 +171,7 @@ func provideNotificationMessageRepository(mysql *gorm.DB) *notificationRepositor
 	return notificationRepository.NewMessageRepository(mysql)
 }
 
-// -------------------- Kafka & Canal --------------------
+// -------------------- Kafka & Canal & Websocket --------------------
 func provideKafkaPublisher(appConfig *config.App, eventRepo *repository.EventRepository) (*kafkautil.EventPublisher, error) {
 	return kafkautil.NewEventPublisher(appConfig.Kafka.Common, appConfig.Kafka.Producer, eventRepo, eventRepo)
 }
@@ -178,6 +180,18 @@ func provideKafkaSubscriber(appConfig *config.App) (*kafkautil.EventSubscriber, 
 }
 func provideOutboxConsumer(appConfig *config.App, publisher *kafkautil.EventPublisher, eventRepo *repository.EventRepository) (*canal.OutboxConsumer, error) {
 	return canal.NewOutboxConsumer(appConfig.BinlogReader, publisher, eventRepo)
+}
+func provideWebsocketUpgrader(appConfig *config.App) *gorillaWebsocket.Upgrader {
+	return websocket.NewUpgrader(appConfig.CORS.AllowOrigins)
+}
+func provideWebsocketRouter() *websocket.Router {
+	return websocket.NewRouter()
+}
+func provideWebsocketManager(upgrader *gorillaWebsocket.Upgrader) *websocket.Manager {
+	return websocket.NewManager(upgrader)
+}
+func provideWebsocketServer(manager *websocket.Manager, router *websocket.Router) *websocket.Server {
+	return websocket.NewServer(manager, router)
 }
 
 // -------------------- UseCases (HTTP side) --------------------
@@ -292,8 +306,8 @@ func provideChatRoomLeftUseCase(roomRepo *chatRepository.RoomRepository) chatUse
 func provideChatPrivateMessageCreatedUseCase(eventIDGen *uuid.EventIDGenerator, publisher *kafkautil.EventPublisher, messageRepo *chatRepository.MessageRepository) chatUsecase.PrivateMessageCreatedUseCase {
 	return chatUsecase.NewPrivateMessageCreatedUseCase(eventIDGen, messageRepo, publisher)
 }
-func provideChatRoomMessageCreatedUseCase(eventIDGen *uuid.EventIDGenerator, publisher *kafkautil.EventPublisher, messageRepo *chatRepository.MessageRepository, roomRepo *chatRepository.RoomRepository) chatUsecase.RoomMessageCreatedUseCase {
-	return chatUsecase.NewRoomMessageCreatedUseCase(eventIDGen, messageRepo, roomRepo, publisher)
+func provideChatRoomMessageCreatedUseCase(eventIDGen *uuid.EventIDGenerator, publisher *kafkautil.EventPublisher, messageRepo *chatRepository.MessageRepository) chatUsecase.RoomMessageCreatedUseCase {
+	return chatUsecase.NewRoomMessageCreatedUseCase(eventIDGen, messageRepo, publisher)
 }
 func provideNotificationUserCreatedUseCase(userRepo *notificationRepository.UserRepository, emailNotifier *gomail.EmailNotifier) notificationUsecase.UserCreatedUseCase {
 	return notificationUsecase.NewUserCreatedUseCase(userRepo, emailNotifier)
@@ -307,14 +321,14 @@ func provideNotificationRoomJoinedUseCase(roomRepo *notificationRepository.RoomR
 func provideNotificationRoomLeftUseCase(roomRepo *notificationRepository.RoomRepository) notificationUsecase.RoomLeftUseCase {
 	return notificationUsecase.NewRoomLeftUseCase(roomRepo)
 }
-func provideNotificationPrivateMessageCreatedUseCase(messageRepo *notificationRepository.MessageRepository, manager *websocket.Manager) notificationUsecase.PrivateMessageCreatedUseCase {
-	return notificationUsecase.NewPrivateMessageCreatedUseCase(messageRepo, manager, messageRepo)
+func provideNotificationPrivateMessageCreatedUseCase(messageRepo *notificationRepository.MessageRepository, messageNotifier *notificationWebsocket.MessageNotifier) notificationUsecase.PrivateMessageCreatedUseCase {
+	return notificationUsecase.NewPrivateMessageCreatedUseCase(messageRepo, messageNotifier, messageRepo)
 }
-func provideNotificationRoomMessageCreatedUseCase(messageRepo *notificationRepository.MessageRepository, manager *websocket.Manager) notificationUsecase.RoomMessageCreatedUseCase {
-	return notificationUsecase.NewRoomMessageCreatedUseCase(messageRepo, manager, messageRepo)
+func provideNotificationRoomMessageCreatedUseCase(messageRepo *notificationRepository.MessageRepository, messageNotifier *notificationWebsocket.MessageNotifier) notificationUsecase.RoomMessageCreatedUseCase {
+	return notificationUsecase.NewRoomMessageCreatedUseCase(messageRepo, messageNotifier, messageRepo)
 }
-func provideNotificationUserConnectedUseCase(messageRepo *notificationRepository.MessageRepository, manager *websocket.Manager) notificationUsecase.UserConnectedUseCase {
-	return notificationUsecase.NewUserConnectedUseCase(messageRepo, manager, messageRepo)
+func provideNotificationUserConnectedUseCase(messageRepo *notificationRepository.MessageRepository, messageNotifier *notificationWebsocket.MessageNotifier) notificationUsecase.UserConnectedUseCase {
+	return notificationUsecase.NewUserConnectedUseCase(messageRepo, messageNotifier, messageRepo)
 }
 
 // -------------------- Kafka Subscriptions --------------------
@@ -375,7 +389,7 @@ func BuildDependencies(
 	kafkaSubscriber *kafkautil.EventSubscriber,
 	outboxConsumer *canal.OutboxConsumer,
 	emailNotifier *gomail.EmailNotifier,
-	websocketManager *websocket.Manager,
+	websocketServer *websocket.Server,
 	// usecases
 	signUp authorizationUsecase.SignUpUseCase,
 	login authorizationUsecase.LoginUseCase,
@@ -442,7 +456,7 @@ func BuildDependencies(
 		userConnectedUseCase:      userConnected,
 		validator:                 validator,
 		redisClient:               redisClient,
-		websocketManager:          websocketManager,
+		websocketServer:           websocketServer,
 	}
 	return deps, nil
 }
