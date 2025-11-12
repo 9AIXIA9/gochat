@@ -93,11 +93,9 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 	userCreatedUseCase3 := provideNotificationUserCreatedUseCase(userRepository3, emailNotifier)
 	roomRepository2 := provideNotificationRoomRepository(db)
 	roomCreatedUseCase2 := provideNotificationRoomCreatedUseCase(roomRepository2)
-	roomJoinedUseCase2 := provideNotificationRoomJoinedUseCase(roomRepository2)
-	roomLeftUseCase2 := provideNotificationRoomLeftUseCase(roomRepository2)
 	usecasePrivateMessageCreatedUseCase := provideNotificationPrivateMessageCreatedUseCase(repositoryMessageRepository, messageNotifier)
 	usecaseRoomMessageCreatedUseCase := provideNotificationRoomMessageCreatedUseCase(repositoryMessageRepository, messageNotifier)
-	error2 := provideKafkaSubscriptions(eventSubscriber, userCreatedUseCase, usecaseUserCreatedUseCase, roomCreatedUseCase, roomJoinedUseCase, roomLeftUseCase, userCreatedUseCase2, usecaseRoomCreatedUseCase, usecaseRoomJoinedUseCase, usecaseRoomLeftUseCase, privateMessageCreatedUseCase, roomMessageCreatedUseCase, userCreatedUseCase3, roomCreatedUseCase2, roomJoinedUseCase2, roomLeftUseCase2, usecasePrivateMessageCreatedUseCase, usecaseRoomMessageCreatedUseCase)
+	error2 := provideKafkaSubscriptions(eventSubscriber, userCreatedUseCase, usecaseUserCreatedUseCase, roomCreatedUseCase, roomJoinedUseCase, roomLeftUseCase, userCreatedUseCase2, usecaseRoomCreatedUseCase, usecaseRoomJoinedUseCase, usecaseRoomLeftUseCase, privateMessageCreatedUseCase, roomMessageCreatedUseCase, userCreatedUseCase3, roomCreatedUseCase2, usecasePrivateMessageCreatedUseCase, usecaseRoomMessageCreatedUseCase)
 	dependencies, err := BuildDependencies(app, db, client, validator, eventPublisher, eventSubscriber, outboxConsumer, emailNotifier, server, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, createRoomUseCase, joinRoomUseCase, leaveRoomUseCase, userConnectedUseCase, error2)
 	if err != nil {
 		return nil, err

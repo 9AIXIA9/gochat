@@ -21,7 +21,7 @@ type RoomMessageCreatedInput struct {
 }
 
 func (i *RoomMessageCreatedInput) Validate() error {
-	if len(i.RoomID) == 0 || len(i.MessageID) == 0 || len(i.Recipients) == 0 {
+	if len(i.RoomID) == 0 || len(i.MessageID) == 0 {
 		return myErrors.ErrEmptyInput
 	}
 	return nil
@@ -46,6 +46,11 @@ func NewRoomMessageCreatedUseCase(
 }
 
 func (uc *roomMessageCreatedUseCase) Execute(ctx context.Context, input *RoomMessageCreatedInput) (*kernel.NoOutput, error) {
+	if len(input.Recipients) == 0 {
+		//没有接收者不发送通知
+		return nil, nil
+	}
+
 	message, err := uc.roomMessageFinder.FindRoomMessage(ctx, input.RoomID, input.MessageID)
 	if err != nil {
 		return nil, err

@@ -117,8 +117,6 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 		provideChatPrivateMessageCreatedUseCase,
 		provideNotificationUserCreatedUseCase,
 		provideNotificationRoomCreatedUseCase,
-		provideNotificationRoomJoinedUseCase,
-		provideNotificationRoomLeftUseCase,
 		provideNotificationPrivateMessageCreatedUseCase,
 		provideNotificationRoomMessageCreatedUseCase,
 		// Subscriptions (side-effect) must run before assembling final deps

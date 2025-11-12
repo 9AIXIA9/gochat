@@ -7,9 +7,6 @@ import (
 type User struct {
 	ID kernel.UserID `gorm:"primaryKey;type:char(36)"`
 
-	// 用户 <-> 房间 多对多
-	Rooms []*Room `gorm:"many2many:gochat.notification_room_members;foreignKey:ID;joinForeignKey:UserID;references:ID;joinReferences:RoomID"`
-
 	// 用户 <-> 消息 一对多
 	MessageSent []*Message `gorm:"foreignKey:SenderID;references:ID"`
 

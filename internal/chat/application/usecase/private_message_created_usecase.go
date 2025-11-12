@@ -50,6 +50,11 @@ func (uc *privateMessageCreatedUseCase) Execute(ctx context.Context, input *Priv
 		return nil, err
 	}
 
+	if input.RecipientID == message.Sender() {
+		//发送给自己的消息不发送通知
+		return nil, nil
+	}
+
 	ev, err := notificationDomain.NewPrivateMessageCreatedEvent(
 		uc.eventIDGenerator.Generate(),
 		notificationDomain.MessageID(message.ID()),

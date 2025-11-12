@@ -315,12 +315,6 @@ func provideNotificationUserCreatedUseCase(userRepo *notificationRepository.User
 func provideNotificationRoomCreatedUseCase(roomRepo *notificationRepository.RoomRepository) notificationUsecase.RoomCreatedUseCase {
 	return notificationUsecase.NewRoomCreatedUseCase(roomRepo)
 }
-func provideNotificationRoomJoinedUseCase(roomRepo *notificationRepository.RoomRepository) notificationUsecase.RoomJoinedUseCase {
-	return notificationUsecase.NewRoomJoinedUseCase(roomRepo)
-}
-func provideNotificationRoomLeftUseCase(roomRepo *notificationRepository.RoomRepository) notificationUsecase.RoomLeftUseCase {
-	return notificationUsecase.NewRoomLeftUseCase(roomRepo)
-}
 func provideNotificationPrivateMessageCreatedUseCase(messageRepo *notificationRepository.MessageRepository, messageNotifier *notificationWebsocket.MessageNotifier) notificationUsecase.PrivateMessageCreatedUseCase {
 	return notificationUsecase.NewPrivateMessageCreatedUseCase(messageRepo, messageNotifier, messageRepo)
 }
@@ -350,8 +344,6 @@ func provideKafkaSubscriptions(subscriber *kafkautil.EventSubscriber,
 	// notification
 	notificationUserCreated notificationUsecase.UserCreatedUseCase,
 	notificationRoomCreated notificationUsecase.RoomCreatedUseCase,
-	notificationRoomJoined notificationUsecase.RoomJoinedUseCase,
-	notificationRoomLeft notificationUsecase.RoomLeftUseCase,
 	notificationPrivateMessageCreated notificationUsecase.PrivateMessageCreatedUseCase,
 	notificationRoomMessageCreated notificationUsecase.RoomMessageCreatedUseCase,
 ) error {
@@ -372,8 +364,6 @@ func provideKafkaSubscriptions(subscriber *kafkautil.EventSubscriber,
 	// Notification
 	subscriber.Subscribe(notificationDomain.TopicUserCreated, notificationKafka.NewUserCreatedEventHandler(notificationUserCreated))
 	subscriber.Subscribe(notificationDomain.TopicRoomCreated, notificationKafka.NewRoomCreatedEventHandler(notificationRoomCreated))
-	subscriber.Subscribe(notificationDomain.TopicRoomJoined, notificationKafka.NewRoomJoinedEventHandler(notificationRoomJoined))
-	subscriber.Subscribe(notificationDomain.TopicRoomLeft, notificationKafka.NewRoomLeftEventHandler(notificationRoomLeft))
 	subscriber.Subscribe(notificationDomain.TopicPrivateMessageCreated, notificationKafka.NewPrivateMessageCreatedEventHandler(notificationPrivateMessageCreated))
 	subscriber.Subscribe(notificationDomain.TopicRoomMessageCreated, notificationKafka.NewRoomMessageCreatedEventHandler(notificationRoomMessageCreated))
 	return nil

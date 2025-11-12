@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	chatDomain "gochat/internal/chat/domain"
-	notificationDomain "gochat/internal/notification/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
@@ -40,14 +39,6 @@ func NewRoomLeftUseCase(
 }
 
 func (uc *roomLeftUseCase) Execute(_ context.Context, input *RoomLeftInput) (*kernel.NoOutput, error) {
-	notificationEv, err := notificationDomain.NewRoomLeftEvent(uc.idGenerator.Generate(), notificationDomain.RoomID(input.RoomID), input.UserID)
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.publisher.Publish(notificationEv); err != nil {
-		return nil, err
-	}
-
 	chatEv, err := chatDomain.NewRoomLeftEvent(uc.idGenerator.Generate(), chatDomain.RoomID(input.RoomID), input.UserID)
 	if err != nil {
 		return nil, err
