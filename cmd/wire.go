@@ -104,6 +104,7 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 		provideLeaveRoomUseCase,
 		provideNotificationUserConnectedUseCase,
 		// Event UseCases (consumer side)
+		provideWebsocketUserSessionStartedUseCase,
 		provideAuthUserCreatedUseCase,
 		provideSocialUserCreatedUseCase,
 		provideSocialRoomCreatedUseCase,

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"gochat/config"
+	"gochat/internal/application/usecase"
 	authorizationUsecase "gochat/internal/authorization/application/usecase"
 	authorizationDomain "gochat/internal/authorization/domain"
 	"gochat/internal/authorization/infrastructure/crypto"
@@ -20,6 +21,7 @@ import (
 	chatRepository "gochat/internal/chat/infrastructure/persistence/repository"
 	chatUuid "gochat/internal/chat/infrastructure/uuid"
 	chatKafka "gochat/internal/chat/port/kafka"
+	"gochat/internal/delivery/kafka"
 	"gochat/internal/infrastructure/bcrypt"
 	"gochat/internal/infrastructure/canal"
 	"gochat/internal/infrastructure/godotenv"
@@ -190,8 +192,8 @@ func provideWebsocketRouter() *websocket.Router {
 func provideWebsocketManager(upgrader *gorillaWebsocket.Upgrader) *websocket.Manager {
 	return websocket.NewManager(upgrader)
 }
-func provideWebsocketServer(manager *websocket.Manager, router *websocket.Router) *websocket.Server {
-	return websocket.NewServer(manager, router)
+func provideWebsocketServer(manager *websocket.Manager, router *websocket.Router, publisher *kafkautil.EventPublisher, eventIDGen event.IDGenerator) *websocket.Server {
+	return websocket.NewServer(manager, router, publisher, eventIDGen)
 }
 
 // -------------------- UseCases (HTTP side) --------------------
@@ -276,6 +278,9 @@ func provideLeaveRoomUseCase(
 }
 
 // -------------------- Event UseCases (Kafka consumer side) --------------------
+func provideWebsocketUserSessionStartedUseCase(eventIDGen *uuid.EventIDGenerator, publisher *kafkautil.EventPublisher) usecase.UserSessionStartedUseCase {
+	return usecase.NewUserSessionStartedUseCase(eventIDGen, publisher)
+}
 func provideAuthUserCreatedUseCase(eventIDGen *uuid.EventIDGenerator, publisher *kafkautil.EventPublisher, userRepo *authorizationRepository.UserRepository) authorizationUsecase.UserCreatedUseCase {
 	return authorizationUsecase.NewUserCreatedUseCase(eventIDGen, publisher, userRepo)
 }
@@ -327,6 +332,8 @@ func provideNotificationUserConnectedUseCase(messageRepo *notificationRepository
 
 // -------------------- Kafka Subscriptions --------------------
 func provideKafkaSubscriptions(subscriber *kafkautil.EventSubscriber,
+	//websocket
+	userSessionStartedUseCase usecase.UserSessionStartedUseCase,
 	// auth
 	authUserCreated authorizationUsecase.UserCreatedUseCase,
 	// social
@@ -346,7 +353,10 @@ func provideKafkaSubscriptions(subscriber *kafkautil.EventSubscriber,
 	notificationRoomCreated notificationUsecase.RoomCreatedUseCase,
 	notificationPrivateMessageCreated notificationUsecase.PrivateMessageCreatedUseCase,
 	notificationRoomMessageCreated notificationUsecase.RoomMessageCreatedUseCase,
+	notificationUserConnected notificationUsecase.UserConnectedUseCase,
 ) error {
+	//websocket
+	subscriber.Subscribe(websocket.TopicUserSessionStarted, kafka.NewUserSessionStartedEventHandler(userSessionStartedUseCase))
 	// Authorization
 	subscriber.Subscribe(authorizationDomain.TopicUserCreated, authorizationKafka.NewUserCreatedEventHandler(authUserCreated))
 	// Social
@@ -366,6 +376,7 @@ func provideKafkaSubscriptions(subscriber *kafkautil.EventSubscriber,
 	subscriber.Subscribe(notificationDomain.TopicRoomCreated, notificationKafka.NewRoomCreatedEventHandler(notificationRoomCreated))
 	subscriber.Subscribe(notificationDomain.TopicPrivateMessageCreated, notificationKafka.NewPrivateMessageCreatedEventHandler(notificationPrivateMessageCreated))
 	subscriber.Subscribe(notificationDomain.TopicRoomMessageCreated, notificationKafka.NewRoomMessageCreatedEventHandler(notificationRoomMessageCreated))
+	subscriber.Subscribe(notificationDomain.TopicUserConnected, notificationKafka.NewUserConnectedEventHandler(notificationUserConnected))
 	return nil
 }
 

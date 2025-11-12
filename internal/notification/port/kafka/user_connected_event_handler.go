@@ -8,19 +8,15 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-//TODO 优化事件命名
-
-func NewUserCreatedEventHandler(uc usecase.UserCreatedUseCase) event.HandlerFunc {
+func NewUserConnectedEventHandler(uc usecase.UserConnectedUseCase) event.HandlerFunc {
 	return func(ctx context.Context, e event.Event) error {
-		ev, err := domain.ToUserCreatedEvent(e)
+		ev, err := domain.ToUserConnectedEvent(e)
 		if err != nil {
 			return err
 		}
 
-		input := usecase.UserCreatedInput{
-			UserID:     kernel.UserID(ev.AggregateID()),
-			UserNumber: ev.Number(),
-			Email:      ev.Email(),
+		input := usecase.UserConnectedInput{
+			UserID: kernel.UserID(ev.AggregateID()),
 		}
 
 		if err := input.Validate(); err != nil {

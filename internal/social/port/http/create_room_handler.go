@@ -51,8 +51,6 @@ func NewCreateRoomHandler(useCase usecase.CreateRoomUseCase, validator *validato
 			switch {
 			case errors.Is(err, myErrors.ErrEmptyInput):
 				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty"))
-			case errors.Is(err, myErrors.ErrNotFound):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "recipient not found"))
 			case errors.Is(err, myErrors.ErrInvalidNumber):
 				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "max member number is invalid"))
 			default:
