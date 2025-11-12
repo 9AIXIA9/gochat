@@ -5,7 +5,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"gochat/internal/delivery/http/api"
 	"log"
 	"net/http"
 	"os"
@@ -30,24 +29,8 @@ func main() {
 
 	// 创建HTTP服务器
 	srv := &http.Server{
-		Addr: fmt.Sprintf("%s:%d", dependencies.config.Host, dependencies.config.Port),
-		Handler: api.NewRouter(
-			dependencies.signUpUseCase,
-			dependencies.loginUseCase,
-			dependencies.refreshAccessTokenUseCase,
-			dependencies.parseAccessTokenUseCase,
-			dependencies.sendPrivateMessageUseCase,
-			dependencies.sendRoomMessageUseCase,
-			dependencies.createRoomUseCase,
-			dependencies.joinRoomUseCase,
-			dependencies.leaveRoomUseCase,
-			dependencies.validator,
-			dependencies.redisClient,
-			dependencies.websocketServer,
-			dependencies.config.RateLimit,
-			dependencies.config.Cookie,
-			dependencies.config.CORS,
-		),
+		Addr:    fmt.Sprintf("%s:%d", dependencies.config.Host, dependencies.config.Port),
+		Handler: dependencies.HttpRouter,
 	}
 
 	// 启动 HTTP 服务器

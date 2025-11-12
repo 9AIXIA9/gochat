@@ -9,6 +9,7 @@ import (
 type MessageRepository interface {
 	MessageSaver
 	MessageFinder
+	MessageStateUpdater
 	MessageStatesUpdater
 }
 
@@ -18,6 +19,10 @@ type MessageSaver interface {
 
 type MessageFinder interface {
 	FindMessagesByUserID(ctx context.Context, userID kernel.UserID) ([]*domain.Message, error)
+}
+
+type MessageStateUpdater interface {
+	UpdateMessageState(ctx context.Context, userID kernel.UserID, messageID domain.MessageID, newState domain.MessageState) error
 }
 
 type MessageStatesUpdater interface {

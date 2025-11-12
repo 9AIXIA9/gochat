@@ -89,7 +89,6 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 		provideKafkaSubscriber,
 		provideOutboxConsumer,
 		provideWebsocketUpgrader,
-		provideWebsocketRouter,
 		provideWebsocketManager,
 		provideWebsocketServer,
 		// HTTP UseCases
@@ -103,6 +102,7 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 		provideJoinRoomUseCase,
 		provideLeaveRoomUseCase,
 		provideNotificationUserConnectedUseCase,
+		provideNotificationMessageReadUseCase,
 		// Event UseCases (consumer side)
 		provideWebsocketUserSessionStartedUseCase,
 		provideAuthUserCreatedUseCase,
@@ -120,6 +120,10 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 		provideNotificationRoomCreatedUseCase,
 		provideNotificationPrivateMessageCreatedUseCase,
 		provideNotificationRoomMessageCreatedUseCase,
+		// HTTP
+		provideHttpRouter,
+		// Websocket
+		provideWebsocketRouter,
 		// Subscriptions (side-effect) must run before assembling final deps
 		provideKafkaSubscriptions,
 		// Final assembler

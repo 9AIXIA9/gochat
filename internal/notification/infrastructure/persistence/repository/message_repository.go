@@ -86,6 +86,12 @@ func (repo *MessageRepository) FindMessagesByUserID(ctx context.Context, userID 
 	return result, nil
 }
 
+func (repo *MessageRepository) UpdateMessageState(ctx context.Context, userID kernel.UserID, messageID domain.MessageID, newState domain.MessageState) error {
+	return gormutils.TranslateError(repo.db.WithContext(ctx).Model(&model.MessageState{}).
+		Where("user_id = ? AND message_id = ?", userID, messageID).
+		Update("state", newState).Error)
+}
+
 func (repo *MessageRepository) UpdateMessageStates(ctx context.Context, userID kernel.UserID, messageIDs []domain.MessageID, newState domain.MessageState) error {
 	return gormutils.TranslateError(repo.db.WithContext(ctx).Model(&model.MessageState{}).
 		Where("user_id = ? AND message_id IN ?", userID, messageIDs).

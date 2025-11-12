@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"context"
 	"gochat/internal/shared/event"
 	"net/http"
 
@@ -38,7 +39,8 @@ func (s *Server) ServeWS(w http.ResponseWriter, r *http.Request, userID kernel.U
 	}
 
 	ctx := r.Context()
-	client := NewClient(ctx, conn, s.router)
+	ctxWithUserID := context.WithValue(ctx, "user_id", userID)
+	client := NewClient(ctxWithUserID, conn, s.router)
 	s.manager.Register(userID, client)
 	client.Start()
 

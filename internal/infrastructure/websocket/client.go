@@ -96,6 +96,7 @@ func (c *Client) readPump() {
 		case RequestType:
 			req, err := DecodeRequest(msg.Payload)
 			if err != nil {
+				zap.L().Debug("websocket decode request failed", zap.Error(err))
 				continue
 			}
 			resp, err := c.router.Route(c.ctx, req)
@@ -103,7 +104,13 @@ func (c *Client) readPump() {
 				zap.L().Error("websocket route request failed", zap.Error(err))
 				continue
 			}
-			if b, err := EncodeResponse(resp); err == nil {
+
+			if resp != nil {
+				b, err := EncodeResponse(resp)
+				if err != nil {
+					zap.L().Debug("websocket encode response failed", zap.Error(err))
+					continue
+				}
 				_ = c.Send(b)
 			}
 		default:

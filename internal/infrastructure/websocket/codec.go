@@ -24,7 +24,7 @@ func EncodeResponse(resp *Response) ([]byte, error) {
 
 func DecodeMessage(b []byte) (*Message, error) {
 	m := new(Message)
-	if err := json.Unmarshal(b, &m); err != nil {
+	if err := json.Unmarshal(b, m); err != nil {
 		return nil, myErrors.ErrDecode
 	}
 	return m, nil
@@ -32,7 +32,7 @@ func DecodeMessage(b []byte) (*Message, error) {
 
 func DecodeRequest(payload json.RawMessage) (*Request, error) {
 	r := new(Request)
-	if err := json.Unmarshal(payload, &r); err != nil {
+	if err := json.Unmarshal(payload, r); err != nil {
 		return nil, myErrors.ErrDecode
 	}
 	return r, nil

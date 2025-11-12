@@ -18,14 +18,6 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 	if err != nil {
 		return nil, err
 	}
-	client, err := provideRedis(app)
-	if err != nil {
-		return nil, err
-	}
-	validator, err := provideValidator()
-	if err != nil {
-		return nil, err
-	}
 	eventRepository := provideEventRepository(db)
 	eventPublisher, err := provideKafkaPublisher(app, eventRepository)
 	if err != nil {
@@ -40,11 +32,7 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 		return nil, err
 	}
 	emailNotifier := provideEmailNotifier(app)
-	upgrader := provideWebsocketUpgrader(app)
-	manager := provideWebsocketManager(upgrader)
-	router := provideWebsocketRouter()
 	eventIDGenerator := provideEventIDGenerator()
-	server := provideWebsocketServer(manager, router, eventPublisher, eventIDGenerator)
 	userIDGenerator := provideAuthorizationUserIDGenerator()
 	userNumberGenerator, err := provideAuthorizationUserNumberGenerator(app)
 	if err != nil {
@@ -53,6 +41,10 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 	hasher := provideHasher(app)
 	userRepository := provideAuthorizationUserRepository(db)
 	signUpUseCase := provideSignUpUseCase(eventIDGenerator, userIDGenerator, userNumberGenerator, hasher, userRepository, eventRepository)
+	client, err := provideRedis(app)
+	if err != nil {
+		return nil, err
+	}
 	refreshTokenRepository := provideAuthorizationRefreshTokenRepository(client)
 	accessTokenManager := provideAccessTokenManager(app)
 	refreshTokenGenerator := provideRefreshTokenGenerator(app)
@@ -74,9 +66,17 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 	createRoomUseCase := provideCreateRoomUseCase(eventIDGenerator, roomIDGenerator, roomNumberGenerator, hasher, repositoryRoomRepository, eventRepository)
 	joinRoomUseCase := provideJoinRoomUseCase(eventIDGenerator, eventRepository, repositoryRoomRepository, hasher, repositoryRoomRepository)
 	leaveRoomUseCase := provideLeaveRoomUseCase(eventIDGenerator, repositoryRoomRepository, repositoryRoomRepository, eventRepository)
+	validator, err := provideValidator()
+	if err != nil {
+		return nil, err
+	}
+	upgrader := provideWebsocketUpgrader(app)
+	manager := provideWebsocketManager(upgrader)
 	repositoryMessageRepository := provideNotificationMessageRepository(db)
-	messageNotifier := provideMessageNotifier(manager)
-	userConnectedUseCase := provideNotificationUserConnectedUseCase(repositoryMessageRepository, messageNotifier)
+	messageReadUseCase := provideNotificationMessageReadUseCase(repositoryMessageRepository)
+	router := provideWebsocketRouter(messageReadUseCase)
+	server := provideWebsocketServer(manager, router, eventPublisher, eventIDGenerator)
+	engine := provideHttpRouter(app, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, createRoomUseCase, joinRoomUseCase, leaveRoomUseCase, validator, client, server)
 	userSessionStartedUseCase := provideWebsocketUserSessionStartedUseCase(eventIDGenerator, eventPublisher)
 	userCreatedUseCase := provideAuthUserCreatedUseCase(eventIDGenerator, eventPublisher, userRepository)
 	userRepository2 := provideSocialUserRepository(db)
@@ -94,10 +94,12 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 	userCreatedUseCase3 := provideNotificationUserCreatedUseCase(userRepository3, emailNotifier)
 	roomRepository2 := provideNotificationRoomRepository(db)
 	roomCreatedUseCase2 := provideNotificationRoomCreatedUseCase(roomRepository2)
+	messageNotifier := provideMessageNotifier(manager)
 	usecasePrivateMessageCreatedUseCase := provideNotificationPrivateMessageCreatedUseCase(repositoryMessageRepository, messageNotifier)
 	usecaseRoomMessageCreatedUseCase := provideNotificationRoomMessageCreatedUseCase(repositoryMessageRepository, messageNotifier)
+	userConnectedUseCase := provideNotificationUserConnectedUseCase(repositoryMessageRepository, messageNotifier)
 	error2 := provideKafkaSubscriptions(eventSubscriber, userSessionStartedUseCase, userCreatedUseCase, usecaseUserCreatedUseCase, roomCreatedUseCase, roomJoinedUseCase, roomLeftUseCase, userCreatedUseCase2, usecaseRoomCreatedUseCase, usecaseRoomJoinedUseCase, usecaseRoomLeftUseCase, privateMessageCreatedUseCase, roomMessageCreatedUseCase, userCreatedUseCase3, roomCreatedUseCase2, usecasePrivateMessageCreatedUseCase, usecaseRoomMessageCreatedUseCase, userConnectedUseCase)
-	dependencies, err := BuildDependencies(app, db, client, validator, eventPublisher, eventSubscriber, outboxConsumer, emailNotifier, server, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, createRoomUseCase, joinRoomUseCase, leaveRoomUseCase, userConnectedUseCase, error2)
+	dependencies, err := BuildDependencies(app, db, eventPublisher, eventSubscriber, outboxConsumer, emailNotifier, engine, error2)
 	if err != nil {
 		return nil, err
 	}

@@ -14,13 +14,17 @@ import (
 	authorizationRepository "gochat/internal/authorization/infrastructure/persistence/repository"
 	authorizationSnowflake "gochat/internal/authorization/infrastructure/snowflake"
 	authorizationUuid "gochat/internal/authorization/infrastructure/uuid"
+	authorizationHttp "gochat/internal/authorization/port/http"
 	authorizationKafka "gochat/internal/authorization/port/kafka"
 	chatUsecase "gochat/internal/chat/application/usecase"
 	chatDomain "gochat/internal/chat/domain"
 	chatModel "gochat/internal/chat/infrastructure/persistence/model"
 	chatRepository "gochat/internal/chat/infrastructure/persistence/repository"
 	chatUuid "gochat/internal/chat/infrastructure/uuid"
+	chatHttp "gochat/internal/chat/port/http"
 	chatKafka "gochat/internal/chat/port/kafka"
+	"gochat/internal/delivery/http/handler"
+	"gochat/internal/delivery/http/middleware"
 	"gochat/internal/delivery/kafka"
 	"gochat/internal/infrastructure/bcrypt"
 	"gochat/internal/infrastructure/canal"
@@ -41,8 +45,9 @@ import (
 	"gochat/internal/notification/infrastructure/gomail"
 	notificationModel "gochat/internal/notification/infrastructure/persistence/model"
 	notificationRepository "gochat/internal/notification/infrastructure/persistence/repository"
-	notificationWebsocket "gochat/internal/notification/infrastructure/websocket"
+	notificationWebsocketInfrastructure "gochat/internal/notification/infrastructure/websocket"
 	notificationKafka "gochat/internal/notification/port/kafka"
+	notificationWebsocket "gochat/internal/notification/port/websocket"
 	"gochat/internal/shared/event"
 	socialUseCase "gochat/internal/social/application/usecase"
 	socialDomain "gochat/internal/social/domain"
@@ -50,12 +55,14 @@ import (
 	socialRepository "gochat/internal/social/infrastructure/persistence/repository"
 	socialSnowflake "gochat/internal/social/infrastructure/snowflake"
 	socialUuid "gochat/internal/social/infrastructure/uuid"
+	socialHttp "gochat/internal/social/port/http"
 	socialKafka "gochat/internal/social/port/kafka"
 
 	authorizationApp "gochat/internal/authorization/application"
 	chatApp "gochat/internal/chat/application"
 	socialApp "gochat/internal/social/application"
 
+	"github.com/gin-gonic/gin"
 	gorillaWebsocket "github.com/gorilla/websocket"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
@@ -67,21 +74,9 @@ type EnvPath string
 
 // Dependencies holds runtime objects & usecases.
 type Dependencies struct {
-	config                    *config.App
-	closeAll                  func()
-	signUpUseCase             authorizationUsecase.SignUpUseCase
-	loginUseCase              authorizationUsecase.LoginUseCase
-	refreshAccessTokenUseCase authorizationUsecase.RefreshAccessTokenUseCase
-	parseAccessTokenUseCase   authorizationUsecase.ParseAccessTokenUseCase
-	sendPrivateMessageUseCase chatUsecase.SendPrivateMessageUseCase
-	sendRoomMessageUseCase    chatUsecase.SendRoomMessageUseCase
-	createRoomUseCase         socialUseCase.CreateRoomUseCase
-	joinRoomUseCase           socialUseCase.JoinRoomUseCase
-	leaveRoomUseCase          socialUseCase.LeaveRoomUseCase
-	userConnectedUseCase      notificationUsecase.UserConnectedUseCase
-	validator                 *ginutils.Validator
-	redisClient               *redis.Client
-	websocketServer           *websocket.Server
+	HttpRouter *gin.Engine
+	config     *config.App
+	closeAll   func()
 }
 
 // -------------------- Base Providers --------------------
@@ -134,8 +129,8 @@ func provideRefreshTokenGenerator(appConfig *config.App) *crypto.RefreshTokenGen
 func provideEmailNotifier(appConfig *config.App) *gomail.EmailNotifier {
 	return gomail.NewEmailNotifier(appConfig.Name, appConfig.Email)
 }
-func provideMessageNotifier(manager *websocket.Manager) *notificationWebsocket.MessageNotifier {
-	return notificationWebsocket.NewMessageNotifier(manager)
+func provideMessageNotifier(manager *websocket.Manager) *notificationWebsocketInfrastructure.MessageNotifier {
+	return notificationWebsocketInfrastructure.NewMessageNotifier(manager)
 }
 
 // -------------------- Repositories --------------------
@@ -185,9 +180,6 @@ func provideOutboxConsumer(appConfig *config.App, publisher *kafkautil.EventPubl
 }
 func provideWebsocketUpgrader(appConfig *config.App) *gorillaWebsocket.Upgrader {
 	return websocket.NewUpgrader(appConfig.CORS.AllowOrigins)
-}
-func provideWebsocketRouter() *websocket.Router {
-	return websocket.NewRouter()
 }
 func provideWebsocketManager(upgrader *gorillaWebsocket.Upgrader) *websocket.Manager {
 	return websocket.NewManager(upgrader)
@@ -320,14 +312,92 @@ func provideNotificationUserCreatedUseCase(userRepo *notificationRepository.User
 func provideNotificationRoomCreatedUseCase(roomRepo *notificationRepository.RoomRepository) notificationUsecase.RoomCreatedUseCase {
 	return notificationUsecase.NewRoomCreatedUseCase(roomRepo)
 }
-func provideNotificationPrivateMessageCreatedUseCase(messageRepo *notificationRepository.MessageRepository, messageNotifier *notificationWebsocket.MessageNotifier) notificationUsecase.PrivateMessageCreatedUseCase {
+func provideNotificationPrivateMessageCreatedUseCase(messageRepo *notificationRepository.MessageRepository, messageNotifier *notificationWebsocketInfrastructure.MessageNotifier) notificationUsecase.PrivateMessageCreatedUseCase {
 	return notificationUsecase.NewPrivateMessageCreatedUseCase(messageRepo, messageNotifier, messageRepo)
 }
-func provideNotificationRoomMessageCreatedUseCase(messageRepo *notificationRepository.MessageRepository, messageNotifier *notificationWebsocket.MessageNotifier) notificationUsecase.RoomMessageCreatedUseCase {
+func provideNotificationRoomMessageCreatedUseCase(messageRepo *notificationRepository.MessageRepository, messageNotifier *notificationWebsocketInfrastructure.MessageNotifier) notificationUsecase.RoomMessageCreatedUseCase {
 	return notificationUsecase.NewRoomMessageCreatedUseCase(messageRepo, messageNotifier, messageRepo)
 }
-func provideNotificationUserConnectedUseCase(messageRepo *notificationRepository.MessageRepository, messageNotifier *notificationWebsocket.MessageNotifier) notificationUsecase.UserConnectedUseCase {
+func provideNotificationUserConnectedUseCase(messageRepo *notificationRepository.MessageRepository, messageNotifier *notificationWebsocketInfrastructure.MessageNotifier) notificationUsecase.UserConnectedUseCase {
 	return notificationUsecase.NewUserConnectedUseCase(messageRepo, messageNotifier, messageRepo)
+}
+func provideNotificationMessageReadUseCase(messageRepo *notificationRepository.MessageRepository) notificationUsecase.MessageReadUseCase {
+	return notificationUsecase.NewMessageReadUseCase(messageRepo)
+}
+
+// -------------------- http router --------------------
+func provideHttpRouter(
+	appConfig *config.App,
+	signUp authorizationUsecase.SignUpUseCase,
+	login authorizationUsecase.LoginUseCase,
+	refreshAccessToken authorizationUsecase.RefreshAccessTokenUseCase,
+	parseAccessToken authorizationUsecase.ParseAccessTokenUseCase,
+	sendPrivateMessage chatUsecase.SendPrivateMessageUseCase,
+	sendRoomMessage chatUsecase.SendRoomMessageUseCase,
+	createRoom socialUseCase.CreateRoomUseCase,
+	joinRoom socialUseCase.JoinRoomUseCase,
+	leaveRoom socialUseCase.LeaveRoomUseCase,
+	validator *ginutils.Validator,
+	redisClient *redis.Client,
+	websocketServer *websocket.Server,
+) *gin.Engine {
+	router := gin.New()
+
+	router.Use(
+		middleware.NewLoggerMiddleware(),
+		middleware.NewRecoverMiddleware(),
+		middleware.NewCORSMiddleware(appConfig.CORS),
+		middleware.NewRateLimitMiddleware(redisClient, appConfig.RateLimit),
+	)
+
+	router.Any("/health_check", handler.NewHealthCheckHandler())
+
+	baseGroup := router.Group("/api/v1")
+
+	authorizationGroup := baseGroup.Group("/authorization")
+
+	authorizationGroup.Use()
+	{
+		authorizationGroup.POST("/sign_up", authorizationHttp.NewSignUpHandler(signUp, validator))
+		authorizationGroup.POST("/login", authorizationHttp.NewLoginHandler(login, validator, appConfig.Cookie))
+		authorizationGroup.GET("/refresh_access_token", authorizationHttp.NewRefreshAccessTokenHandler(refreshAccessToken, validator, appConfig.Cookie))
+	}
+
+	authorizationMiddleware := authorizationHttp.NewAuthorizationMiddleware(parseAccessToken)
+
+	chatGroup := baseGroup.Group("/chat")
+	chatGroup.Use(authorizationMiddleware)
+	{
+		chatGroup.POST("/private", chatHttp.NewSendPrivateMessageHandler(sendPrivateMessage, validator))
+		chatGroup.POST("/room", chatHttp.NewSendRoomMessageHandler(sendRoomMessage, validator))
+	}
+
+	socialGroup := baseGroup.Group("/social")
+	socialGroup.Use(authorizationMiddleware)
+	{
+		socialGroup.POST("/room", socialHttp.NewCreateRoomHandler(createRoom, validator))
+		socialGroup.POST("/room/member", socialHttp.NewJoinRoomHandler(joinRoom, validator))
+		socialGroup.DELETE("/room/member", socialHttp.NewLeaveRoomHandler(leaveRoom, validator))
+	}
+
+	websocketGroup := baseGroup.Group("/ws")
+	websocketGroup.Use(authorizationMiddleware)
+	{
+		websocketGroup.GET("/", handler.NewWebsocketHandler(websocketServer))
+	}
+
+	return router
+}
+
+// -------------------- websocket router --------------------
+func provideWebsocketRouter(
+	notificationMessageRead notificationUsecase.MessageReadUseCase,
+) *websocket.Router {
+	router := websocket.NewRouter()
+
+	router.Handle(notificationWebsocket.MessageReadRequestTopic, notificationWebsocket.NewMessageReadHandler(notificationMessageRead))
+
+	return router
 }
 
 // -------------------- Kafka Subscriptions --------------------
@@ -383,25 +453,12 @@ func provideKafkaSubscriptions(subscriber *kafkautil.EventSubscriber,
 func BuildDependencies(
 	appConfig *config.App,
 	mysql *gorm.DB,
-	redisClient *redis.Client,
-	validator *ginutils.Validator,
 	// core infra
 	kafkaPublisher *kafkautil.EventPublisher,
 	kafkaSubscriber *kafkautil.EventSubscriber,
 	outboxConsumer *canal.OutboxConsumer,
 	emailNotifier *gomail.EmailNotifier,
-	websocketServer *websocket.Server,
-	// usecases
-	signUp authorizationUsecase.SignUpUseCase,
-	login authorizationUsecase.LoginUseCase,
-	refreshAccess authorizationUsecase.RefreshAccessTokenUseCase,
-	parseAccess authorizationUsecase.ParseAccessTokenUseCase,
-	sendPrivate chatUsecase.SendPrivateMessageUseCase,
-	sendRoom chatUsecase.SendRoomMessageUseCase,
-	createRoom socialUseCase.CreateRoomUseCase,
-	joinRoom socialUseCase.JoinRoomUseCase,
-	leaveRoom socialUseCase.LeaveRoomUseCase,
-	userConnected notificationUsecase.UserConnectedUseCase,
+	ginEngine *gin.Engine,
 	// subscriptions side-effect
 	_ error, // ensure subscriptions provider executed (ignored)
 ) (*Dependencies, error) {
@@ -437,7 +494,8 @@ func BuildDependencies(
 	emailNotifier.Start()
 
 	deps := &Dependencies{
-		config: appConfig,
+		HttpRouter: ginEngine,
+		config:     appConfig,
 		closeAll: func() {
 			outboxConsumer.Close()
 			kafkaPublisher.Close()
@@ -445,19 +503,6 @@ func BuildDependencies(
 			kafkaSubscriber.Close()
 			cancel()
 		},
-		signUpUseCase:             signUp,
-		loginUseCase:              login,
-		refreshAccessTokenUseCase: refreshAccess,
-		parseAccessTokenUseCase:   parseAccess,
-		sendPrivateMessageUseCase: sendPrivate,
-		sendRoomMessageUseCase:    sendRoom,
-		createRoomUseCase:         createRoom,
-		joinRoomUseCase:           joinRoom,
-		leaveRoomUseCase:          leaveRoom,
-		userConnectedUseCase:      userConnected,
-		validator:                 validator,
-		redisClient:               redisClient,
-		websocketServer:           websocketServer,
 	}
 	return deps, nil
 }
