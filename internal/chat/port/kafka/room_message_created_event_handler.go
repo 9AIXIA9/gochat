@@ -15,8 +15,9 @@ func NewRoomMessageCreatedEventHandler(uc usecase.RoomMessageCreatedUseCase) eve
 		}
 
 		input := usecase.RoomMessageCreatedInput{
-			RoomID:    domain.RoomID(ev.AggregateID()),
-			MessageID: ev.MessageID(),
+			RoomID:     domain.RoomID(ev.AggregateID()),
+			MessageID:  ev.MessageID(),
+			Recipients: ev.Recipients(),
 		}
 
 		if err := input.Validate(); err != nil {
