@@ -10,9 +10,9 @@ import (
 	"time"
 )
 
-type PrivateMessageCreatedUseCase kernel.UseCase[*PrivateMessageCreatedInput, *kernel.NoOutput]
+type MessageNotificationRequestedUseCase kernel.UseCase[*MessageNotificationRequestedInput, *kernel.NoOutput]
 
-type PrivateMessageCreatedInput struct {
+type MessageNotificationRequestedInput struct {
 	MessageID   domain.MessageID
 	RecipientID kernel.UserID
 	SenderID    kernel.UserID
@@ -20,7 +20,7 @@ type PrivateMessageCreatedInput struct {
 	SentAt      time.Time
 }
 
-func (r *PrivateMessageCreatedInput) Validate() error {
+func (r *MessageNotificationRequestedInput) Validate() error {
 	if len(r.RecipientID) == 0 || len(r.SenderID) == 0 || len(r.MessageID) == 0 {
 		return myErrors.ErrEmptyInput
 	}
@@ -32,25 +32,25 @@ func (r *PrivateMessageCreatedInput) Validate() error {
 	return nil
 }
 
-type privateMessageCreatedUseCase struct {
+type messageNotificationRequestedUseCase struct {
 	messageSaver         application.MessageSaver
 	messageNotifier      application.MessageNotifier
 	messageStatesUpdater application.MessageStatesUpdater
 }
 
-func NewPrivateMessageCreatedUseCase(
+func NewMessageNotificationRequestedUseCase(
 	messageSaver application.MessageSaver,
 	messageNotifier application.MessageNotifier,
 	messageStatesUpdater application.MessageStatesUpdater,
-) PrivateMessageCreatedUseCase {
-	return &privateMessageCreatedUseCase{
+) MessageNotificationRequestedUseCase {
+	return &messageNotificationRequestedUseCase{
 		messageSaver:         messageSaver,
 		messageNotifier:      messageNotifier,
 		messageStatesUpdater: messageStatesUpdater,
 	}
 }
 
-func (uc *privateMessageCreatedUseCase) Execute(ctx context.Context, input *PrivateMessageCreatedInput) (*kernel.NoOutput, error) {
+func (uc *messageNotificationRequestedUseCase) Execute(ctx context.Context, input *MessageNotificationRequestedInput) (*kernel.NoOutput, error) {
 	message := domain.NewMessage(
 		input.MessageID,
 		input.SenderID,

@@ -158,12 +158,6 @@ func provideSocialUserRepository(mysql *gorm.DB) *socialRepository.UserRepositor
 func provideSocialRoomRepository(mysql *gorm.DB) *socialRepository.RoomRepository {
 	return socialRepository.NewRoomRepository(mysql)
 }
-func provideNotificationUserRepository(mysql *gorm.DB) *notificationRepository.UserRepository {
-	return notificationRepository.NewUserRepository(mysql)
-}
-func provideNotificationRoomRepository(mysql *gorm.DB) *notificationRepository.RoomRepository {
-	return notificationRepository.NewRoomRepository(mysql)
-}
 func provideNotificationMessageRepository(mysql *gorm.DB) *notificationRepository.MessageRepository {
 	return notificationRepository.NewMessageRepository(mysql)
 }
@@ -306,20 +300,14 @@ func provideChatPrivateMessageCreatedUseCase(eventIDGen *uuid.EventIDGenerator, 
 func provideChatRoomMessageCreatedUseCase(eventIDGen *uuid.EventIDGenerator, publisher *kafkautil.EventPublisher, messageRepo *chatRepository.MessageRepository) chatUsecase.RoomMessageCreatedUseCase {
 	return chatUsecase.NewRoomMessageCreatedUseCase(eventIDGen, messageRepo, publisher)
 }
-func provideNotificationUserCreatedUseCase(userRepo *notificationRepository.UserRepository, emailNotifier *gomail.EmailNotifier) notificationUsecase.UserCreatedUseCase {
-	return notificationUsecase.NewUserCreatedUseCase(userRepo, emailNotifier)
+func provideNotificationWelcomeEmailNotificationRequestedUseCase(emailNotifier *gomail.EmailNotifier) notificationUsecase.WelcomeEmailNotificationRequestedUseCase {
+	return notificationUsecase.NewWelcomeEmailNotificationRequestedUseCase(emailNotifier)
 }
-func provideNotificationRoomCreatedUseCase(roomRepo *notificationRepository.RoomRepository) notificationUsecase.RoomCreatedUseCase {
-	return notificationUsecase.NewRoomCreatedUseCase(roomRepo)
+func provideNotificationMessageNotificationRequestedUseCase(messageRepo *notificationRepository.MessageRepository, messageNotifier *notificationWebsocketInfrastructure.MessageNotifier) notificationUsecase.MessageNotificationRequestedUseCase {
+	return notificationUsecase.NewMessageNotificationRequestedUseCase(messageRepo, messageNotifier, messageRepo)
 }
-func provideNotificationPrivateMessageCreatedUseCase(messageRepo *notificationRepository.MessageRepository, messageNotifier *notificationWebsocketInfrastructure.MessageNotifier) notificationUsecase.PrivateMessageCreatedUseCase {
-	return notificationUsecase.NewPrivateMessageCreatedUseCase(messageRepo, messageNotifier, messageRepo)
-}
-func provideNotificationRoomMessageCreatedUseCase(messageRepo *notificationRepository.MessageRepository, messageNotifier *notificationWebsocketInfrastructure.MessageNotifier) notificationUsecase.RoomMessageCreatedUseCase {
-	return notificationUsecase.NewRoomMessageCreatedUseCase(messageRepo, messageNotifier, messageRepo)
-}
-func provideNotificationUserConnectedUseCase(messageRepo *notificationRepository.MessageRepository, messageNotifier *notificationWebsocketInfrastructure.MessageNotifier) notificationUsecase.UserConnectedUseCase {
-	return notificationUsecase.NewUserConnectedUseCase(messageRepo, messageNotifier, messageRepo)
+func provideNotificationUndeliveredMessageNotificationRequestedUseCase(messageRepo *notificationRepository.MessageRepository, messageNotifier *notificationWebsocketInfrastructure.MessageNotifier) notificationUsecase.UndeliveredMessageNotificationRequestedUseCase {
+	return notificationUsecase.NewUndeliveredMessageNotificationRequestedUseCase(messageRepo, messageNotifier, messageRepo)
 }
 func provideNotificationMessageReadUseCase(messageRepo *notificationRepository.MessageRepository) notificationUsecase.MessageReadUseCase {
 	return notificationUsecase.NewMessageReadUseCase(messageRepo)
@@ -419,11 +407,9 @@ func provideKafkaSubscriptions(subscriber *kafkautil.EventSubscriber,
 	chatPrivateMessageCreated chatUsecase.PrivateMessageCreatedUseCase,
 	chatRoomMessageCreated chatUsecase.RoomMessageCreatedUseCase,
 	// notification
-	notificationUserCreated notificationUsecase.UserCreatedUseCase,
-	notificationRoomCreated notificationUsecase.RoomCreatedUseCase,
-	notificationPrivateMessageCreated notificationUsecase.PrivateMessageCreatedUseCase,
-	notificationRoomMessageCreated notificationUsecase.RoomMessageCreatedUseCase,
-	notificationUserConnected notificationUsecase.UserConnectedUseCase,
+	notificationWelcomeEmailNotificationRequested notificationUsecase.WelcomeEmailNotificationRequestedUseCase,
+	notificationMessageNotificationRequested notificationUsecase.MessageNotificationRequestedUseCase,
+	notificationUndeliveredMessageNotificationRequested notificationUsecase.UndeliveredMessageNotificationRequestedUseCase,
 ) error {
 	//websocket
 	subscriber.Subscribe(websocket.TopicUserSessionStarted, kafka.NewUserSessionStartedEventHandler(userSessionStartedUseCase))
@@ -442,11 +428,9 @@ func provideKafkaSubscriptions(subscriber *kafkautil.EventSubscriber,
 	subscriber.Subscribe(chatDomain.TopicPrivateMessageCreated, chatKafka.NewPrivateMessageCreatedEventHandler(chatPrivateMessageCreated))
 	subscriber.Subscribe(chatDomain.TopicRoomMessageCreated, chatKafka.NewRoomMessageCreatedEventHandler(chatRoomMessageCreated))
 	// Notification
-	subscriber.Subscribe(notificationDomain.TopicUserCreated, notificationKafka.NewUserCreatedEventHandler(notificationUserCreated))
-	subscriber.Subscribe(notificationDomain.TopicRoomCreated, notificationKafka.NewRoomCreatedEventHandler(notificationRoomCreated))
-	subscriber.Subscribe(notificationDomain.TopicPrivateMessageCreated, notificationKafka.NewPrivateMessageCreatedEventHandler(notificationPrivateMessageCreated))
-	subscriber.Subscribe(notificationDomain.TopicRoomMessageCreated, notificationKafka.NewRoomMessageCreatedEventHandler(notificationRoomMessageCreated))
-	subscriber.Subscribe(notificationDomain.TopicUserConnected, notificationKafka.NewUserConnectedEventHandler(notificationUserConnected))
+	subscriber.Subscribe(notificationDomain.TopicWelcomeEmailNotificationRequested, notificationKafka.NewWelcomeEmailNotificationRequestedEventHandler(notificationWelcomeEmailNotificationRequested))
+	subscriber.Subscribe(notificationDomain.TopicMessageNotificationRequested, notificationKafka.NewMessageNotificationRequestedEventHandler(notificationMessageNotificationRequested))
+	subscriber.Subscribe(notificationDomain.TopicUndeliveredMessageNotificationRequested, notificationKafka.NewUndeliveredMessageNotificationRequestedEventHandler(notificationUndeliveredMessageNotificationRequested))
 	return nil
 }
 
@@ -467,8 +451,6 @@ func BuildDependencies(
 		if err := gormutils.AutoMigrate(
 			mysql,
 			&authorizationModel.User{},
-			&notificationModel.User{},
-			&notificationModel.Room{},
 			&notificationModel.Message{},
 			&notificationModel.MessageState{},
 			&chatModel.User{},

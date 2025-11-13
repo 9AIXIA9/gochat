@@ -7,11 +7,11 @@ import (
 	"time"
 )
 
-const TopicPrivateMessageCreated event.Topic = "notification.private_message.created"
+const TopicMessageNotificationRequested event.Topic = "notification.message_notification.requested"
 
-var _ event.SpecificEvent = (*PrivateMessageCreatedEvent)(nil)
+var _ event.SpecificEvent = (*MessageNotificationRequestedEvent)(nil)
 
-type PrivateMessageCreatedEvent struct {
+type MessageNotificationRequestedEvent struct {
 	messageID MessageID
 	sender    kernel.UserID
 	content   string
@@ -19,8 +19,8 @@ type PrivateMessageCreatedEvent struct {
 	*event.StandardEvent
 }
 
-func ToPrivateMessageCreatedEvent(ev event.Event) (*PrivateMessageCreatedEvent, error) {
-	e := &PrivateMessageCreatedEvent{StandardEvent: event.NewStandardEventFrom(ev)}
+func ToMessageNotificationRequestedEvent(ev event.Event) (*MessageNotificationRequestedEvent, error) {
+	e := &MessageNotificationRequestedEvent{StandardEvent: event.NewStandardEventFrom(ev)}
 	if len(ev.Payload()) > 0 {
 		if err := e.Unmarshal(ev.Payload()); err != nil {
 			return nil, err
@@ -29,15 +29,15 @@ func ToPrivateMessageCreatedEvent(ev event.Event) (*PrivateMessageCreatedEvent, 
 	return e, nil
 }
 
-func NewPrivateMessageCreatedEvent(
+func NewMessageNotificationRequestedEvent(
 	id event.ID,
 	messageID MessageID,
 	recipient kernel.UserID,
 	sender kernel.UserID,
 	content string,
 	sentAt time.Time,
-) (*PrivateMessageCreatedEvent, error) {
-	e := &PrivateMessageCreatedEvent{
+) (*MessageNotificationRequestedEvent, error) {
+	e := &MessageNotificationRequestedEvent{
 		messageID: messageID,
 		sender:    sender,
 		content:   content,
@@ -48,11 +48,11 @@ func NewPrivateMessageCreatedEvent(
 		return nil, err
 	}
 
-	e.StandardEvent = event.NewStandardEvent(id, kernel.ID(recipient), time.Now().UTC(), TopicPrivateMessageCreated, payload)
+	e.StandardEvent = event.NewStandardEvent(id, kernel.ID(recipient), time.Now().UTC(), TopicMessageNotificationRequested, payload)
 	return e, nil
 }
 
-func (e *PrivateMessageCreatedEvent) Marshal() ([]byte, error) {
+func (e *MessageNotificationRequestedEvent) Marshal() ([]byte, error) {
 	type Alias struct {
 		MessageID MessageID
 		Sender    kernel.UserID
@@ -67,7 +67,7 @@ func (e *PrivateMessageCreatedEvent) Marshal() ([]byte, error) {
 	})
 }
 
-func (e *PrivateMessageCreatedEvent) Unmarshal(data []byte) error {
+func (e *MessageNotificationRequestedEvent) Unmarshal(data []byte) error {
 	type Alias struct {
 		MessageID MessageID
 		Sender    kernel.UserID
@@ -85,18 +85,18 @@ func (e *PrivateMessageCreatedEvent) Unmarshal(data []byte) error {
 	return nil
 }
 
-func (e *PrivateMessageCreatedEvent) MessageID() MessageID {
+func (e *MessageNotificationRequestedEvent) MessageID() MessageID {
 	return e.messageID
 }
 
-func (e *PrivateMessageCreatedEvent) Sender() kernel.UserID {
+func (e *MessageNotificationRequestedEvent) Sender() kernel.UserID {
 	return e.sender
 }
 
-func (e *PrivateMessageCreatedEvent) Content() string {
+func (e *MessageNotificationRequestedEvent) Content() string {
 	return e.content
 }
 
-func (e *PrivateMessageCreatedEvent) SentAt() time.Time {
+func (e *MessageNotificationRequestedEvent) SentAt() time.Time {
 	return e.sentAt
 }

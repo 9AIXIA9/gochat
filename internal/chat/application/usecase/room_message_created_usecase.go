@@ -56,20 +56,23 @@ func (uc *roomMessageCreatedUseCase) Execute(ctx context.Context, input *RoomMes
 		return nil, err
 	}
 
-	ev, err := notificationDomain.NewRoomMessageCreatedEvent(
-		uc.eventIDGenerator.Generate(),
-		notificationDomain.RoomID(input.RoomID),
-		notificationDomain.MessageID(message.ID()),
-		input.Recipients,
-		message.Sender(),
-		message.Content(),
-		message.SentAt(),
-	)
-	if err != nil {
-		return nil, err
+	evs := make([]event.Event, 0, len(input.Recipients))
+	for _, recipient := range input.Recipients {
+		ev, err := notificationDomain.NewMessageNotificationRequestedEvent(
+			uc.eventIDGenerator.Generate(),
+			notificationDomain.MessageID(message.ID()),
+			recipient,
+			message.Sender(),
+			message.Content(),
+			message.SentAt(),
+		)
+		if err != nil {
+			return nil, err
+		}
+		evs = append(evs, ev)
 	}
 
-	if err := uc.publisher.Publish(ev); err != nil {
+	if err := uc.publisher.Publishes(evs); err != nil {
 		return nil, err
 	}
 

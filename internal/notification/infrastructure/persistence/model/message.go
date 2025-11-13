@@ -13,9 +13,6 @@ type Message struct {
 
 	CreatedAt time.Time
 
-	// 用户 <-> 消息 一对多
-	Sender *User `gorm:"foreignKey:SenderID;references:ID"`
-
 	// “用户+消息”组合，便于取状态
 	States []*MessageState `gorm:"foreignKey:MessageID;references:ID"`
 }

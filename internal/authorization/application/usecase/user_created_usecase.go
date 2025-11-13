@@ -70,7 +70,7 @@ func (uc *userCreatedUseCase) Execute(ctx context.Context, input *UserCreatedInp
 		return nil, err
 	}
 
-	notificationEv, err := notificationDomain.NewUserCreatedEvent(
+	notificationEv, err := notificationDomain.NewWelcomeEmailNotificationRequestedEvent(
 		uc.idGenerator.Generate(),
 		user.ID(),
 		user.Email(),

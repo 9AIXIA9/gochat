@@ -6,8 +6,8 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-type UserCreatedEmailNotifier interface {
-	AddUserCreatedEmail(ctx context.Context, email kernel.Email, number domain.UserNumber) error
+type WelcomeEmailNotifier interface {
+	NotifyWelcomeEmail(ctx context.Context, email kernel.Email, number domain.UserNumber) error
 }
 
 type MessageNotifier interface {

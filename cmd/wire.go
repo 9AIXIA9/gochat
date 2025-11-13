@@ -81,8 +81,6 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 		provideChatMessageRepository,
 		provideSocialUserRepository,
 		provideSocialRoomRepository,
-		provideNotificationUserRepository,
-		provideNotificationRoomRepository,
 		provideNotificationMessageRepository,
 		// Kafka & Canal & Websocket
 		provideKafkaPublisher,
@@ -101,7 +99,7 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 		provideCreateRoomUseCase,
 		provideJoinRoomUseCase,
 		provideLeaveRoomUseCase,
-		provideNotificationUserConnectedUseCase,
+		provideNotificationUndeliveredMessageNotificationRequestedUseCase,
 		provideNotificationMessageReadUseCase,
 		// Event UseCases (consumer side)
 		provideWebsocketUserSessionStartedUseCase,
@@ -116,10 +114,8 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 		provideChatRoomLeftUseCase,
 		provideChatRoomMessageCreatedUseCase,
 		provideChatPrivateMessageCreatedUseCase,
-		provideNotificationUserCreatedUseCase,
-		provideNotificationRoomCreatedUseCase,
-		provideNotificationPrivateMessageCreatedUseCase,
-		provideNotificationRoomMessageCreatedUseCase,
+		provideNotificationWelcomeEmailNotificationRequestedUseCase,
+		provideNotificationMessageNotificationRequestedUseCase,
 		// HTTP
 		provideHttpRouter,
 		// Websocket

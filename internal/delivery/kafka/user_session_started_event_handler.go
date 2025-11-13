@@ -8,6 +8,8 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
+// TODO 给几个 port 均使用 validator
+
 func NewUserSessionStartedEventHandler(uc usecase.UserSessionStartedUseCase) event.HandlerFunc {
 	return func(ctx context.Context, e event.Event) error {
 		ev, err := websocket.ToUserSessionStartedEvent(e)

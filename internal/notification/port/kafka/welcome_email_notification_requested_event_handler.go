@@ -5,22 +5,20 @@ import (
 	"gochat/internal/notification/application/usecase"
 	"gochat/internal/notification/domain"
 	"gochat/internal/shared/event"
+	"gochat/internal/shared/kernel"
 )
 
-func NewRoomMessageCreatedEventHandler(uc usecase.RoomMessageCreatedUseCase) event.HandlerFunc {
+func NewWelcomeEmailNotificationRequestedEventHandler(uc usecase.WelcomeEmailNotificationRequestedUseCase) event.HandlerFunc {
 	return func(ctx context.Context, e event.Event) error {
-		ev, err := domain.ToRoomMessageCreatedEvent(e)
+		ev, err := domain.ToWelcomeEmailNotificationRequestedEvent(e)
 		if err != nil {
 			return err
 		}
 
-		input := usecase.RoomMessageCreatedInput{
-			MessageID:    ev.MessageID(),
-			RoomID:       domain.RoomID(ev.AggregateID()),
-			RecipientIDs: ev.Recipients(),
-			SenderID:     ev.Sender(),
-			Content:      ev.Content(),
-			SentAt:       ev.SentAt(),
+		input := usecase.WelcomeEmailNotificationRequestedInput{
+			UserID:     kernel.UserID(ev.AggregateID()),
+			UserNumber: ev.Number(),
+			Email:      ev.Email(),
 		}
 
 		if err := input.Validate(); err != nil {

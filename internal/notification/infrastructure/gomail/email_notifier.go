@@ -14,7 +14,7 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
-var _ application.UserCreatedEmailNotifier = (*EmailNotifier)(nil)
+var _ application.WelcomeEmailNotifier = (*EmailNotifier)(nil)
 
 const (
 	maxWorkers         = 3
@@ -48,7 +48,7 @@ func NewEmailNotifier(senderName string, config *EmailNotifierConfig) *EmailNoti
 	}
 }
 
-func (n *EmailNotifier) AddUserCreatedEmail(ctx context.Context, email kernel.Email, number domain.UserNumber) error {
+func (n *EmailNotifier) NotifyWelcomeEmail(ctx context.Context, email kernel.Email, number domain.UserNumber) error {
 	return n.enqueue(ctx, n.taskGenerator.generateUserCreatedTask(email, number))
 }
 
@@ -84,7 +84,7 @@ func (n *EmailNotifier) startWorker() {
 	for t := range n.taskChan {
 		if err := n.sendWithRetry(t.message); err != nil {
 			zap.L().Error(
-				"UserCreatedEmailNotifier send error",
+				"WelcomeEmailNotifier send error",
 				zap.String("email", t.email.String()),
 				zap.Error(err),
 			)

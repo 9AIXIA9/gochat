@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	chatDomain "gochat/internal/chat/domain"
-	notificationDomain "gochat/internal/notification/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
@@ -45,14 +44,6 @@ func NewRoomCreatedUseCase(
 func (uc *roomCreatedUseCase) Execute(ctx context.Context, input *RoomCreatedInput) (*kernel.NoOutput, error) {
 	room, err := uc.finder.FindByID(ctx, input.RoomID)
 	if err != nil {
-		return nil, err
-	}
-
-	notificationEv, err := notificationDomain.NewRoomCreatedEvent(uc.idGenerator.Generate(), notificationDomain.RoomID(room.ID()))
-	if err != nil {
-		return nil, err
-	}
-	if err := uc.publisher.Publish(notificationEv); err != nil {
 		return nil, err
 	}
 

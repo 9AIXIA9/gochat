@@ -9,13 +9,13 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-type UserConnectedUseCase kernel.UseCase[*UserConnectedInput, *kernel.NoOutput]
+type UndeliveredMessageNotificationRequestedUseCase kernel.UseCase[*UndeliveredMessageNotificationRequestedInput, *kernel.NoOutput]
 
-type UserConnectedInput struct {
+type UndeliveredMessageNotificationRequestedInput struct {
 	UserID kernel.UserID
 }
 
-func (r *UserConnectedInput) Validate() error {
+func (r *UndeliveredMessageNotificationRequestedInput) Validate() error {
 	if len(r.UserID) == 0 {
 		return myErrors.ErrEmptyInput
 	}
@@ -23,25 +23,25 @@ func (r *UserConnectedInput) Validate() error {
 	return nil
 }
 
-type userConnectedUseCase struct {
+type undeliveredMessageNotificationRequestedUseCase struct {
 	messageFinder        application.MessageFinder
 	messageNotifier      application.MessageNotifier
 	messageStatesUpdater application.MessageStatesUpdater
 }
 
-func NewUserConnectedUseCase(
+func NewUndeliveredMessageNotificationRequestedUseCase(
 	messageFinder application.MessageFinder,
 	messageNotifier application.MessageNotifier,
 	messageStatesUpdater application.MessageStatesUpdater,
-) UserConnectedUseCase {
-	return &userConnectedUseCase{
+) UndeliveredMessageNotificationRequestedUseCase {
+	return &undeliveredMessageNotificationRequestedUseCase{
 		messageFinder:        messageFinder,
 		messageNotifier:      messageNotifier,
 		messageStatesUpdater: messageStatesUpdater,
 	}
 }
 
-func (uc *userConnectedUseCase) Execute(ctx context.Context, input *UserConnectedInput) (*kernel.NoOutput, error) {
+func (uc *undeliveredMessageNotificationRequestedUseCase) Execute(ctx context.Context, input *UndeliveredMessageNotificationRequestedInput) (*kernel.NoOutput, error) {
 	messages, err := uc.messageFinder.FindMessagesByUserID(ctx, input.UserID)
 	if err != nil {
 		return nil, err

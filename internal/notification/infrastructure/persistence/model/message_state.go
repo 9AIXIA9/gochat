@@ -13,7 +13,6 @@ type MessageState struct {
 
 	// 关联
 	Message *Message `gorm:"foreignKey:MessageID;references:ID"`
-	User    *User    `gorm:"foreignKey:UserID;references:ID"`
 }
 
 func (*MessageState) TableName() string {
