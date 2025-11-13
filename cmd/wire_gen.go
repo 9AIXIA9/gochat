@@ -23,7 +23,8 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 	if err != nil {
 		return nil, err
 	}
-	eventSubscriber, err := provideKafkaSubscriber(app)
+	eventRetrier := provideKafkaRetrier(eventPublisher, eventRepository)
+	eventSubscriber, err := provideKafkaSubscriber(app, eventRetrier)
 	if err != nil {
 		return nil, err
 	}

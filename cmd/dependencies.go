@@ -165,10 +165,13 @@ func provideNotificationMessageRepository(mysql *gorm.DB) *notificationRepositor
 
 // -------------------- Kafka & Canal & Websocket --------------------
 func provideKafkaPublisher(appConfig *config.App, eventRepo *repository.EventRepository) (*kafkautil.EventPublisher, error) {
-	return kafkautil.NewEventPublisher(appConfig.Kafka.Common, appConfig.Kafka.Producer, eventRepo, eventRepo)
+	return kafkautil.NewEventPublisher(appConfig.Kafka.Common, appConfig.Kafka.Producer, eventRepo)
 }
-func provideKafkaSubscriber(appConfig *config.App) (*kafkautil.EventSubscriber, error) {
-	return kafkautil.NewEventSubscriber(appConfig.Kafka.Common, appConfig.Kafka.Consumer)
+func provideKafkaSubscriber(appConfig *config.App, retrier *kafkautil.EventRetrier) (*kafkautil.EventSubscriber, error) {
+	return kafkautil.NewEventSubscriber(appConfig.Kafka.Common, appConfig.Kafka.Consumer, retrier)
+}
+func provideKafkaRetrier(publisher *kafkautil.EventPublisher, eventRepo *repository.EventRepository) *kafkautil.EventRetrier {
+	return kafkautil.NewEventRetrier(publisher, eventRepo)
 }
 
 func provideOutboxConsumer(appConfig *config.App, publisher *kafkautil.EventPublisher, eventRepo *repository.EventRepository) (*canal.OutboxConsumer, error) {

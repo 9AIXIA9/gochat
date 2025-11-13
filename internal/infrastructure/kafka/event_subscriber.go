@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"gochat/internal/shared/event"
-	"gochat/internal/shared/kernel"
 
 	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
 	"go.uber.org/zap"
@@ -15,7 +14,9 @@ import (
 var _ event.Subscriber = (*EventSubscriber)(nil)
 
 type EventSubscriber struct {
-	consumer    *ckafka.Consumer
+	consumer *ckafka.Consumer
+	retrier  *EventRetrier
+
 	converter   *EventConverter
 	handlers    map[event.Topic]event.Handler
 	pollTimeout time.Duration
@@ -23,7 +24,11 @@ type EventSubscriber struct {
 }
 
 // NewEventSubscriber creates a Kafka consumer-based subscriber.
-func NewEventSubscriber(commonConfig *CommonConfig, consumerConfig *ConsumerConfig) (*EventSubscriber, error) {
+func NewEventSubscriber(
+	commonConfig *CommonConfig,
+	consumerConfig *ConsumerConfig,
+	retrier *EventRetrier,
+) (*EventSubscriber, error) {
 	cCfg, err := getConsumerConfig(commonConfig, consumerConfig)
 	if err != nil {
 		return nil, err
@@ -36,9 +41,11 @@ func NewEventSubscriber(commonConfig *CommonConfig, consumerConfig *ConsumerConf
 
 	return &EventSubscriber{
 		consumer:    consumer,
+		retrier:     retrier,
 		converter:   &EventConverter{},
 		handlers:    make(map[event.Topic]event.Handler),
 		pollTimeout: 500 * time.Millisecond,
+		running:     false,
 	}, nil
 }
 
@@ -86,17 +93,7 @@ func (s *EventSubscriber) Start(ctx context.Context) error {
 			switch m := ev.(type) {
 			case *ckafka.Message:
 				// Convert message to event
-				e, ok := s.converter.ToEvent(m)
-				if !ok {
-					// Fallback: build minimal event without payload headers
-					e = event.NewStandardEvent(
-						"", // unknown id
-						kernel.ID(m.Key),
-						m.Timestamp,
-						event.Topic(*m.TopicPartition.Topic),
-						m.Value,
-					)
-				}
+				e := s.converter.ToEvent(m)
 
 				topic := e.Topic()
 				handler, exists := s.handlers[topic]
@@ -111,9 +108,16 @@ func (s *EventSubscriber) Start(ctx context.Context) error {
 				// Dispatch with a per-message context (inherits parent)
 				msgCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 				if err := handler.Handle(msgCtx, e); err != nil {
-					// HandlerFunc error: log and do not commit to allow redelivery
 					zap.L().Error("kafka handler error", zap.Error(err), zap.String("topic", topic.String()))
+					// retry
+					if err := s.retrier.Retry(ctx, e, err); err != nil {
+						zap.L().Error("retry event failed", zap.Error(err), zap.String("topic", topic.String()))
+					}
 					cancel()
+					// 提交偏移量，防止该消息反复重投造成堵塞
+					if _, cErr := s.consumer.CommitMessage(m); cErr != nil {
+						zap.L().Warn("commit after dead-letter failed", zap.Error(cErr), zap.String("topic", topic.String()))
+					}
 					continue
 				}
 				cancel()
@@ -131,7 +135,6 @@ func (s *EventSubscriber) Start(ctx context.Context) error {
 			}
 		}
 	}()
-
 	return nil
 }
 

@@ -2,6 +2,8 @@ package event
 
 import "context"
 
+//TODO 发布的应该是特定事件 SpecificEvent
+
 type Publisher interface {
 	Publish(event Event) error
 	Publishes(events []Event) error

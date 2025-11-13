@@ -12,8 +12,6 @@ import (
 	"go.uber.org/zap"
 )
 
-//TODO 避免直接调用死信存储接口，改为通过领域事件
-
 var _ event.Publisher = (*EventPublisher)(nil)
 
 // EventPublisher publishes domain events to Kafka and marks them published upon delivery.
@@ -23,14 +21,17 @@ type EventPublisher struct {
 	producer          *ckafka.Producer
 	converter         *EventConverter
 	publishedMarker   event.PublishedMarker
-	DeadLetterSaver   event.DeadLetterSaver // optional
 
 	maxRetries int
 	backoff    time.Duration
 }
 
 // NewEventPublisher creates a Kafka producer-based publisher.
-func NewEventPublisher(commonConfig *CommonConfig, producerConfig *ProducerConfig, publishedMarker event.PublishedMarker, DeadLetterSaver event.DeadLetterSaver) (*EventPublisher, error) {
+func NewEventPublisher(
+	commonConfig *CommonConfig,
+	producerConfig *ProducerConfig,
+	publishedMarker event.PublishedMarker,
+) (*EventPublisher, error) {
 	kafkaConfig, err := getProducerConfig(commonConfig, producerConfig)
 	if err != nil {
 		return nil, err
@@ -46,7 +47,6 @@ func NewEventPublisher(commonConfig *CommonConfig, producerConfig *ProducerConfi
 		producer:          producer,
 		converter:         &EventConverter{},
 		publishedMarker:   publishedMarker,
-		DeadLetterSaver:   DeadLetterSaver,
 		maxRetries:        producerConfig.MaxRetries,
 		backoff:           time.Duration(producerConfig.BackoffMs) * time.Millisecond,
 	}, nil
@@ -72,10 +72,6 @@ func (p *EventPublisher) Publish(event event.Event) error {
 
 	if err := p.produceWithRetry(p.converter.ToMessage(event)); err != nil {
 		zap.L().Error("produce message failed", zap.Error(err))
-		// As a last resort, attempt to send to dead letter store
-		if p.DeadLetterSaver != nil {
-			_ = p.DeadLetterSaver.SaveDeadLetter(context.Background(), event, err)
-		}
 	}
 	return nil
 }
@@ -88,10 +84,6 @@ func (p *EventPublisher) Publishes(events []event.Event) error {
 	for _, e := range events {
 		if err := p.produceWithRetry(p.converter.ToMessage(e)); err != nil {
 			zap.L().Error("produce message failed", zap.Error(err))
-			// As a last resort, attempt to send to dead letter store
-			if p.DeadLetterSaver != nil {
-				_ = p.DeadLetterSaver.SaveDeadLetter(context.Background(), e, err)
-			}
 		}
 	}
 	return nil
@@ -121,17 +113,6 @@ func (p *EventPublisher) processSendingResponse() {
 		switch m := ev.(type) {
 		case *ckafka.Message:
 			if m.TopicPartition.Error != nil {
-				// 失败：从 Opaque 取回原事件，写入死信
-				if p.DeadLetterSaver != nil {
-					if e, ok := m.Opaque.(event.Event); ok {
-						_ = p.DeadLetterSaver.SaveDeadLetter(context.Background(), e, m.TopicPartition.Error)
-					} else {
-						// 兜底：尝试从回执重建
-						if e2, ok := p.converter.ToEvent(m); ok {
-							_ = p.DeadLetterSaver.SaveDeadLetter(context.Background(), e2, m.TopicPartition.Error)
-						}
-					}
-				}
 				continue
 			}
 
@@ -142,16 +123,6 @@ func (p *EventPublisher) processSendingResponse() {
 				}
 				continue
 			}
-
-			// 兜底：尝试从 Headers 读取（大多情况下为空）
-			if id, ok := getEventIDFromHeaders(m.Headers); ok {
-				if err := p.publishedMarker.MarkPublished(context.Background(), id); err != nil {
-					zap.L().Error("mark published failed", zap.Error(err), zap.String("event_id", id.String()))
-				}
-			} else {
-				zap.L().Warn("delivery ok but event_id not available in delivery report")
-			}
-
 		case ckafka.Error:
 			zap.L().Error("kafka producer error", zap.Error(m))
 		default:

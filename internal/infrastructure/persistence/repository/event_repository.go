@@ -10,6 +10,7 @@ import (
 	"gochat/internal/shared/event"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 var _ event.Repository = (*EventRepository)(nil)
@@ -55,5 +56,8 @@ func (repo *EventRepository) SaveDeadLetter(ctx context.Context, event event.Eve
 		return nil
 	}
 	DeadLetterModel := model.NewDeadLetter(repo.modelConverter.ToModel(repo.interfaceConverter.ToStandard(event)), reason)
-	return gormutils.TranslateError(repo.db.WithContext(ctx).Create(DeadLetterModel).Error)
+	return gormutils.TranslateError(repo.db.WithContext(ctx).Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "id"}}, // 冲突的列
+		DoNothing: true,
+	}).Create(DeadLetterModel).Error)
 }

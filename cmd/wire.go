@@ -85,6 +85,7 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 		// Kafka & Canal & Websocket
 		provideKafkaPublisher,
 		provideKafkaSubscriber,
+		provideKafkaRetrier,
 		provideOutboxConsumer,
 		provideWebsocketUpgrader,
 		provideWebsocketManager,
