@@ -57,6 +57,7 @@ import (
 	socialUuid "gochat/internal/social/infrastructure/uuid"
 	socialHttp "gochat/internal/social/port/http"
 	socialKafka "gochat/internal/social/port/kafka"
+	"time"
 
 	authorizationApp "gochat/internal/authorization/application"
 	chatApp "gochat/internal/chat/application"
@@ -169,6 +170,7 @@ func provideKafkaPublisher(appConfig *config.App, eventRepo *repository.EventRep
 func provideKafkaSubscriber(appConfig *config.App) (*kafkautil.EventSubscriber, error) {
 	return kafkautil.NewEventSubscriber(appConfig.Kafka.Common, appConfig.Kafka.Consumer)
 }
+
 func provideOutboxConsumer(appConfig *config.App, publisher *kafkautil.EventPublisher, eventRepo *repository.EventRepository) (*canal.OutboxConsumer, error) {
 	return canal.NewOutboxConsumer(appConfig.BinlogReader, publisher, eventRepo)
 }
@@ -466,7 +468,36 @@ func BuildDependencies(
 		}
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
+	// aggregate all topics used by subscriptions/producers
+	topics := []string{
+		// websocket
+		string(websocket.TopicUserSessionStarted),
+		// authorization
+		string(authorizationDomain.TopicUserCreated),
+		// social
+		string(socialDomain.TopicUserCreated),
+		string(socialDomain.TopicRoomCreated),
+		string(socialDomain.TopicRoomJoined),
+		string(socialDomain.TopicRoomLeft),
+		// chat
+		string(chatDomain.TopicUserCreated),
+		string(chatDomain.TopicRoomCreated),
+		string(chatDomain.TopicRoomJoined),
+		string(chatDomain.TopicRoomLeft),
+		string(chatDomain.TopicPrivateMessageCreated),
+		string(chatDomain.TopicRoomMessageCreated),
+		// notification
+		string(notificationDomain.TopicWelcomeEmailNotificationRequested),
+		string(notificationDomain.TopicMessageNotificationRequested),
+		string(notificationDomain.TopicUndeliveredMessageNotificationRequested),
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := kafkautil.EnsureTopics(ctx, appConfig.Kafka.Common, topics, 1, 1); err != nil {
+		return nil, fmt.Errorf("ensure kafka topics failed, err:%w", err)
+	}
+
+	ctx, cancel = context.WithCancel(context.Background())
 	if err := kafkaSubscriber.Start(ctx); err != nil {
 		cancel()
 		return nil, fmt.Errorf("start kafka subscriber failed, err:%w", err)
