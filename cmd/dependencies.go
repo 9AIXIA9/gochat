@@ -31,7 +31,6 @@ import (
 	"gochat/internal/infrastructure/godotenv"
 	gormutils "gochat/internal/infrastructure/gorm"
 	kafkautil "gochat/internal/infrastructure/kafka"
-	"gochat/internal/infrastructure/persistence/converter"
 	"gochat/internal/infrastructure/persistence/model"
 	"gochat/internal/infrastructure/persistence/repository"
 	redisutils "gochat/internal/infrastructure/redis"
@@ -63,10 +62,10 @@ import (
 	chatApp "gochat/internal/chat/application"
 	socialApp "gochat/internal/social/application"
 
-	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/gin-gonic/gin"
 	gorillaWebsocket "github.com/gorilla/websocket"
 	"github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
 	"gopkg.in/gomail.v2"
 	"gorm.io/gorm"
 )
@@ -74,6 +73,7 @@ import (
 type ConfigPath string
 
 type EnvPath string
+type EmailAvailable bool
 
 // Dependencies holds runtime objects & usecases.
 type Dependencies struct {
@@ -132,6 +132,13 @@ func provideRefreshTokenGenerator(appConfig *config.App) *crypto.RefreshTokenGen
 func provideGomailDialer(appConfig *config.App) (*gomail.Dialer, error) {
 	return gomailUtil.NewDialer(appConfig.Email)
 }
+func provideEmailAvailable(d *gomail.Dialer) EmailAvailable {
+	if err := gomailUtil.TestConnection(d); err != nil {
+		zap.L().Info("Email dialer connection test failed, email notifier will be disabled", zap.Error(err))
+		return false
+	}
+	return true
+}
 func provideEmailNotifier(appConfig *config.App, dialer *gomail.Dialer) *gomailUtil.EmailNotifier {
 	return gomailUtil.NewEmailNotifier(appConfig.Name, dialer)
 }
@@ -141,7 +148,7 @@ func provideMessageNotifier(manager *websocket.Manager) *notificationWebsocketIn
 
 // -------------------- Repositories --------------------
 func provideEventRepository(mysql *gorm.DB) *repository.EventRepository {
-	return repository.NewEventRepository(mysql, &converter.StandardEventConverter{})
+	return repository.NewEventRepository(mysql)
 }
 func provideAuthorizationUserRepository(mysql *gorm.DB) *authorizationRepository.UserRepository {
 	return authorizationRepository.NewUserRepository(mysql, &authorizationConverter.UserConverter{})
@@ -169,23 +176,11 @@ func provideNotificationMessageRepository(mysql *gorm.DB) *notificationRepositor
 }
 
 // -------------------- Kafka & Canal & Websocket --------------------
-func provideKafkaConsumer(appConfig *config.App) (*ckafka.Consumer, error) {
-	return kafkautil.NewConsumer(appConfig.Kafka.Common, appConfig.Kafka.Consumer)
+func provideKafkaPublisher(appConfig *config.App, eventRepo *repository.EventRepository) (*kafkautil.EventPublisher, error) {
+	return kafkautil.NewEventPublisher(appConfig.Kafka, eventRepo)
 }
-func provideKafkaProducer(appConfig *config.App) (*ckafka.Producer, error) {
-	return kafkautil.NewProducer(appConfig.Kafka.Common, appConfig.Kafka.Producer)
-}
-func provideKafkaProducerWithRetry(producer *ckafka.Producer) *kafkautil.ProducerWithRetry {
-	return kafkautil.NewProducerWithRetry(producer)
-}
-func provideKafkaRetrier(producer *kafkautil.ProducerWithRetry, eventRepo *repository.EventRepository) *kafkautil.ConsumerRetrier {
-	return kafkautil.NewConsumerRetrier(producer, eventRepo)
-}
-func provideKafkaPublisher(producer *kafkautil.ProducerWithRetry, eventRepo *repository.EventRepository) (*kafkautil.EventPublisher, error) {
-	return kafkautil.NewEventPublisher(producer, eventRepo)
-}
-func provideKafkaSubscriber(consumer *ckafka.Consumer, retrier *kafkautil.ConsumerRetrier) (*kafkautil.EventSubscriber, error) {
-	return kafkautil.NewEventSubscriber(consumer, retrier)
+func provideKafkaSubscriber(appConfig *config.App) (*kafkautil.EventSubscriber, error) {
+	return kafkautil.NewEventSubscriber(appConfig.Kafka)
 }
 
 func provideOutboxConsumer(appConfig *config.App, publisher *kafkautil.EventPublisher, eventRepo *repository.EventRepository) (*canal.OutboxConsumer, error) {
@@ -433,7 +428,9 @@ func provideWebsocketRouter(
 }
 
 // -------------------- Kafka Subscriptions --------------------
-func provideKafkaSubscriptions(subscriber *kafkautil.EventSubscriber,
+func provideKafkaSubscriptions(
+	subscriber *kafkautil.EventSubscriber,
+	emailAvailable EmailAvailable,
 	//websocket
 	userSessionStartedUseCase usecase.UserSessionStartedUseCase,
 	// auth
@@ -472,7 +469,12 @@ func provideKafkaSubscriptions(subscriber *kafkautil.EventSubscriber,
 	subscriber.Subscribe(chatDomain.TopicPrivateMessageCreated, chatKafka.NewPrivateMessageCreatedEventHandler(chatPrivateMessageCreated))
 	subscriber.Subscribe(chatDomain.TopicRoomMessageCreated, chatKafka.NewRoomMessageCreatedEventHandler(chatRoomMessageCreated))
 	// Notification
-	subscriber.Subscribe(notificationDomain.TopicWelcomeEmailNotificationRequested, notificationKafka.NewWelcomeEmailNotificationRequestedEventHandler(notificationWelcomeEmailNotificationRequested))
+	if emailAvailable {
+		zap.L().Info("Subscribing to WelcomeEmailNotificationRequested topic as email dialer is connected")
+		subscriber.Subscribe(notificationDomain.TopicWelcomeEmailNotificationRequested, notificationKafka.NewWelcomeEmailNotificationRequestedEventHandler(notificationWelcomeEmailNotificationRequested))
+	} else {
+		zap.L().Info("Skipping subscription to WelcomeEmailNotificationRequested topic as email dialer is not connected")
+	}
 	subscriber.Subscribe(notificationDomain.TopicMessageNotificationRequested, notificationKafka.NewMessageNotificationRequestedEventHandler(notificationMessageNotificationRequested))
 	subscriber.Subscribe(notificationDomain.TopicUndeliveredMessageNotificationRequested, notificationKafka.NewUndeliveredMessageNotificationRequestedEventHandler(notificationUndeliveredMessageNotificationRequested))
 	return nil
@@ -486,8 +488,6 @@ func BuildDependencies(
 	topics []string,
 	kafkaPublisher *kafkautil.EventPublisher,
 	kafkaSubscriber *kafkautil.EventSubscriber,
-	kafkaConsumerRetrier *kafkautil.ConsumerRetrier,
-	kafkaProducerWithRetry *kafkautil.ProducerWithRetry,
 	outboxConsumer *canal.OutboxConsumer,
 	emailNotifier *gomailUtil.EmailNotifier,
 	// subscriptions side-effect
@@ -515,7 +515,7 @@ func BuildDependencies(
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	if err := kafkautil.EnsureTopics(ctx, appConfig.Kafka.Common, topics, 1, 1); err != nil {
+	if err := kafkautil.EnsureTopics(ctx, appConfig.Kafka, topics, 1, 1); err != nil {
 		return nil, fmt.Errorf("ensure kafka topics failed, err:%w", err)
 	}
 
@@ -527,7 +527,6 @@ func BuildDependencies(
 	outboxConsumer.Start()
 	emailNotifier.Start()
 	kafkaPublisher.Start()
-	kafkaConsumerRetrier.Start()
 
 	deps := &Dependencies{
 		HttpRouter: ginEngine,
@@ -537,8 +536,6 @@ func BuildDependencies(
 			emailNotifier.Close()
 			kafkaPublisher.Close()
 			kafkaSubscriber.Close()
-			kafkaConsumerRetrier.Close()
-			kafkaProducerWithRetry.Close()
 			cancel()
 		},
 	}

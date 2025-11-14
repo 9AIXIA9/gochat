@@ -12,6 +12,8 @@ import (
 	"gorm.io/gorm"
 )
 
+//TODO 去除泛型仓库依赖
+
 var _ application.UserRepository = (*UserRepository)(nil)
 
 type UserRepository struct {

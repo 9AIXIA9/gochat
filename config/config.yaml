@@ -76,27 +76,8 @@ BinlogReader:
   TableDB: ${BINLOG_TABLEDB}
 
 Kafka:
-  Common:
-    BootstrapServers: ${KAFKA_BOOTSTRAP_SERVERS}
-    ClientID: ${KAFKA_CLIENT_ID}
-    SecurityProtocol: ${KAFKA_SECURITY_PROTOCOL}       # plaintext|ssl|sasl_plaintext|sasl_ssl
-    SASLMechanism: ${KAFKA_SASL_MECHANISM}             # 可为空；PLAIN|SCRAM-SHA-256|SCRAM-SHA-512
-    SASLUsername: ${KAFKA_SASL_USERNAME}
-    SASLPassword: ${KAFKA_SASL_PASSWORD}
-
-  Producer:
-    Acks: ${KAFKA_ACKS}                                 # all|-1|0|1
-    EnableIdempotence: ${KAFKA_ENABLE_IDEMPOTENCE}
-    MessageTimeoutMs: ${KAFKA_MESSAGE_TIMEOUT_MS}
-    AllowAutoCreateTopics: ${KAFKA_ALLOW_AUTO_CREATE_TOPICS}
-    MaxInFlight: ${KAFKA_MAX_IN_FLIGHT}
-    MaxRetries: ${KAFKA_MAX_RETRIES}
-    BackoffMs: ${KAFKA_BACKOFF_MS}
-
-  Consumer:
-    GroupID: ${KAFKA_GROUP_ID}
-    AutoOffsetReset: ${KAFKA_AUTO_OFFSET_RESET}         # earliest|latest
-    EnableAutoCommit: ${KAFKA_ENABLE_AUTO_COMMIT}
-    AutoCommitIntervalMs: ${KAFKA_AUTO_COMMIT_INTERVAL_MS}
-    SessionTimeoutMs: ${KAFKA_SESSION_TIMEOUT_MS}
-    MaxPollIntervalMs: ${KAFKA_MAX_POLL_INTERVAL_MS}
+  BootstrapServers: ${KAFKA_BOOTSTRAP_SERVERS}
+  Acks: ${KAFKA_ACKS}
+  GroupID: ${KAFKA_GROUP_ID}
+  AutoOffsetReset: ${KAFKA_AUTO_OFFSET_RESET}
+  EnableAutoCommit: ${KAFKA_ENABLE_AUTO_COMMIT}

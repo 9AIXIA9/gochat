@@ -9,9 +9,9 @@ import (
 
 // EnsureTopics creates topics if they do not already exist. It is safe to call repeatedly.
 // numPartitions <= 0 defaults to 1; replicationFactor <= 0 defaults to 1.
-func EnsureTopics(ctx context.Context, common *CommonConfig, topics []string, numPartitions int, replicationFactor int) error {
-	if common == nil {
-		return fmt.Errorf("kafka ensure topics: common config is nil")
+func EnsureTopics(ctx context.Context, config *Config, topics []string, numPartitions int, replicationFactor int) error {
+	if config == nil {
+		return fmt.Errorf("kafka ensure topics: config is nil")
 	}
 	if len(topics) == 0 {
 		return nil
@@ -24,12 +24,7 @@ func EnsureTopics(ctx context.Context, common *CommonConfig, topics []string, nu
 		replicationFactor = 1
 	}
 
-	cm := &ckafka.ConfigMap{}
-	if err := applyCommon(cm, common); err != nil {
-		return fmt.Errorf("apply common config failed: %w", err)
-	}
-
-	admin, err := ckafka.NewAdminClient(cm)
+	admin, err := ckafka.NewAdminClient(convertToMap(config))
 	if err != nil {
 		return fmt.Errorf("create kafka admin client failed: %w", err)
 	}

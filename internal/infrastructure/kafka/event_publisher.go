@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"context"
+	"fmt"
 
 	"gochat/internal/shared/event"
 
@@ -13,14 +14,19 @@ var _ event.Publisher = (*EventPublisher)(nil)
 
 type EventPublisher struct {
 	publishResultChan chan ckafka.Event
-	producer          *ProducerWithRetry
+	producer          *ckafka.Producer
 	publishedMarker   event.PublishedMarker
 }
 
 func NewEventPublisher(
-	producer *ProducerWithRetry,
+	config *Config,
 	publishedMarker event.PublishedMarker,
 ) (*EventPublisher, error) {
+	producer, err := ckafka.NewProducer(convertToMap(config))
+	if err != nil {
+		return nil, fmt.Errorf("create kafka producer failed: %w", err)
+	}
+
 	return &EventPublisher{
 		publishResultChan: make(chan ckafka.Event, 512),
 		producer:          producer,
@@ -34,7 +40,7 @@ func (p *EventPublisher) Publish(event event.Event) error {
 	}
 
 	message := getMessage(event, 0)
-	if err := p.producer.produceWithRetry(message, p.publishResultChan); err != nil {
+	if err := p.producer.Produce(message, p.publishResultChan); err != nil {
 		zap.L().Error("produce message failed", zap.Error(err))
 		return err
 	}
@@ -61,12 +67,13 @@ func (p *EventPublisher) processSendingResponse() {
 			if message.TopicPartition.Error != nil {
 				continue
 			}
-			ev, _ := parseMessage(message)
-			if err := p.publishedMarker.MarkPublished(context.Background(), ev.ID()); err != nil {
+
+			id := message.Opaque.(event.ID)
+			if err := p.publishedMarker.MarkPublished(context.Background(), id); err != nil {
 				zap.L().Error(
 					"mark event published failed",
 					zap.Error(err),
-					zap.String("event_id", ev.ID().String()),
+					zap.String("event_id", id.String()),
 				)
 			}
 		case ckafka.Error:
@@ -77,13 +84,11 @@ func (p *EventPublisher) processSendingResponse() {
 	}
 }
 
-// Start background delivery handling.
 func (p *EventPublisher) Start() {
 	go p.processSendingResponse()
 }
 
-// Close flushes and closes the producer and delivery channel.
 func (p *EventPublisher) Close() {
-	// Producer won't write to our private delivery channel after Close/Flush
+	p.producer.Close()
 	close(p.publishResultChan)
 }

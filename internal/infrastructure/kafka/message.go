@@ -15,18 +15,18 @@ func getMessage(event event.Event, retry int) *ckafka.Message {
 		Value:          event.Payload(),
 		Timestamp:      event.OccurredAt(),
 		Key:            []byte(event.AggregateID().String()),
-		Opaque:         event, //供回执读取
+		Headers: []ckafka.Header{
+			{
+				Key:   "event_id",
+				Value: []byte(event.ID()),
+			},
+			{
+				Key:   "retry",
+				Value: []byte(strconv.Itoa(retry)),
+			},
+		},
+		Opaque: event.ID(), // 回调 识别消息
 	}
-	m.Headers = append(m.Headers,
-		ckafka.Header{
-			Key:   "event_id",
-			Value: []byte(event.ID()),
-		},
-		ckafka.Header{
-			Key:   "retry_times",
-			Value: []byte(strconv.Itoa(retry)),
-		},
-	)
 	return m
 }
 
@@ -39,8 +39,9 @@ func parseMessage(message *ckafka.Message) (event.Event, int) {
 		if header.Key == "event_id" {
 			id = event.ID(header.Value)
 			foundID = true
+			continue
 		}
-		if header.Key == "retry_times" {
+		if header.Key == "retry" {
 			times, err := strconv.ParseInt(string(header.Value), 10, 0)
 			if err != nil {
 				retryTimes = 0
@@ -48,6 +49,7 @@ func parseMessage(message *ckafka.Message) (event.Event, int) {
 				retryTimes = int(times)
 			}
 			foundRetry = true
+			continue
 		}
 		if foundID && foundRetry {
 			break

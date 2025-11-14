@@ -4,8 +4,6 @@ import (
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 type Event struct {
@@ -15,7 +13,6 @@ type Event struct {
 	Payload     []byte
 
 	CreatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
 func (e *Event) TableName() string {

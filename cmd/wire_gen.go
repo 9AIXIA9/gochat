@@ -62,24 +62,14 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate 
 	repositoryMessageRepository := provideNotificationMessageRepository(db)
 	messageReadUseCase := provideNotificationMessageReadUseCase(repositoryMessageRepository)
 	router := provideWebsocketRouter(messageReadUseCase)
-	producer, err := provideKafkaProducer(app)
-	if err != nil {
-		return nil, err
-	}
-	producerWithRetry := provideKafkaProducerWithRetry(producer)
-	eventPublisher, err := provideKafkaPublisher(producerWithRetry, eventRepository)
+	eventPublisher, err := provideKafkaPublisher(app, eventRepository)
 	if err != nil {
 		return nil, err
 	}
 	server := provideWebsocketServer(manager, router, eventPublisher, eventIDGenerator)
 	engine := provideHttpRouter(app, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, createRoomUseCase, joinRoomUseCase, leaveRoomUseCase, validator, client, server)
 	v := provideKafkaTopics()
-	consumer, err := provideKafkaConsumer(app)
-	if err != nil {
-		return nil, err
-	}
-	consumerRetrier := provideKafkaRetrier(producerWithRetry, eventRepository)
-	eventSubscriber, err := provideKafkaSubscriber(consumer, consumerRetrier)
+	eventSubscriber, err := provideKafkaSubscriber(app)
 	if err != nil {
 		return nil, err
 	}
@@ -92,6 +82,7 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate 
 		return nil, err
 	}
 	emailNotifier := provideEmailNotifier(app, dialer)
+	emailAvailable := provideEmailAvailable(dialer)
 	userSessionStartedUseCase := provideWebsocketUserSessionStartedUseCase(eventIDGenerator, eventPublisher)
 	userCreatedUseCase := provideAuthUserCreatedUseCase(eventIDGenerator, eventPublisher, userRepository)
 	userRepository2 := provideSocialUserRepository(db)
@@ -109,8 +100,8 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate 
 	messageNotifier := provideMessageNotifier(manager)
 	messageNotificationRequestedUseCase := provideNotificationMessageNotificationRequestedUseCase(repositoryMessageRepository, messageNotifier)
 	undeliveredMessageNotificationRequestedUseCase := provideNotificationUndeliveredMessageNotificationRequestedUseCase(repositoryMessageRepository, messageNotifier)
-	error2 := provideKafkaSubscriptions(eventSubscriber, userSessionStartedUseCase, userCreatedUseCase, usecaseUserCreatedUseCase, roomCreatedUseCase, roomJoinedUseCase, roomLeftUseCase, userCreatedUseCase2, usecaseRoomCreatedUseCase, usecaseRoomJoinedUseCase, usecaseRoomLeftUseCase, privateMessageCreatedUseCase, roomMessageCreatedUseCase, welcomeEmailNotificationRequestedUseCase, messageNotificationRequestedUseCase, undeliveredMessageNotificationRequestedUseCase)
-	dependencies, err := BuildDependencies(needMigrate, app, engine, db, v, eventPublisher, eventSubscriber, consumerRetrier, producerWithRetry, outboxConsumer, emailNotifier, error2)
+	error2 := provideKafkaSubscriptions(eventSubscriber, emailAvailable, userSessionStartedUseCase, userCreatedUseCase, usecaseUserCreatedUseCase, roomCreatedUseCase, roomJoinedUseCase, roomLeftUseCase, userCreatedUseCase2, usecaseRoomCreatedUseCase, usecaseRoomJoinedUseCase, usecaseRoomLeftUseCase, privateMessageCreatedUseCase, roomMessageCreatedUseCase, welcomeEmailNotificationRequestedUseCase, messageNotificationRequestedUseCase, undeliveredMessageNotificationRequestedUseCase)
+	dependencies, err := BuildDependencies(needMigrate, app, engine, db, v, eventPublisher, eventSubscriber, outboxConsumer, emailNotifier, error2)
 	if err != nil {
 		return nil, err
 	}

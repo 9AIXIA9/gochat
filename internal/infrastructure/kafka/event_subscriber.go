@@ -11,11 +11,12 @@ import (
 	"go.uber.org/zap"
 )
 
+//TODO 重试投递到死信队列
+
 var _ event.Subscriber = (*EventSubscriber)(nil)
 
 type EventSubscriber struct {
 	consumer *ckafka.Consumer
-	retrier  *ConsumerRetrier
 
 	handlers    map[event.Topic]event.Handler
 	pollTimeout time.Duration
@@ -23,13 +24,14 @@ type EventSubscriber struct {
 }
 
 // NewEventSubscriber creates a Kafka consumer-based subscriber.
-func NewEventSubscriber(
-	consumer *ckafka.Consumer,
-	retrier *ConsumerRetrier,
-) (*EventSubscriber, error) {
+func NewEventSubscriber(config *Config) (*EventSubscriber, error) {
+	consumer, err := ckafka.NewConsumer(convertToMap(config))
+	if err != nil {
+		return nil, fmt.Errorf("create kafka consumer failed: %w", err)
+	}
+
 	return &EventSubscriber{
 		consumer:    consumer,
-		retrier:     retrier,
 		handlers:    make(map[event.Topic]event.Handler),
 		pollTimeout: 500 * time.Millisecond,
 		running:     false,
@@ -98,15 +100,22 @@ func (s *EventSubscriber) Start(ctx context.Context) error {
 				// Dispatch with a per-message context (inherits parent)
 				msgCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 				if err := handler.Handle(msgCtx, e); err != nil {
-					zap.L().Error("kafka handler error", zap.Error(err), zap.String("topic", topic.String()))
-					// retry
-					if err := s.retrier.Retry(ctx, e, err, retry); err != nil {
-						zap.L().Error("retry event failed", zap.Error(err), zap.String("topic", topic.String()))
-					}
+					zap.L().Error(
+						"kafka handler error",
+						zap.Error(err),
+						zap.String("id", e.ID().String()),
+						zap.String("topic", topic.String()),
+						zap.Int("retry", retry),
+						zap.ByteString("payload", e.Payload()),
+					)
 					cancel()
 					// 提交偏移量，防止该消息反复重投造成堵塞
 					if _, cErr := s.consumer.CommitMessage(m); cErr != nil {
-						zap.L().Warn("commit after dead-letter failed", zap.Error(cErr), zap.String("topic", topic.String()))
+						zap.L().Warn(
+							"commit failed",
+							zap.Error(cErr),
+							zap.String("topic", topic.String()),
+						)
 					}
 					continue
 				}

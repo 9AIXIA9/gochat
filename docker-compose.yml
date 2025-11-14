@@ -1,6 +1,7 @@
 services:
   mysql:
-    image: mysql:8.0
+    pull_policy: never
+    image: mysql:8.0.40
     container_name: gochat-mysql
     env_file:
       - config/service/.env.db
@@ -30,7 +31,8 @@ services:
       timeout: 3s
       retries: 20
   redis:
-    image: redis:7.2-alpine
+    pull_policy: never
+    image: redis:7.0-alpine
     container_name: gochat-redis
     env_file:
       - config/service/.env.redis
@@ -51,7 +53,8 @@ services:
       retries: 20
 
   broker:
-    image: apache/kafka:4.1.0
+    pull_policy: never
+    image: apache/kafka-native:4.1.0
     hostname: kafka-dev
     container_name: kafka-dev
     user: '0:0'

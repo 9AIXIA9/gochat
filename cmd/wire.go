@@ -71,6 +71,7 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate 
 		provideAccessTokenManager,
 		provideRefreshTokenGenerator,
 		provideGomailDialer,
+		provideEmailAvailable,
 		provideEmailNotifier,
 		provideMessageNotifier,
 		// Repositories
@@ -85,10 +86,6 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate 
 		provideNotificationMessageRepository,
 		// Kafka & Canal & Websocket
 		provideKafkaTopics,
-		provideKafkaConsumer,
-		provideKafkaProducer,
-		provideKafkaProducerWithRetry,
-		provideKafkaRetrier,
 		provideKafkaPublisher,
 		provideKafkaSubscriber,
 		provideOutboxConsumer,
