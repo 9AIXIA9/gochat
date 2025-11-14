@@ -151,7 +151,7 @@ func provideEventRepository(mysql *gorm.DB) *repository.EventRepository {
 	return repository.NewEventRepository(mysql)
 }
 func provideAuthorizationUserRepository(mysql *gorm.DB) *authorizationRepository.UserRepository {
-	return authorizationRepository.NewUserRepository(mysql, &authorizationConverter.UserConverter{})
+	return authorizationRepository.NewUserRepository(mysql)
 }
 func provideAuthorizationRefreshTokenRepository(redisClient *redis.Client) *authorizationRepository.RefreshTokenRepository {
 	return authorizationRepository.NewRefreshTokenRepository(redisClient, &authorizationConverter.RefreshTokenConverter{})

@@ -22,6 +22,9 @@ func NewEventRepository(db *gorm.DB) *EventRepository {
 }
 
 func (repo *EventRepository) Saves(ctx context.Context, events []event.Event) error {
+	if len(events) == 0 {
+		return nil
+	}
 	models := make([]*model.Event, 0, len(events))
 	for _, e := range events {
 		models = append(models, &model.Event{
