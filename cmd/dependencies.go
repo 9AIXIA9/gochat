@@ -27,7 +27,7 @@ import (
 	"gochat/internal/delivery/http/middleware"
 	"gochat/internal/delivery/kafka"
 	"gochat/internal/infrastructure/bcrypt"
-	"gochat/internal/infrastructure/canal"
+	canalUtil "gochat/internal/infrastructure/canal"
 	"gochat/internal/infrastructure/godotenv"
 	gormutils "gochat/internal/infrastructure/gorm"
 	kafkautil "gochat/internal/infrastructure/kafka"
@@ -63,6 +63,7 @@ import (
 	socialApp "gochat/internal/social/application"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-mysql-org/go-mysql/canal"
 	gorillaWebsocket "github.com/gorilla/websocket"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
@@ -183,8 +184,11 @@ func provideKafkaSubscriber(appConfig *config.App) (*kafkautil.EventSubscriber, 
 	return kafkautil.NewEventSubscriber(appConfig.Kafka)
 }
 
-func provideOutboxConsumer(appConfig *config.App, publisher *kafkautil.EventPublisher, eventRepo *repository.EventRepository) (*canal.OutboxConsumer, error) {
-	return canal.NewOutboxConsumer(appConfig.BinlogReader, publisher, eventRepo)
+func provideCanal(appConfig *config.App) (*canal.Canal, error) {
+	return canalUtil.NewCanal(appConfig.BinlogReader)
+}
+func provideCanalOutboxConsumer(c *canal.Canal, publisher *kafkautil.EventPublisher, eventRepo *repository.EventRepository) *canalUtil.OutboxConsumer {
+	return canalUtil.NewOutboxConsumer(c, publisher, eventRepo)
 }
 func provideWebsocketUpgrader(appConfig *config.App) *gorillaWebsocket.Upgrader {
 	return websocket.NewUpgrader(appConfig.CORS.AllowOrigins)
@@ -488,7 +492,7 @@ func BuildDependencies(
 	topics []string,
 	kafkaPublisher *kafkautil.EventPublisher,
 	kafkaSubscriber *kafkautil.EventSubscriber,
-	outboxConsumer *canal.OutboxConsumer,
+	outboxConsumer *canalUtil.OutboxConsumer,
 	emailNotifier *gomailUtil.EmailNotifier,
 	// subscriptions side-effect
 	_ error, // ensure subscriptions provider executed (ignored)

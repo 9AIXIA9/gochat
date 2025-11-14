@@ -15,8 +15,6 @@ import (
 	myErrors "gochat/internal/shared/errors"
 )
 
-//TODO 清晰config
-
 // App 应用程序配置结构
 type App struct {
 	Name        string `mapstructure:"Name"`

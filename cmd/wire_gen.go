@@ -73,10 +73,11 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate 
 	if err != nil {
 		return nil, err
 	}
-	outboxConsumer, err := provideOutboxConsumer(app, eventPublisher, eventRepository)
+	canal, err := provideCanal(app)
 	if err != nil {
 		return nil, err
 	}
+	outboxConsumer := provideCanalOutboxConsumer(canal, eventPublisher, eventRepository)
 	dialer, err := provideGomailDialer(app)
 	if err != nil {
 		return nil, err
