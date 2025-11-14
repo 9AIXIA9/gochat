@@ -15,9 +15,8 @@ var _ event.Subscriber = (*EventSubscriber)(nil)
 
 type EventSubscriber struct {
 	consumer *ckafka.Consumer
-	retrier  *EventRetrier
+	retrier  *ConsumerRetrier
 
-	converter   *EventConverter
 	handlers    map[event.Topic]event.Handler
 	pollTimeout time.Duration
 	running     bool
@@ -25,24 +24,12 @@ type EventSubscriber struct {
 
 // NewEventSubscriber creates a Kafka consumer-based subscriber.
 func NewEventSubscriber(
-	commonConfig *CommonConfig,
-	consumerConfig *ConsumerConfig,
-	retrier *EventRetrier,
+	consumer *ckafka.Consumer,
+	retrier *ConsumerRetrier,
 ) (*EventSubscriber, error) {
-	cCfg, err := getConsumerConfig(commonConfig, consumerConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	consumer, err := ckafka.NewConsumer(cCfg)
-	if err != nil {
-		return nil, fmt.Errorf("create kafka consumer failed: %w", err)
-	}
-
 	return &EventSubscriber{
 		consumer:    consumer,
 		retrier:     retrier,
-		converter:   &EventConverter{},
 		handlers:    make(map[event.Topic]event.Handler),
 		pollTimeout: 500 * time.Millisecond,
 		running:     false,
@@ -51,6 +38,9 @@ func NewEventSubscriber(
 
 // Subscribe registers a handler for a topic.
 func (s *EventSubscriber) Subscribe(topic event.Topic, handler event.Handler) {
+	if _, ok := s.handlers[topic]; ok {
+		zap.L().Warn("handler for topic already exists, overwriting", zap.String("topic", topic.String()))
+	}
 	s.handlers[topic] = handler
 }
 
@@ -93,7 +83,7 @@ func (s *EventSubscriber) Start(ctx context.Context) error {
 			switch m := ev.(type) {
 			case *ckafka.Message:
 				// Convert message to event
-				e := s.converter.ToEvent(m)
+				e, retry := parseMessage(m)
 
 				topic := e.Topic()
 				handler, exists := s.handlers[topic]
@@ -110,7 +100,7 @@ func (s *EventSubscriber) Start(ctx context.Context) error {
 				if err := handler.Handle(msgCtx, e); err != nil {
 					zap.L().Error("kafka handler error", zap.Error(err), zap.String("topic", topic.String()))
 					// retry
-					if err := s.retrier.Retry(ctx, e, err); err != nil {
+					if err := s.retrier.Retry(ctx, e, err, retry); err != nil {
 						zap.L().Error("retry event failed", zap.Error(err), zap.String("topic", topic.String()))
 					}
 					cancel()

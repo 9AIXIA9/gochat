@@ -27,7 +27,7 @@ import (
 //go:generate go run wire ./...
 
 // initializeDependencies builds the application Dependencies using Google Wire.
-func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependencies, error) {
+func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate bool) (*Dependencies, error) {
 	wire.Build(
 		// Base config & infra
 		provideAppConfig,
@@ -70,6 +70,7 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 		provideSocialRoomNumberGenerator,
 		provideAccessTokenManager,
 		provideRefreshTokenGenerator,
+		provideGomailDialer,
 		provideEmailNotifier,
 		provideMessageNotifier,
 		// Repositories
@@ -83,9 +84,13 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 		provideSocialRoomRepository,
 		provideNotificationMessageRepository,
 		// Kafka & Canal & Websocket
+		provideKafkaTopics,
+		provideKafkaConsumer,
+		provideKafkaProducer,
+		provideKafkaProducerWithRetry,
+		provideKafkaRetrier,
 		provideKafkaPublisher,
 		provideKafkaSubscriber,
-		provideKafkaRetrier,
 		provideOutboxConsumer,
 		provideWebsocketUpgrader,
 		provideWebsocketManager,

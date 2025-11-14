@@ -6,7 +6,6 @@ import (
 	"gochat/internal/notification/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
 	"sync"
 	"time"
 
@@ -17,11 +16,8 @@ import (
 var _ application.WelcomeEmailNotifier = (*EmailNotifier)(nil)
 
 const (
-	maxWorkers         = 3
-	maxRetries         = 3
-	maxBackoffDuration = 30 * time.Second
-	maxWaitTime        = 300 * time.Second
-	maxMailCache       = 100
+	maxWaitTime  = 300 * time.Second
+	maxMailCache = 100
 )
 
 type EmailNotifier struct {
@@ -36,12 +32,12 @@ type EmailNotifier struct {
 	closed    bool
 }
 
-func NewEmailNotifier(senderName string, config *EmailNotifierConfig) *EmailNotifier {
+func NewEmailNotifier(senderName string, dialer *gomail.Dialer) *EmailNotifier {
 	return &EmailNotifier{
-		dialer: gomail.NewDialer(config.Host, config.Port, config.Username, config.Password),
+		dialer: dialer,
 		taskGenerator: &taskGenerator{
 			senderName: senderName,
-			address:    config.Username,
+			address:    dialer.Username,
 		},
 		taskChan: make(chan *task, maxMailCache),
 		closed:   false,
@@ -74,38 +70,18 @@ func (n *EmailNotifier) enqueue(ctx context.Context, task *task) error {
 
 func (n *EmailNotifier) Start() {
 	n.startOnce.Do(func() {
-		for i := 0; i < maxWorkers; i++ {
-			go n.startWorker()
-		}
+		go func() {
+			for t := range n.taskChan {
+				if err := n.dialer.DialAndSend(t.message); err != nil {
+					zap.L().Error(
+						"WelcomeEmailNotifier send error",
+						zap.String("email", t.email.String()),
+						zap.Error(err),
+					)
+				}
+			}
+		}()
 	})
-}
-
-func (n *EmailNotifier) startWorker() {
-	for t := range n.taskChan {
-		if err := n.sendWithRetry(t.message); err != nil {
-			zap.L().Error(
-				"WelcomeEmailNotifier send error",
-				zap.String("email", t.email.String()),
-				zap.Error(err),
-			)
-		}
-	}
-}
-
-func (n *EmailNotifier) sendWithRetry(msg *gomail.Message) error {
-	var lastErr error
-	for attempt := 0; attempt <= maxRetries; attempt++ {
-		if attempt > 0 {
-			utils.BackoffWait(maxBackoffDuration, attempt)
-		}
-
-		if err := n.dialer.DialAndSend(msg); err == nil {
-			return nil
-		} else {
-			lastErr = err
-		}
-	}
-	return lastErr
 }
 
 func (n *EmailNotifier) Close() {

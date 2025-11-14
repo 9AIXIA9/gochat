@@ -15,13 +15,14 @@ import (
 	myErrors "gochat/internal/shared/errors"
 )
 
+//TODO 清晰config
+
 // App 应用程序配置结构
 type App struct {
 	Name        string `mapstructure:"Name"`
 	Host        string `mapstructure:"Host"`
 	Port        int    `mapstructure:"Port"`
 	MachineNode int64  `mapstructure:"MachineNode"`
-	NeedMigrate bool   `mapstructure:"NeedMigrate"`
 
 	Cookie       *Cookie                     `mapstructure:"Cookie"`
 	CORS         *middleware.CORSConfig      `mapstructure:"CORS"`

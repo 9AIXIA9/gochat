@@ -20,9 +20,10 @@ const (
 func main() {
 	path := flag.String("config", defaultConfigFilePath, "config file path")
 	env := flag.String("env", defaultENVFilePath, "env file path")
+	needMigrate := flag.Bool("need_migrate", false, "need migrate database or not")
 	flag.Parse()
 
-	dependencies, err := initializeDependencies(ConfigPath(*path), EnvPath(*env))
+	dependencies, err := initializeDependencies(ConfigPath(*path), EnvPath(*env), *needMigrate)
 	if err != nil {
 		log.Fatalf("initialize Dependencies failed,err:%v", err)
 	}

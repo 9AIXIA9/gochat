@@ -9,30 +9,11 @@ package main
 // Injectors from wire.go:
 
 // initializeDependencies builds the application Dependencies using Google Wire.
-func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependencies, error) {
+func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate bool) (*Dependencies, error) {
 	app, err := provideAppConfig(configPath, envPath)
 	if err != nil {
 		return nil, err
 	}
-	db, err := provideMysql(app)
-	if err != nil {
-		return nil, err
-	}
-	eventRepository := provideEventRepository(db)
-	eventPublisher, err := provideKafkaPublisher(app, eventRepository)
-	if err != nil {
-		return nil, err
-	}
-	eventRetrier := provideKafkaRetrier(eventPublisher, eventRepository)
-	eventSubscriber, err := provideKafkaSubscriber(app, eventRetrier)
-	if err != nil {
-		return nil, err
-	}
-	outboxConsumer, err := provideOutboxConsumer(app, eventPublisher, eventRepository)
-	if err != nil {
-		return nil, err
-	}
-	emailNotifier := provideEmailNotifier(app)
 	eventIDGenerator := provideEventIDGenerator()
 	userIDGenerator := provideAuthorizationUserIDGenerator()
 	userNumberGenerator, err := provideAuthorizationUserNumberGenerator(app)
@@ -40,7 +21,12 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 		return nil, err
 	}
 	hasher := provideHasher(app)
+	db, err := provideMysql(app)
+	if err != nil {
+		return nil, err
+	}
 	userRepository := provideAuthorizationUserRepository(db)
+	eventRepository := provideEventRepository(db)
 	signUpUseCase := provideSignUpUseCase(eventIDGenerator, userIDGenerator, userNumberGenerator, hasher, userRepository, eventRepository)
 	client, err := provideRedis(app)
 	if err != nil {
@@ -76,8 +62,36 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 	repositoryMessageRepository := provideNotificationMessageRepository(db)
 	messageReadUseCase := provideNotificationMessageReadUseCase(repositoryMessageRepository)
 	router := provideWebsocketRouter(messageReadUseCase)
+	producer, err := provideKafkaProducer(app)
+	if err != nil {
+		return nil, err
+	}
+	producerWithRetry := provideKafkaProducerWithRetry(producer)
+	eventPublisher, err := provideKafkaPublisher(producerWithRetry, eventRepository)
+	if err != nil {
+		return nil, err
+	}
 	server := provideWebsocketServer(manager, router, eventPublisher, eventIDGenerator)
 	engine := provideHttpRouter(app, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, createRoomUseCase, joinRoomUseCase, leaveRoomUseCase, validator, client, server)
+	v := provideKafkaTopics()
+	consumer, err := provideKafkaConsumer(app)
+	if err != nil {
+		return nil, err
+	}
+	consumerRetrier := provideKafkaRetrier(producerWithRetry, eventRepository)
+	eventSubscriber, err := provideKafkaSubscriber(consumer, consumerRetrier)
+	if err != nil {
+		return nil, err
+	}
+	outboxConsumer, err := provideOutboxConsumer(app, eventPublisher, eventRepository)
+	if err != nil {
+		return nil, err
+	}
+	dialer, err := provideGomailDialer(app)
+	if err != nil {
+		return nil, err
+	}
+	emailNotifier := provideEmailNotifier(app, dialer)
 	userSessionStartedUseCase := provideWebsocketUserSessionStartedUseCase(eventIDGenerator, eventPublisher)
 	userCreatedUseCase := provideAuthUserCreatedUseCase(eventIDGenerator, eventPublisher, userRepository)
 	userRepository2 := provideSocialUserRepository(db)
@@ -96,7 +110,7 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 	messageNotificationRequestedUseCase := provideNotificationMessageNotificationRequestedUseCase(repositoryMessageRepository, messageNotifier)
 	undeliveredMessageNotificationRequestedUseCase := provideNotificationUndeliveredMessageNotificationRequestedUseCase(repositoryMessageRepository, messageNotifier)
 	error2 := provideKafkaSubscriptions(eventSubscriber, userSessionStartedUseCase, userCreatedUseCase, usecaseUserCreatedUseCase, roomCreatedUseCase, roomJoinedUseCase, roomLeftUseCase, userCreatedUseCase2, usecaseRoomCreatedUseCase, usecaseRoomJoinedUseCase, usecaseRoomLeftUseCase, privateMessageCreatedUseCase, roomMessageCreatedUseCase, welcomeEmailNotificationRequestedUseCase, messageNotificationRequestedUseCase, undeliveredMessageNotificationRequestedUseCase)
-	dependencies, err := BuildDependencies(app, db, eventPublisher, eventSubscriber, outboxConsumer, emailNotifier, engine, error2)
+	dependencies, err := BuildDependencies(needMigrate, app, engine, db, v, eventPublisher, eventSubscriber, consumerRetrier, producerWithRetry, outboxConsumer, emailNotifier, error2)
 	if err != nil {
 		return nil, err
 	}
