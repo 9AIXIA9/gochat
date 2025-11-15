@@ -9,6 +9,8 @@ import (
 	"time"
 )
 
+//TODO 一致性保証（事件和用户创建）
+
 type SignUpUseCase kernel.UseCase[*SignUpInput, *SignUpOutput]
 
 type SignUpInput struct {

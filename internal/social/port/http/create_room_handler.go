@@ -17,7 +17,7 @@ import (
 
 type CreateRoomRequest struct {
 	Owner          kernel.UserID   `json:"-" validate:"required"`
-	MaxMemberCount int             `json:"max_member_count" validate:"required,min=2,max=100"`
+	MaxMemberCount int             `json:"max_member_count" validate:"min=2,max=100"`
 	Password       domain.Password `json:"password" validate:"max=100"`
 }
 

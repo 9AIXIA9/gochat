@@ -35,7 +35,7 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate 
 	refreshTokenRepository := provideAuthorizationRefreshTokenRepository(client)
 	accessTokenManager := provideAccessTokenManager(app)
 	refreshTokenGenerator := provideRefreshTokenGenerator(app)
-	loginUseCase := provideLoginUseCase(eventIDGenerator, hasher, userRepository, userRepository, refreshTokenRepository, accessTokenManager, refreshTokenGenerator, eventRepository)
+	loginUseCase := provideLoginUseCase(eventIDGenerator, hasher, userRepository, userRepository, refreshTokenRepository, accessTokenManager, refreshTokenGenerator)
 	refreshAccessTokenUseCase := provideRefreshAccessTokenUseCase(refreshTokenRepository, refreshTokenRepository, accessTokenManager, refreshTokenGenerator)
 	parseAccessTokenUseCase := provideParseAccessTokenUseCase(accessTokenManager)
 	messageIDGenerator := provideMessageIDGenerator()

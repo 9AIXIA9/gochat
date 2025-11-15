@@ -56,9 +56,9 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate 
 		wire.Bind(new(socialApp.Encryptor), new(*bcrypt.Hasher)),
 		wire.Bind(new(socialApp.Comparator), new(*bcrypt.Hasher)),
 		wire.Bind(new(socialApp.RoomSaver), new(*socialRepository.RoomRepository)),
-		wire.Bind(new(socialApp.RoomFinder), new(*socialRepository.RoomRepository)),
-		wire.Bind(new(socialApp.RoomJoiner), new(*socialRepository.RoomRepository)),
-		wire.Bind(new(socialApp.RoomLeaver), new(*socialRepository.RoomRepository)),
+		wire.Bind(new(socialApp.RoomFinderByNumber), new(*socialRepository.RoomRepository)),
+		wire.Bind(new(socialApp.RoomMemberSaver), new(*socialRepository.RoomRepository)),
+		wire.Bind(new(socialApp.RoomMemberDeleter), new(*socialRepository.RoomRepository)),
 
 		// Generators & managers (concrete providers)
 		provideEventIDGenerator,

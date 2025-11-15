@@ -29,24 +29,24 @@ func (r *JoinRoomInput) Validate() error {
 
 type joinRoomUseCase struct {
 	eventIDGenerator event.IDGenerator
-	finder           application.RoomFinder
+	finder           application.RoomFinderByNumber
 	comparator       application.Comparator
-	roomJoiner       application.RoomJoiner
+	roomMemberSaver  application.RoomMemberSaver
 	eventSaver       event.UnpublishedSaver
 }
 
 func NewJoinRoomUseCase(
 	eventIDGenerator event.IDGenerator,
 	eventSaver event.UnpublishedSaver,
-	finder application.RoomFinder,
+	finder application.RoomFinderByNumber,
 	comparator application.Comparator,
-	roomJoiner application.RoomJoiner,
+	roomMemberSaver application.RoomMemberSaver,
 ) JoinRoomUseCase {
 	return &joinRoomUseCase{
 		eventIDGenerator: eventIDGenerator,
 		finder:           finder,
 		comparator:       comparator,
-		roomJoiner:       roomJoiner,
+		roomMemberSaver:  roomMemberSaver,
 		eventSaver:       eventSaver,
 	}
 }
@@ -67,7 +67,7 @@ func (uc *joinRoomUseCase) Execute(ctx context.Context, input *JoinRoomInput) (*
 		return nil, err
 	}
 
-	if err := uc.roomJoiner.Join(ctx, room.ID(), input.UserID); err != nil {
+	if err := uc.roomMemberSaver.SaveMember(ctx, room.ID(), input.UserID); err != nil {
 		return nil, err
 	}
 

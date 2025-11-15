@@ -9,6 +9,8 @@ import (
 	"github.com/go-mysql-org/go-mysql/mysql"
 )
 
+//TODO 取消timeout检测
+
 func NewCanal(config *BinlogReaderConfig) (*canal.Canal, error) {
 	canalConfig := canal.NewDefaultConfig()
 	canalConfig.User = config.User

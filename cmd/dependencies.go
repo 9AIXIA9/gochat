@@ -220,9 +220,8 @@ func provideLoginUseCase(
 	refreshTokenSaver authorizationApp.RefreshTokenSaver,
 	accessTokenGenerator authorizationApp.AccessTokenGenerator,
 	refreshTokenGenerator authorizationApp.RefreshTokenGenerator,
-	eventSaver event.UnpublishedSaver,
 ) authorizationUsecase.LoginUseCase {
-	return authorizationUsecase.NewLoginUseCase(eventIDGen, comparator, userFinder, userUpdater, refreshTokenSaver, accessTokenGenerator, refreshTokenGenerator, eventSaver)
+	return authorizationUsecase.NewLoginUseCase(eventIDGen, comparator, userFinder, userUpdater, refreshTokenSaver, accessTokenGenerator, refreshTokenGenerator)
 }
 func provideRefreshAccessTokenUseCase(
 	refreshTokenSaver authorizationApp.RefreshTokenSaver,
@@ -266,19 +265,19 @@ func provideCreateRoomUseCase(
 func provideJoinRoomUseCase(
 	eventIDGen event.IDGenerator,
 	eventSaver event.UnpublishedSaver,
-	finder socialApp.RoomFinder,
+	finder socialApp.RoomFinderByNumber,
 	comparator socialApp.Comparator,
-	roomJoiner socialApp.RoomJoiner,
+	roomMemberSaver socialApp.RoomMemberSaver,
 ) socialUseCase.JoinRoomUseCase {
-	return socialUseCase.NewJoinRoomUseCase(eventIDGen, eventSaver, finder, comparator, roomJoiner)
+	return socialUseCase.NewJoinRoomUseCase(eventIDGen, eventSaver, finder, comparator, roomMemberSaver)
 }
 func provideLeaveRoomUseCase(
 	eventIDGen event.IDGenerator,
-	finder socialApp.RoomFinder,
-	roomLeaver socialApp.RoomLeaver,
+	finder socialApp.RoomFinderByNumber,
+	roomMemberDeleter socialApp.RoomMemberDeleter,
 	eventSaver event.UnpublishedSaver,
 ) socialUseCase.LeaveRoomUseCase {
-	return socialUseCase.NewLeaveRoomUseCase(eventIDGen, finder, roomLeaver, eventSaver)
+	return socialUseCase.NewLeaveRoomUseCase(eventIDGen, finder, roomMemberDeleter, eventSaver)
 }
 
 func provideKafkaTopics() []string {

@@ -13,7 +13,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-//TODO 目标：一次请求一次数据库IO
+//TODO 目标：优化数据库操作
 
 var _ application.MessageRepository = (*MessageRepository)(nil)
 
@@ -25,7 +25,6 @@ func NewMessageRepository(db *gorm.DB) *MessageRepository {
 	return &MessageRepository{db: db}
 }
 
-// SaveMessage 持久化消息及其针对接收者的状态
 func (repo *MessageRepository) SaveMessage(ctx context.Context, recipient kernel.UserID, message *domain.Message) error {
 	return repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// 持久化消息主体

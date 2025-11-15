@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+const defaultMemberCount = 20
+
 type CreateRoomUseCase kernel.UseCase[*CreateRoomInput, *CreateRoomOutput]
 
 type CreateRoomInput struct {
@@ -25,8 +27,8 @@ func (r *CreateRoomInput) Validate() error {
 	if len(r.Owner) == 0 {
 		return myErrors.ErrEmptyInput
 	}
-	if r.MaxMemberCount < 1 {
-		return myErrors.ErrInvalidNumber
+	if r.MaxMemberCount < 2 {
+		r.MaxMemberCount = defaultMemberCount
 	}
 	return nil
 }
@@ -79,7 +81,6 @@ func (uc *createRoomUseCase) Execute(ctx context.Context, input *CreateRoomInput
 		uc.numberGenerator.Generate(),
 		passwordEncrypted,
 		make([]kernel.UserID, 0, 1),
-		0,
 		input.MaxMemberCount,
 		now,
 	)

@@ -24,23 +24,23 @@ func (r *LeaveRoomInput) Validate() error {
 }
 
 type leaveRoomUseCase struct {
-	eventIDGenerator event.IDGenerator
-	finder           application.RoomFinder
-	roomLeaver       application.RoomLeaver
-	eventSaver       event.UnpublishedSaver
+	eventIDGenerator  event.IDGenerator
+	finder            application.RoomFinderByNumber
+	roomMemberDeleter application.RoomMemberDeleter
+	eventSaver        event.UnpublishedSaver
 }
 
 func NewLeaveRoomUseCase(
 	eventIDGenerator event.IDGenerator,
-	finder application.RoomFinder,
-	roomLeaver application.RoomLeaver,
+	finder application.RoomFinderByNumber,
+	roomMemberDeleter application.RoomMemberDeleter,
 	eventSaver event.UnpublishedSaver,
 ) LeaveRoomUseCase {
 	return &leaveRoomUseCase{
-		eventIDGenerator: eventIDGenerator,
-		finder:           finder,
-		roomLeaver:       roomLeaver,
-		eventSaver:       eventSaver,
+		eventIDGenerator:  eventIDGenerator,
+		finder:            finder,
+		roomMemberDeleter: roomMemberDeleter,
+		eventSaver:        eventSaver,
 	}
 }
 
@@ -54,7 +54,7 @@ func (uc *leaveRoomUseCase) Execute(ctx context.Context, input *LeaveRoomInput) 
 		return nil, err
 	}
 
-	if err := uc.roomLeaver.Leave(ctx, room.ID(), input.UserID); err != nil {
+	if err := uc.roomMemberDeleter.DeleteMember(ctx, room.ID(), input.UserID); err != nil {
 		return nil, err
 	}
 
