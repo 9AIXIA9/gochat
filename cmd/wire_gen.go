@@ -69,7 +69,7 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate 
 	server := provideWebsocketServer(manager, router, eventPublisher, eventIDGenerator)
 	engine := provideHttpRouter(app, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, createRoomUseCase, joinRoomUseCase, leaveRoomUseCase, validator, client, server)
 	v := provideKafkaTopics()
-	eventSubscriber, err := provideKafkaSubscriber(app)
+	eventSubscriber, err := provideKafkaSubscriber(app, eventRepository)
 	if err != nil {
 		return nil, err
 	}

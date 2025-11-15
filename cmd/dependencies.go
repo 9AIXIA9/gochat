@@ -180,8 +180,8 @@ func provideNotificationMessageRepository(mysql *gorm.DB) *notificationRepositor
 func provideKafkaPublisher(appConfig *config.App, eventRepo *repository.EventRepository) (*kafkautil.EventPublisher, error) {
 	return kafkautil.NewEventPublisher(appConfig.Kafka, eventRepo)
 }
-func provideKafkaSubscriber(appConfig *config.App) (*kafkautil.EventSubscriber, error) {
-	return kafkautil.NewEventSubscriber(appConfig.Kafka)
+func provideKafkaSubscriber(appConfig *config.App, eventRepo *repository.EventRepository) (*kafkautil.EventSubscriber, error) {
+	return kafkautil.NewEventSubscriber(appConfig.Kafka, eventRepo)
 }
 
 func provideCanal(appConfig *config.App) (*canal.Canal, error) {

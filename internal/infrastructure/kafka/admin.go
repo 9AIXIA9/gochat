@@ -24,7 +24,7 @@ func EnsureTopics(ctx context.Context, config *Config, topics []string, numParti
 		replicationFactor = 1
 	}
 
-	admin, err := ckafka.NewAdminClient(convertToMap(config))
+	admin, err := ckafka.NewAdminClient(getAdminConfigMap(config))
 	if err != nil {
 		return fmt.Errorf("create kafka admin client failed: %w", err)
 	}

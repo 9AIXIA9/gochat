@@ -23,7 +23,7 @@ func NewEventPublisher(
 	config *Config,
 	publishedMarker event.PublishedMarker,
 ) (*EventPublisher, error) {
-	producer, err := ckafka.NewProducer(convertToMap(config))
+	producer, err := ckafka.NewProducer(getProducerConfigMap(config))
 	if err != nil {
 		return nil, fmt.Errorf("create kafka producer failed: %w", err)
 	}

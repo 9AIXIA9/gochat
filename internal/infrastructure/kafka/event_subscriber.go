@@ -11,12 +11,16 @@ import (
 	"go.uber.org/zap"
 )
 
-//TODO 重试投递到死信队列
+const (
+	maxRetries = 3
+)
 
 var _ event.Subscriber = (*EventSubscriber)(nil)
 
 type EventSubscriber struct {
-	consumer *ckafka.Consumer
+	consumer        *ckafka.Consumer
+	producer        *ckafka.Producer
+	deadLetterSaver event.DeadLetterSaver
 
 	handlers    map[event.Topic]event.Handler
 	pollTimeout time.Duration
@@ -24,17 +28,24 @@ type EventSubscriber struct {
 }
 
 // NewEventSubscriber creates a Kafka consumer-based subscriber.
-func NewEventSubscriber(config *Config) (*EventSubscriber, error) {
-	consumer, err := ckafka.NewConsumer(convertToMap(config))
+func NewEventSubscriber(config *Config, saver event.DeadLetterSaver) (*EventSubscriber, error) {
+	consumer, err := ckafka.NewConsumer(getConsumerConfigMap(config))
 	if err != nil {
 		return nil, fmt.Errorf("create kafka consumer failed: %w", err)
 	}
 
+	producer, err := ckafka.NewProducer(getProducerConfigMap(config))
+	if err != nil {
+		return nil, fmt.Errorf("create kafka producer failed: %w", err)
+	}
+
 	return &EventSubscriber{
-		consumer:    consumer,
-		handlers:    make(map[event.Topic]event.Handler),
-		pollTimeout: 500 * time.Millisecond,
-		running:     false,
+		consumer:        consumer,
+		producer:        producer,
+		deadLetterSaver: saver,
+		handlers:        make(map[event.Topic]event.Handler),
+		pollTimeout:     500 * time.Millisecond,
+		running:         false,
 	}, nil
 }
 
@@ -106,8 +117,8 @@ func (s *EventSubscriber) Start(ctx context.Context) error {
 						zap.String("id", e.ID().String()),
 						zap.String("topic", topic.String()),
 						zap.Int("retry", retry),
-						zap.ByteString("payload", e.Payload()),
 					)
+
 					cancel()
 					// 提交偏移量，防止该消息反复重投造成堵塞
 					if _, cErr := s.consumer.CommitMessage(m); cErr != nil {
@@ -117,6 +128,7 @@ func (s *EventSubscriber) Start(ctx context.Context) error {
 							zap.String("topic", topic.String()),
 						)
 					}
+					s.handleFailedEvent(e, err, retry)
 					continue
 				}
 				cancel()
@@ -135,6 +147,40 @@ func (s *EventSubscriber) Start(ctx context.Context) error {
 		}
 	}()
 	return nil
+}
+
+func (s *EventSubscriber) handleFailedEvent(ev event.Event, reason error, retry int) {
+	if retry >= maxRetries {
+		if err := s.deadLetterSaver.SaveDeadLetter(context.Background(), ev, reason); err != nil {
+			zap.L().Error(
+				"retry >= maxRetries and save dead letter failed",
+				zap.String("id", ev.ID().String()),
+				zap.String("topic", ev.Topic().String()),
+				zap.Int("retry", retry),
+				zap.ByteString("payload", ev.Payload()),
+				zap.Error(err),
+			)
+			return
+		}
+		zap.L().Debug("failed event's retries >= maxRetires, it was saved to dead letter")
+		return
+	}
+
+	if err := s.producer.Produce(getMessage(ev, retry+1), nil); err != nil {
+		if err := s.deadLetterSaver.SaveDeadLetter(context.Background(), ev, reason); err != nil {
+			zap.L().Error(
+				"republish failed and save dead letter failed",
+				zap.String("id", ev.ID().String()),
+				zap.String("topic", ev.Topic().String()),
+				zap.Int("retry", retry),
+				zap.ByteString("payload", ev.Payload()),
+				zap.Error(err),
+			)
+			return
+		}
+		zap.L().Debug("republish failed, it was saved to dead letter")
+		return
+	}
 }
 
 func (s *EventSubscriber) Close() {

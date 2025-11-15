@@ -37,12 +37,24 @@ func (c *Config) Validate() error {
 	return nil
 }
 
-func convertToMap(c *Config) *ckafka.ConfigMap {
+func getAdminConfigMap(c *Config) *ckafka.ConfigMap {
+	return &ckafka.ConfigMap{
+		"bootstrap.servers": c.BootstrapServers,
+	}
+}
+
+func getConsumerConfigMap(c *Config) *ckafka.ConfigMap {
 	return &ckafka.ConfigMap{
 		"bootstrap.servers":  c.BootstrapServers,
 		"group.id":           c.GroupID,
-		"acks":               c.Acks,
 		"auto.offset.reset":  c.AutoOffsetReset,
 		"enable.auto.commit": *c.EnableAutoCommit,
+	}
+}
+
+func getProducerConfigMap(c *Config) *ckafka.ConfigMap {
+	return &ckafka.ConfigMap{
+		"bootstrap.servers": c.BootstrapServers,
+		"acks":              c.Acks,
 	}
 }
