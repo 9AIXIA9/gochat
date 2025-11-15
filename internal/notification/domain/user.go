@@ -1,0 +1,13 @@
+package domain
+
+import "gochat/internal/shared/kernel"
+
+type UserNumber kernel.Number
+
+func (n UserNumber) String() string {
+	return string(n)
+}
+
+func (n UserNumber) Validate() error {
+	return (kernel.Number(n)).Validate()
+}

@@ -1,0 +1,83 @@
+Name: gochat
+Host: 0.0.0.0
+Port: 8888
+MachineNode: 1
+
+Cookie:
+  Domain: ${COOKIE_DOMAIN}
+  Secure: ${COOKIE_SECURE}
+  HttpOnly: ${COOKIE_HTTPONLY}
+  Path: ${COOKIE_PATH}
+
+CORS:
+  AllowOrigins: ${CORS_ORIGINS}
+  AllowMethods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - OPTIONS
+  AllowHeaders:
+    - Origin
+    - Content-Type
+    - Authorization
+  ExposeHeaders:
+    - Content-Length
+    - Content-Type
+  AllowCredentials: true
+  MaxAge: 72h
+
+RefreshToken:
+  Length: 32
+
+AccessToken:
+  Secret: ${JWT_SECRET}
+  ValidityDuration: 1h
+
+RateLimit:
+  Period: 1s
+  Limit: 10
+
+Mysql:
+  Host: ${DB_HOST}
+  Port: ${DB_PORT}
+  Username: ${DB_USERNAME}
+  Password: ${DB_PASSWORD}
+  Database: ${DB_NAME}
+
+Redis:
+  User: ${REDIS_USER}
+  Host: ${REDIS_HOST}
+  Port: ${REDIS_PORT}
+  Password: ${REDIS_PASSWORD}
+  Database: ${REDIS_DB}
+
+Logger:
+  Mode: debug
+  Level: info
+  Filename: logs/app.log
+  MaxSize: 100    # MB
+  MaxAge: 7       # days
+  MaxBackups: 3
+
+Hasher:
+  Cost: 10
+
+Email:
+  Host: ${EMAIL_HOST}
+  Port: ${EMAIL_PORT}
+  Username: ${EMAIL_USERNAME}
+  Password: ${EMAIL_PASSWORD}
+
+BinlogReader:
+  Addr: ${BINLOG_ADDR}
+  User: ${BINLOG_USER}
+  Password: ${BINLOG_PASSWORD}
+  TableDB: ${BINLOG_TABLEDB}
+
+Kafka:
+  BootstrapServers: ${KAFKA_BOOTSTRAP_SERVERS}
+  Acks: ${KAFKA_ACKS}
+  GroupID: ${KAFKA_GROUP_ID}
+  AutoOffsetReset: ${KAFKA_AUTO_OFFSET_RESET}
+  EnableAutoCommit: ${KAFKA_ENABLE_AUTO_COMMIT}

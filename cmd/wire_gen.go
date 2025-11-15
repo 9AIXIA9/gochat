@@ -6,230 +6,105 @@
 
 package main
 
-import (
-	"github.com/google/wire"
-	"github.com/redis/go-redis/v9"
-	"gochat/api"
-	"gochat/internal/config"
-	"gochat/internal/domain"
-	"gochat/internal/handler"
-	"gochat/internal/infra/crypto"
-	"gochat/internal/infra/encrypt"
-	"gochat/internal/infra/jwt"
-	"gochat/internal/infra/logger"
-	"gochat/internal/infra/repository"
-	"gochat/internal/infra/snowflake"
-	"gochat/internal/infra/websocket/manager"
-	"gochat/internal/infra/websocket/upgrader"
-	"gochat/internal/usecase"
-	"gorm.io/gorm"
-	"time"
-)
-
 // Injectors from wire.go:
 
-// NewDependencies is the Wire injector that builds all dependencies for the API server.
-func NewDependencies(configPath string) (*api.Dependencies, error) {
-	config, err := loadConfig(configPath)
+// initializeDependencies builds the application Dependencies using Google Wire.
+func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate bool) (*Dependencies, error) {
+	app, err := provideAppConfig(configPath, envPath)
 	if err != nil {
 		return nil, err
 	}
-	manager := newWebsocketManager()
-	upgrader := newUpgrader(config)
-	client, err := connectRedis(config)
+	eventIDGenerator := provideEventIDGenerator()
+	userIDGenerator := provideAuthorizationUserIDGenerator()
+	userNumberGenerator, err := provideAuthorizationUserNumberGenerator(app)
 	if err != nil {
 		return nil, err
 	}
-	authTokenManager := newAuthTokenManager(config)
-	authUsecase := usecase.NewAuth(authTokenManager)
-	db, err := connectMySQL(config)
+	hasher := provideHasher(app)
+	db, err := provideMysql(app)
 	if err != nil {
 		return nil, err
 	}
-	repository := newRepo(db, client)
-	domainUserSaver := userSaver(repository)
-	numberGenerator, err := newNumberGenerator(config)
+	userRepository := provideAuthorizationUserRepository(db)
+	eventRepository := provideEventRepository(db)
+	signUpUseCase := provideSignUpUseCase(eventIDGenerator, userIDGenerator, userNumberGenerator, hasher, userRepository, eventRepository)
+	client, err := provideRedis(app)
 	if err != nil {
 		return nil, err
 	}
-	bcryptEncryptor := newEncryptor(config)
-	signupUsecase := usecase.NewSignup(domainUserSaver, numberGenerator, bcryptEncryptor)
-	domainUserFinder := userFinder(repository)
-	domainRefreshTokenSaver := refreshTokenSaver(repository)
-	refreshTokenGenerator, err := newRefreshTokenGenerator(config)
+	refreshTokenRepository := provideAuthorizationRefreshTokenRepository(client)
+	accessTokenManager := provideAccessTokenManager(app)
+	refreshTokenGenerator := provideRefreshTokenGenerator(app)
+	loginUseCase := provideLoginUseCase(eventIDGenerator, hasher, userRepository, userRepository, refreshTokenRepository, accessTokenManager, refreshTokenGenerator, eventRepository)
+	refreshAccessTokenUseCase := provideRefreshAccessTokenUseCase(refreshTokenRepository, refreshTokenRepository, accessTokenManager, refreshTokenGenerator)
+	parseAccessTokenUseCase := provideParseAccessTokenUseCase(accessTokenManager)
+	messageIDGenerator := provideMessageIDGenerator()
+	repositoryUserRepository := provideChatUserRepository(db)
+	messageRepository := provideChatMessageRepository(db)
+	sendPrivateMessageUseCase := provideSendPrivateMessageUseCase(messageIDGenerator, eventIDGenerator, repositoryUserRepository, messageRepository, eventRepository)
+	roomRepository := provideChatRoomRepository(db)
+	sendRoomMessageUseCase := provideSendRoomMessageUseCase(messageIDGenerator, eventIDGenerator, roomRepository, messageRepository, eventRepository)
+	roomIDGenerator := provideSocialRoomIDGenerator()
+	roomNumberGenerator, err := provideSocialRoomNumberGenerator(app)
 	if err != nil {
 		return nil, err
 	}
-	duration := refreshExpire(config)
-	loginUsecase := usecase.NewLogin(domainUserFinder, domainRefreshTokenSaver, refreshTokenGenerator, authTokenManager, bcryptEncryptor, duration)
-	domainRefreshTokenAggregate := refreshTokenAggregate(repository)
-	refreshTokenUsecase := usecase.NewRefreshToken(duration, domainRefreshTokenAggregate, authTokenManager, refreshTokenGenerator)
-	domainRoomSaver := roomSaver(repository)
-	createRoomUsecase := usecase.NewCreateRoom(numberGenerator, bcryptEncryptor, domainRoomSaver)
-	domainJoinRoomAggregateUOW := joinRoomAggregateUOW(repository)
-	joinRoomUsecase := usecase.NewJoinRoom(bcryptEncryptor, domainJoinRoomAggregateUOW)
-	domainRoomLeaver := roomLeaver(repository)
-	leaveRoomUsecase := usecase.NewLeaveRoom(domainRoomLeaver)
-	domainSendMessageAggregate := sendMessageAggregate(repository)
-	sendPrivateMessageUsecase := usecase.NewSendPrivateMessage(manager, domainSendMessageAggregate)
-	domainRoomMemberFinder := roomMemberFinder(repository)
-	sendRoomMessageUsecase := usecase.NewSendRoomMessage(manager, domainSendMessageAggregate, domainRoomMemberFinder)
-	domainSendUnsentMessageAggregate := sendUnsentMessageAggregate(repository)
-	userConnectedUsecase := usecase.NewUserConnected(manager, domainSendUnsentMessageAggregate)
-	dependencies := &api.Dependencies{
-		Config:                    config,
-		WebsocketManager:          manager,
-		WebsocketUpgrader:         upgrader,
-		RedisClient:               client,
-		AuthUsecase:               authUsecase,
-		SignupUsecase:             signupUsecase,
-		LoginUsecase:              loginUsecase,
-		RefreshTokenUsecase:       refreshTokenUsecase,
-		CreateRoomUsecase:         createRoomUsecase,
-		JoinRoomUsecase:           joinRoomUsecase,
-		LeaveRoomUsecase:          leaveRoomUsecase,
-		SendPrivateMessageUsecase: sendPrivateMessageUsecase,
-		SendRoomMessageUsecase:    sendRoomMessageUsecase,
-		UserConnectedUsecase:      userConnectedUsecase,
+	repositoryRoomRepository := provideSocialRoomRepository(db)
+	createRoomUseCase := provideCreateRoomUseCase(eventIDGenerator, roomIDGenerator, roomNumberGenerator, hasher, repositoryRoomRepository, eventRepository)
+	joinRoomUseCase := provideJoinRoomUseCase(eventIDGenerator, eventRepository, repositoryRoomRepository, hasher, repositoryRoomRepository)
+	leaveRoomUseCase := provideLeaveRoomUseCase(eventIDGenerator, repositoryRoomRepository, repositoryRoomRepository, eventRepository)
+	validator, err := provideValidator()
+	if err != nil {
+		return nil, err
+	}
+	upgrader := provideWebsocketUpgrader(app)
+	manager := provideWebsocketManager(upgrader)
+	repositoryMessageRepository := provideNotificationMessageRepository(db)
+	messageReadUseCase := provideNotificationMessageReadUseCase(repositoryMessageRepository)
+	router := provideWebsocketRouter(messageReadUseCase)
+	eventPublisher, err := provideKafkaPublisher(app, eventRepository)
+	if err != nil {
+		return nil, err
+	}
+	server := provideWebsocketServer(manager, router, eventPublisher, eventIDGenerator)
+	engine := provideHttpRouter(app, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, createRoomUseCase, joinRoomUseCase, leaveRoomUseCase, validator, client, server)
+	v := provideKafkaTopics()
+	eventSubscriber, err := provideKafkaSubscriber(app, eventRepository)
+	if err != nil {
+		return nil, err
+	}
+	canal, err := provideCanal(app)
+	if err != nil {
+		return nil, err
+	}
+	outboxConsumer := provideCanalOutboxConsumer(canal, eventPublisher, eventRepository)
+	dialer, err := provideGomailDialer(app)
+	if err != nil {
+		return nil, err
+	}
+	emailNotifier := provideEmailNotifier(app, dialer)
+	emailAvailable := provideEmailAvailable(dialer)
+	userSessionStartedUseCase := provideWebsocketUserSessionStartedUseCase(eventIDGenerator, eventPublisher)
+	userCreatedUseCase := provideAuthUserCreatedUseCase(eventIDGenerator, eventPublisher, userRepository)
+	userRepository2 := provideSocialUserRepository(db)
+	usecaseUserCreatedUseCase := provideSocialUserCreatedUseCase(userRepository2)
+	roomCreatedUseCase := provideSocialRoomCreatedUseCase(eventIDGenerator, eventPublisher, repositoryRoomRepository)
+	roomJoinedUseCase := provideSocialRoomJoinedUseCase(eventIDGenerator, eventPublisher)
+	roomLeftUseCase := provideSocialRoomLeftUseCase(eventIDGenerator, eventPublisher)
+	userCreatedUseCase2 := provideChatUserCreatedUseCase(repositoryUserRepository)
+	usecaseRoomCreatedUseCase := provideChatRoomCreatedUseCase(roomRepository)
+	usecaseRoomJoinedUseCase := provideChatRoomJoinedUseCase(roomRepository)
+	usecaseRoomLeftUseCase := provideChatRoomLeftUseCase(roomRepository)
+	privateMessageCreatedUseCase := provideChatPrivateMessageCreatedUseCase(eventIDGenerator, eventPublisher, messageRepository)
+	roomMessageCreatedUseCase := provideChatRoomMessageCreatedUseCase(eventIDGenerator, eventPublisher, messageRepository)
+	welcomeEmailNotificationRequestedUseCase := provideNotificationWelcomeEmailNotificationRequestedUseCase(emailNotifier)
+	messageNotifier := provideMessageNotifier(manager)
+	messageNotificationRequestedUseCase := provideNotificationMessageNotificationRequestedUseCase(repositoryMessageRepository, messageNotifier)
+	undeliveredMessageNotificationRequestedUseCase := provideNotificationUndeliveredMessageNotificationRequestedUseCase(repositoryMessageRepository, messageNotifier)
+	error2 := provideKafkaSubscriptions(eventSubscriber, emailAvailable, userSessionStartedUseCase, userCreatedUseCase, usecaseUserCreatedUseCase, roomCreatedUseCase, roomJoinedUseCase, roomLeftUseCase, userCreatedUseCase2, usecaseRoomCreatedUseCase, usecaseRoomJoinedUseCase, usecaseRoomLeftUseCase, privateMessageCreatedUseCase, roomMessageCreatedUseCase, welcomeEmailNotificationRequestedUseCase, messageNotificationRequestedUseCase, undeliveredMessageNotificationRequestedUseCase)
+	dependencies, err := BuildDependencies(needMigrate, app, engine, db, v, eventPublisher, eventSubscriber, outboxConsumer, emailNotifier, error2)
+	if err != nil {
+		return nil, err
 	}
 	return dependencies, nil
 }
-
-// wire.go:
-
-// loadConfig loads application configuration from the given file path.
-func loadConfig(path string) (*config.Config, error) { return config.Load(path) }
-
-// initialize runs logger and translator initialization as a provider for Wire.
-// It returns a dummy token type to participate in the graph.
-type appInitialized struct{}
-
-func initialize(cfg *config.Config) (*appInitialized, error) {
-	if err := logger.Init(cfg.Log); err != nil {
-		return nil, err
-	}
-	if err := handler.InitTrans(cfg.Language); err != nil {
-		return nil, err
-	}
-	return &appInitialized{}, nil
-}
-
-// connectMySQL connects to MySQL using the configuration.
-func connectMySQL(cfg *config.Config) (*gorm.DB, error) {
-	return repository.ConnectToMysql(cfg.Database)
-}
-
-// connectRedis connects to Redis using the configuration.
-func connectRedis(cfg *config.Config) (*redis.Client, error) {
-	return repository.ConnectToRedis(cfg.Redis)
-}
-
-// newRepo constructs the aggregate repository from DB and Redis.
-func newRepo(db *gorm.DB, rdb *redis.Client) *repository.Repository {
-	return repository.NewRepository(db, rdb)
-}
-
-// Standalone interface
-func userSaver(r *repository.Repository) domain.UserSaver { return r.Users() }
-
-func userFinder(r *repository.Repository) domain.UserFinder { return r.Users() }
-
-func roomSaver(r *repository.Repository) domain.RoomSaver { return r.Rooms() }
-
-func roomFinder(r *repository.Repository) domain.RoomFinder { return r.Rooms() }
-
-func roomJoiner(r *repository.Repository) domain.RoomJoiner { return r.Rooms() }
-
-func roomLeaver(r *repository.Repository) domain.RoomLeaver { return r.Rooms() }
-
-func roomMemberFinder(r *repository.Repository) domain.RoomMemberFinder { return r.Rooms() }
-
-func messageSaver(r *repository.Repository) domain.MessageSaver { return r.Messages() }
-
-func unsentMessageFinder(r *repository.Repository) domain.UnsentMessageFinder { return r.Messages() }
-
-func sentMessageUpdater(r *repository.Repository) domain.SentMessageUpdater { return r.Messages() }
-
-func refreshTokenSaver(r *repository.Repository) domain.RefreshTokenSaver { return r.RefreshTokens() }
-
-func refreshTokenFinder(r *repository.Repository) domain.RefreshTokenFinder {
-	return r.RefreshTokens()
-}
-
-func joinRoomAggregateUOW(r *repository.Repository) domain.JoinRoomAggregateUOW {
-	return r.Rooms()
-}
-
-func sendMessageAggregate(r *repository.Repository) domain.SendMessageAggregate { return r.Messages() }
-
-func refreshTokenAggregate(r *repository.Repository) domain.RefreshTokenAggregate {
-	return r.RefreshTokens()
-}
-
-func sendUnsentMessageAggregate(r *repository.Repository) domain.SendUnsentMessageAggregate {
-	return r.Messages()
-}
-
-func newWebsocketManager() *manager.Manager { return manager.NewWebsocketManager() }
-
-func newUpgrader(cfg *config.Config) *upgrader.Upgrader {
-	return upgrader.NewUpgrader(cfg.CORS.Origins)
-}
-
-func newAuthTokenManager(cfg *config.Config) *jwt.AuthTokenManager {
-	return jwt.NewAuthTokenManager(cfg.Token.Auth)
-}
-
-func newRefreshTokenGenerator(cfg *config.Config) (*crypto.RefreshTokenGenerator, error) {
-	return crypto.NewRefreshTokenGenerator(cfg.Token.Refresh.Length)
-}
-
-func newNumberGenerator(cfg *config.Config) (*snowflake.NumberGenerator, error) {
-	return snowflake.NewNumberGenerator(cfg.Snowflake)
-}
-
-func newEncryptor(cfg *config.Config) *encrypt.BcryptEncryptor {
-	return encrypt.NewBcryptEncryptor(cfg.Encryptor)
-}
-
-func refreshExpire(cfg *config.Config) time.Duration { return cfg.Token.Refresh.ExpireDuration }
-
-// provider set for configuration and side-effects
-var configSet = wire.NewSet(
-	loadConfig,
-	initialize,
-)
-
-// provider set for infrastructure services
-var infraSet = wire.NewSet(
-	connectMySQL,
-	connectRedis,
-	newRepo,
-	newWebsocketManager,
-	newUpgrader,
-	newAuthTokenManager,
-	newRefreshTokenGenerator,
-	newNumberGenerator,
-	newEncryptor,
-
-	userSaver,
-	userFinder,
-	roomSaver,
-	roomFinder,
-	roomJoiner,
-	roomLeaver,
-	roomMemberFinder,
-	joinRoomAggregateUOW,
-	messageSaver,
-	unsentMessageFinder,
-	sentMessageUpdater,
-	sendMessageAggregate,
-	sendUnsentMessageAggregate,
-	refreshTokenSaver,
-	refreshTokenFinder,
-	refreshTokenAggregate,
-	refreshExpire, wire.Bind(new(domain.AuthTokenParser), new(*jwt.AuthTokenManager)), wire.Bind(new(domain.AuthTokenGenerator), new(*jwt.AuthTokenManager)), wire.Bind(new(domain.Encryptor), new(*encrypt.BcryptEncryptor)), wire.Bind(new(domain.Comparator), new(*encrypt.BcryptEncryptor)), wire.Bind(new(domain.NumberGenerator), new(*snowflake.NumberGenerator)), wire.Bind(new(domain.MessageSender), new(*manager.Manager)), wire.Bind(new(domain.RefreshTokenGenerator), new(*crypto.RefreshTokenGenerator)),
-)
-
-// provider set for usecases
-var usecaseSet = wire.NewSet(usecase.NewAuth, usecase.NewSignup, usecase.NewLogin, usecase.NewRefreshToken, usecase.NewCreateRoom, usecase.NewJoinRoom, usecase.NewLeaveRoom, usecase.NewSendPrivateMessage, usecase.NewSendRoomMessage, usecase.NewUserConnected)

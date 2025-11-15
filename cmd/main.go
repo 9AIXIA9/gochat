@@ -5,8 +5,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"gochat/api"
-	"gochat/internal/config"
 	"log"
 	"net/http"
 	"os"
@@ -14,49 +12,33 @@ import (
 	"time"
 )
 
-const defaultConfigPath = "./etc/config.yaml"
-const defaultEnvPath = "development"
+const (
+	defaultConfigFilePath = "./config/config.yaml"
+	defaultENVFilePath    = "./.env.development"
+)
 
 func main() {
-	path := flag.String("config", defaultConfigPath, "config path")
-	env := flag.String("env", defaultEnvPath, "environment (development, production, etc)")
+	path := flag.String("config", defaultConfigFilePath, "config file path")
+	env := flag.String("env", defaultENVFilePath, "env file path")
+	needMigrate := flag.Bool("need_migrate", false, "need migrate database or not")
 	flag.Parse()
 
-	// 如果命令行指定了环境，设置到环境变量中
-	if err := os.Setenv("GOCHAT_ENV", *env); err != nil {
-		log.Fatalf("set env failed,err:%v", err)
-	}
-	if err := config.LoadEnvFile(); err != nil {
-		log.Fatalf("load env failed,err:%v", err)
-	}
-	log.Printf("using environment: %s", *env)
-
-	// 使用Wire初始化依赖
-	deps, err := NewDependencies(*path)
+	dependencies, err := initializeDependencies(ConfigPath(*path), EnvPath(*env), *needMigrate)
 	if err != nil {
-		log.Fatalf("init dependencies failed,err:%v", err)
+		log.Fatalf("initialize Dependencies failed,err:%v", err)
 	}
 
-	// 确认证书文件存在
-	if _, err := os.Stat(deps.Config.Cert.HTTPSCertFile); err != nil {
-		log.Fatalf("tls cert file not found: %s (generate with mkcert or set TLS_CERT). err: %v", deps.Config.Cert.HTTPSCertFile, err)
-	}
-	if _, err := os.Stat(deps.Config.Cert.HTTPSKeyFile); err != nil {
-		log.Fatalf("tls key file not found: %s (generate with mkcert or set TLS_KEY). err: %v", deps.Config.Cert.HTTPSKeyFile, err)
-	}
-
-	// 创建HTTP服务器（用于 HTTPS）
+	// 创建HTTP服务器
 	srv := &http.Server{
-		Addr:    fmt.Sprintf("%s:%d", deps.Config.Host, deps.Config.Port),
-		Handler: api.Setup(deps),
+		Addr:    fmt.Sprintf("%s:%d", dependencies.config.Host, dependencies.config.Port),
+		Handler: dependencies.HttpRouter,
 	}
 
-	// 启动 HTTPS 服务器
+	// 启动 HTTP 服务器
 	go func() {
-		log.Printf("starting https server on %s", srv.Addr)
-		// ListenAndServeTLS 会阻塞直到服务器返回错误
-		if err := srv.ListenAndServeTLS(deps.Config.Cert.HTTPSCertFile, deps.Config.Cert.HTTPSKeyFile); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Fatalf("start https server failed: %s\n", err)
+		log.Printf("starting http server on %s", srv.Addr)
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("start http server failed: %s\n", err)
 		}
 	}()
 
@@ -71,6 +53,9 @@ func main() {
 
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Fatal("close server failed:", err)
+	}
+	if dependencies.closeAll != nil {
+		dependencies.closeAll()
 	}
 	log.Println("server has been closed")
 }
