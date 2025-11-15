@@ -25,13 +25,13 @@ func (r *RoomCreatedInput) Validate() error {
 
 type roomCreatedUseCase struct {
 	idGenerator event.IDGenerator
-	publisher   event.Publisher
+	publisher   event.SinglePublisher
 	finder      application.RoomFinderByID
 }
 
 func NewRoomCreatedUseCase(
 	idGenerator event.IDGenerator,
-	publisher event.Publisher,
+	publisher event.SinglePublisher,
 	finder application.RoomFinderByID,
 ) RoomCreatedUseCase {
 	return &roomCreatedUseCase{

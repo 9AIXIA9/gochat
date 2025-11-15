@@ -12,14 +12,14 @@ import (
 )
 
 // OutboxConsumer watches MySQL binlog and publishes rows inserted into gochat.unpublished_events
-// using the provided event.Publisher. This is an infrastructure adapter implementing CDC for the outbox table.
+// using the provided event.ManyPublisher. This is an infrastructure adapter implementing CDC for the outbox table.
 type OutboxConsumer struct {
-	publisher event.Publisher
+	publisher event.ManyPublisher
 	lister    event.UnpublishedLister
 	canal     *canal.Canal
 }
 
-func NewOutboxConsumer(c *canal.Canal, publisher event.Publisher, lister event.UnpublishedLister) *OutboxConsumer {
+func NewOutboxConsumer(c *canal.Canal, publisher event.ManyPublisher, lister event.UnpublishedLister) *OutboxConsumer {
 	return &OutboxConsumer{
 		publisher: publisher,
 		lister:    lister,
@@ -48,7 +48,7 @@ func (c *OutboxConsumer) Close() {
 
 type outboxHandler struct {
 	canal.DummyEventHandler
-	publisher event.Publisher
+	publisher event.ManyPublisher
 	lister    event.UnpublishedLister
 }
 

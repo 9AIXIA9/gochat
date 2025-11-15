@@ -26,13 +26,13 @@ func (r *UserCreatedInput) Validate() error {
 
 type userCreatedUseCase struct {
 	idGenerator event.IDGenerator
-	publisher   event.Publisher
+	publisher   event.SinglePublisher
 	finder      application.UserFinderByID
 }
 
 func NewUserCreatedUseCase(
 	idGenerator event.IDGenerator,
-	publisher event.Publisher,
+	publisher event.SinglePublisher,
 	finder application.UserFinderByID,
 ) UserCreatedUseCase {
 	return &userCreatedUseCase{

@@ -14,14 +14,14 @@ type Server struct {
 	manager *Manager
 	router  *Router
 
-	publisher   event.Publisher
+	publisher   event.SinglePublisher
 	idGenerator event.IDGenerator
 }
 
 func NewServer(
 	manager *Manager,
 	router *Router,
-	publisher event.Publisher,
+	publisher event.SinglePublisher,
 	generator event.IDGenerator,
 ) *Server {
 	return &Server{

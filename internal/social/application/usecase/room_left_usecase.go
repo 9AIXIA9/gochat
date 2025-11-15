@@ -25,12 +25,12 @@ func (r *RoomLeftInput) Validate() error {
 
 type roomLeftUseCase struct {
 	idGenerator event.IDGenerator
-	publisher   event.Publisher
+	publisher   event.SinglePublisher
 }
 
 func NewRoomLeftUseCase(
 	idGenerator event.IDGenerator,
-	publisher event.Publisher,
+	publisher event.SinglePublisher,
 ) RoomLeftUseCase {
 	return &roomLeftUseCase{
 		idGenerator: idGenerator,

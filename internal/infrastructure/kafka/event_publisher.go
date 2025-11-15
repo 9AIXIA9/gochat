@@ -10,7 +10,8 @@ import (
 	"go.uber.org/zap"
 )
 
-var _ event.Publisher = (*EventPublisher)(nil)
+var _ event.SinglePublisher = (*EventPublisher)(nil)
+var _ event.ManyPublisher = (*EventPublisher)(nil)
 
 type EventPublisher struct {
 	publishResultChan chan ckafka.Event

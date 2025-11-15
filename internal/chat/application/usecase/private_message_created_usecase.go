@@ -28,14 +28,14 @@ func (i *PrivateMessageCreatedInput) Validate() error {
 
 type privateMessageCreatedUseCase struct {
 	eventIDGenerator     event.IDGenerator
-	publisher            event.Publisher
+	publisher            event.SinglePublisher
 	privateMessageFinder application.PrivateMessageFinder
 }
 
 func NewPrivateMessageCreatedUseCase(
 	eventIDGenerator event.IDGenerator,
 	privateMessageFinder application.PrivateMessageFinder,
-	publisher event.Publisher,
+	publisher event.SinglePublisher,
 ) PrivateMessageCreatedUseCase {
 	return &privateMessageCreatedUseCase{
 		eventIDGenerator:     eventIDGenerator,

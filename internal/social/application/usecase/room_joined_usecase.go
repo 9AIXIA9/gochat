@@ -25,12 +25,12 @@ func (r *RoomJoinedInput) Validate() error {
 
 type roomJoinedUseCase struct {
 	idGenerator event.IDGenerator
-	publisher   event.Publisher
+	publisher   event.SinglePublisher
 }
 
 func NewRoomJoinedUseCase(
 	idGenerator event.IDGenerator,
-	publisher event.Publisher,
+	publisher event.SinglePublisher,
 ) RoomJoinedUseCase {
 	return &roomJoinedUseCase{
 		idGenerator: idGenerator,

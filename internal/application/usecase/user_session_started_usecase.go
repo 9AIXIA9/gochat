@@ -23,12 +23,12 @@ func (r *UserSessionStartedInput) Validate() error {
 
 type userCreatedUseCase struct {
 	idGenerator event.IDGenerator
-	publisher   event.Publisher
+	publisher   event.SinglePublisher
 }
 
 func NewUserSessionStartedUseCase(
 	idGenerator event.IDGenerator,
-	publisher event.Publisher,
+	publisher event.SinglePublisher,
 ) UserSessionStartedUseCase {
 	return &userCreatedUseCase{
 		idGenerator: idGenerator,

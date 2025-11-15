@@ -29,14 +29,14 @@ func (i *RoomMessageCreatedInput) Validate() error {
 
 type roomMessageCreatedUseCase struct {
 	eventIDGenerator  event.IDGenerator
-	publisher         event.Publisher
+	publisher         event.ManyPublisher
 	roomMessageFinder application.RoomMessageFinder
 }
 
 func NewRoomMessageCreatedUseCase(
 	eventIDGenerator event.IDGenerator,
 	roomMessageFinder application.RoomMessageFinder,
-	publisher event.Publisher,
+	publisher event.ManyPublisher,
 ) RoomMessageCreatedUseCase {
 	return &roomMessageCreatedUseCase{
 		eventIDGenerator:  eventIDGenerator,
