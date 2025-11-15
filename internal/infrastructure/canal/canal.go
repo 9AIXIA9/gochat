@@ -3,13 +3,10 @@ package canal
 import (
 	"log/slog"
 	"os"
-	"time"
 
 	"github.com/go-mysql-org/go-mysql/canal"
 	"github.com/go-mysql-org/go-mysql/mysql"
 )
-
-//TODO 取消timeout检测
 
 func NewCanal(config *BinlogReaderConfig) (*canal.Canal, error) {
 	canalConfig := canal.NewDefaultConfig()
@@ -21,8 +18,6 @@ func NewCanal(config *BinlogReaderConfig) (*canal.Canal, error) {
 	canalConfig.Flavor = mysql.MySQLFlavor
 	canalConfig.IncludeTableRegex = []string{".*\\.unpublished_events"}
 	canalConfig.DiscardNoMetaRowEvent = true
-	canalConfig.HeartbeatPeriod = 200 * time.Millisecond
-	canalConfig.ReadTimeout = 300 * time.Millisecond
 	canalConfig.Logger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelWarn,
 	}))
