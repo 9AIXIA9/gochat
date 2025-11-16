@@ -9,8 +9,6 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-//TODO 一致性保証（事件和用户创建）
-
 var _ SendRoomMessageUseCase = (*sendRoomMessageUseCase)(nil)
 
 type SendRoomMessageUseCase kernel.UseCase[*SendRoomMessageInput, *kernel.NoOutput]
