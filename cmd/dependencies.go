@@ -152,32 +152,32 @@ func provideMessageNotifier(manager *websocket.Manager) *notificationWebsocketIn
 func provideUnitOfWork(mysql *gorm.DB) *gormutils.UnitOfWork {
 	return gormutils.NewUnitOfWork(mysql)
 }
-func provideEventRepository(mysql *gorm.DB) *repository.EventRepository {
-	return repository.NewEventRepository(mysql)
+func provideEventRepository(unitOfWork *gormutils.UnitOfWork) *repository.EventRepository {
+	return repository.NewEventRepository(unitOfWork)
 }
-func provideAuthorizationUserRepository(mysql *gorm.DB) *authorizationRepository.UserRepository {
-	return authorizationRepository.NewUserRepository(mysql)
+func provideAuthorizationUserRepository(unitOfWork *gormutils.UnitOfWork) *authorizationRepository.UserRepository {
+	return authorizationRepository.NewUserRepository(unitOfWork)
 }
 func provideAuthorizationRefreshTokenRepository(redisClient *redis.Client) *authorizationRepository.RefreshTokenRepository {
 	return authorizationRepository.NewRefreshTokenRepository(redisClient, &authorizationConverter.RefreshTokenConverter{})
 }
-func provideChatUserRepository(mysql *gorm.DB) *chatRepository.UserRepository {
-	return chatRepository.NewUserRepository(mysql)
+func provideChatUserRepository(unitOfWork *gormutils.UnitOfWork) *chatRepository.UserRepository {
+	return chatRepository.NewUserRepository(unitOfWork)
 }
-func provideChatRoomRepository(mysql *gorm.DB) *chatRepository.RoomRepository {
-	return chatRepository.NewRoomRepository(mysql)
+func provideChatRoomRepository(unitOfWork *gormutils.UnitOfWork) *chatRepository.RoomRepository {
+	return chatRepository.NewRoomRepository(unitOfWork)
 }
-func provideChatMessageRepository(mysql *gorm.DB) *chatRepository.MessageRepository {
-	return chatRepository.NewMessageRepository(mysql)
+func provideChatMessageRepository(unitOfWork *gormutils.UnitOfWork) *chatRepository.MessageRepository {
+	return chatRepository.NewMessageRepository(unitOfWork)
 }
-func provideSocialUserRepository(mysql *gorm.DB) *socialRepository.UserRepository {
-	return socialRepository.NewUserRepository(mysql)
+func provideSocialUserRepository(unitOfWork *gormutils.UnitOfWork) *socialRepository.UserRepository {
+	return socialRepository.NewUserRepository(unitOfWork)
 }
-func provideSocialRoomRepository(mysql *gorm.DB) *socialRepository.RoomRepository {
-	return socialRepository.NewRoomRepository(mysql)
+func provideSocialRoomRepository(unitOfWork *gormutils.UnitOfWork) *socialRepository.RoomRepository {
+	return socialRepository.NewRoomRepository(unitOfWork)
 }
-func provideNotificationMessageRepository(mysql *gorm.DB) *notificationRepository.MessageRepository {
-	return notificationRepository.NewMessageRepository(mysql)
+func provideNotificationMessageRepository(unitOfWork *gormutils.UnitOfWork) *notificationRepository.MessageRepository {
+	return notificationRepository.NewMessageRepository(unitOfWork)
 }
 
 // -------------------- Kafka & Canal & Websocket --------------------

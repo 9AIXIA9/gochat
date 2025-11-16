@@ -27,6 +27,9 @@ func (u *UnitOfWork) Execute(ctx context.Context, fn func(context.Context) error
 }
 
 func (u *UnitOfWork) DB(ctx context.Context) *gorm.DB {
+	if ctx == nil {
+		return u.db
+	}
 	txInCtx := ctx.Value(unitOfWorkKey)
 	tx, ok := txInCtx.(*gorm.DB)
 	if !ok {

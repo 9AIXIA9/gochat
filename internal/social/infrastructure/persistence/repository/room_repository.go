@@ -17,15 +17,15 @@ import (
 var _ application.RoomRepository = (*RoomRepository)(nil)
 
 type RoomRepository struct {
-	db *gorm.DB
+	unitOfWork *gormutils.UnitOfWork
 }
 
-func NewRoomRepository(db *gorm.DB) *RoomRepository {
-	return &RoomRepository{db: db}
+func NewRoomRepository(unitOfWork *gormutils.UnitOfWork) *RoomRepository {
+	return &RoomRepository{unitOfWork: unitOfWork}
 }
 
 func (repo *RoomRepository) Save(ctx context.Context, room *domain.Room) error {
-	return repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	return repo.unitOfWork.DB(ctx).WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		modelRoom := toModelRoom(room)
 		if err := tx.Create(modelRoom).Error; err != nil {
 			return gormutils.TranslateError(err)
@@ -49,7 +49,7 @@ func (repo *RoomRepository) Save(ctx context.Context, room *domain.Room) error {
 
 func (repo *RoomRepository) FindByNumber(ctx context.Context, number domain.RoomNumber) (*domain.Room, error) {
 	var m model.Room
-	err := repo.db.WithContext(ctx).
+	err := repo.unitOfWork.DB(ctx).WithContext(ctx).
 		Preload("Members").
 		Where("number = ?", number).
 		First(&m).Error
@@ -61,7 +61,7 @@ func (repo *RoomRepository) FindByNumber(ctx context.Context, number domain.Room
 
 func (repo *RoomRepository) FindByID(ctx context.Context, id domain.RoomID) (*domain.Room, error) {
 	var m model.Room
-	err := repo.db.WithContext(ctx).
+	err := repo.unitOfWork.DB(ctx).WithContext(ctx).
 		Preload("Members").
 		First(&m, "id = ?", id.String()).Error
 	if err != nil {
@@ -72,7 +72,7 @@ func (repo *RoomRepository) FindByID(ctx context.Context, id domain.RoomID) (*do
 
 func (repo *RoomRepository) SaveMember(ctx context.Context, roomID domain.RoomID, userID kernel.UserID) error {
 	if err := gormutils.TranslateError(
-		repo.db.WithContext(ctx).
+		repo.unitOfWork.DB(ctx).WithContext(ctx).
 			Model(&model.Room{ID: roomID}).
 			Association("Members").
 			Append(&model.User{ID: userID}),
@@ -87,7 +87,7 @@ func (repo *RoomRepository) SaveMember(ctx context.Context, roomID domain.RoomID
 
 func (repo *RoomRepository) DeleteMember(ctx context.Context, roomID domain.RoomID, userID kernel.UserID) error {
 	if err := gormutils.TranslateError(
-		repo.db.WithContext(ctx).
+		repo.unitOfWork.DB(ctx).WithContext(ctx).
 			Model(&model.Room{ID: roomID}).
 			Association("Members").
 			Delete(&model.User{ID: userID}),

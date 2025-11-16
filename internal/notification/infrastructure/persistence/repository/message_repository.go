@@ -16,15 +16,15 @@ import (
 var _ application.MessageRepository = (*MessageRepository)(nil)
 
 type MessageRepository struct {
-	db *gorm.DB
+	unitOfWork *gormutils.UnitOfWork
 }
 
-func NewMessageRepository(db *gorm.DB) *MessageRepository {
-	return &MessageRepository{db: db}
+func NewMessageRepository(unitOfWork *gormutils.UnitOfWork) *MessageRepository {
+	return &MessageRepository{unitOfWork: unitOfWork}
 }
 
 func (repo *MessageRepository) SaveMessage(ctx context.Context, recipient kernel.UserID, message *domain.Message) error {
-	return repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	return repo.unitOfWork.DB(ctx).WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// 持久化消息主体
 		msgModel := messageToModel(message)
 		if err := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(msgModel).Error; err != nil {
@@ -58,7 +58,7 @@ func (repo *MessageRepository) FindMessagesByUserID(ctx context.Context, userID 
 	}
 
 	var rows []row
-	err := repo.db.WithContext(ctx).
+	err := repo.unitOfWork.DB(ctx).WithContext(ctx).
 		Table(m.TableName()+" AS m").
 		Select("m.id, m.content, m.sender_id, m.created_at, ms.state").
 		Joins("JOIN "+ms.TableName()+" AS ms ON ms.message_id = m.id").
@@ -84,13 +84,13 @@ func (repo *MessageRepository) FindMessagesByUserID(ctx context.Context, userID 
 }
 
 func (repo *MessageRepository) UpdateMessageState(ctx context.Context, userID kernel.UserID, messageID domain.MessageID, newState domain.MessageState) error {
-	return gormutils.TranslateError(repo.db.WithContext(ctx).Model(&model.MessageState{}).
+	return gormutils.TranslateError(repo.unitOfWork.DB(ctx).WithContext(ctx).Model(&model.MessageState{}).
 		Where("user_id = ? AND message_id = ?", userID, messageID).
 		Update("state", newState).Error)
 }
 
 func (repo *MessageRepository) UpdateMessageStates(ctx context.Context, userID kernel.UserID, messageIDs []domain.MessageID, newState domain.MessageState) error {
-	return gormutils.TranslateError(repo.db.WithContext(ctx).Model(&model.MessageState{}).
+	return gormutils.TranslateError(repo.unitOfWork.DB(ctx).WithContext(ctx).Model(&model.MessageState{}).
 		Where("user_id = ? AND message_id IN ?", userID, messageIDs).
 		Update("state", newState).Error)
 }

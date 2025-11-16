@@ -25,9 +25,9 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate 
 	if err != nil {
 		return nil, err
 	}
-	userRepository := provideAuthorizationUserRepository(db)
-	eventRepository := provideEventRepository(db)
 	unitOfWork := provideUnitOfWork(db)
+	userRepository := provideAuthorizationUserRepository(unitOfWork)
+	eventRepository := provideEventRepository(unitOfWork)
 	signUpUseCase := provideSignUpUseCase(eventIDGenerator, userIDGenerator, userNumberGenerator, hasher, userRepository, eventRepository, unitOfWork)
 	client, err := provideRedis(app)
 	if err != nil {
@@ -40,17 +40,17 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate 
 	refreshAccessTokenUseCase := provideRefreshAccessTokenUseCase(refreshTokenRepository, refreshTokenRepository, accessTokenManager, refreshTokenGenerator)
 	parseAccessTokenUseCase := provideParseAccessTokenUseCase(accessTokenManager)
 	messageIDGenerator := provideMessageIDGenerator()
-	repositoryUserRepository := provideChatUserRepository(db)
-	messageRepository := provideChatMessageRepository(db)
+	repositoryUserRepository := provideChatUserRepository(unitOfWork)
+	messageRepository := provideChatMessageRepository(unitOfWork)
 	sendPrivateMessageUseCase := provideSendPrivateMessageUseCase(messageIDGenerator, eventIDGenerator, repositoryUserRepository, messageRepository, eventRepository, unitOfWork)
-	roomRepository := provideChatRoomRepository(db)
+	roomRepository := provideChatRoomRepository(unitOfWork)
 	sendRoomMessageUseCase := provideSendRoomMessageUseCase(messageIDGenerator, eventIDGenerator, roomRepository, messageRepository, eventRepository, unitOfWork)
 	roomIDGenerator := provideSocialRoomIDGenerator()
 	roomNumberGenerator, err := provideSocialRoomNumberGenerator(app)
 	if err != nil {
 		return nil, err
 	}
-	repositoryRoomRepository := provideSocialRoomRepository(db)
+	repositoryRoomRepository := provideSocialRoomRepository(unitOfWork)
 	createRoomUseCase := provideCreateRoomUseCase(eventIDGenerator, roomIDGenerator, roomNumberGenerator, hasher, repositoryRoomRepository, eventRepository, unitOfWork)
 	joinRoomUseCase := provideJoinRoomUseCase(eventIDGenerator, eventRepository, repositoryRoomRepository, hasher, repositoryRoomRepository, unitOfWork)
 	leaveRoomUseCase := provideLeaveRoomUseCase(eventIDGenerator, repositoryRoomRepository, repositoryRoomRepository, eventRepository, unitOfWork)
@@ -60,7 +60,7 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate 
 	}
 	upgrader := provideWebsocketUpgrader(app)
 	manager := provideWebsocketManager(upgrader)
-	repositoryMessageRepository := provideNotificationMessageRepository(db)
+	repositoryMessageRepository := provideNotificationMessageRepository(unitOfWork)
 	messageReadUseCase := provideNotificationMessageReadUseCase(repositoryMessageRepository)
 	router := provideWebsocketRouter(messageReadUseCase)
 	eventPublisher, err := provideKafkaPublisher(app, eventRepository)
@@ -87,7 +87,7 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate 
 	emailAvailable := provideEmailAvailable(dialer)
 	userSessionStartedUseCase := provideWebsocketUserSessionStartedUseCase(eventIDGenerator, eventPublisher)
 	userCreatedUseCase := provideAuthUserCreatedUseCase(eventIDGenerator, eventPublisher, userRepository)
-	userRepository2 := provideSocialUserRepository(db)
+	userRepository2 := provideSocialUserRepository(unitOfWork)
 	usecaseUserCreatedUseCase := provideSocialUserCreatedUseCase(userRepository2)
 	roomCreatedUseCase := provideSocialRoomCreatedUseCase(eventIDGenerator, eventPublisher, repositoryRoomRepository)
 	roomJoinedUseCase := provideSocialRoomJoinedUseCase(eventIDGenerator, eventPublisher)
