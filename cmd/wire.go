@@ -13,9 +13,11 @@ import (
 	chatApp "gochat/internal/chat/application"
 	chatUUID "gochat/internal/chat/infrastructure/uuid"
 	"gochat/internal/infrastructure/bcrypt"
+	gormutils "gochat/internal/infrastructure/gorm"
 	infraRepository "gochat/internal/infrastructure/persistence/repository"
 	infraUUID "gochat/internal/infrastructure/uuid"
 	"gochat/internal/shared/event"
+	"gochat/internal/shared/kernel"
 	socialApp "gochat/internal/social/application"
 	socialRepository "gochat/internal/social/infrastructure/persistence/repository"
 	socialSnowflake "gochat/internal/social/infrastructure/snowflake"
@@ -36,6 +38,7 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate 
 		provideValidator,
 
 		// Interface bindings to concrete providers returned by our providers
+		wire.Bind(new(kernel.UnitOfWork), new(*gormutils.UnitOfWork)),
 		wire.Bind(new(event.IDGenerator), new(*infraUUID.EventIDGenerator)),
 		wire.Bind(new(authorizationApp.UserIDGenerator), new(*authorizationUuid.UserIDGenerator)),
 		wire.Bind(new(authorizationApp.UserNumberGenerator), new(*authorizationSnowflake.UserNumberGenerator)),
@@ -75,6 +78,7 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate 
 		provideEmailNotifier,
 		provideMessageNotifier,
 		// Repositories
+		provideUnitOfWork,
 		provideEventRepository,
 		provideAuthorizationUserRepository,
 		provideAuthorizationRefreshTokenRepository,

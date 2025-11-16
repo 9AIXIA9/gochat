@@ -12,6 +12,8 @@ import (
 	"gorm.io/gorm"
 )
 
+//TODO 从上下文中获取 事务来保证一致性
+
 var _ application.UserRepository = (*UserRepository)(nil)
 
 type UserRepository struct {

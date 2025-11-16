@@ -27,7 +27,8 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate 
 	}
 	userRepository := provideAuthorizationUserRepository(db)
 	eventRepository := provideEventRepository(db)
-	signUpUseCase := provideSignUpUseCase(eventIDGenerator, userIDGenerator, userNumberGenerator, hasher, userRepository, eventRepository)
+	unitOfWork := provideUnitOfWork(db)
+	signUpUseCase := provideSignUpUseCase(eventIDGenerator, userIDGenerator, userNumberGenerator, hasher, userRepository, eventRepository, unitOfWork)
 	client, err := provideRedis(app)
 	if err != nil {
 		return nil, err
@@ -41,18 +42,18 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate 
 	messageIDGenerator := provideMessageIDGenerator()
 	repositoryUserRepository := provideChatUserRepository(db)
 	messageRepository := provideChatMessageRepository(db)
-	sendPrivateMessageUseCase := provideSendPrivateMessageUseCase(messageIDGenerator, eventIDGenerator, repositoryUserRepository, messageRepository, eventRepository)
+	sendPrivateMessageUseCase := provideSendPrivateMessageUseCase(messageIDGenerator, eventIDGenerator, repositoryUserRepository, messageRepository, eventRepository, unitOfWork)
 	roomRepository := provideChatRoomRepository(db)
-	sendRoomMessageUseCase := provideSendRoomMessageUseCase(messageIDGenerator, eventIDGenerator, roomRepository, messageRepository, eventRepository)
+	sendRoomMessageUseCase := provideSendRoomMessageUseCase(messageIDGenerator, eventIDGenerator, roomRepository, messageRepository, eventRepository, unitOfWork)
 	roomIDGenerator := provideSocialRoomIDGenerator()
 	roomNumberGenerator, err := provideSocialRoomNumberGenerator(app)
 	if err != nil {
 		return nil, err
 	}
 	repositoryRoomRepository := provideSocialRoomRepository(db)
-	createRoomUseCase := provideCreateRoomUseCase(eventIDGenerator, roomIDGenerator, roomNumberGenerator, hasher, repositoryRoomRepository, eventRepository)
-	joinRoomUseCase := provideJoinRoomUseCase(eventIDGenerator, eventRepository, repositoryRoomRepository, hasher, repositoryRoomRepository)
-	leaveRoomUseCase := provideLeaveRoomUseCase(eventIDGenerator, repositoryRoomRepository, repositoryRoomRepository, eventRepository)
+	createRoomUseCase := provideCreateRoomUseCase(eventIDGenerator, roomIDGenerator, roomNumberGenerator, hasher, repositoryRoomRepository, eventRepository, unitOfWork)
+	joinRoomUseCase := provideJoinRoomUseCase(eventIDGenerator, eventRepository, repositoryRoomRepository, hasher, repositoryRoomRepository, unitOfWork)
+	leaveRoomUseCase := provideLeaveRoomUseCase(eventIDGenerator, repositoryRoomRepository, repositoryRoomRepository, eventRepository, unitOfWork)
 	validator, err := provideValidator()
 	if err != nil {
 		return nil, err

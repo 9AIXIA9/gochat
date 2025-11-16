@@ -13,8 +13,6 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-//TODO 目标：优化数据库操作
-
 var _ application.MessageRepository = (*MessageRepository)(nil)
 
 type MessageRepository struct {

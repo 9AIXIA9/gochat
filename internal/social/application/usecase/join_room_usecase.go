@@ -33,6 +33,7 @@ type joinRoomUseCase struct {
 	comparator       application.Comparator
 	roomMemberSaver  application.RoomMemberSaver
 	eventSaver       event.UnpublishedSaver
+	unitOfWork       kernel.UnitOfWork
 }
 
 func NewJoinRoomUseCase(
@@ -41,6 +42,7 @@ func NewJoinRoomUseCase(
 	finder application.RoomFinderByNumber,
 	comparator application.Comparator,
 	roomMemberSaver application.RoomMemberSaver,
+	unitOfWork kernel.UnitOfWork,
 ) JoinRoomUseCase {
 	return &joinRoomUseCase{
 		eventIDGenerator: eventIDGenerator,
@@ -48,6 +50,7 @@ func NewJoinRoomUseCase(
 		comparator:       comparator,
 		roomMemberSaver:  roomMemberSaver,
 		eventSaver:       eventSaver,
+		unitOfWork:       unitOfWork,
 	}
 }
 
@@ -67,11 +70,16 @@ func (uc *joinRoomUseCase) Execute(ctx context.Context, input *JoinRoomInput) (*
 		return nil, err
 	}
 
-	if err := uc.roomMemberSaver.SaveMember(ctx, room.ID(), input.UserID); err != nil {
-		return nil, err
-	}
+	if err := uc.unitOfWork.Execute(ctx, func(txCtx context.Context) error {
+		if err := uc.roomMemberSaver.SaveMember(txCtx, room.ID(), input.UserID); err != nil {
+			return err
+		}
 
-	if err := uc.eventSaver.Saves(ctx, room.GetEvents()); err != nil {
+		if err := uc.eventSaver.Saves(txCtx, room.GetEvents()); err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
 		return nil, err
 	}
 
