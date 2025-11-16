@@ -48,6 +48,7 @@ import (
 	notificationKafka "gochat/internal/notification/port/kafka"
 	notificationWebsocket "gochat/internal/notification/port/websocket"
 	"gochat/internal/shared/event"
+	"gochat/internal/shared/kernel"
 	socialUseCase "gochat/internal/social/application/usecase"
 	socialDomain "gochat/internal/social/domain"
 	socialModel "gochat/internal/social/infrastructure/persistence/model"
@@ -148,32 +149,35 @@ func provideMessageNotifier(manager *websocket.Manager) *notificationWebsocketIn
 }
 
 // -------------------- Repositories --------------------
-func provideEventRepository(mysql *gorm.DB) *repository.EventRepository {
-	return repository.NewEventRepository(mysql)
+func provideUnitOfWork(mysql *gorm.DB) *gormutils.UnitOfWork {
+	return gormutils.NewUnitOfWork(mysql)
 }
-func provideAuthorizationUserRepository(mysql *gorm.DB) *authorizationRepository.UserRepository {
-	return authorizationRepository.NewUserRepository(mysql)
+func provideEventRepository(unitOfWork *gormutils.UnitOfWork) *repository.EventRepository {
+	return repository.NewEventRepository(unitOfWork)
+}
+func provideAuthorizationUserRepository(unitOfWork *gormutils.UnitOfWork) *authorizationRepository.UserRepository {
+	return authorizationRepository.NewUserRepository(unitOfWork)
 }
 func provideAuthorizationRefreshTokenRepository(redisClient *redis.Client) *authorizationRepository.RefreshTokenRepository {
 	return authorizationRepository.NewRefreshTokenRepository(redisClient, &authorizationConverter.RefreshTokenConverter{})
 }
-func provideChatUserRepository(mysql *gorm.DB) *chatRepository.UserRepository {
-	return chatRepository.NewUserRepository(mysql)
+func provideChatUserRepository(unitOfWork *gormutils.UnitOfWork) *chatRepository.UserRepository {
+	return chatRepository.NewUserRepository(unitOfWork)
 }
-func provideChatRoomRepository(mysql *gorm.DB) *chatRepository.RoomRepository {
-	return chatRepository.NewRoomRepository(mysql)
+func provideChatRoomRepository(unitOfWork *gormutils.UnitOfWork) *chatRepository.RoomRepository {
+	return chatRepository.NewRoomRepository(unitOfWork)
 }
-func provideChatMessageRepository(mysql *gorm.DB) *chatRepository.MessageRepository {
-	return chatRepository.NewMessageRepository(mysql)
+func provideChatMessageRepository(unitOfWork *gormutils.UnitOfWork) *chatRepository.MessageRepository {
+	return chatRepository.NewMessageRepository(unitOfWork)
 }
-func provideSocialUserRepository(mysql *gorm.DB) *socialRepository.UserRepository {
-	return socialRepository.NewUserRepository(mysql)
+func provideSocialUserRepository(unitOfWork *gormutils.UnitOfWork) *socialRepository.UserRepository {
+	return socialRepository.NewUserRepository(unitOfWork)
 }
-func provideSocialRoomRepository(mysql *gorm.DB) *socialRepository.RoomRepository {
-	return socialRepository.NewRoomRepository(mysql)
+func provideSocialRoomRepository(unitOfWork *gormutils.UnitOfWork) *socialRepository.RoomRepository {
+	return socialRepository.NewRoomRepository(unitOfWork)
 }
-func provideNotificationMessageRepository(mysql *gorm.DB) *notificationRepository.MessageRepository {
-	return notificationRepository.NewMessageRepository(mysql)
+func provideNotificationMessageRepository(unitOfWork *gormutils.UnitOfWork) *notificationRepository.MessageRepository {
+	return notificationRepository.NewMessageRepository(unitOfWork)
 }
 
 // -------------------- Kafka & Canal & Websocket --------------------
@@ -208,8 +212,9 @@ func provideSignUpUseCase(
 	encryptor authorizationApp.Encryptor,
 	userSaver authorizationApp.UserSaver,
 	eventSaver event.UnpublishedSaver,
+	unitOfWork kernel.UnitOfWork,
 ) authorizationUsecase.SignUpUseCase {
-	return authorizationUsecase.NewSignUpUseCase(eventIDGen, userIDGen, numberGen, encryptor, userSaver, eventSaver)
+	return authorizationUsecase.NewSignUpUseCase(eventIDGen, userIDGen, numberGen, encryptor, userSaver, eventSaver, unitOfWork)
 }
 
 func provideLoginUseCase(
@@ -220,9 +225,8 @@ func provideLoginUseCase(
 	refreshTokenSaver authorizationApp.RefreshTokenSaver,
 	accessTokenGenerator authorizationApp.AccessTokenGenerator,
 	refreshTokenGenerator authorizationApp.RefreshTokenGenerator,
-	eventSaver event.UnpublishedSaver,
 ) authorizationUsecase.LoginUseCase {
-	return authorizationUsecase.NewLoginUseCase(eventIDGen, comparator, userFinder, userUpdater, refreshTokenSaver, accessTokenGenerator, refreshTokenGenerator, eventSaver)
+	return authorizationUsecase.NewLoginUseCase(eventIDGen, comparator, userFinder, userUpdater, refreshTokenSaver, accessTokenGenerator, refreshTokenGenerator)
 }
 func provideRefreshAccessTokenUseCase(
 	refreshTokenSaver authorizationApp.RefreshTokenSaver,
@@ -241,8 +245,9 @@ func provideSendPrivateMessageUseCase(
 	userRepo *chatRepository.UserRepository,
 	msgRepo *chatRepository.MessageRepository,
 	eventSaver event.UnpublishedSaver,
+	unitOfWork kernel.UnitOfWork,
 ) chatUsecase.SendPrivateMessageUseCase {
-	return chatUsecase.NewSendPrivateMessageUseCase(messageIDGen, eventIDGen, userRepo, msgRepo, eventSaver)
+	return chatUsecase.NewSendPrivateMessageUseCase(messageIDGen, eventIDGen, userRepo, msgRepo, eventSaver, unitOfWork)
 }
 func provideSendRoomMessageUseCase(
 	messageIDGen chatApp.MessageIDGenerator,
@@ -250,8 +255,9 @@ func provideSendRoomMessageUseCase(
 	roomRepo *chatRepository.RoomRepository,
 	msgRepo *chatRepository.MessageRepository,
 	eventSaver event.UnpublishedSaver,
+	unitOfWork kernel.UnitOfWork,
 ) chatUsecase.SendRoomMessageUseCase {
-	return chatUsecase.NewSendRoomMessageUseCase(messageIDGen, eventIDGen, roomRepo, msgRepo, eventSaver)
+	return chatUsecase.NewSendRoomMessageUseCase(messageIDGen, eventIDGen, roomRepo, msgRepo, eventSaver, unitOfWork)
 }
 func provideCreateRoomUseCase(
 	eventIDGen event.IDGenerator,
@@ -260,25 +266,28 @@ func provideCreateRoomUseCase(
 	encryptor socialApp.Encryptor,
 	roomSaver socialApp.RoomSaver,
 	eventSaver event.UnpublishedSaver,
+	unitOfWork kernel.UnitOfWork,
 ) socialUseCase.CreateRoomUseCase {
-	return socialUseCase.NewCreateRoomUseCase(eventIDGen, roomIDGen, numberGen, encryptor, roomSaver, eventSaver)
+	return socialUseCase.NewCreateRoomUseCase(eventIDGen, roomIDGen, numberGen, encryptor, roomSaver, eventSaver, unitOfWork)
 }
 func provideJoinRoomUseCase(
 	eventIDGen event.IDGenerator,
 	eventSaver event.UnpublishedSaver,
-	finder socialApp.RoomFinder,
+	finder socialApp.RoomFinderByNumber,
 	comparator socialApp.Comparator,
-	roomJoiner socialApp.RoomJoiner,
+	roomMemberSaver socialApp.RoomMemberSaver,
+	unitOfWork kernel.UnitOfWork,
 ) socialUseCase.JoinRoomUseCase {
-	return socialUseCase.NewJoinRoomUseCase(eventIDGen, eventSaver, finder, comparator, roomJoiner)
+	return socialUseCase.NewJoinRoomUseCase(eventIDGen, eventSaver, finder, comparator, roomMemberSaver, unitOfWork)
 }
 func provideLeaveRoomUseCase(
 	eventIDGen event.IDGenerator,
-	finder socialApp.RoomFinder,
-	roomLeaver socialApp.RoomLeaver,
+	finder socialApp.RoomFinderByNumber,
+	roomMemberDeleter socialApp.RoomMemberDeleter,
 	eventSaver event.UnpublishedSaver,
+	unitOfWork kernel.UnitOfWork,
 ) socialUseCase.LeaveRoomUseCase {
-	return socialUseCase.NewLeaveRoomUseCase(eventIDGen, finder, roomLeaver, eventSaver)
+	return socialUseCase.NewLeaveRoomUseCase(eventIDGen, finder, roomMemberDeleter, eventSaver, unitOfWork)
 }
 
 func provideKafkaTopics() []string {

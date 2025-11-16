@@ -21,11 +21,10 @@ func (n RoomNumber) String() string {
 
 type Room struct {
 	id                RoomID
-	owner             kernel.UserID
 	number            RoomNumber
+	owner             kernel.UserID
 	passwordEncrypted string
 	members           []kernel.UserID
-	memberCount       int
 	maxMemberCount    int
 	createdAt         time.Time
 	eventManager      *event.Manager
@@ -37,7 +36,6 @@ func NewRoom(
 	number RoomNumber,
 	passwordEncrypted string,
 	members []kernel.UserID,
-	memberCount int,
 	maxMemberCount int,
 	createdAt time.Time,
 ) *Room {
@@ -47,7 +45,6 @@ func NewRoom(
 		number:            number,
 		passwordEncrypted: passwordEncrypted,
 		members:           members,
-		memberCount:       memberCount,
 		maxMemberCount:    maxMemberCount,
 		createdAt:         createdAt,
 		eventManager:      event.NewEventManager(),
@@ -64,7 +61,7 @@ func (r *Room) Create(generator event.IDGenerator) error {
 }
 
 func (r *Room) Join(userID kernel.UserID, generator event.IDGenerator) error {
-	if r.maxMemberCount <= r.memberCount {
+	if r.maxMemberCount <= r.MemberCount() {
 		return myErrors.ErrExceedMaxValue
 	}
 
@@ -73,7 +70,6 @@ func (r *Room) Join(userID kernel.UserID, generator event.IDGenerator) error {
 	}
 
 	r.members = append(r.members, userID)
-	r.memberCount++
 
 	ev, err := NewRoomJoinedEvent(generator.Generate(), userID, r.id)
 	if err != nil {
@@ -92,7 +88,6 @@ func (r *Room) Leave(userID kernel.UserID, generator event.IDGenerator) error {
 	for i, member := range r.members {
 		if member == userID {
 			r.members = append(r.members[:i], r.members[i+1:]...)
-			r.memberCount--
 
 			ev, err := NewRoomLeftEvent(generator.Generate(), userID, r.id)
 			if err != nil {
@@ -128,7 +123,7 @@ func (r *Room) MaxMemberCount() int {
 }
 
 func (r *Room) MemberCount() int {
-	return r.memberCount
+	return len(r.members)
 }
 
 func (r *Room) Owner() kernel.UserID {

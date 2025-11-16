@@ -35,7 +35,6 @@ type loginUseCase struct {
 	refreshTokenSaver     application.RefreshTokenSaver
 	accessTokenGenerator  application.AccessTokenGenerator
 	refreshTokenGenerator application.RefreshTokenGenerator
-	eventSaver            event.UnpublishedSaver
 }
 
 func NewLoginUseCase(
@@ -46,7 +45,6 @@ func NewLoginUseCase(
 	refreshTokenSaver application.RefreshTokenSaver,
 	accessTokenGenerator application.AccessTokenGenerator,
 	refreshTokenGenerator application.RefreshTokenGenerator,
-	eventSaver event.UnpublishedSaver,
 ) LoginUseCase {
 	return &loginUseCase{
 		eventIDGenerator:      idGenerator,
@@ -56,7 +54,6 @@ func NewLoginUseCase(
 		refreshTokenSaver:     refreshTokenSaver,
 		accessTokenGenerator:  accessTokenGenerator,
 		refreshTokenGenerator: refreshTokenGenerator,
-		eventSaver:            eventSaver,
 	}
 }
 
@@ -89,10 +86,6 @@ func (uc *loginUseCase) Execute(ctx context.Context, input *LoginInput) (*LoginO
 	}
 
 	if err := uc.userUpdater.UpdateLoggedInAt(ctx, user.ID(), user.LastLoggedInAt()); err != nil {
-		return nil, err
-	}
-
-	if err := uc.eventSaver.Saves(ctx, user.GetEvents()); err != nil {
 		return nil, err
 	}
 

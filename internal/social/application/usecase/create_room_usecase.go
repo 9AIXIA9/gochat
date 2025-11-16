@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+const defaultMemberCount = 20
+
 type CreateRoomUseCase kernel.UseCase[*CreateRoomInput, *CreateRoomOutput]
 
 type CreateRoomInput struct {
@@ -25,8 +27,8 @@ func (r *CreateRoomInput) Validate() error {
 	if len(r.Owner) == 0 {
 		return myErrors.ErrEmptyInput
 	}
-	if r.MaxMemberCount < 1 {
-		return myErrors.ErrInvalidNumber
+	if r.MaxMemberCount < 2 {
+		r.MaxMemberCount = defaultMemberCount
 	}
 	return nil
 }
@@ -42,6 +44,7 @@ type createRoomUseCase struct {
 	encryptor        application.Encryptor
 	roomSaver        application.RoomSaver
 	eventSaver       event.UnpublishedSaver
+	unitOfWork       kernel.UnitOfWork
 }
 
 func NewCreateRoomUseCase(
@@ -51,6 +54,7 @@ func NewCreateRoomUseCase(
 	encryptor application.Encryptor,
 	roomSaver application.RoomSaver,
 	eventSaver event.UnpublishedSaver,
+	unitOfWork kernel.UnitOfWork,
 ) CreateRoomUseCase {
 	return &createRoomUseCase{
 		eventIDGenerator: eventIDGenerator,
@@ -59,6 +63,7 @@ func NewCreateRoomUseCase(
 		encryptor:        encryptor,
 		roomSaver:        roomSaver,
 		eventSaver:       eventSaver,
+		unitOfWork:       unitOfWork,
 	}
 }
 
@@ -79,7 +84,6 @@ func (uc *createRoomUseCase) Execute(ctx context.Context, input *CreateRoomInput
 		uc.numberGenerator.Generate(),
 		passwordEncrypted,
 		make([]kernel.UserID, 0, 1),
-		0,
 		input.MaxMemberCount,
 		now,
 	)
@@ -92,11 +96,16 @@ func (uc *createRoomUseCase) Execute(ctx context.Context, input *CreateRoomInput
 		return nil, err
 	}
 
-	if err := uc.roomSaver.Save(ctx, room); err != nil {
-		return nil, err
-	}
+	if err := uc.unitOfWork.Execute(ctx, func(txCtx context.Context) error {
+		if err := uc.roomSaver.Save(txCtx, room); err != nil {
+			return err
+		}
 
-	if err := uc.eventSaver.Saves(ctx, room.GetEvents()); err != nil {
+		if err := uc.eventSaver.Saves(txCtx, room.GetEvents()); err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
 		return nil, err
 	}
 

@@ -8,25 +8,17 @@ import (
 
 type RoomRepository interface {
 	RoomSaver
-	RoomJoiner
-	RoomLeaver
-	RoomFinder
+	RoomFinderByNumber
 	RoomFinderByID
+	RoomMemberSaver
+	RoomMemberDeleter
 }
 
 type RoomSaver interface {
 	Save(ctx context.Context, room *domain.Room) error
 }
 
-type RoomJoiner interface {
-	Join(ctx context.Context, roomID domain.RoomID, userID kernel.UserID) error
-}
-
-type RoomLeaver interface {
-	Leave(ctx context.Context, roomID domain.RoomID, userID kernel.UserID) error
-}
-
-type RoomFinder interface {
+type RoomFinderByNumber interface {
 	FindByNumber(ctx context.Context, number domain.RoomNumber) (*domain.Room, error)
 }
 
@@ -34,6 +26,10 @@ type RoomFinderByID interface {
 	FindByID(ctx context.Context, id domain.RoomID) (*domain.Room, error)
 }
 
-//type RoomMemberUpdater interface {
-//	UpdateState(ctx context.Context,)
-//}
+type RoomMemberSaver interface {
+	SaveMember(ctx context.Context, roomID domain.RoomID, userID kernel.UserID) error
+}
+
+type RoomMemberDeleter interface {
+	DeleteMember(ctx context.Context, roomID domain.RoomID, userID kernel.UserID) error
+}

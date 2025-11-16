@@ -24,23 +24,26 @@ func (r *LeaveRoomInput) Validate() error {
 }
 
 type leaveRoomUseCase struct {
-	eventIDGenerator event.IDGenerator
-	finder           application.RoomFinder
-	roomLeaver       application.RoomLeaver
-	eventSaver       event.UnpublishedSaver
+	eventIDGenerator  event.IDGenerator
+	finder            application.RoomFinderByNumber
+	roomMemberDeleter application.RoomMemberDeleter
+	eventSaver        event.UnpublishedSaver
+	unitOfWork        kernel.UnitOfWork
 }
 
 func NewLeaveRoomUseCase(
 	eventIDGenerator event.IDGenerator,
-	finder application.RoomFinder,
-	roomLeaver application.RoomLeaver,
+	finder application.RoomFinderByNumber,
+	roomMemberDeleter application.RoomMemberDeleter,
 	eventSaver event.UnpublishedSaver,
+	unitOfWork kernel.UnitOfWork,
 ) LeaveRoomUseCase {
 	return &leaveRoomUseCase{
-		eventIDGenerator: eventIDGenerator,
-		finder:           finder,
-		roomLeaver:       roomLeaver,
-		eventSaver:       eventSaver,
+		eventIDGenerator:  eventIDGenerator,
+		finder:            finder,
+		roomMemberDeleter: roomMemberDeleter,
+		eventSaver:        eventSaver,
+		unitOfWork:        unitOfWork,
 	}
 }
 
@@ -54,11 +57,16 @@ func (uc *leaveRoomUseCase) Execute(ctx context.Context, input *LeaveRoomInput) 
 		return nil, err
 	}
 
-	if err := uc.roomLeaver.Leave(ctx, room.ID(), input.UserID); err != nil {
-		return nil, err
-	}
+	if err := uc.unitOfWork.Execute(ctx, func(txCtx context.Context) error {
+		if err := uc.roomMemberDeleter.DeleteMember(txCtx, room.ID(), input.UserID); err != nil {
+			return err
+		}
 
-	if err := uc.eventSaver.Saves(ctx, room.GetEvents()); err != nil {
+		if err := uc.eventSaver.Saves(txCtx, room.GetEvents()); err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
 		return nil, err
 	}
 

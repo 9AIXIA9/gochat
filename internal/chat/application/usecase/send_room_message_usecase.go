@@ -35,6 +35,7 @@ type sendRoomMessageUseCase struct {
 	roomFinder            application.RoomFinder
 	messageSaver          application.RoomMessageSaver
 	unpublishedEventSaver event.UnpublishedSaver
+	unitOfWork            kernel.UnitOfWork
 }
 
 func NewSendRoomMessageUseCase(
@@ -43,6 +44,7 @@ func NewSendRoomMessageUseCase(
 	roomFinder application.RoomFinder,
 	messageSaver application.RoomMessageSaver,
 	unpublishedEventSaver event.UnpublishedSaver,
+	unitOfWork kernel.UnitOfWork,
 ) SendRoomMessageUseCase {
 	return &sendRoomMessageUseCase{
 		messageIDGenerator:    messageIDGenerator,
@@ -50,6 +52,7 @@ func NewSendRoomMessageUseCase(
 		roomFinder:            roomFinder,
 		messageSaver:          messageSaver,
 		unpublishedEventSaver: unpublishedEventSaver,
+		unitOfWork:            unitOfWork,
 	}
 }
 
@@ -64,12 +67,18 @@ func (uc *sendRoomMessageUseCase) Execute(ctx context.Context, input *SendRoomMe
 		return nil, err
 	}
 
-	if err := uc.messageSaver.SaveRoomMessage(ctx, room.ID(), message); err != nil {
+	if err := uc.unitOfWork.Execute(ctx, func(txCtx context.Context) error {
+		if err := uc.messageSaver.SaveRoomMessage(txCtx, room.ID(), message); err != nil {
+			return err
+		}
+
+		if err := uc.unpublishedEventSaver.Saves(txCtx, room.GetEvents()); err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
 		return nil, err
 	}
 
-	if err := uc.unpublishedEventSaver.Saves(ctx, room.GetEvents()); err != nil {
-		return nil, err
-	}
 	return nil, nil
 }

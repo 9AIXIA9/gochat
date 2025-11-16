@@ -47,7 +47,7 @@ func (uc *undeliveredMessageNotificationRequestedUseCase) Execute(ctx context.Co
 		return nil, err
 	}
 
-	ids := make([]domain.MessageID, 0, len(messages))
+	deliveredIDs := make([]domain.MessageID, 0, len(messages))
 	for _, message := range messages {
 		if err := uc.messageNotifier.Notify(input.UserID, message); err != nil {
 			if errors.Is(err, myErrors.ErrNotFound) {
@@ -55,9 +55,9 @@ func (uc *undeliveredMessageNotificationRequestedUseCase) Execute(ctx context.Co
 			}
 			return nil, err
 		}
-		ids = append(ids, message.ID())
+		deliveredIDs = append(deliveredIDs, message.ID())
 	}
-	if err := uc.messageStatesUpdater.UpdateMessageStates(ctx, input.UserID, ids, domain.MessageStateDelivered); err != nil {
+	if err := uc.messageStatesUpdater.UpdateMessageStates(ctx, input.UserID, deliveredIDs, domain.MessageStateDelivered); err != nil {
 		return nil, err
 	}
 
