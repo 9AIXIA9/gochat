@@ -3,8 +3,10 @@ package websocket
 import (
 	"context"
 	"errors"
-	myErrors "gochat/internal/shared/errors"
 	"time"
+
+	"gochat/internal/infrastructure/prometheus"
+	myErrors "gochat/internal/shared/errors"
 
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
@@ -23,7 +25,8 @@ type Client struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
-	send chan []byte
+	send    chan []byte
+	metrics *prometheus.Metrics
 }
 
 func NewClient(ctx context.Context, conn *websocket.Conn, router *Router) *Client {
@@ -36,6 +39,8 @@ func NewClient(ctx context.Context, conn *websocket.Conn, router *Router) *Clien
 		send:   make(chan []byte, 64),
 	}
 }
+
+func (c *Client) SetMetrics(m *prometheus.Metrics) { c.metrics = m }
 
 func (c *Client) Start() {
 	go c.writePump()
@@ -78,7 +83,13 @@ func (c *Client) readPump() {
 		if err != nil {
 			var closeErr *websocket.CloseError
 			if errors.As(err, &closeErr) {
+				if c.metrics != nil {
+					c.metrics.WSReadErrors.WithLabelValues("close").Inc()
+				}
 				return
+			}
+			if c.metrics != nil {
+				c.metrics.WSReadErrors.WithLabelValues("other").Inc()
 			}
 			return
 		}
@@ -90,16 +101,29 @@ func (c *Client) readPump() {
 
 		switch msg.Type {
 		case PingType:
+			if c.metrics != nil {
+				c.metrics.WSMessagesIn.WithLabelValues("ping").Inc()
+			}
 			if b, err := EncodePong(); err == nil {
 				_ = c.Send(b)
+				if c.metrics != nil {
+					c.metrics.WSMessagesOut.WithLabelValues("pong").Inc()
+				}
 			}
 		case RequestType:
+			if c.metrics != nil {
+				c.metrics.WSMessagesIn.WithLabelValues("request").Inc()
+			}
 			req, err := DecodeRequest(msg.Payload)
 			if err != nil {
 				zap.L().Debug("websocket decode request failed", zap.Error(err))
 				continue
 			}
+			start := time.Now()
 			resp, err := c.router.Route(c.ctx, req)
+			if c.metrics != nil {
+				c.metrics.WSRouteDur.WithLabelValues(string(req.RequestTopic)).Observe(time.Since(start).Seconds())
+			}
 			if err != nil {
 				zap.L().Error("websocket route request failed", zap.Error(err))
 				continue
@@ -112,8 +136,14 @@ func (c *Client) readPump() {
 					continue
 				}
 				_ = c.Send(b)
+				if c.metrics != nil {
+					c.metrics.WSMessagesOut.WithLabelValues("response").Inc()
+				}
 			}
 		default:
+			if c.metrics != nil {
+				c.metrics.WSMessagesIn.WithLabelValues("other").Inc()
+			}
 			zap.L().Debug("websocket client receive invalid message type", zap.String("type", string(msg.Type)))
 		}
 	}
@@ -133,11 +163,17 @@ func (c *Client) writePump() {
 		case b := <-c.send:
 			_ = c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := c.conn.WriteMessage(websocket.TextMessage, b); err != nil {
+				if c.metrics != nil {
+					c.metrics.WSWriteErrors.WithLabelValues("text").Inc()
+				}
 				return
 			}
 		case <-ticker.C:
 			_ = c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				if c.metrics != nil {
+					c.metrics.WSWriteErrors.WithLabelValues("ping").Inc()
+				}
 				return
 			}
 		}

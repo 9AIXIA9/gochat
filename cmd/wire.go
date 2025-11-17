@@ -36,6 +36,7 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 		provideMysql,
 		provideRedis,
 		provideValidator,
+		provideMetrics,
 
 		// Interface bindings to concrete providers returned by our providers
 		wire.Bind(new(kernel.UnitOfWork), new(*gormutils.UnitOfWork)),
