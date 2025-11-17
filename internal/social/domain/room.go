@@ -7,21 +7,9 @@ import (
 	"time"
 )
 
-type RoomID kernel.ID
-
-func (i RoomID) String() string {
-	return string(i)
-}
-
-type RoomNumber kernel.Number
-
-func (n RoomNumber) String() string {
-	return string(n)
-}
-
 type Room struct {
-	id                RoomID
-	number            RoomNumber
+	id                kernel.RoomID
+	number            kernel.RoomNumber
 	owner             kernel.UserID
 	passwordEncrypted string
 	members           []kernel.UserID
@@ -31,9 +19,9 @@ type Room struct {
 }
 
 func NewRoom(
-	id RoomID,
+	id kernel.RoomID,
 	owner kernel.UserID,
-	number RoomNumber,
+	number kernel.RoomNumber,
 	passwordEncrypted string,
 	members []kernel.UserID,
 	maxMemberCount int,
@@ -110,7 +98,7 @@ func (r *Room) IsMember(id kernel.UserID) bool {
 	return false
 }
 
-func (r *Room) ID() RoomID {
+func (r *Room) ID() kernel.RoomID {
 	return r.id
 }
 
@@ -130,7 +118,7 @@ func (r *Room) Owner() kernel.UserID {
 	return r.owner
 }
 
-func (r *Room) Number() RoomNumber {
+func (r *Room) Number() kernel.RoomNumber {
 	return r.number
 }
 

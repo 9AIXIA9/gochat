@@ -14,7 +14,7 @@ var _ application.MessageNotifier = (*MessageNotifier)(nil)
 const NotifyingMessageTopic websocket.ResponseTopic = "notification.notifying_message"
 
 type ResponseData struct {
-	ID      domain.MessageID
+	ID      kernel.MessageID
 	Sender  kernel.UserID
 	State   domain.MessageState
 	Content string

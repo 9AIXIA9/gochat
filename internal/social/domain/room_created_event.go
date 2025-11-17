@@ -24,7 +24,7 @@ func ToRoomCreatedEvent(ev event.Event) (*RoomCreatedEvent, error) {
 	return e, nil
 }
 
-func NewRoomCreatedEvent(id event.ID, roomID RoomID) (*RoomCreatedEvent, error) {
+func NewRoomCreatedEvent(id event.ID, roomID kernel.RoomID) (*RoomCreatedEvent, error) {
 	e := &RoomCreatedEvent{}
 	payload, err := e.Marshal()
 	if err != nil {

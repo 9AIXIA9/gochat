@@ -1,9 +1,7 @@
 package application
 
-import (
-	"gochat/internal/chat/domain"
-)
+import "gochat/internal/shared/kernel"
 
 type MessageIDGenerator interface {
-	Generate() domain.MessageID
+	Generate() kernel.MessageID
 }

@@ -1,13 +1,12 @@
 package model
 
 import (
-	"gochat/internal/notification/domain"
 	"gochat/internal/shared/kernel"
 	"time"
 )
 
 type Message struct {
-	ID       domain.MessageID `gorm:"primaryKey;type:char(36)"`
+	ID       kernel.MessageID `gorm:"primaryKey;type:char(36)"`
 	Content  string           `gorm:"type:text;not null"`
 	SenderID kernel.UserID    `gorm:"type:char(36);not null;index"`
 

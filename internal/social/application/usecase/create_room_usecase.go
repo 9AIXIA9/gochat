@@ -34,7 +34,7 @@ func (r *CreateRoomInput) Validate() error {
 }
 
 type CreateRoomOutput struct {
-	RoomNumber domain.RoomNumber
+	RoomNumber kernel.RoomNumber
 }
 
 type createRoomUseCase struct {

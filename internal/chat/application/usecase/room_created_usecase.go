@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"gochat/internal/chat/application"
-	"gochat/internal/chat/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 )
@@ -11,8 +10,8 @@ import (
 type RoomCreatedUseCase kernel.UseCase[*RoomCreatedInput, *kernel.NoOutput]
 
 type RoomCreatedInput struct {
-	RoomID     domain.RoomID
-	RoomNumber domain.RoomNumber
+	RoomID     kernel.RoomID
+	RoomNumber kernel.RoomNumber
 }
 
 func (r *RoomCreatedInput) Validate() error {

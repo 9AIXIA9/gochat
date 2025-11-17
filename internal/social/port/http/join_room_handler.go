@@ -17,7 +17,7 @@ import (
 
 type JoinRoomRequest struct {
 	UserID     kernel.UserID     `json:"-" validate:"required"`
-	RoomNumber domain.RoomNumber `json:"room_number" validate:"required"`
+	RoomNumber kernel.RoomNumber `json:"room_number" validate:"required"`
 	Password   domain.Password   `json:"password" validate:"max=100"`
 }
 

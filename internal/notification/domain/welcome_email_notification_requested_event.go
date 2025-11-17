@@ -13,7 +13,7 @@ var _ event.SpecificEvent = (*WelcomeEmailRequestedNotificationEvent)(nil)
 
 type WelcomeEmailRequestedNotificationEvent struct {
 	email  kernel.Email
-	number UserNumber
+	number kernel.UserNumber
 	*event.StandardEvent
 }
 
@@ -31,7 +31,7 @@ func NewWelcomeEmailNotificationRequestedEvent(
 	id event.ID,
 	userID kernel.UserID,
 	email kernel.Email,
-	number UserNumber,
+	number kernel.UserNumber,
 ) (*WelcomeEmailRequestedNotificationEvent, error) {
 	e := &WelcomeEmailRequestedNotificationEvent{
 		email:  email,
@@ -49,7 +49,7 @@ func NewWelcomeEmailNotificationRequestedEvent(
 func (e *WelcomeEmailRequestedNotificationEvent) Marshal() ([]byte, error) {
 	type Alias struct {
 		Email  kernel.Email
-		Number UserNumber
+		Number kernel.UserNumber
 	}
 	return json.Marshal(&Alias{
 		Email:  e.email,
@@ -60,7 +60,7 @@ func (e *WelcomeEmailRequestedNotificationEvent) Marshal() ([]byte, error) {
 func (e *WelcomeEmailRequestedNotificationEvent) Unmarshal(data []byte) error {
 	type Alias struct {
 		Email  kernel.Email
-		Number UserNumber
+		Number kernel.UserNumber
 	}
 	var tmp Alias
 	if err := json.Unmarshal(data, &tmp); err != nil {
@@ -75,6 +75,6 @@ func (e *WelcomeEmailRequestedNotificationEvent) Email() kernel.Email {
 	return e.email
 }
 
-func (e *WelcomeEmailRequestedNotificationEvent) Number() UserNumber {
+func (e *WelcomeEmailRequestedNotificationEvent) Number() kernel.UserNumber {
 	return e.number
 }

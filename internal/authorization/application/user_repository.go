@@ -19,7 +19,7 @@ type UserSaver interface {
 }
 
 type UserFinderByNumber interface {
-	FindByNumber(ctx context.Context, number domain.UserNumber) (*domain.User, error)
+	FindByNumber(ctx context.Context, number kernel.UserNumber) (*domain.User, error)
 }
 
 type UserLoggedInAtUpdater interface {

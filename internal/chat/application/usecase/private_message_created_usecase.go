@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"gochat/internal/chat/application"
-	"gochat/internal/chat/domain"
 	notificationDomain "gochat/internal/notification/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
@@ -16,7 +15,7 @@ type PrivateMessageCreatedUseCase kernel.UseCase[*PrivateMessageCreatedInput, *k
 
 type PrivateMessageCreatedInput struct {
 	RecipientID kernel.UserID
-	MessageID   domain.MessageID
+	MessageID   kernel.MessageID
 }
 
 func (i *PrivateMessageCreatedInput) Validate() error {
@@ -57,7 +56,7 @@ func (uc *privateMessageCreatedUseCase) Execute(ctx context.Context, input *Priv
 
 	ev, err := notificationDomain.NewMessageNotificationRequestedEvent(
 		uc.eventIDGenerator.Generate(),
-		notificationDomain.MessageID(message.ID()),
+		message.ID(),
 		input.RecipientID,
 		message.Sender(),
 		message.Content(),

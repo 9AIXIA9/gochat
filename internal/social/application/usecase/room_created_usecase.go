@@ -7,13 +7,12 @@ import (
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"gochat/internal/social/application"
-	socialDomain "gochat/internal/social/domain"
 )
 
 type RoomCreatedUseCase kernel.UseCase[*RoomCreatedInput, *kernel.NoOutput]
 
 type RoomCreatedInput struct {
-	RoomID socialDomain.RoomID
+	RoomID kernel.RoomID
 }
 
 func (r *RoomCreatedInput) Validate() error {
@@ -47,7 +46,7 @@ func (uc *roomCreatedUseCase) Execute(ctx context.Context, input *RoomCreatedInp
 		return nil, err
 	}
 
-	chatEv, err := chatDomain.NewRoomCreatedEvent(uc.idGenerator.Generate(), chatDomain.RoomID(room.ID()), chatDomain.RoomNumber(room.Number()))
+	chatEv, err := chatDomain.NewRoomCreatedEvent(uc.idGenerator.Generate(), room.ID(), room.Number())
 	if err != nil {
 		return nil, err
 	}

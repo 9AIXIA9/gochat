@@ -62,7 +62,7 @@ func (uc *userCreatedUseCase) Execute(ctx context.Context, input *UserCreatedInp
 	chatEv, err := chatDomain.NewUserCreatedEvent(
 		uc.idGenerator.Generate(),
 		user.ID(),
-		chatDomain.UserNumber(user.Number()),
+		user.Number(),
 	)
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func (uc *userCreatedUseCase) Execute(ctx context.Context, input *UserCreatedInp
 		uc.idGenerator.Generate(),
 		user.ID(),
 		user.Email(),
-		notificationDomain.UserNumber(user.Number()),
+		user.Number(),
 	)
 	if err != nil {
 		return nil, err

@@ -1,33 +1,19 @@
 package domain
 
 import (
-	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"time"
 )
 
-type UserNumber kernel.Number
-
-func (n UserNumber) String() string {
-	return string(n)
-}
-
-func (n UserNumber) Validate() error {
-	if len(n) == 0 {
-		return myErrors.ErrInvalidNumber
-	}
-	return nil
-}
-
 type User struct {
 	id     kernel.UserID
-	number UserNumber
+	number kernel.UserNumber
 
 	eventManager *event.Manager
 }
 
-func NewUser(id kernel.UserID, number UserNumber) *User {
+func NewUser(id kernel.UserID, number kernel.UserNumber) *User {
 	return &User{
 		id:           id,
 		number:       number,
@@ -35,7 +21,7 @@ func NewUser(id kernel.UserID, number UserNumber) *User {
 	}
 }
 
-func (u *User) ReceiveMessage(id MessageID, sender kernel.UserID, content string, generator event.IDGenerator) (*Message, error) {
+func (u *User) ReceiveMessage(id kernel.MessageID, sender kernel.UserID, content string, generator event.IDGenerator) (*Message, error) {
 	now := time.Now().UTC()
 	message := NewMessage(id, sender, content, now)
 
@@ -52,7 +38,7 @@ func (u *User) ID() kernel.UserID {
 	return u.id
 }
 
-func (u *User) Number() UserNumber {
+func (u *User) Number() kernel.UserNumber {
 	return u.number
 }
 

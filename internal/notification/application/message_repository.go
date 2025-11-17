@@ -22,9 +22,9 @@ type MessageFinder interface {
 }
 
 type MessageStateUpdater interface {
-	UpdateMessageState(ctx context.Context, userID kernel.UserID, messageID domain.MessageID, newState domain.MessageState) error
+	UpdateMessageState(ctx context.Context, userID kernel.UserID, messageID kernel.MessageID, newState domain.MessageState) error
 }
 
 type MessageStatesUpdater interface {
-	UpdateMessageStates(ctx context.Context, userID kernel.UserID, messageIDs []domain.MessageID, newState domain.MessageState) error
+	UpdateMessageStates(ctx context.Context, userID kernel.UserID, messageIDs []kernel.MessageID, newState domain.MessageState) error
 }

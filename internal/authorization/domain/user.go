@@ -9,14 +9,14 @@ import (
 type User struct {
 	id                kernel.UserID
 	email             kernel.Email
-	number            UserNumber
+	number            kernel.UserNumber
 	passwordEncrypted string
 	lastLoggedInAt    time.Time // UTC
 	signedUpAt        time.Time // UTC
 	eventManager      *event.Manager
 }
 
-func NewUser(id kernel.UserID, email kernel.Email, number UserNumber, passwordEncrypted string, lastLoggedInAt time.Time, signedUpAt time.Time) *User {
+func NewUser(id kernel.UserID, email kernel.Email, number kernel.UserNumber, passwordEncrypted string, lastLoggedInAt time.Time, signedUpAt time.Time) *User {
 	return &User{
 		id:                id,
 		email:             email,
@@ -62,7 +62,7 @@ func (u *User) Email() kernel.Email {
 	return u.email
 }
 
-func (u *User) Number() UserNumber {
+func (u *User) Number() kernel.UserNumber {
 	return u.number
 }
 

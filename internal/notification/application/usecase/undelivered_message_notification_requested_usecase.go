@@ -47,7 +47,7 @@ func (uc *undeliveredMessageNotificationRequestedUseCase) Execute(ctx context.Co
 		return nil, err
 	}
 
-	deliveredIDs := make([]domain.MessageID, 0, len(messages))
+	deliveredIDs := make([]kernel.MessageID, 0, len(messages))
 	for _, message := range messages {
 		if err := uc.messageNotifier.Notify(input.UserID, message); err != nil {
 			if errors.Is(err, myErrors.ErrNotFound) {

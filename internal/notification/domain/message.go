@@ -5,14 +5,8 @@ import (
 	"time"
 )
 
-type MessageID kernel.ID
-
-func (i MessageID) String() string {
-	return string(i)
-}
-
 type Message struct {
-	id      MessageID
+	id      kernel.MessageID
 	sender  kernel.UserID
 	state   MessageState
 	content string
@@ -20,7 +14,7 @@ type Message struct {
 }
 
 func NewMessage(
-	id MessageID,
+	id kernel.MessageID,
 	sender kernel.UserID,
 	state MessageState,
 	content string,
@@ -35,7 +29,7 @@ func NewMessage(
 	}
 }
 
-func (m *Message) ID() MessageID {
+func (m *Message) ID() kernel.MessageID {
 	return m.id
 }
 

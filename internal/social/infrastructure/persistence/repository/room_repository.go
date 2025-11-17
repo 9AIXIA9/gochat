@@ -47,7 +47,7 @@ func (repo *RoomRepository) Save(ctx context.Context, room *domain.Room) error {
 	})
 }
 
-func (repo *RoomRepository) FindByNumber(ctx context.Context, number domain.RoomNumber) (*domain.Room, error) {
+func (repo *RoomRepository) FindByNumber(ctx context.Context, number kernel.RoomNumber) (*domain.Room, error) {
 	var m model.Room
 	err := repo.unitOfWork.DB(ctx).WithContext(ctx).
 		Preload("Members").
@@ -59,7 +59,7 @@ func (repo *RoomRepository) FindByNumber(ctx context.Context, number domain.Room
 	return toDomainRoom(&m), nil
 }
 
-func (repo *RoomRepository) FindByID(ctx context.Context, id domain.RoomID) (*domain.Room, error) {
+func (repo *RoomRepository) FindByID(ctx context.Context, id kernel.RoomID) (*domain.Room, error) {
 	var m model.Room
 	err := repo.unitOfWork.DB(ctx).WithContext(ctx).
 		Preload("Members").
@@ -70,7 +70,7 @@ func (repo *RoomRepository) FindByID(ctx context.Context, id domain.RoomID) (*do
 	return toDomainRoom(&m), nil
 }
 
-func (repo *RoomRepository) SaveMember(ctx context.Context, roomID domain.RoomID, userID kernel.UserID) error {
+func (repo *RoomRepository) SaveMember(ctx context.Context, roomID kernel.RoomID, userID kernel.UserID) error {
 	if err := gormutils.TranslateError(
 		repo.unitOfWork.DB(ctx).WithContext(ctx).
 			Model(&model.Room{ID: roomID}).
@@ -85,7 +85,7 @@ func (repo *RoomRepository) SaveMember(ctx context.Context, roomID domain.RoomID
 	return nil
 }
 
-func (repo *RoomRepository) DeleteMember(ctx context.Context, roomID domain.RoomID, userID kernel.UserID) error {
+func (repo *RoomRepository) DeleteMember(ctx context.Context, roomID kernel.RoomID, userID kernel.UserID) error {
 	if err := gormutils.TranslateError(
 		repo.unitOfWork.DB(ctx).WithContext(ctx).
 			Model(&model.Room{ID: roomID}).

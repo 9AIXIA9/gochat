@@ -2,7 +2,7 @@ package snowflake
 
 import (
 	"gochat/internal/authorization/application"
-	"gochat/internal/authorization/domain"
+	"gochat/internal/shared/kernel"
 
 	"github.com/bwmarrin/snowflake"
 )
@@ -22,6 +22,6 @@ func NewUserNumberGenerator(machineNode int64) (*UserNumberGenerator, error) {
 	return &UserNumberGenerator{node: node}, nil
 }
 
-func (g *UserNumberGenerator) Generate() domain.UserNumber {
-	return domain.UserNumber(g.node.Generate().String())
+func (g *UserNumberGenerator) Generate() kernel.UserNumber {
+	return kernel.UserNumber(g.node.Generate().String())
 }

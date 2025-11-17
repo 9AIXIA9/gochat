@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"gochat/internal/chat/application"
-	"gochat/internal/chat/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
@@ -15,7 +14,7 @@ type SendRoomMessageUseCase kernel.UseCase[*SendRoomMessageInput, *kernel.NoOutp
 
 type SendRoomMessageInput struct {
 	SenderID   kernel.UserID
-	RoomNumber domain.RoomNumber
+	RoomNumber kernel.RoomNumber
 	Content    string
 }
 

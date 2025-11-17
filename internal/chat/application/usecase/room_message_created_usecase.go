@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"gochat/internal/chat/application"
-	"gochat/internal/chat/domain"
 	notificationDomain "gochat/internal/notification/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
@@ -15,8 +14,8 @@ var _ RoomMessageCreatedUseCase = (*roomMessageCreatedUseCase)(nil)
 type RoomMessageCreatedUseCase kernel.UseCase[*RoomMessageCreatedInput, *kernel.NoOutput]
 
 type RoomMessageCreatedInput struct {
-	RoomID     domain.RoomID
-	MessageID  domain.MessageID
+	RoomID     kernel.RoomID
+	MessageID  kernel.MessageID
 	Recipients []kernel.UserID
 }
 
@@ -60,7 +59,7 @@ func (uc *roomMessageCreatedUseCase) Execute(ctx context.Context, input *RoomMes
 	for _, recipient := range input.Recipients {
 		ev, err := notificationDomain.NewMessageNotificationRequestedEvent(
 			uc.eventIDGenerator.Generate(),
-			notificationDomain.MessageID(message.ID()),
+			message.ID(),
 			recipient,
 			message.Sender(),
 			message.Content(),

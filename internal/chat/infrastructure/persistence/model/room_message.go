@@ -1,15 +1,14 @@
 package model
 
 import (
-	"gochat/internal/chat/domain"
 	"gochat/internal/shared/kernel"
 	"time"
 )
 
 type RoomMessage struct {
-	ID       domain.MessageID `gorm:"primaryKey;type:char(36)"`
+	ID       kernel.MessageID `gorm:"primaryKey;type:char(36)"`
 	Content  string           `gorm:"type:text;not null"`
-	RoomID   domain.RoomID    `gorm:"type:char(36);not null;index"`
+	RoomID   kernel.RoomID    `gorm:"type:char(36);not null;index"`
 	SenderID kernel.UserID    `gorm:"type:char(36);not null;index"`
 
 	CreatedAt time.Time

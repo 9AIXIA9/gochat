@@ -26,7 +26,7 @@ type RefreshTokenGenerator interface {
 }
 
 type UserNumberGenerator interface {
-	Generate() domain.UserNumber
+	Generate() kernel.UserNumber
 }
 
 type UserIDGenerator interface {

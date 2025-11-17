@@ -9,6 +9,7 @@ import (
 	"gochat/internal/infrastructure/validator"
 	myErrors "gochat/internal/shared/errors"
 	sharedHttp "gochat/internal/shared/http"
+	"gochat/internal/shared/kernel"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -18,7 +19,7 @@ import (
 const RefreshTokenCookieKey = "refresh_token"
 
 type LoginRequest struct {
-	Number   domain.UserNumber `json:"number" validate:"required,numeric"`
+	Number   kernel.UserNumber `json:"number" validate:"required,numeric"`
 	Password domain.Password   `json:"password" validate:"required"`
 }
 

@@ -24,7 +24,7 @@ func (r *SignUpInput) Validate() error {
 }
 
 type SignUpOutput struct {
-	UserNumber domain.UserNumber
+	UserNumber kernel.UserNumber
 }
 
 type signUpUseCase struct {

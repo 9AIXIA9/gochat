@@ -14,17 +14,17 @@ type RoomRepository interface {
 }
 
 type RoomFinder interface {
-	FindByNumber(ctx context.Context, number domain.RoomNumber) (*domain.Room, error)
+	FindByNumber(ctx context.Context, number kernel.RoomNumber) (*domain.Room, error)
 }
 
 type RoomNumberSaver interface {
-	SaveNumber(ctx context.Context, roomID domain.RoomID, number domain.RoomNumber) error
+	SaveNumber(ctx context.Context, roomID kernel.RoomID, number kernel.RoomNumber) error
 }
 
 type RoomMemberSaver interface {
-	SaveMember(ctx context.Context, roomID domain.RoomID, userID kernel.UserID) error
+	SaveMember(ctx context.Context, roomID kernel.RoomID, userID kernel.UserID) error
 }
 
 type RoomMemberDeleter interface {
-	DeleteMember(ctx context.Context, roomID domain.RoomID, userID kernel.UserID) error
+	DeleteMember(ctx context.Context, roomID kernel.RoomID, userID kernel.UserID) error
 }

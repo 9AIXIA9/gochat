@@ -5,14 +5,14 @@ import (
 	"encoding/json"
 	"gochat/internal/infrastructure/websocket"
 	"gochat/internal/notification/application/usecase"
-	"gochat/internal/notification/domain"
+	"gochat/internal/shared/kernel"
 	"gochat/pkg/utils"
 )
 
 const MessageReadRequestTopic websocket.RequestTopic = "notification.message_read"
 
 type MessageReadRequestData struct {
-	MessageID domain.MessageID `json:"message_id"`
+	MessageID kernel.MessageID `json:"message_id"`
 }
 
 func NewMessageReadHandler(

@@ -6,14 +6,13 @@ import (
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"gochat/internal/social/application"
-	"gochat/internal/social/domain"
 )
 
 type LeaveRoomUseCase kernel.UseCase[*LeaveRoomInput, *kernel.NoOutput]
 
 type LeaveRoomInput struct {
 	UserID     kernel.UserID
-	RoomNumber domain.RoomNumber
+	RoomNumber kernel.RoomNumber
 }
 
 func (r *LeaveRoomInput) Validate() error {

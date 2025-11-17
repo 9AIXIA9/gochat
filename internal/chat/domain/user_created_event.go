@@ -12,7 +12,7 @@ const TopicUserCreated event.Topic = "chat.user.created"
 var _ event.SpecificEvent = (*UserCreatedEvent)(nil)
 
 type UserCreatedEvent struct {
-	number UserNumber
+	number kernel.UserNumber
 	*event.StandardEvent
 }
 
@@ -26,7 +26,7 @@ func ToUserCreatedEvent(ev event.Event) (*UserCreatedEvent, error) {
 	return e, nil
 }
 
-func NewUserCreatedEvent(id event.ID, userID kernel.UserID, number UserNumber) (*UserCreatedEvent, error) {
+func NewUserCreatedEvent(id event.ID, userID kernel.UserID, number kernel.UserNumber) (*UserCreatedEvent, error) {
 	e := &UserCreatedEvent{
 		number: number,
 	}
@@ -41,7 +41,7 @@ func NewUserCreatedEvent(id event.ID, userID kernel.UserID, number UserNumber) (
 
 func (e *UserCreatedEvent) Marshal() ([]byte, error) {
 	type Alias struct {
-		Number UserNumber
+		Number kernel.UserNumber
 	}
 	return json.Marshal(&Alias{
 		Number: e.number,
@@ -50,7 +50,7 @@ func (e *UserCreatedEvent) Marshal() ([]byte, error) {
 
 func (e *UserCreatedEvent) Unmarshal(data []byte) error {
 	type Alias struct {
-		Number UserNumber
+		Number kernel.UserNumber
 	}
 	var tmp Alias
 	if err := json.Unmarshal(data, &tmp); err != nil {
@@ -60,6 +60,6 @@ func (e *UserCreatedEvent) Unmarshal(data []byte) error {
 	return nil
 }
 
-func (e *UserCreatedEvent) Number() UserNumber {
+func (e *UserCreatedEvent) Number() kernel.UserNumber {
 	return e.number
 }

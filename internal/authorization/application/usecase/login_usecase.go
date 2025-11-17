@@ -11,7 +11,7 @@ import (
 type LoginUseCase kernel.UseCase[*LoginInput, *LoginOutput]
 
 type LoginInput struct {
-	Number   domain.UserNumber
+	Number   kernel.UserNumber
 	Password domain.Password
 }
 
