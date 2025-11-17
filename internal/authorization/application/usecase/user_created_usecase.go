@@ -11,8 +11,6 @@ import (
 	socialDomain "gochat/internal/social/domain"
 )
 
-//TODO 整理 公用属性（number等）
-
 type UserCreatedUseCase kernel.UseCase[*UserCreatedInput, *kernel.NoOutput]
 
 type UserCreatedInput struct {
