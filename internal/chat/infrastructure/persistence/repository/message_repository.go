@@ -29,7 +29,7 @@ func (repo *MessageRepository) SavePrivateMessage(ctx context.Context, recipient
 	}).Error)
 }
 
-func (repo *MessageRepository) SaveRoomMessage(ctx context.Context, roomID domain.RoomID, message *domain.Message) error {
+func (repo *MessageRepository) SaveRoomMessage(ctx context.Context, roomID kernel.RoomID, message *domain.Message) error {
 	return gormutils.TranslateError(repo.unitOfWork.DB(ctx).WithContext(ctx).Create(&model.RoomMessage{
 		ID:       message.ID(),
 		Content:  message.Content(),
@@ -38,7 +38,7 @@ func (repo *MessageRepository) SaveRoomMessage(ctx context.Context, roomID domai
 	}).Error)
 }
 
-func (repo *MessageRepository) FindPrivateMessage(ctx context.Context, recipient kernel.UserID, messageID domain.MessageID) (*domain.Message, error) {
+func (repo *MessageRepository) FindPrivateMessage(ctx context.Context, recipient kernel.UserID, messageID kernel.MessageID) (*domain.Message, error) {
 	var m model.PrivateMessage
 	err := repo.unitOfWork.DB(ctx).WithContext(ctx).
 		Where("id = ? AND recipient_id = ?", messageID, recipient).
@@ -49,7 +49,7 @@ func (repo *MessageRepository) FindPrivateMessage(ctx context.Context, recipient
 	return domain.NewMessage(m.ID, m.SenderID, m.Content, m.CreatedAt), nil
 }
 
-func (repo *MessageRepository) FindRoomMessage(ctx context.Context, roomID domain.RoomID, messageID domain.MessageID) (*domain.Message, error) {
+func (repo *MessageRepository) FindRoomMessage(ctx context.Context, roomID kernel.RoomID, messageID kernel.MessageID) (*domain.Message, error) {
 	var m model.RoomMessage
 	err := repo.unitOfWork.DB(ctx).WithContext(ctx).
 		Where("id = ? AND room_id = ?", messageID, roomID).

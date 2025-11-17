@@ -8,7 +8,6 @@ import (
 	sharedHttp "gochat/internal/shared/http"
 	"gochat/internal/shared/kernel"
 	"gochat/internal/social/application/usecase"
-	"gochat/internal/social/domain"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -17,7 +16,7 @@ import (
 
 type LeaveRoomRequest struct {
 	UserID     kernel.UserID     `json:"-" validate:"required"`
-	RoomNumber domain.RoomNumber `json:"room_number" validate:"required"`
+	RoomNumber kernel.RoomNumber `json:"room_number" validate:"required"`
 }
 
 func (r *LeaveRoomRequest) Bind(ginContext *gin.Context) error {

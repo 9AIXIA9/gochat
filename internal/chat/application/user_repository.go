@@ -12,9 +12,9 @@ type UserRepository interface {
 }
 
 type UserFinder interface {
-	FindByNumber(ctx context.Context, number domain.UserNumber) (*domain.User, error)
+	FindByNumber(ctx context.Context, number kernel.UserNumber) (*domain.User, error)
 }
 
 type UserNumberSaver interface {
-	SaveNumber(ctx context.Context, userID kernel.UserID, number domain.UserNumber) error
+	SaveNumber(ctx context.Context, userID kernel.UserID, number kernel.UserNumber) error
 }

@@ -7,35 +7,16 @@ import (
 	"time"
 )
 
-type RoomID kernel.ID
-
-func (r RoomID) String() string {
-	return string(r)
-}
-
-type RoomNumber kernel.Number
-
-func (n RoomNumber) String() string {
-	return string(n)
-}
-
-func (n RoomNumber) Validate() error {
-	if len(n) == 0 {
-		return myErrors.ErrInvalidNumber
-	}
-	return nil
-}
-
 type Room struct {
-	id     RoomID
-	number RoomNumber
+	id     kernel.RoomID
+	number kernel.RoomNumber
 
 	members []kernel.UserID
 
 	eventManager *event.Manager
 }
 
-func NewRoom(id RoomID, number RoomNumber, members []kernel.UserID) *Room {
+func NewRoom(id kernel.RoomID, number kernel.RoomNumber, members []kernel.UserID) *Room {
 	return &Room{
 		id:           id,
 		number:       number,
@@ -44,7 +25,7 @@ func NewRoom(id RoomID, number RoomNumber, members []kernel.UserID) *Room {
 	}
 }
 
-func (r *Room) ReceiveMessage(id MessageID, sender kernel.UserID, content string, generator event.IDGenerator) (*Message, error) {
+func (r *Room) ReceiveMessage(id kernel.MessageID, sender kernel.UserID, content string, generator event.IDGenerator) (*Message, error) {
 	for i, member := range r.members {
 		if member == sender {
 			now := time.Now().UTC()
@@ -68,11 +49,11 @@ func (r *Room) ReceiveMessage(id MessageID, sender kernel.UserID, content string
 	return nil, myErrors.ErrNotBelongTo
 }
 
-func (r *Room) ID() RoomID {
+func (r *Room) ID() kernel.RoomID {
 	return r.id
 }
 
-func (r *Room) Number() RoomNumber {
+func (r *Room) Number() kernel.RoomNumber {
 	return r.number
 }
 

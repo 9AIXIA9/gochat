@@ -13,7 +13,7 @@ type JoinRoomUseCase kernel.UseCase[*JoinRoomInput, *kernel.NoOutput]
 
 type JoinRoomInput struct {
 	UserID     kernel.UserID
-	RoomNumber domain.RoomNumber
+	RoomNumber kernel.RoomNumber
 	Password   domain.Password
 }
 

@@ -6,12 +6,24 @@ const (
 
 type ID string
 
-type UserID ID
-
 func (id ID) String() string {
 	return string(id)
 }
 
+type UserID ID
+
 func (id UserID) String() string {
 	return string(id)
+}
+
+type RoomID ID
+
+func (i RoomID) String() string {
+	return string(i)
+}
+
+type MessageID ID
+
+func (i MessageID) String() string {
+	return string(i)
 }

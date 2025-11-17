@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"gochat/internal/chat/application"
-	"gochat/internal/chat/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
@@ -15,7 +14,7 @@ type SendPrivateMessageUseCase kernel.UseCase[*SendPrivateMessageInput, *kernel.
 
 type SendPrivateMessageInput struct {
 	SenderID        kernel.UserID
-	RecipientNumber domain.UserNumber
+	RecipientNumber kernel.UserNumber
 	Content         string
 }
 

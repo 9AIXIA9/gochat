@@ -1,10 +1,9 @@
 package kernel
 
-import (
-	"gochat/internal/shared/errors"
-)
+import "gochat/internal/shared/errors"
 
 var _ Validatable = Number("")
+var _ Validatable = UserNumber("")
 
 type Number string
 
@@ -19,4 +18,24 @@ func (n Number) Validate() error {
 		}
 	}
 	return nil
+}
+
+type RoomNumber Number
+
+func (n RoomNumber) String() string {
+	return string(n)
+}
+
+func (n RoomNumber) Validate() error {
+	return Number(n).Validate()
+}
+
+type UserNumber Number
+
+func (n UserNumber) String() string {
+	return string(n)
+}
+
+func (n UserNumber) Validate() error {
+	return Number(n).Validate()
 }

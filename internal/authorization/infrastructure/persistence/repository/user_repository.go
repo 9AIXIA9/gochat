@@ -31,7 +31,7 @@ func (repo *UserRepository) Save(ctx context.Context, user *domain.User) error {
 	}).Error)
 }
 
-func (repo *UserRepository) FindByNumber(ctx context.Context, number domain.UserNumber) (*domain.User, error) {
+func (repo *UserRepository) FindByNumber(ctx context.Context, number kernel.UserNumber) (*domain.User, error) {
 	var user model.User
 	if err := repo.unitOfWork.DB(ctx).WithContext(ctx).First(&user, "number = ?", number).Error; err != nil {
 		return nil, gormutils.TranslateError(err)

@@ -2,14 +2,13 @@ package model
 
 import (
 	"gochat/internal/shared/kernel"
-	"gochat/internal/social/domain"
 	"time"
 )
 
 type Room struct {
-	ID                domain.RoomID     `gorm:"primaryKey;type:char(36)"`
+	ID                kernel.RoomID     `gorm:"primaryKey;type:char(36)"`
 	OwnerID           kernel.UserID     `gorm:"not null;index"`
-	Number            domain.RoomNumber `gorm:"type:varchar(20);uniqueIndex;not null"`
+	Number            kernel.RoomNumber `gorm:"type:varchar(20);uniqueIndex;not null"`
 	PasswordEncrypted string            `gorm:"type:varchar(255);not null"`
 	MaxMemberCount    int               `gorm:"not null;default:0;check:max_member_count >= 0"`
 	CreatedAt         time.Time

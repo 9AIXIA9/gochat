@@ -12,7 +12,7 @@ const TopicMessageNotificationRequested event.Topic = "notification.message_noti
 var _ event.SpecificEvent = (*MessageNotificationRequestedEvent)(nil)
 
 type MessageNotificationRequestedEvent struct {
-	messageID MessageID
+	messageID kernel.MessageID
 	sender    kernel.UserID
 	content   string
 	sentAt    time.Time
@@ -31,7 +31,7 @@ func ToMessageNotificationRequestedEvent(ev event.Event) (*MessageNotificationRe
 
 func NewMessageNotificationRequestedEvent(
 	id event.ID,
-	messageID MessageID,
+	messageID kernel.MessageID,
 	recipient kernel.UserID,
 	sender kernel.UserID,
 	content string,
@@ -54,7 +54,7 @@ func NewMessageNotificationRequestedEvent(
 
 func (e *MessageNotificationRequestedEvent) Marshal() ([]byte, error) {
 	type Alias struct {
-		MessageID MessageID
+		MessageID kernel.MessageID
 		Sender    kernel.UserID
 		Content   string
 		SentAt    time.Time
@@ -69,7 +69,7 @@ func (e *MessageNotificationRequestedEvent) Marshal() ([]byte, error) {
 
 func (e *MessageNotificationRequestedEvent) Unmarshal(data []byte) error {
 	type Alias struct {
-		MessageID MessageID
+		MessageID kernel.MessageID
 		Sender    kernel.UserID
 		Content   string
 		SentAt    time.Time
@@ -85,7 +85,7 @@ func (e *MessageNotificationRequestedEvent) Unmarshal(data []byte) error {
 	return nil
 }
 
-func (e *MessageNotificationRequestedEvent) MessageID() MessageID {
+func (e *MessageNotificationRequestedEvent) MessageID() kernel.MessageID {
 	return e.messageID
 }
 

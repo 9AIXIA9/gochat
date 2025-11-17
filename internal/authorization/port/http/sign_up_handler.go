@@ -25,7 +25,7 @@ func (r *SignUpRequest) Bind(ginContext *gin.Context) error {
 }
 
 type SignUpResponseData struct {
-	UserNumber domain.UserNumber `json:"user_number"`
+	UserNumber kernel.UserNumber `json:"user_number"`
 }
 
 func NewSignUpHandler(useCase usecase.SignUpUseCase, validator *validator.Validator) gin.HandlerFunc {

@@ -18,13 +18,13 @@ type PrivateMessageSaver interface {
 }
 
 type PrivateMessageFinder interface {
-	FindPrivateMessage(ctx context.Context, recipient kernel.UserID, messageID domain.MessageID) (*domain.Message, error)
+	FindPrivateMessage(ctx context.Context, recipient kernel.UserID, messageID kernel.MessageID) (*domain.Message, error)
 }
 
 type RoomMessageSaver interface {
-	SaveRoomMessage(ctx context.Context, roomID domain.RoomID, messages *domain.Message) error
+	SaveRoomMessage(ctx context.Context, roomID kernel.RoomID, messages *domain.Message) error
 }
 
 type RoomMessageFinder interface {
-	FindRoomMessage(ctx context.Context, roomID domain.RoomID, messageID domain.MessageID) (*domain.Message, error)
+	FindRoomMessage(ctx context.Context, roomID kernel.RoomID, messageID kernel.MessageID) (*domain.Message, error)
 }

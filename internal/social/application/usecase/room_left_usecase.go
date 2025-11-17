@@ -6,13 +6,12 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	socialDomain "gochat/internal/social/domain"
 )
 
 type RoomLeftUseCase kernel.UseCase[*RoomLeftInput, *kernel.NoOutput]
 
 type RoomLeftInput struct {
-	RoomID socialDomain.RoomID
+	RoomID kernel.RoomID
 	UserID kernel.UserID
 }
 
@@ -39,7 +38,7 @@ func NewRoomLeftUseCase(
 }
 
 func (uc *roomLeftUseCase) Execute(_ context.Context, input *RoomLeftInput) (*kernel.NoOutput, error) {
-	chatEv, err := chatDomain.NewRoomLeftEvent(uc.idGenerator.Generate(), chatDomain.RoomID(input.RoomID), input.UserID)
+	chatEv, err := chatDomain.NewRoomLeftEvent(uc.idGenerator.Generate(), input.RoomID, input.UserID)
 	if err != nil {
 		return nil, err
 	}

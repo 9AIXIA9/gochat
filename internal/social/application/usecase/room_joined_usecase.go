@@ -6,13 +6,12 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	socialDomain "gochat/internal/social/domain"
 )
 
 type RoomJoinedUseCase kernel.UseCase[*RoomJoinedInput, *kernel.NoOutput]
 
 type RoomJoinedInput struct {
-	RoomID socialDomain.RoomID
+	RoomID kernel.RoomID
 	UserID kernel.UserID
 }
 
@@ -39,7 +38,7 @@ func NewRoomJoinedUseCase(
 }
 
 func (uc *roomJoinedUseCase) Execute(_ context.Context, input *RoomJoinedInput) (*kernel.NoOutput, error) {
-	chatEv, err := chatDomain.NewRoomJoinedEvent(uc.idGenerator.Generate(), chatDomain.RoomID(input.RoomID), input.UserID)
+	chatEv, err := chatDomain.NewRoomJoinedEvent(uc.idGenerator.Generate(), input.RoomID, input.UserID)
 	if err != nil {
 		return nil, err
 	}

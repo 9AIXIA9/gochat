@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"gochat/internal/notification/application"
-	"gochat/internal/notification/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 )
@@ -12,7 +11,7 @@ type WelcomeEmailNotificationRequestedUseCase kernel.UseCase[*WelcomeEmailNotifi
 
 type WelcomeEmailNotificationRequestedInput struct {
 	UserID     kernel.UserID
-	UserNumber domain.UserNumber
+	UserNumber kernel.UserNumber
 	Email      kernel.Email
 }
 

@@ -12,7 +12,7 @@ const TopicRoomCreated event.Topic = "chat.room.created"
 var _ event.SpecificEvent = (*RoomCreatedEvent)(nil)
 
 type RoomCreatedEvent struct {
-	number RoomNumber
+	number kernel.RoomNumber
 	*event.StandardEvent
 }
 
@@ -26,7 +26,7 @@ func ToRoomCreatedEvent(ev event.Event) (*RoomCreatedEvent, error) {
 	return e, nil
 }
 
-func NewRoomCreatedEvent(id event.ID, roomID RoomID, number RoomNumber) (*RoomCreatedEvent, error) {
+func NewRoomCreatedEvent(id event.ID, roomID kernel.RoomID, number kernel.RoomNumber) (*RoomCreatedEvent, error) {
 	e := &RoomCreatedEvent{
 		number: number,
 	}
@@ -41,14 +41,14 @@ func NewRoomCreatedEvent(id event.ID, roomID RoomID, number RoomNumber) (*RoomCr
 
 func (e *RoomCreatedEvent) Marshal() ([]byte, error) {
 	type Alias struct {
-		Number RoomNumber
+		Number kernel.RoomNumber
 	}
 	return json.Marshal(&Alias{Number: e.number})
 }
 
 func (e *RoomCreatedEvent) Unmarshal(data []byte) error {
 	type Alias struct {
-		Number RoomNumber
+		Number kernel.RoomNumber
 	}
 	var tmp Alias
 	if err := json.Unmarshal(data, &tmp); err != nil {
@@ -58,6 +58,6 @@ func (e *RoomCreatedEvent) Unmarshal(data []byte) error {
 	return nil
 }
 
-func (e *RoomCreatedEvent) Number() RoomNumber {
+func (e *RoomCreatedEvent) Number() kernel.RoomNumber {
 	return e.number
 }

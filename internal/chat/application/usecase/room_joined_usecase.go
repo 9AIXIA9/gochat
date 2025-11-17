@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"gochat/internal/chat/application"
-	"gochat/internal/chat/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 )
@@ -11,7 +10,7 @@ import (
 type RoomJoinedUseCase kernel.UseCase[*RoomJoinedInput, *kernel.NoOutput]
 
 type RoomJoinedInput struct {
-	RoomID domain.RoomID
+	RoomID kernel.RoomID
 	UserID kernel.UserID
 }
 

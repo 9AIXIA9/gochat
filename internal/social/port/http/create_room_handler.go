@@ -22,7 +22,7 @@ type CreateRoomRequest struct {
 }
 
 type CreateRoomResponseData struct {
-	RoomNumber domain.RoomNumber `json:"room_number"`
+	RoomNumber kernel.RoomNumber `json:"room_number"`
 }
 
 func (r *CreateRoomRequest) Bind(ginContext *gin.Context) error {

@@ -3,7 +3,6 @@ package gomail
 import (
 	"context"
 	"gochat/internal/notification/application"
-	"gochat/internal/notification/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 	"sync"
@@ -44,7 +43,7 @@ func NewEmailNotifier(senderName string, dialer *gomail.Dialer) *EmailNotifier {
 	}
 }
 
-func (n *EmailNotifier) NotifyWelcomeEmail(ctx context.Context, email kernel.Email, number domain.UserNumber) error {
+func (n *EmailNotifier) NotifyWelcomeEmail(ctx context.Context, email kernel.Email, number kernel.UserNumber) error {
 	return n.enqueue(ctx, n.taskGenerator.generateUserCreatedTask(email, number))
 }
 

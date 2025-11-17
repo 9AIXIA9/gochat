@@ -13,7 +13,7 @@ import (
 type MessageNotificationRequestedUseCase kernel.UseCase[*MessageNotificationRequestedInput, *kernel.NoOutput]
 
 type MessageNotificationRequestedInput struct {
-	MessageID   domain.MessageID
+	MessageID   kernel.MessageID
 	RecipientID kernel.UserID
 	SenderID    kernel.UserID
 	Content     string
@@ -70,7 +70,7 @@ func (uc *messageNotificationRequestedUseCase) Execute(ctx context.Context, inpu
 		return nil, err
 	}
 
-	if err := uc.messageStatesUpdater.UpdateMessageStates(ctx, input.RecipientID, []domain.MessageID{input.MessageID}, domain.MessageStateDelivered); err != nil {
+	if err := uc.messageStatesUpdater.UpdateMessageStates(ctx, input.RecipientID, []kernel.MessageID{input.MessageID}, domain.MessageStateDelivered); err != nil {
 		return nil, err
 	}
 

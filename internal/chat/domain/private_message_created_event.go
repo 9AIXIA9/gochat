@@ -12,7 +12,7 @@ const TopicPrivateMessageCreated event.Topic = "chat.private_message.created"
 var _ event.SpecificEvent = (*PrivateMessageCreatedEvent)(nil)
 
 type PrivateMessageCreatedEvent struct {
-	messageID MessageID
+	messageID kernel.MessageID
 	sender    kernel.UserID
 	content   string
 	sentAt    time.Time
@@ -31,7 +31,7 @@ func ToPrivateMessageCreatedEvent(ev event.Event) (*PrivateMessageCreatedEvent, 
 
 func NewPrivateMessageCreatedEvent(
 	id event.ID,
-	messageID MessageID,
+	messageID kernel.MessageID,
 	recipient kernel.UserID,
 	sender kernel.UserID,
 	content string,
@@ -54,7 +54,7 @@ func NewPrivateMessageCreatedEvent(
 
 func (e *PrivateMessageCreatedEvent) Marshal() ([]byte, error) {
 	type Alias struct {
-		MessageID MessageID
+		MessageID kernel.MessageID
 		Sender    kernel.UserID
 		Content   string
 		SentAt    time.Time
@@ -69,7 +69,7 @@ func (e *PrivateMessageCreatedEvent) Marshal() ([]byte, error) {
 
 func (e *PrivateMessageCreatedEvent) Unmarshal(data []byte) error {
 	type Alias struct {
-		MessageID MessageID
+		MessageID kernel.MessageID
 		Sender    kernel.UserID
 		Content   string
 		SentAt    time.Time
@@ -85,7 +85,7 @@ func (e *PrivateMessageCreatedEvent) Unmarshal(data []byte) error {
 	return nil
 }
 
-func (e *PrivateMessageCreatedEvent) MessageID() MessageID {
+func (e *PrivateMessageCreatedEvent) MessageID() kernel.MessageID {
 	return e.messageID
 }
 

@@ -1,7 +1,7 @@
 package application
 
 import (
-	"gochat/internal/social/domain"
+	"gochat/internal/shared/kernel"
 )
 
 type Encryptor interface {
@@ -13,9 +13,9 @@ type Comparator interface {
 }
 
 type RoomNumberGenerator interface {
-	Generate() domain.RoomNumber
+	Generate() kernel.RoomNumber
 }
 
 type RoomIDGenerator interface {
-	Generate() domain.RoomID
+	Generate() kernel.RoomID
 }

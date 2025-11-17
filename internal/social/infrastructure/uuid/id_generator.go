@@ -1,8 +1,8 @@
 package uuid
 
 import (
+	"gochat/internal/shared/kernel"
 	"gochat/internal/social/application"
-	"gochat/internal/social/domain"
 
 	"github.com/google/uuid"
 )
@@ -15,6 +15,6 @@ func NewRoomIDGenerator() *RoomIDGenerator {
 	return &RoomIDGenerator{}
 }
 
-func (RoomIDGenerator) Generate() domain.RoomID {
-	return domain.RoomID(uuid.Must(uuid.NewV7()).String())
+func (RoomIDGenerator) Generate() kernel.RoomID {
+	return kernel.RoomID(uuid.Must(uuid.NewV7()).String())
 }

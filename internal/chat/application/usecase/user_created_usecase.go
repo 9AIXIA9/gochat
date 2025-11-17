@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"gochat/internal/chat/application"
-	"gochat/internal/chat/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 )
@@ -12,7 +11,7 @@ type UserCreatedUseCase kernel.UseCase[*UserCreatedInput, *kernel.NoOutput]
 
 type UserCreatedInput struct {
 	UserID     kernel.UserID
-	UserNumber domain.UserNumber
+	UserNumber kernel.UserNumber
 }
 
 func (r *UserCreatedInput) Validate() error {

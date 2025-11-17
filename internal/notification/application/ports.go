@@ -7,7 +7,7 @@ import (
 )
 
 type WelcomeEmailNotifier interface {
-	NotifyWelcomeEmail(ctx context.Context, email kernel.Email, number domain.UserNumber) error
+	NotifyWelcomeEmail(ctx context.Context, email kernel.Email, number kernel.UserNumber) error
 }
 
 type MessageNotifier interface {

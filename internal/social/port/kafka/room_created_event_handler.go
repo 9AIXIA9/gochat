@@ -3,6 +3,7 @@ package kafka
 import (
 	"context"
 	"gochat/internal/shared/event"
+	"gochat/internal/shared/kernel"
 	"gochat/internal/social/application/usecase"
 	"gochat/internal/social/domain"
 )
@@ -15,7 +16,7 @@ func NewRoomCreatedEventHandler(uc usecase.RoomCreatedUseCase) event.HandlerFunc
 		}
 
 		input := usecase.RoomCreatedInput{
-			RoomID: domain.RoomID(ev.AggregateID()),
+			RoomID: kernel.RoomID(ev.AggregateID()),
 		}
 
 		if err := input.Validate(); err != nil {

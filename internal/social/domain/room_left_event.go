@@ -26,7 +26,7 @@ func ToRoomLeftEvent(ev event.Event) (*RoomLeftEvent, error) {
 	return e, nil
 }
 
-func NewRoomLeftEvent(id event.ID, userID kernel.UserID, roomID RoomID) (*RoomLeftEvent, error) {
+func NewRoomLeftEvent(id event.ID, userID kernel.UserID, roomID kernel.RoomID) (*RoomLeftEvent, error) {
 	e := &RoomLeftEvent{
 		userID: userID,
 	}

@@ -3,6 +3,7 @@ package kafka
 import (
 	"context"
 	"gochat/internal/shared/event"
+	"gochat/internal/shared/kernel"
 	"gochat/internal/social/application/usecase"
 	"gochat/internal/social/domain"
 )
@@ -15,7 +16,7 @@ func NewRoomLeftEventHandler(uc usecase.RoomLeftUseCase) event.HandlerFunc {
 		}
 
 		input := usecase.RoomLeftInput{
-			RoomID: domain.RoomID(ev.AggregateID()),
+			RoomID: kernel.RoomID(ev.AggregateID()),
 			UserID: ev.UserID(),
 		}
 

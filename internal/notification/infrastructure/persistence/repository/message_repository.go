@@ -50,7 +50,7 @@ func (repo *MessageRepository) FindMessagesByUserID(ctx context.Context, userID 
 
 	// 承载查询结果的轻量结构
 	type row struct {
-		ID       domain.MessageID    `gorm:"column:id"`
+		ID       kernel.MessageID    `gorm:"column:id"`
 		Content  string              `gorm:"column:content"`
 		SenderID kernel.UserID       `gorm:"column:sender_id"`
 		SentAt   time.Time           `gorm:"column:created_at"`
@@ -83,13 +83,13 @@ func (repo *MessageRepository) FindMessagesByUserID(ctx context.Context, userID 
 	return result, nil
 }
 
-func (repo *MessageRepository) UpdateMessageState(ctx context.Context, userID kernel.UserID, messageID domain.MessageID, newState domain.MessageState) error {
+func (repo *MessageRepository) UpdateMessageState(ctx context.Context, userID kernel.UserID, messageID kernel.MessageID, newState domain.MessageState) error {
 	return gormutils.TranslateError(repo.unitOfWork.DB(ctx).WithContext(ctx).Model(&model.MessageState{}).
 		Where("user_id = ? AND message_id = ?", userID, messageID).
 		Update("state", newState).Error)
 }
 
-func (repo *MessageRepository) UpdateMessageStates(ctx context.Context, userID kernel.UserID, messageIDs []domain.MessageID, newState domain.MessageState) error {
+func (repo *MessageRepository) UpdateMessageStates(ctx context.Context, userID kernel.UserID, messageIDs []kernel.MessageID, newState domain.MessageState) error {
 	return gormutils.TranslateError(repo.unitOfWork.DB(ctx).WithContext(ctx).Model(&model.MessageState{}).
 		Where("user_id = ? AND message_id IN ?", userID, messageIDs).
 		Update("state", newState).Error)

@@ -2,7 +2,6 @@ package gomail
 
 import (
 	"fmt"
-	"gochat/internal/notification/domain"
 	"gochat/internal/shared/kernel"
 
 	"gopkg.in/gomail.v2"
@@ -18,7 +17,7 @@ type task struct {
 	email   kernel.Email
 }
 
-func (g *taskGenerator) generateUserCreatedTask(email kernel.Email, number domain.UserNumber) *task {
+func (g *taskGenerator) generateUserCreatedTask(email kernel.Email, number kernel.UserNumber) *task {
 	message := gomail.NewMessage()
 
 	// From

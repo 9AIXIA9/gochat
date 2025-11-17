@@ -5,6 +5,7 @@ import (
 	"gochat/internal/chat/application/usecase"
 	"gochat/internal/chat/domain"
 	"gochat/internal/shared/event"
+	"gochat/internal/shared/kernel"
 )
 
 func NewRoomCreatedEventHandler(uc usecase.RoomCreatedUseCase) event.HandlerFunc {
@@ -15,7 +16,7 @@ func NewRoomCreatedEventHandler(uc usecase.RoomCreatedUseCase) event.HandlerFunc
 		}
 
 		input := usecase.RoomCreatedInput{
-			RoomID:     domain.RoomID(ev.AggregateID()),
+			RoomID:     kernel.RoomID(ev.AggregateID()),
 			RoomNumber: ev.Number(),
 		}
 

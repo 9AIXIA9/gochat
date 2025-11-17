@@ -3,7 +3,6 @@ package http
 import (
 	"errors"
 	"gochat/internal/chat/application/usecase"
-	"gochat/internal/chat/domain"
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/infrastructure/validator"
 	myErrors "gochat/internal/shared/errors"
@@ -17,7 +16,7 @@ import (
 
 type SendPrivateMessageRequest struct {
 	SenderID        kernel.UserID     `json:"-" validate:"required"`
-	RecipientNumber domain.UserNumber `json:"recipient_number" validate:"required"`
+	RecipientNumber kernel.UserNumber `json:"recipient_number" validate:"required"`
 	Content         string            `json:"content" validate:"required,max=1000"`
 }
 

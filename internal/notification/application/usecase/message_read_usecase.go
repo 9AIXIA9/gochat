@@ -11,7 +11,7 @@ import (
 type MessageReadUseCase kernel.UseCase[*MessageReadInput, *kernel.NoOutput]
 
 type MessageReadInput struct {
-	MessageID domain.MessageID
+	MessageID kernel.MessageID
 	UserID    kernel.UserID
 }
 

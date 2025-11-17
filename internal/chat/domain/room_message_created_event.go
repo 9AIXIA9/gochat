@@ -12,7 +12,7 @@ const TopicRoomMessageCreated event.Topic = "chat.room_message.created"
 var _ event.SpecificEvent = (*RoomMessageCreatedEvent)(nil)
 
 type RoomMessageCreatedEvent struct {
-	messageID  MessageID
+	messageID  kernel.MessageID
 	sender     kernel.UserID
 	recipients []kernel.UserID
 	content    string
@@ -32,8 +32,8 @@ func ToRoomMessageCreatedEvent(ev event.Event) (*RoomMessageCreatedEvent, error)
 
 func NewRoomMessageCreatedEvent(
 	id event.ID,
-	messageID MessageID,
-	roomID RoomID,
+	messageID kernel.MessageID,
+	roomID kernel.RoomID,
 	recipients []kernel.UserID,
 	sender kernel.UserID,
 	content string,
@@ -57,7 +57,7 @@ func NewRoomMessageCreatedEvent(
 
 func (e *RoomMessageCreatedEvent) Marshal() ([]byte, error) {
 	type Alias struct {
-		MessageID  MessageID
+		MessageID  kernel.MessageID
 		Sender     kernel.UserID
 		Recipients []kernel.UserID
 		Content    string
@@ -74,7 +74,7 @@ func (e *RoomMessageCreatedEvent) Marshal() ([]byte, error) {
 
 func (e *RoomMessageCreatedEvent) Unmarshal(data []byte) error {
 	type Alias struct {
-		MessageID  MessageID
+		MessageID  kernel.MessageID
 		Sender     kernel.UserID
 		Recipients []kernel.UserID
 		Content    string
@@ -92,7 +92,7 @@ func (e *RoomMessageCreatedEvent) Unmarshal(data []byte) error {
 	return nil
 }
 
-func (e *RoomMessageCreatedEvent) MessageID() MessageID {
+func (e *RoomMessageCreatedEvent) MessageID() kernel.MessageID {
 	return e.messageID
 }
 
