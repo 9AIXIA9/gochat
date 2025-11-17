@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"gochat/internal/infrastructure/prometheus"
 	"gochat/internal/shared/event"
 
 	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
@@ -25,10 +26,11 @@ type EventSubscriber struct {
 	handlers    map[event.Topic]event.Handler
 	pollTimeout time.Duration
 	running     bool
+	metrics     *prometheus.Metrics
 }
 
 // NewEventSubscriber creates a Kafka consumer-based subscriber.
-func NewEventSubscriber(config *Config, saver event.DeadLetterSaver) (*EventSubscriber, error) {
+func NewEventSubscriber(config *Config, saver event.DeadLetterSaver, metrics *prometheus.Metrics) (*EventSubscriber, error) {
 	consumer, err := ckafka.NewConsumer(getConsumerConfigMap(config))
 	if err != nil {
 		return nil, fmt.Errorf("create kafka consumer failed: %w", err)
@@ -46,6 +48,7 @@ func NewEventSubscriber(config *Config, saver event.DeadLetterSaver) (*EventSubs
 		handlers:        make(map[event.Topic]event.Handler),
 		pollTimeout:     500 * time.Millisecond,
 		running:         false,
+		metrics:         metrics,
 	}, nil
 }
 
@@ -110,6 +113,7 @@ func (s *EventSubscriber) Start(ctx context.Context) error {
 
 				// Dispatch with a per-message context (inherits parent)
 				msgCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+				start := time.Now()
 				if err := handler.Handle(msgCtx, e); err != nil {
 					zap.L().Error(
 						"kafka handler error",
@@ -118,6 +122,10 @@ func (s *EventSubscriber) Start(ctx context.Context) error {
 						zap.String("topic", topic.String()),
 						zap.Int("retry", retry),
 					)
+					if s.metrics != nil {
+						s.metrics.KafkaConsumed.WithLabelValues(topic.String(), "error").Inc()
+						s.metrics.KafkaHandleDur.WithLabelValues(topic.String()).Observe(time.Since(start).Seconds())
+					}
 
 					cancel()
 					// 提交偏移量，防止该消息反复重投造成堵塞
@@ -132,6 +140,11 @@ func (s *EventSubscriber) Start(ctx context.Context) error {
 					continue
 				}
 				cancel()
+
+				if s.metrics != nil {
+					s.metrics.KafkaConsumed.WithLabelValues(topic.String(), "success").Inc()
+					s.metrics.KafkaHandleDur.WithLabelValues(topic.String()).Observe(time.Since(start).Seconds())
+				}
 
 				// Success: manual commit
 				if _, err := s.consumer.CommitMessage(m); err != nil {

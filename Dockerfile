@@ -32,8 +32,16 @@ RUN GOOS=linux GOARCH=amd64 go build -tags musl -ldflags="-s -w" -o /app/server 
 FROM alpine:3.20
 WORKDIR /app
 
-# 配置国内镜像源
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+# 配置国内镜像源并安装运行时依赖（tzdata 以支持时区、curl 用于健康检查、证书）
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
+    apk add --no-cache tzdata curl ca-certificates && \
+    update-ca-certificates
+
+# 默认时区可被外部 TZ 覆盖（compose .env 中设置）
+ENV TZ=Asia/Shanghai
+
+# 设置容器本地时区（使 Go/系统日志等均使用本地时间）
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN mkdir -p /app/config /app/logs /app/data /app/certs
 

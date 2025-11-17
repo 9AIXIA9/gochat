@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"gochat/internal/infrastructure/prometheus"
 	"gochat/internal/shared/event"
 
 	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
@@ -17,11 +18,13 @@ type EventPublisher struct {
 	publishResultChan chan ckafka.Event
 	producer          *ckafka.Producer
 	publishedMarker   event.PublishedMarker
+	metrics           *prometheus.Metrics
 }
 
 func NewEventPublisher(
 	config *Config,
 	publishedMarker event.PublishedMarker,
+	metrics *prometheus.Metrics,
 ) (*EventPublisher, error) {
 	producer, err := ckafka.NewProducer(getProducerConfigMap(config))
 	if err != nil {
@@ -32,6 +35,7 @@ func NewEventPublisher(
 		publishResultChan: make(chan ckafka.Event, 512),
 		producer:          producer,
 		publishedMarker:   publishedMarker,
+		metrics:           metrics,
 	}, nil
 }
 
@@ -42,6 +46,9 @@ func (p *EventPublisher) Publish(event event.Event) error {
 
 	message := getMessage(event, 0)
 	if err := p.producer.Produce(message, p.publishResultChan); err != nil {
+		if p.metrics != nil {
+			p.metrics.KafkaProduced.WithLabelValues(*message.TopicPartition.Topic, "error").Inc()
+		}
 		zap.L().Error("produce message failed", zap.Error(err))
 		return err
 	}
@@ -66,6 +73,9 @@ func (p *EventPublisher) processSendingResponse() {
 		switch message := result.(type) {
 		case *ckafka.Message:
 			if message.TopicPartition.Error != nil {
+				if p.metrics != nil {
+					p.metrics.KafkaProduced.WithLabelValues(*message.TopicPartition.Topic, "error").Inc()
+				}
 				continue
 			}
 
@@ -76,6 +86,8 @@ func (p *EventPublisher) processSendingResponse() {
 					zap.Error(err),
 					zap.String("event_id", id.String()),
 				)
+			} else if p.metrics != nil {
+				p.metrics.KafkaProduced.WithLabelValues(*message.TopicPartition.Topic, "success").Inc()
 			}
 		case ckafka.Error:
 			zap.L().Error("kafka producer error", zap.Error(message))

@@ -29,13 +29,14 @@ import (
 //go:generate go run wire ./...
 
 // initializeDependencies builds the application Dependencies using Google Wire.
-func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate bool) (*Dependencies, error) {
+func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependencies, error) {
 	wire.Build(
 		// Base config & infra
 		provideAppConfig,
 		provideMysql,
 		provideRedis,
 		provideValidator,
+		provideMetrics,
 
 		// Interface bindings to concrete providers returned by our providers
 		wire.Bind(new(kernel.UnitOfWork), new(*gormutils.UnitOfWork)),

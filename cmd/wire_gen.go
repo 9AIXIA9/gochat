@@ -9,7 +9,7 @@ package main
 // Injectors from wire.go:
 
 // initializeDependencies builds the application Dependencies using Google Wire.
-func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate bool) (*Dependencies, error) {
+func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependencies, error) {
 	app, err := provideAppConfig(configPath, envPath)
 	if err != nil {
 		return nil, err
@@ -25,7 +25,8 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate 
 	if err != nil {
 		return nil, err
 	}
-	unitOfWork := provideUnitOfWork(db)
+	metrics := provideMetrics()
+	unitOfWork := provideUnitOfWork(db, metrics)
 	userRepository := provideAuthorizationUserRepository(unitOfWork)
 	eventRepository := provideEventRepository(unitOfWork)
 	signUpUseCase := provideSignUpUseCase(eventIDGenerator, userIDGenerator, userNumberGenerator, hasher, userRepository, eventRepository, unitOfWork)
@@ -59,18 +60,18 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate 
 		return nil, err
 	}
 	upgrader := provideWebsocketUpgrader(app)
-	manager := provideWebsocketManager(upgrader)
+	manager := provideWebsocketManager(upgrader, metrics)
 	repositoryMessageRepository := provideNotificationMessageRepository(unitOfWork)
 	messageReadUseCase := provideNotificationMessageReadUseCase(repositoryMessageRepository)
 	router := provideWebsocketRouter(messageReadUseCase)
-	eventPublisher, err := provideKafkaPublisher(app, eventRepository)
+	eventPublisher, err := provideKafkaPublisher(app, eventRepository, metrics)
 	if err != nil {
 		return nil, err
 	}
 	server := provideWebsocketServer(manager, router, eventPublisher, eventIDGenerator)
-	engine := provideHttpRouter(app, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, createRoomUseCase, joinRoomUseCase, leaveRoomUseCase, validator, client, server)
+	engine := provideHttpRouter(app, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, createRoomUseCase, joinRoomUseCase, leaveRoomUseCase, validator, client, server, metrics)
 	v := provideKafkaTopics()
-	eventSubscriber, err := provideKafkaSubscriber(app, eventRepository)
+	eventSubscriber, err := provideKafkaSubscriber(app, eventRepository, metrics)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +79,7 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate 
 	if err != nil {
 		return nil, err
 	}
-	outboxConsumer := provideCanalOutboxConsumer(canal, eventPublisher, eventRepository)
+	outboxConsumer := provideCanalOutboxConsumer(canal, eventPublisher, eventRepository, metrics)
 	dialer, err := provideGomailDialer(app)
 	if err != nil {
 		return nil, err
@@ -103,7 +104,7 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate 
 	messageNotificationRequestedUseCase := provideNotificationMessageNotificationRequestedUseCase(repositoryMessageRepository, messageNotifier)
 	undeliveredMessageNotificationRequestedUseCase := provideNotificationUndeliveredMessageNotificationRequestedUseCase(repositoryMessageRepository, messageNotifier)
 	error2 := provideKafkaSubscriptions(eventSubscriber, emailAvailable, userSessionStartedUseCase, userCreatedUseCase, usecaseUserCreatedUseCase, roomCreatedUseCase, roomJoinedUseCase, roomLeftUseCase, userCreatedUseCase2, usecaseRoomCreatedUseCase, usecaseRoomJoinedUseCase, usecaseRoomLeftUseCase, privateMessageCreatedUseCase, roomMessageCreatedUseCase, welcomeEmailNotificationRequestedUseCase, messageNotificationRequestedUseCase, undeliveredMessageNotificationRequestedUseCase)
-	dependencies, err := BuildDependencies(needMigrate, app, engine, db, v, eventPublisher, eventSubscriber, outboxConsumer, emailNotifier, error2)
+	dependencies, err := BuildDependencies(app, engine, db, v, eventPublisher, eventSubscriber, outboxConsumer, emailNotifier, error2)
 	if err != nil {
 		return nil, err
 	}

@@ -33,6 +33,7 @@ import (
 	kafkautil "gochat/internal/infrastructure/kafka"
 	"gochat/internal/infrastructure/persistence/model"
 	"gochat/internal/infrastructure/persistence/repository"
+	"gochat/internal/infrastructure/prometheus"
 	redisutils "gochat/internal/infrastructure/redis"
 	"gochat/internal/infrastructure/uuid"
 	ginutils "gochat/internal/infrastructure/validator"
@@ -106,6 +107,8 @@ func provideRedis(appConfig *config.App) (*redis.Client, error) {
 }
 func provideValidator() (*ginutils.Validator, error) { return ginutils.NewValidator() }
 
+func provideMetrics() *prometheus.Metrics { return prometheus.NewMetrics(nil) }
+
 // -------------------- Generators & Notifiers --------------------
 func provideEventIDGenerator() *uuid.EventIDGenerator { return uuid.NewEventIDGenerator() }
 func provideAuthorizationUserIDGenerator() *authorizationUuid.UserIDGenerator {
@@ -149,8 +152,10 @@ func provideMessageNotifier(manager *websocket.Manager) *notificationWebsocketIn
 }
 
 // -------------------- Repositories --------------------
-func provideUnitOfWork(mysql *gorm.DB) *gormutils.UnitOfWork {
-	return gormutils.NewUnitOfWork(mysql)
+func provideUnitOfWork(mysql *gorm.DB, metrics *prometheus.Metrics) *gormutils.UnitOfWork {
+	u := gormutils.NewUnitOfWork(mysql)
+	u.SetMetrics(metrics)
+	return u
 }
 func provideEventRepository(unitOfWork *gormutils.UnitOfWork) *repository.EventRepository {
 	return repository.NewEventRepository(unitOfWork)
@@ -181,24 +186,28 @@ func provideNotificationMessageRepository(unitOfWork *gormutils.UnitOfWork) *not
 }
 
 // -------------------- Kafka & Canal & Websocket --------------------
-func provideKafkaPublisher(appConfig *config.App, eventRepo *repository.EventRepository) (*kafkautil.EventPublisher, error) {
-	return kafkautil.NewEventPublisher(appConfig.Kafka, eventRepo)
+func provideKafkaPublisher(appConfig *config.App, eventRepo *repository.EventRepository, metrics *prometheus.Metrics) (*kafkautil.EventPublisher, error) {
+	return kafkautil.NewEventPublisher(appConfig.Kafka, eventRepo, metrics)
 }
-func provideKafkaSubscriber(appConfig *config.App, eventRepo *repository.EventRepository) (*kafkautil.EventSubscriber, error) {
-	return kafkautil.NewEventSubscriber(appConfig.Kafka, eventRepo)
+func provideKafkaSubscriber(appConfig *config.App, eventRepo *repository.EventRepository, metrics *prometheus.Metrics) (*kafkautil.EventSubscriber, error) {
+	return kafkautil.NewEventSubscriber(appConfig.Kafka, eventRepo, metrics)
 }
 
 func provideCanal(appConfig *config.App) (*canal.Canal, error) {
 	return canalUtil.NewCanal(appConfig.BinlogReader)
 }
-func provideCanalOutboxConsumer(c *canal.Canal, publisher *kafkautil.EventPublisher, eventRepo *repository.EventRepository) *canalUtil.OutboxConsumer {
-	return canalUtil.NewOutboxConsumer(c, publisher, eventRepo)
+func provideCanalOutboxConsumer(c *canal.Canal, publisher *kafkautil.EventPublisher, eventRepo *repository.EventRepository, metrics *prometheus.Metrics) *canalUtil.OutboxConsumer {
+	oc := canalUtil.NewOutboxConsumer(c, publisher, eventRepo)
+	oc.SetMetrics(metrics)
+	return oc
 }
 func provideWebsocketUpgrader(appConfig *config.App) *gorillaWebsocket.Upgrader {
 	return websocket.NewUpgrader(appConfig.CORS.AllowOrigins)
 }
-func provideWebsocketManager(upgrader *gorillaWebsocket.Upgrader) *websocket.Manager {
-	return websocket.NewManager(upgrader)
+func provideWebsocketManager(upgrader *gorillaWebsocket.Upgrader, metrics *prometheus.Metrics) *websocket.Manager {
+	m := websocket.NewManager(upgrader)
+	m.SetMetrics(metrics)
+	return m
 }
 func provideWebsocketServer(manager *websocket.Manager, router *websocket.Router, publisher *kafkautil.EventPublisher, eventIDGen event.IDGenerator) *websocket.Server {
 	return websocket.NewServer(manager, router, publisher, eventIDGen)
@@ -380,6 +389,7 @@ func provideHttpRouter(
 	validator *ginutils.Validator,
 	redisClient *redis.Client,
 	websocketServer *websocket.Server,
+	metrics *prometheus.Metrics,
 ) *gin.Engine {
 	router := gin.New()
 
@@ -388,7 +398,11 @@ func provideHttpRouter(
 		middleware.NewRecoverMiddleware(),
 		middleware.NewCORSMiddleware(appConfig.CORS),
 		middleware.NewRateLimitMiddleware(redisClient, appConfig.RateLimit),
+		metrics.GinMiddleware(),
 	)
+
+	// Expose Prometheus metrics endpoint
+	router.GET("/metrics", gin.WrapH(metrics.Handler()))
 
 	router.Any("/health_check", handler.NewHealthCheckHandler())
 
@@ -494,7 +508,6 @@ func provideKafkaSubscriptions(
 }
 
 func BuildDependencies(
-	needMigrate bool,
 	appConfig *config.App,
 	ginEngine *gin.Engine,
 	mysql *gorm.DB,
@@ -507,23 +520,21 @@ func BuildDependencies(
 	_ error, // ensure subscriptions provider executed (ignored)
 ) (*Dependencies, error) {
 	// Migrations (side-effect). Performed here to keep initialize logic centralized.
-	if needMigrate {
-		if err := gormutils.AutoMigrate(
-			mysql,
-			&authorizationModel.User{},
-			&notificationModel.Message{},
-			&notificationModel.MessageState{},
-			&chatModel.User{},
-			&chatModel.Room{},
-			&chatModel.PrivateMessage{},
-			&chatModel.RoomMessage{},
-			&socialModel.User{},
-			&socialModel.Room{},
-			&model.Event{},
-			&model.DeadLetter{},
-		); err != nil {
-			return nil, fmt.Errorf("mysql migrate failed, err:%w", err)
-		}
+	if err := gormutils.AutoMigrate(
+		mysql,
+		&authorizationModel.User{},
+		&notificationModel.Message{},
+		&notificationModel.MessageState{},
+		&chatModel.User{},
+		&chatModel.Room{},
+		&chatModel.PrivateMessage{},
+		&chatModel.RoomMessage{},
+		&socialModel.User{},
+		&socialModel.Room{},
+		&model.Event{},
+		&model.DeadLetter{},
+	); err != nil {
+		return nil, fmt.Errorf("mysql auto migrate failed, err:%w", err)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

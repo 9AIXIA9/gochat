@@ -19,5 +19,5 @@ type Room struct {
 }
 
 func (r *Room) TableName() string {
-	return "gochat.social_rooms"
+	return "social_rooms"
 }

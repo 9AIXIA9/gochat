@@ -6,5 +6,5 @@ type DeadLetter struct {
 }
 
 func (e *DeadLetter) TableName() string {
-	return "gochat.dead_letters"
+	return "dead_letters"
 }

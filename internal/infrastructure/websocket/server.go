@@ -41,6 +41,8 @@ func (s *Server) ServeWS(w http.ResponseWriter, r *http.Request, userID kernel.U
 	ctx := r.Context()
 	ctxWithUserID := context.WithValue(ctx, "user_id", userID)
 	client := NewClient(ctxWithUserID, conn, s.router)
+	// Attach metrics if present in manager
+	client.SetMetrics(s.manager.metrics)
 	s.manager.Register(userID, client)
 	client.Start()
 

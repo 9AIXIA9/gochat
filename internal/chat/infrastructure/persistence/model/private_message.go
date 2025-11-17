@@ -19,5 +19,5 @@ type PrivateMessage struct {
 }
 
 func (*PrivateMessage) TableName() string {
-	return "gochat.chat_private_messages"
+	return "chat_private_messages"
 }

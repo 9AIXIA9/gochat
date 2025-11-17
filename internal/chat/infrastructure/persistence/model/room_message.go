@@ -19,5 +19,5 @@ type RoomMessage struct {
 }
 
 func (*RoomMessage) TableName() string {
-	return "gochat.chat_room_messages"
+	return "chat_room_messages"
 }

@@ -16,5 +16,5 @@ type Event struct {
 }
 
 func (e *Event) TableName() string {
-	return "gochat.unpublished_events"
+	return "unpublished_events"
 }

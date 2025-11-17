@@ -1,12 +1,11 @@
 services:
   mysql:
-    pull_policy: never
     image: mysql:8.0.40
     container_name: gochat-mysql
     env_file:
       - config/service/.env.db
     environment:
-      TZ: ${TZ}
+      TZ: ${TZ:-Asia/Shanghai}
     command: [
       "mysqld",
       "--default-authentication-plugin=mysql_native_password",
@@ -31,13 +30,12 @@ services:
       timeout: 3s
       retries: 20
   redis:
-    pull_policy: never
     image: redis:7.0-alpine
     container_name: gochat-redis
     env_file:
       - config/service/.env.redis
     environment:
-      TZ: ${TZ}
+      TZ: ${TZ:-Asia/Shanghai}
     # 使用 ACL 文件定义用户/权限
     command: [ "sh", "-lc", "exec redis-server --appendonly yes --aclfile /etc/redis/users.acl" ]
     ports:
@@ -53,7 +51,6 @@ services:
       retries: 20
 
   broker:
-    pull_policy: never
     image: apache/kafka-native:4.1.0
     hostname: kafka-dev
     container_name: kafka-dev
@@ -64,7 +61,12 @@ services:
     env_file:
       - config/service/.env.kafka
     environment:
-      TZ: ${TZ}
+      TZ: ${TZ:-Asia/Shanghai}
+      KAFKA_OPTS: "-Duser.timezone=${TZ:-Asia/Shanghai}"
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_NODE_ID: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-dev:29093
+
       # 监听器配置需动态组合宿主机IP和端口，保留在environment中
       KAFKA_ADVERTISED_LISTENERS: >-
         PLAINTEXT://broker:19092,
@@ -73,7 +75,6 @@ services:
         CONTROLLER://:29093,
         PLAINTEXT://:19092,
         EXTERNAL://:9092
-      # 可以覆盖 .env.kafka 中的变量，例如针对开发环境关闭认证
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: >-
         CONTROLLER:PLAINTEXT,
         PLAINTEXT:PLAINTEXT,
@@ -81,12 +82,53 @@ services:
     volumes:
       - kafka-data:/var/lib/kafka/data
     healthcheck:
-      # 使用容器内可达的 PLAINTEXT 端口进行健康检查，避免端口不匹配
-      test: [ "CMD", "/opt/kafka/bin/kafka-topics.sh", "--bootstrap-server", "localhost:19092", "--list" ]
+      test: [ "CMD-SHELL", "ps | grep -q '[k]afka.Kafka' || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 30
 
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: gochat-prometheus
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_started
+    ports:
+      - '${PROMETHEUS_HOST_PORT:-9090}:9090'
+    volumes:
+      - ./config/service/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command: [
+      "--config.file=/etc/prometheus/prometheus.yml",
+      "--storage.tsdb.path=/prometheus",
+      "--storage.tsdb.retention.time=15d",
+      "--web.enable-lifecycle"
+    ]
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:9090/-/ready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: gochat-grafana
+    depends_on:
+      prometheus:
+        condition: service_started
+    ports:
+      - '${GRAFANA_HOST_PORT:-3000}:3000'
+    volumes:
+      - ./config/service/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./config/service/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./config/service/grafana/dashboards:/etc/grafana/dashboards:ro
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - TZ=${TZ:-Asia/Shanghai}
+    restart: unless-stopped
   app:
     build:
       context: .
@@ -103,7 +145,7 @@ services:
     env_file:
       - config/service/.env.app
     environment:
-      TZ: ${TZ}
+      TZ: ${TZ:-Asia/Shanghai}
     ports:
       - '${APP_HOST_PORT:-8888}:8888'
     volumes:
@@ -111,6 +153,7 @@ services:
       - ./certs:/app/certs:ro
       - ./logs:/app/logs
     command: [ "/app/server", "-config", "./config/config.yaml" ]
+
 
 volumes:
   mysql-data:
@@ -121,4 +164,7 @@ volumes:
     name: gochat-redis-data
   kafka-data:
     name: gochat-kafka-data
+    driver: local
+  prometheus-data:
+    name: gochat-prometheus-data
     driver: local

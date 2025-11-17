@@ -18,5 +18,5 @@ type User struct {
 }
 
 func (*User) TableName() string {
-	return "gochat.chat_users"
+	return "chat_users"
 }

@@ -1,0 +1,115 @@
+{
+  "id": null,
+  "uid": "gochat-overview",
+  "title": "GoChat Overview",
+  "timezone": "",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "tags": ["gochat"],
+  "templating": {"list": []},
+  "time": {"from": "now-15m", "to": "now"},
+  "panels": [
+    {
+      "type": "stat",
+      "title": "HTTP In-Flight",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "gochat_http_in_flight_requests"}]
+    },
+    {
+      "type": "timeseries",
+      "title": "HTTP P95 Latency (s)",
+      "gridPos": {"x": 6, "y": 0, "w": 12, "h": 8},
+      "targets": [{
+        "expr": "histogram_quantile(0.95, sum(rate(gochat_http_request_duration_seconds_bucket[5m])) by (le, method, path))"
+      }]
+    },
+    {
+      "type": "timeseries",
+      "title": "HTTP RPS by Path/Status",
+      "gridPos": {"x": 0, "y": 4, "w": 18, "h": 8},
+      "targets": [{
+        "expr": "sum(rate(gochat_http_requests_total[1m])) by (method, path, status)"
+      }]
+    },
+    {
+      "type": "stat",
+      "title": "WS Connections",
+      "gridPos": {"x": 18, "y": 0, "w": 6, "h": 4},
+      "targets": [{"expr": "gochat_ws_connections"}]
+    },
+    {
+      "type": "timeseries",
+      "title": "WS Route P95 (s)",
+      "gridPos": {"x": 18, "y": 4, "w": 6, "h": 8},
+      "targets": [{
+        "expr": "histogram_quantile(0.95, sum(rate(gochat_ws_route_duration_seconds_bucket[5m])) by (le, topic))"
+      }]
+    },
+    {
+      "type": "timeseries",
+      "title": "WS In Messages by Type",
+      "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
+      "targets": [{
+        "expr": "sum(rate(gochat_ws_messages_in_total[1m])) by (type)"
+      }]
+    },
+    {
+      "type": "timeseries",
+      "title": "WS Out Messages by Type",
+      "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
+      "targets": [{
+        "expr": "sum(rate(gochat_ws_messages_out_total[1m])) by (type)"
+      }]
+    },
+    {
+      "type": "timeseries",
+      "title": "Kafka Consumed by Topic/Status",
+      "gridPos": {"x": 0, "y": 20, "w": 12, "h": 8},
+      "targets": [{
+        "expr": "sum(rate(gochat_kafka_messages_consumed_total[5m])) by (topic, status)"
+      }]
+    },
+    {
+      "type": "timeseries",
+      "title": "Kafka Handler P95 (s)",
+      "gridPos": {"x": 12, "y": 20, "w": 12, "h": 8},
+      "targets": [{
+        "expr": "histogram_quantile(0.95, sum(rate(gochat_kafka_handler_duration_seconds_bucket[5m])) by (le, topic))"
+      }]
+    },
+    {
+      "type": "timeseries",
+      "title": "Outbox Publishes by Status",
+      "gridPos": {"x": 0, "y": 28, "w": 12, "h": 8},
+      "targets": [{
+        "expr": "sum(rate(gochat_outbox_publishes_total[5m])) by (status)"
+      }]
+    },
+    {
+      "type": "timeseries",
+      "title": "Outbox Publish P95 (s)",
+      "gridPos": {"x": 12, "y": 28, "w": 12, "h": 8},
+      "targets": [{
+        "expr": "histogram_quantile(0.95, sum(rate(gochat_outbox_publish_duration_seconds_bucket[5m])) by (le, status))"
+      }]
+    },
+    {
+      "type": "timeseries",
+      "title": "UOW Duration P95 (s)",
+      "gridPos": {"x": 0, "y": 36, "w": 12, "h": 8},
+      "targets": [{
+        "expr": "histogram_quantile(0.95, sum(rate(gochat_uow_duration_seconds_bucket[5m])) by (le, result))"
+      }]
+    },
+    {
+      "type": "timeseries",
+      "title": "UOW Errors",
+      "gridPos": {"x": 12, "y": 36, "w": 12, "h": 8},
+      "targets": [{
+        "expr": "rate(gochat_uow_total{result=\"error\"}[5m])"
+      }]
+    }
+  ]
+}
+
