@@ -17,5 +17,5 @@ type Message struct {
 }
 
 func (*Message) TableName() string {
-	return "gochat.notification_messages"
+	return "notification_messages"
 }

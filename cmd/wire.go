@@ -29,7 +29,7 @@ import (
 //go:generate go run wire ./...
 
 // initializeDependencies builds the application Dependencies using Google Wire.
-func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate bool) (*Dependencies, error) {
+func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependencies, error) {
 	wire.Build(
 		// Base config & infra
 		provideAppConfig,

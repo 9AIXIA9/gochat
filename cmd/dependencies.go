@@ -494,7 +494,6 @@ func provideKafkaSubscriptions(
 }
 
 func BuildDependencies(
-	needMigrate bool,
 	appConfig *config.App,
 	ginEngine *gin.Engine,
 	mysql *gorm.DB,
@@ -507,44 +506,21 @@ func BuildDependencies(
 	_ error, // ensure subscriptions provider executed (ignored)
 ) (*Dependencies, error) {
 	// Migrations (side-effect). Performed here to keep initialize logic centralized.
-	if needMigrate {
-		if err := gormutils.AutoMigrate(
-			mysql,
-			&authorizationModel.User{},
-			&notificationModel.Message{},
-			&notificationModel.MessageState{},
-			&chatModel.User{},
-			&chatModel.Room{},
-			&chatModel.PrivateMessage{},
-			&chatModel.RoomMessage{},
-			&socialModel.User{},
-			&socialModel.Room{},
-			&model.Event{},
-			&model.DeadLetter{},
-		); err != nil {
-			return nil, fmt.Errorf("mysql migrate failed, err:%w", err)
-		}
-	} else {
-		if migrated, err := gormutils.AutoMigrateIfFresh(
-			mysql,
-			&authorizationModel.User{},
-			&notificationModel.Message{},
-			&notificationModel.MessageState{},
-			&chatModel.User{},
-			&chatModel.Room{},
-			&chatModel.PrivateMessage{},
-			&chatModel.RoomMessage{},
-			&socialModel.User{},
-			&socialModel.Room{},
-			&model.Event{},
-			&model.DeadLetter{},
-		); err != nil {
-			return nil, fmt.Errorf("mysql auto-migrate-if-fresh failed, err:%w", err)
-		} else if migrated {
-			zap.L().Info("Performed initial auto migration (first run detected)")
-		} else {
-			zap.L().Info("Skipping auto migration (tables already exist)")
-		}
+	if err := gormutils.AutoMigrate(
+		mysql,
+		&authorizationModel.User{},
+		&notificationModel.Message{},
+		&notificationModel.MessageState{},
+		&chatModel.User{},
+		&chatModel.Room{},
+		&chatModel.PrivateMessage{},
+		&chatModel.RoomMessage{},
+		&socialModel.User{},
+		&socialModel.Room{},
+		&model.Event{},
+		&model.DeadLetter{},
+	); err != nil {
+		return nil, fmt.Errorf("mysql auto migrate failed, err:%w", err)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

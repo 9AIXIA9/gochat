@@ -16,5 +16,5 @@ type MessageState struct {
 }
 
 func (*MessageState) TableName() string {
-	return "gochat.notification_message_states"
+	return "notification_message_states"
 }

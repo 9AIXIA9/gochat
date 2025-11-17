@@ -9,7 +9,7 @@ package main
 // Injectors from wire.go:
 
 // initializeDependencies builds the application Dependencies using Google Wire.
-func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate bool) (*Dependencies, error) {
+func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependencies, error) {
 	app, err := provideAppConfig(configPath, envPath)
 	if err != nil {
 		return nil, err
@@ -103,7 +103,7 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath, needMigrate 
 	messageNotificationRequestedUseCase := provideNotificationMessageNotificationRequestedUseCase(repositoryMessageRepository, messageNotifier)
 	undeliveredMessageNotificationRequestedUseCase := provideNotificationUndeliveredMessageNotificationRequestedUseCase(repositoryMessageRepository, messageNotifier)
 	error2 := provideKafkaSubscriptions(eventSubscriber, emailAvailable, userSessionStartedUseCase, userCreatedUseCase, usecaseUserCreatedUseCase, roomCreatedUseCase, roomJoinedUseCase, roomLeftUseCase, userCreatedUseCase2, usecaseRoomCreatedUseCase, usecaseRoomJoinedUseCase, usecaseRoomLeftUseCase, privateMessageCreatedUseCase, roomMessageCreatedUseCase, welcomeEmailNotificationRequestedUseCase, messageNotificationRequestedUseCase, undeliveredMessageNotificationRequestedUseCase)
-	dependencies, err := BuildDependencies(needMigrate, app, engine, db, v, eventPublisher, eventSubscriber, outboxConsumer, emailNotifier, error2)
+	dependencies, err := BuildDependencies(app, engine, db, v, eventPublisher, eventSubscriber, outboxConsumer, emailNotifier, error2)
 	if err != nil {
 		return nil, err
 	}
