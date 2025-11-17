@@ -5,7 +5,7 @@ services:
     env_file:
       - config/service/.env.db
     environment:
-      TZ: ${TZ}
+      TZ: ${TZ:-Asia/Shanghai}
     command: [
       "mysqld",
       "--default-authentication-plugin=mysql_native_password",
@@ -35,7 +35,7 @@ services:
     env_file:
       - config/service/.env.redis
     environment:
-      TZ: ${TZ}
+      TZ: ${TZ:-Asia/Shanghai}
     # 使用 ACL 文件定义用户/权限
     command: [ "sh", "-lc", "exec redis-server --appendonly yes --aclfile /etc/redis/users.acl" ]
     ports:
@@ -61,7 +61,8 @@ services:
     env_file:
       - config/service/.env.kafka
     environment:
-      TZ: ${TZ}
+      TZ: ${TZ:-Asia/Shanghai}
+      KAFKA_OPTS: "-Duser.timezone=${TZ:-Asia/Shanghai}"
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_NODE_ID: 1
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-dev:29093
@@ -96,7 +97,7 @@ services:
     ports:
       - '${PROMETHEUS_HOST_PORT:-9090}:9090'
     volumes:
-      - ./config/docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./config/service/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-data:/prometheus
     command: [
       "--config.file=/etc/prometheus/prometheus.yml",
@@ -109,7 +110,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 30
-
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
   app:
     build:
       context: .
@@ -126,7 +128,7 @@ services:
     env_file:
       - config/service/.env.app
     environment:
-      TZ: ${TZ}
+      TZ: ${TZ:-Asia/Shanghai}
     ports:
       - '${APP_HOST_PORT:-8888}:8888'
     volumes:
