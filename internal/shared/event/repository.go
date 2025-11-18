@@ -3,13 +3,18 @@ package event
 import "context"
 
 type Repository interface {
-	UnpublishedSaver
+	UnpublishedEventSaver
+	UnpublishedEventsSaver
 	UnpublishedLister
 	PublishedMarker
 	DeadLetterSaver
 }
 
-type UnpublishedSaver interface {
+type UnpublishedEventSaver interface {
+	Save(ctx context.Context, event Event) error
+}
+
+type UnpublishedEventsSaver interface {
 	Saves(ctx context.Context, events []Event) error
 }
 

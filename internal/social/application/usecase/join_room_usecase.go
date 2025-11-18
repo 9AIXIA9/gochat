@@ -32,13 +32,13 @@ type joinRoomUseCase struct {
 	finder           application.RoomFinderByNumber
 	comparator       application.Comparator
 	roomMemberSaver  application.RoomMemberSaver
-	eventSaver       event.UnpublishedSaver
+	eventSaver       event.UnpublishedEventsSaver
 	unitOfWork       kernel.UnitOfWork
 }
 
 func NewJoinRoomUseCase(
 	eventIDGenerator event.IDGenerator,
-	eventSaver event.UnpublishedSaver,
+	eventSaver event.UnpublishedEventsSaver,
 	finder application.RoomFinderByNumber,
 	comparator application.Comparator,
 	roomMemberSaver application.RoomMemberSaver,

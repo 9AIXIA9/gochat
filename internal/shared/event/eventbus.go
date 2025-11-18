@@ -2,10 +2,6 @@ package event
 
 import "context"
 
-type SinglePublisher interface {
-	Publish(event Event) error
-}
-
 type ManyPublisher interface {
 	Publishes(event []Event) error
 }

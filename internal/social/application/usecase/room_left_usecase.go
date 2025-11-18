@@ -24,25 +24,25 @@ func (r *RoomLeftInput) Validate() error {
 
 type roomLeftUseCase struct {
 	idGenerator event.IDGenerator
-	publisher   event.SinglePublisher
+	saver       event.UnpublishedEventSaver
 }
 
 func NewRoomLeftUseCase(
 	idGenerator event.IDGenerator,
-	publisher event.SinglePublisher,
+	saver event.UnpublishedEventSaver,
 ) RoomLeftUseCase {
 	return &roomLeftUseCase{
 		idGenerator: idGenerator,
-		publisher:   publisher,
+		saver:       saver,
 	}
 }
 
-func (uc *roomLeftUseCase) Execute(_ context.Context, input *RoomLeftInput) (*kernel.NoOutput, error) {
+func (uc *roomLeftUseCase) Execute(ctx context.Context, input *RoomLeftInput) (*kernel.NoOutput, error) {
 	chatEv, err := chatDomain.NewRoomLeftEvent(uc.idGenerator.Generate(), input.RoomID, input.UserID)
 	if err != nil {
 		return nil, err
 	}
-	if err := uc.publisher.Publish(chatEv); err != nil {
+	if err := uc.saver.Save(ctx, chatEv); err != nil {
 		return nil, err
 	}
 	return nil, nil

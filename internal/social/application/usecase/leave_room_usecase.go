@@ -26,7 +26,7 @@ type leaveRoomUseCase struct {
 	eventIDGenerator  event.IDGenerator
 	finder            application.RoomFinderByNumber
 	roomMemberDeleter application.RoomMemberDeleter
-	eventSaver        event.UnpublishedSaver
+	eventSaver        event.UnpublishedEventsSaver
 	unitOfWork        kernel.UnitOfWork
 }
 
@@ -34,7 +34,7 @@ func NewLeaveRoomUseCase(
 	eventIDGenerator event.IDGenerator,
 	finder application.RoomFinderByNumber,
 	roomMemberDeleter application.RoomMemberDeleter,
-	eventSaver event.UnpublishedSaver,
+	eventSaver event.UnpublishedEventsSaver,
 	unitOfWork kernel.UnitOfWork,
 ) LeaveRoomUseCase {
 	return &leaveRoomUseCase{

@@ -26,18 +26,18 @@ func (r *UserCreatedInput) Validate() error {
 
 type userCreatedUseCase struct {
 	idGenerator event.IDGenerator
-	publisher   event.SinglePublisher
+	saver       event.UnpublishedEventsSaver
 	finder      application.UserFinderByID
 }
 
 func NewUserCreatedUseCase(
 	idGenerator event.IDGenerator,
-	publisher event.SinglePublisher,
+	saver event.UnpublishedEventsSaver,
 	finder application.UserFinderByID,
 ) UserCreatedUseCase {
 	return &userCreatedUseCase{
 		idGenerator: idGenerator,
-		publisher:   publisher,
+		saver:       saver,
 		finder:      finder,
 	}
 }
@@ -53,20 +53,12 @@ func (uc *userCreatedUseCase) Execute(ctx context.Context, input *UserCreatedInp
 		return nil, err
 	}
 
-	if err := uc.publisher.Publish(socialEv); err != nil {
-		return nil, err
-	}
-
 	chatEv, err := chatDomain.NewUserCreatedEvent(
 		uc.idGenerator.Generate(),
 		user.ID(),
 		user.Number(),
 	)
 	if err != nil {
-		return nil, err
-	}
-
-	if err := uc.publisher.Publish(chatEv); err != nil {
 		return nil, err
 	}
 
@@ -80,7 +72,9 @@ func (uc *userCreatedUseCase) Execute(ctx context.Context, input *UserCreatedInp
 		return nil, err
 	}
 
-	if err := uc.publisher.Publish(notificationEv); err != nil {
+	if err := uc.saver.Saves(ctx, []event.Event{
+		socialEv, chatEv, notificationEv,
+	}); err != nil {
 		return nil, err
 	}
 	return nil, nil

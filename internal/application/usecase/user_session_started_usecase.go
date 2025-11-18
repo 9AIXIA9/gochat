@@ -23,20 +23,20 @@ func (r *UserSessionStartedInput) Validate() error {
 
 type userCreatedUseCase struct {
 	idGenerator event.IDGenerator
-	publisher   event.SinglePublisher
+	saver       event.UnpublishedEventSaver
 }
 
 func NewUserSessionStartedUseCase(
 	idGenerator event.IDGenerator,
-	publisher event.SinglePublisher,
+	saver event.UnpublishedEventSaver,
 ) UserSessionStartedUseCase {
 	return &userCreatedUseCase{
 		idGenerator: idGenerator,
-		publisher:   publisher,
+		saver:       saver,
 	}
 }
 
-func (uc *userCreatedUseCase) Execute(_ context.Context, input *UserSessionStartedInput) (*kernel.NoOutput, error) {
+func (uc *userCreatedUseCase) Execute(ctx context.Context, input *UserSessionStartedInput) (*kernel.NoOutput, error) {
 	notificationEv, err := notificationDomain.NewUndeliveredMessageNotificationRequestedEvent(
 		uc.idGenerator.Generate(),
 		input.UserID,
@@ -45,7 +45,7 @@ func (uc *userCreatedUseCase) Execute(_ context.Context, input *UserSessionStart
 		return nil, err
 	}
 
-	if err := uc.publisher.Publish(notificationEv); err != nil {
+	if err := uc.saver.Save(ctx, notificationEv); err != nil {
 		return nil, err
 	}
 	return nil, nil

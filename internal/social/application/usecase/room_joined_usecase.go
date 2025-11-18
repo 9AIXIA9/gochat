@@ -24,25 +24,25 @@ func (r *RoomJoinedInput) Validate() error {
 
 type roomJoinedUseCase struct {
 	idGenerator event.IDGenerator
-	publisher   event.SinglePublisher
+	saver       event.UnpublishedEventSaver
 }
 
 func NewRoomJoinedUseCase(
 	idGenerator event.IDGenerator,
-	publisher event.SinglePublisher,
+	saver event.UnpublishedEventSaver,
 ) RoomJoinedUseCase {
 	return &roomJoinedUseCase{
 		idGenerator: idGenerator,
-		publisher:   publisher,
+		saver:       saver,
 	}
 }
 
-func (uc *roomJoinedUseCase) Execute(_ context.Context, input *RoomJoinedInput) (*kernel.NoOutput, error) {
+func (uc *roomJoinedUseCase) Execute(ctx context.Context, input *RoomJoinedInput) (*kernel.NoOutput, error) {
 	chatEv, err := chatDomain.NewRoomJoinedEvent(uc.idGenerator.Generate(), input.RoomID, input.UserID)
 	if err != nil {
 		return nil, err
 	}
-	if err := uc.publisher.Publish(chatEv); err != nil {
+	if err := uc.saver.Save(ctx, chatEv); err != nil {
 		return nil, err
 	}
 	return nil, nil

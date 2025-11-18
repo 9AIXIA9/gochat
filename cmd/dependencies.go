@@ -209,8 +209,8 @@ func provideWebsocketManager(upgrader *gorillaWebsocket.Upgrader, metrics *prome
 	m.SetMetrics(metrics)
 	return m
 }
-func provideWebsocketServer(manager *websocket.Manager, router *websocket.Router, publisher *kafkautil.EventPublisher, eventIDGen event.IDGenerator) *websocket.Server {
-	return websocket.NewServer(manager, router, publisher, eventIDGen)
+func provideWebsocketServer(manager *websocket.Manager, router *websocket.Router, eventRepo *repository.EventRepository, eventIDGen event.IDGenerator) *websocket.Server {
+	return websocket.NewServer(manager, router, eventRepo, eventIDGen)
 }
 
 // -------------------- UseCases (HTTP side) --------------------
@@ -220,7 +220,7 @@ func provideSignUpUseCase(
 	numberGen authorizationApp.UserNumberGenerator,
 	encryptor authorizationApp.Encryptor,
 	userSaver authorizationApp.UserSaver,
-	eventSaver event.UnpublishedSaver,
+	eventSaver event.UnpublishedEventsSaver,
 	unitOfWork kernel.UnitOfWork,
 ) authorizationUsecase.SignUpUseCase {
 	return authorizationUsecase.NewSignUpUseCase(eventIDGen, userIDGen, numberGen, encryptor, userSaver, eventSaver, unitOfWork)
@@ -253,7 +253,7 @@ func provideSendPrivateMessageUseCase(
 	eventIDGen event.IDGenerator,
 	userRepo *chatRepository.UserRepository,
 	msgRepo *chatRepository.MessageRepository,
-	eventSaver event.UnpublishedSaver,
+	eventSaver event.UnpublishedEventsSaver,
 	unitOfWork kernel.UnitOfWork,
 ) chatUsecase.SendPrivateMessageUseCase {
 	return chatUsecase.NewSendPrivateMessageUseCase(messageIDGen, eventIDGen, userRepo, msgRepo, eventSaver, unitOfWork)
@@ -263,7 +263,7 @@ func provideSendRoomMessageUseCase(
 	eventIDGen event.IDGenerator,
 	roomRepo *chatRepository.RoomRepository,
 	msgRepo *chatRepository.MessageRepository,
-	eventSaver event.UnpublishedSaver,
+	eventSaver event.UnpublishedEventsSaver,
 	unitOfWork kernel.UnitOfWork,
 ) chatUsecase.SendRoomMessageUseCase {
 	return chatUsecase.NewSendRoomMessageUseCase(messageIDGen, eventIDGen, roomRepo, msgRepo, eventSaver, unitOfWork)
@@ -274,14 +274,14 @@ func provideCreateRoomUseCase(
 	numberGen socialApp.RoomNumberGenerator,
 	encryptor socialApp.Encryptor,
 	roomSaver socialApp.RoomSaver,
-	eventSaver event.UnpublishedSaver,
+	eventSaver event.UnpublishedEventsSaver,
 	unitOfWork kernel.UnitOfWork,
 ) socialUseCase.CreateRoomUseCase {
 	return socialUseCase.NewCreateRoomUseCase(eventIDGen, roomIDGen, numberGen, encryptor, roomSaver, eventSaver, unitOfWork)
 }
 func provideJoinRoomUseCase(
 	eventIDGen event.IDGenerator,
-	eventSaver event.UnpublishedSaver,
+	eventSaver event.UnpublishedEventsSaver,
 	finder socialApp.RoomFinderByNumber,
 	comparator socialApp.Comparator,
 	roomMemberSaver socialApp.RoomMemberSaver,
@@ -293,7 +293,7 @@ func provideLeaveRoomUseCase(
 	eventIDGen event.IDGenerator,
 	finder socialApp.RoomFinderByNumber,
 	roomMemberDeleter socialApp.RoomMemberDeleter,
-	eventSaver event.UnpublishedSaver,
+	eventSaver event.UnpublishedEventsSaver,
 	unitOfWork kernel.UnitOfWork,
 ) socialUseCase.LeaveRoomUseCase {
 	return socialUseCase.NewLeaveRoomUseCase(eventIDGen, finder, roomMemberDeleter, eventSaver, unitOfWork)
@@ -325,23 +325,23 @@ func provideKafkaTopics() []string {
 }
 
 // -------------------- Event UseCases (Kafka consumer side) --------------------
-func provideWebsocketUserSessionStartedUseCase(eventIDGen *uuid.EventIDGenerator, publisher *kafkautil.EventPublisher) usecase.UserSessionStartedUseCase {
-	return usecase.NewUserSessionStartedUseCase(eventIDGen, publisher)
+func provideWebsocketUserSessionStartedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventSaver) usecase.UserSessionStartedUseCase {
+	return usecase.NewUserSessionStartedUseCase(eventIDGen, saver)
 }
-func provideAuthUserCreatedUseCase(eventIDGen *uuid.EventIDGenerator, publisher *kafkautil.EventPublisher, userRepo *authorizationRepository.UserRepository) authorizationUsecase.UserCreatedUseCase {
-	return authorizationUsecase.NewUserCreatedUseCase(eventIDGen, publisher, userRepo)
+func provideAuthUserCreatedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventsSaver, userRepo *authorizationRepository.UserRepository) authorizationUsecase.UserCreatedUseCase {
+	return authorizationUsecase.NewUserCreatedUseCase(eventIDGen, saver, userRepo)
 }
 func provideSocialUserCreatedUseCase(userRepo *socialRepository.UserRepository) socialUseCase.UserCreatedUseCase {
 	return socialUseCase.NewUserCreatedUseCase(userRepo)
 }
-func provideSocialRoomCreatedUseCase(eventIDGen *uuid.EventIDGenerator, publisher *kafkautil.EventPublisher, roomRepo *socialRepository.RoomRepository) socialUseCase.RoomCreatedUseCase {
-	return socialUseCase.NewRoomCreatedUseCase(eventIDGen, publisher, roomRepo)
+func provideSocialRoomCreatedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventSaver, roomRepo *socialRepository.RoomRepository) socialUseCase.RoomCreatedUseCase {
+	return socialUseCase.NewRoomCreatedUseCase(eventIDGen, saver, roomRepo)
 }
-func provideSocialRoomJoinedUseCase(eventIDGen *uuid.EventIDGenerator, publisher *kafkautil.EventPublisher) socialUseCase.RoomJoinedUseCase {
-	return socialUseCase.NewRoomJoinedUseCase(eventIDGen, publisher)
+func provideSocialRoomJoinedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventSaver) socialUseCase.RoomJoinedUseCase {
+	return socialUseCase.NewRoomJoinedUseCase(eventIDGen, saver)
 }
-func provideSocialRoomLeftUseCase(eventIDGen *uuid.EventIDGenerator, publisher *kafkautil.EventPublisher) socialUseCase.RoomLeftUseCase {
-	return socialUseCase.NewRoomLeftUseCase(eventIDGen, publisher)
+func provideSocialRoomLeftUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventSaver) socialUseCase.RoomLeftUseCase {
+	return socialUseCase.NewRoomLeftUseCase(eventIDGen, saver)
 }
 func provideChatUserCreatedUseCase(userRepo *chatRepository.UserRepository) chatUsecase.UserCreatedUseCase {
 	return chatUsecase.NewUserCreatedUseCase(userRepo)
@@ -355,11 +355,11 @@ func provideChatRoomJoinedUseCase(roomRepo *chatRepository.RoomRepository) chatU
 func provideChatRoomLeftUseCase(roomRepo *chatRepository.RoomRepository) chatUsecase.RoomLeftUseCase {
 	return chatUsecase.NewRoomLeftUseCase(roomRepo)
 }
-func provideChatPrivateMessageCreatedUseCase(eventIDGen *uuid.EventIDGenerator, publisher *kafkautil.EventPublisher, messageRepo *chatRepository.MessageRepository) chatUsecase.PrivateMessageCreatedUseCase {
-	return chatUsecase.NewPrivateMessageCreatedUseCase(eventIDGen, messageRepo, publisher)
+func provideChatPrivateMessageCreatedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventSaver, messageRepo *chatRepository.MessageRepository) chatUsecase.PrivateMessageCreatedUseCase {
+	return chatUsecase.NewPrivateMessageCreatedUseCase(eventIDGen, messageRepo, saver)
 }
-func provideChatRoomMessageCreatedUseCase(eventIDGen *uuid.EventIDGenerator, publisher *kafkautil.EventPublisher, messageRepo *chatRepository.MessageRepository) chatUsecase.RoomMessageCreatedUseCase {
-	return chatUsecase.NewRoomMessageCreatedUseCase(eventIDGen, messageRepo, publisher)
+func provideChatRoomMessageCreatedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventsSaver, messageRepo *chatRepository.MessageRepository) chatUsecase.RoomMessageCreatedUseCase {
+	return chatUsecase.NewRoomMessageCreatedUseCase(eventIDGen, messageRepo, saver)
 }
 func provideNotificationWelcomeEmailNotificationRequestedUseCase(emailNotifier *gomailUtil.EmailNotifier) notificationUsecase.WelcomeEmailNotificationRequestedUseCase {
 	return notificationUsecase.NewWelcomeEmailNotificationRequestedUseCase(emailNotifier)

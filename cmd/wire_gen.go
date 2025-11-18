@@ -64,13 +64,13 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 	repositoryMessageRepository := provideNotificationMessageRepository(unitOfWork)
 	messageReadUseCase := provideNotificationMessageReadUseCase(repositoryMessageRepository)
 	router := provideWebsocketRouter(messageReadUseCase)
+	server := provideWebsocketServer(manager, router, eventRepository, eventIDGenerator)
+	engine := provideHttpRouter(app, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, createRoomUseCase, joinRoomUseCase, leaveRoomUseCase, validator, client, server, metrics)
+	v := provideKafkaTopics()
 	eventPublisher, err := provideKafkaPublisher(app, eventRepository, metrics)
 	if err != nil {
 		return nil, err
 	}
-	server := provideWebsocketServer(manager, router, eventPublisher, eventIDGenerator)
-	engine := provideHttpRouter(app, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, createRoomUseCase, joinRoomUseCase, leaveRoomUseCase, validator, client, server, metrics)
-	v := provideKafkaTopics()
 	eventSubscriber, err := provideKafkaSubscriber(app, eventRepository, metrics)
 	if err != nil {
 		return nil, err
@@ -86,19 +86,19 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 	}
 	emailNotifier := provideEmailNotifier(app, dialer)
 	emailAvailable := provideEmailAvailable(dialer)
-	userSessionStartedUseCase := provideWebsocketUserSessionStartedUseCase(eventIDGenerator, eventPublisher)
-	userCreatedUseCase := provideAuthUserCreatedUseCase(eventIDGenerator, eventPublisher, userRepository)
+	userSessionStartedUseCase := provideWebsocketUserSessionStartedUseCase(eventIDGenerator, eventRepository)
+	userCreatedUseCase := provideAuthUserCreatedUseCase(eventIDGenerator, eventRepository, userRepository)
 	userRepository2 := provideSocialUserRepository(unitOfWork)
 	usecaseUserCreatedUseCase := provideSocialUserCreatedUseCase(userRepository2)
-	roomCreatedUseCase := provideSocialRoomCreatedUseCase(eventIDGenerator, eventPublisher, repositoryRoomRepository)
-	roomJoinedUseCase := provideSocialRoomJoinedUseCase(eventIDGenerator, eventPublisher)
-	roomLeftUseCase := provideSocialRoomLeftUseCase(eventIDGenerator, eventPublisher)
+	roomCreatedUseCase := provideSocialRoomCreatedUseCase(eventIDGenerator, eventRepository, repositoryRoomRepository)
+	roomJoinedUseCase := provideSocialRoomJoinedUseCase(eventIDGenerator, eventRepository)
+	roomLeftUseCase := provideSocialRoomLeftUseCase(eventIDGenerator, eventRepository)
 	userCreatedUseCase2 := provideChatUserCreatedUseCase(repositoryUserRepository)
 	usecaseRoomCreatedUseCase := provideChatRoomCreatedUseCase(roomRepository)
 	usecaseRoomJoinedUseCase := provideChatRoomJoinedUseCase(roomRepository)
 	usecaseRoomLeftUseCase := provideChatRoomLeftUseCase(roomRepository)
-	privateMessageCreatedUseCase := provideChatPrivateMessageCreatedUseCase(eventIDGenerator, eventPublisher, messageRepository)
-	roomMessageCreatedUseCase := provideChatRoomMessageCreatedUseCase(eventIDGenerator, eventPublisher, messageRepository)
+	privateMessageCreatedUseCase := provideChatPrivateMessageCreatedUseCase(eventIDGenerator, eventRepository, messageRepository)
+	roomMessageCreatedUseCase := provideChatRoomMessageCreatedUseCase(eventIDGenerator, eventRepository, messageRepository)
 	welcomeEmailNotificationRequestedUseCase := provideNotificationWelcomeEmailNotificationRequestedUseCase(emailNotifier)
 	messageNotifier := provideMessageNotifier(manager)
 	messageNotificationRequestedUseCase := provideNotificationMessageNotificationRequestedUseCase(repositoryMessageRepository, messageNotifier)

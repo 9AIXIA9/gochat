@@ -43,7 +43,7 @@ type createRoomUseCase struct {
 	numberGenerator  application.RoomNumberGenerator
 	encryptor        application.Encryptor
 	roomSaver        application.RoomSaver
-	eventSaver       event.UnpublishedSaver
+	eventSaver       event.UnpublishedEventsSaver
 	unitOfWork       kernel.UnitOfWork
 }
 
@@ -53,7 +53,7 @@ func NewCreateRoomUseCase(
 	numberGenerator application.RoomNumberGenerator,
 	encryptor application.Encryptor,
 	roomSaver application.RoomSaver,
-	eventSaver event.UnpublishedSaver,
+	eventSaver event.UnpublishedEventsSaver,
 	unitOfWork kernel.UnitOfWork,
 ) CreateRoomUseCase {
 	return &createRoomUseCase{
