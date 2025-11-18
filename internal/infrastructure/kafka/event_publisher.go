@@ -11,7 +11,6 @@ import (
 	"go.uber.org/zap"
 )
 
-var _ event.SinglePublisher = (*EventPublisher)(nil)
 var _ event.ManyPublisher = (*EventPublisher)(nil)
 
 type EventPublisher struct {

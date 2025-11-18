@@ -33,7 +33,7 @@ type sendRoomMessageUseCase struct {
 	eventIDGenerator      event.IDGenerator
 	roomFinder            application.RoomFinder
 	messageSaver          application.RoomMessageSaver
-	unpublishedEventSaver event.UnpublishedSaver
+	unpublishedEventSaver event.UnpublishedEventsSaver
 	unitOfWork            kernel.UnitOfWork
 }
 
@@ -42,7 +42,7 @@ func NewSendRoomMessageUseCase(
 	eventIDGenerator event.IDGenerator,
 	roomFinder application.RoomFinder,
 	messageSaver application.RoomMessageSaver,
-	unpublishedEventSaver event.UnpublishedSaver,
+	unpublishedEventSaver event.UnpublishedEventsSaver,
 	unitOfWork kernel.UnitOfWork,
 ) SendRoomMessageUseCase {
 	return &sendRoomMessageUseCase{

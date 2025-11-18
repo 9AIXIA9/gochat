@@ -28,18 +28,18 @@ func (i *RoomMessageCreatedInput) Validate() error {
 
 type roomMessageCreatedUseCase struct {
 	eventIDGenerator  event.IDGenerator
-	publisher         event.ManyPublisher
+	saver             event.UnpublishedEventsSaver
 	roomMessageFinder application.RoomMessageFinder
 }
 
 func NewRoomMessageCreatedUseCase(
 	eventIDGenerator event.IDGenerator,
 	roomMessageFinder application.RoomMessageFinder,
-	publisher event.ManyPublisher,
+	saver event.UnpublishedEventsSaver,
 ) RoomMessageCreatedUseCase {
 	return &roomMessageCreatedUseCase{
 		eventIDGenerator:  eventIDGenerator,
-		publisher:         publisher,
+		saver:             saver,
 		roomMessageFinder: roomMessageFinder,
 	}
 }
@@ -71,7 +71,7 @@ func (uc *roomMessageCreatedUseCase) Execute(ctx context.Context, input *RoomMes
 		evs = append(evs, ev)
 	}
 
-	if err := uc.publisher.Publishes(evs); err != nil {
+	if err := uc.saver.Saves(ctx, evs); err != nil {
 		return nil, err
 	}
 
