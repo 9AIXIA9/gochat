@@ -14,7 +14,7 @@ import (
 
 // Initialize sets up tracing according to Telemetry config. Metrics reuse existing prometheus implementation.
 func Initialize(ctx context.Context, serviceName string, conf *TelemetryConfig) (func(context.Context) error, error) {
-	exp, err := otlptracehttp.New(ctx, otlptracehttp.WithEndpoint(conf.OTLPHost), otlptracehttp.WithInsecure())
+	exp, err := otlptracehttp.New(ctx, otlptracehttp.WithEndpoint(conf.OTLPEndpoint), otlptracehttp.WithInsecure())
 	if err != nil {
 		return nil, err
 	}

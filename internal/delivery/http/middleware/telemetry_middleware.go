@@ -13,11 +13,6 @@ import (
 func TelemetryMiddleware(serviceName string) gin.HandlerFunc {
 	tracer := otel.Tracer(serviceName + "/http")
 	return func(c *gin.Context) {
-		// Skip metrics & health endpoints for tracing to reduce noise
-		if c.FullPath() == "/metrics" || c.FullPath() == "/health_check" {
-			c.Next()
-			return
-		}
 		start := time.Now()
 		ctx, span := tracer.Start(c.Request.Context(), c.Request.Method+" "+c.FullPath(), trace.WithSpanKind(trace.SpanKindServer))
 		c.Request = c.Request.WithContext(ctx)

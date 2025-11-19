@@ -48,23 +48,15 @@ func provideHttpRouter(
 	// 初始化Gin路由器
 	router := gin.New()
 
-	// 遥测追踪中间件（如果启用）
-	if appConfig.Telemetry != nil && appConfig.Telemetry.Enabled && appConfig.Telemetry.TraceEnabled {
-		router.Use(middleware.TelemetryMiddleware(appConfig.Name))
-	}
-
 	// 全局中间件栈
 	router.Use(
-		middleware.NewRecoverMiddleware(),                                   // 恢复中间件
-		middleware.NewLoggerMiddleware(),                                    // 日志中间件
-		middleware.NewCORSMiddleware(appConfig.CORS),                        // CORS中间件
-		middleware.NewRateLimitMiddleware(redisClient, appConfig.RateLimit), // 限流中间件
-		metrics.GinMiddleware(),                                             // Prometheus指标中间件
-		middleware.TraceLoggerMiddleware(),                                  // 追踪日志中间件
+		middleware.NewRecoverMiddleware(),            // 恢复中间件
+		middleware.NewLoggerMiddleware(),             // 日志中间件
+		middleware.NewCORSMiddleware(appConfig.CORS), // CORS中间件
 	)
 
 	// 暴露Prometheus指标端点
-	router.GET("/metrics", gin.WrapH(metrics.Handler()))
+	router.Any("/metrics", gin.WrapH(metrics.Handler()))
 
 	// 健康检查端点
 	router.Any("/health_check", handler.NewHealthCheckHandler())
@@ -72,9 +64,19 @@ func provideHttpRouter(
 	// API路由分组 - 基础路径
 	baseGroup := router.Group("/api/v1")
 
+	baseGroup.Use(
+		middleware.NewRateLimitMiddleware(redisClient, appConfig.RateLimit), // 限流中间件
+		metrics.GinMiddleware(), // Prometheus指标中间件
+	)
+
+	// 遥测追踪中间件（如果启用）
+	if appConfig.Telemetry != nil && appConfig.Telemetry.Enabled && appConfig.Telemetry.TraceEnabled {
+		baseGroup.Use(middleware.TelemetryMiddleware(appConfig.Name))
+	}
+
 	// 授权相关路由
 	authorizationGroup := baseGroup.Group("/authorization")
-	authorizationGroup.Use() // 空Use调用，可能为未来中间件预留
+	authorizationGroup.Use()
 	{
 		authorizationGroup.POST("/sign_up", authorizationHttp.NewSignUpHandler(signUp, validator))
 		authorizationGroup.POST("/login", authorizationHttp.NewLoginHandler(login, validator, appConfig.Cookie))
