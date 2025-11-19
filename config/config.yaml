@@ -83,10 +83,10 @@ Kafka:
   EnableAutoCommit: ${KAFKA_ENABLE_AUTO_COMMIT}
 
 Telemetry:
-  TelemetryEnabled: true
-  TraceEnabled: true
-  MetricsEnabled: true
-  SampleRatio: 1.0
-  OTLPEndpoint: http://jaeger:4318
-  ServiceVersion: 1.0.0
-  Environment: development
+  TelemetryEnabled: ${TELEMETRY_ENABLED}
+  TraceEnabled: ${TELEMETRY_TRACE_ENABLED}
+  MetricsEnabled: ${TELEMETRY_METRICS_ENABLED}
+  SampleRatio: ${TELEMETRY_SAMPLE_RATIO}
+  OTLPEndpoint: ${TELEMETRY_OTLP_ENDPOINT}
+  ServiceVersion: ${TELEMETRY_SERVICE_VERSION}
+  Environment: ${TELEMETRY_ENVIRONMENT}

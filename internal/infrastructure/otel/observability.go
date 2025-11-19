@@ -5,8 +5,6 @@ import (
 	"net/url"
 	"time"
 
-	"gochat/config"
-
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
@@ -16,7 +14,7 @@ import (
 )
 
 // Initialize sets up tracing according to Telemetry config. Metrics reuse existing prometheus implementation.
-func Initialize(ctx context.Context, serviceName string, conf *config.TelemetryConfig) (func(context.Context) error, error) {
+func Initialize(ctx context.Context, serviceName string, conf *TelemetryConfig) (func(context.Context) error, error) {
 	if conf == nil || !conf.Enabled || !conf.TraceEnabled {
 		return nil, nil
 	}

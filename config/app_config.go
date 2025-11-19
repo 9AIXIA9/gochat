@@ -9,6 +9,7 @@ import (
 	"gochat/internal/infrastructure/canal"
 	"gochat/internal/infrastructure/gorm"
 	"gochat/internal/infrastructure/kafka"
+	"gochat/internal/infrastructure/otel"
 	"gochat/internal/infrastructure/redis"
 	"gochat/internal/infrastructure/zap"
 	"gochat/internal/notification/infrastructure/gomail"
@@ -34,18 +35,7 @@ type App struct {
 	RateLimit    *middleware.RateLimitConfig `mapstructure:"RateLimit"`
 	BinlogReader *canal.BinlogReaderConfig   `mapstructure:"BinlogReader"`
 	Email        *gomail.EmailNotifierConfig `mapstructure:"Email"`
-	Telemetry    *TelemetryConfig            `mapstructure:"Telemetry"`
-}
-
-// TelemetryConfig represents the configuration for telemetry
-type TelemetryConfig struct {
-	Enabled        bool    `mapstructure:"TelemetryEnabled"`
-	TraceEnabled   bool    `mapstructure:"TraceEnabled"`
-	MetricsEnabled bool    `mapstructure:"MetricsEnabled"`
-	SampleRatio    float64 `mapstructure:"SampleRatio"`
-	OTLPEndpoint   string  `mapstructure:"OTLPEndpoint"` // e.g. http://jaeger:4318
-	ServiceVersion string  `mapstructure:"ServiceVersion"`
-	Environment    string  `mapstructure:"Environment"`
+	Telemetry    *otel.TelemetryConfig       `mapstructure:"Telemetry"`
 }
 
 func (c *App) Validate() error {
@@ -99,13 +89,8 @@ func (c *App) Validate() error {
 	if err := c.BinlogReader.Validate(); err != nil {
 		return fmt.Errorf("App.BinlogReader: %w", err)
 	}
-	if c.Telemetry != nil && c.Telemetry.Enabled {
-		if c.Telemetry.SampleRatio < 0 || c.Telemetry.SampleRatio > 1 {
-			return fmt.Errorf("App.Telemetry.SampleRatio: %w: must be in [0,1], got %f", myErrors.ErrInvalidNumber, c.Telemetry.SampleRatio)
-		}
-		if c.Telemetry.TraceEnabled && c.Telemetry.OTLPEndpoint == "" {
-			return fmt.Errorf("App.Telemetry.OTLPEndpoint: %w", myErrors.ErrEmptyInput)
-		}
+	if err := c.Telemetry.Validate(); err != nil {
+		return fmt.Errorf("App.Telemetry: %w", err)
 	}
 
 	return nil
