@@ -4,24 +4,24 @@
 //go:build !wireinject
 // +build !wireinject
 
-package main
+package di
+
+import (
+	"gochat/config"
+)
 
 // Injectors from wire.go:
 
-// initializeDependencies builds the application Dependencies using Google Wire.
-func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependencies, error) {
-	app, err := provideAppConfig(configPath, envPath)
-	if err != nil {
-		return nil, err
-	}
+// Initialize wires up the dependencies for main
+func Initialize(appConfig *config.App) (*Dependencies, error) {
 	eventIDGenerator := provideEventIDGenerator()
 	userIDGenerator := provideAuthorizationUserIDGenerator()
-	userNumberGenerator, err := provideAuthorizationUserNumberGenerator(app)
+	userNumberGenerator, err := provideAuthorizationUserNumberGenerator(appConfig)
 	if err != nil {
 		return nil, err
 	}
-	hasher := provideHasher(app)
-	db, err := provideMysql(app)
+	hasher := provideHasher(appConfig)
+	db, err := provideMysql(appConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -30,13 +30,13 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 	userRepository := provideAuthorizationUserRepository(unitOfWork)
 	eventRepository := provideEventRepository(unitOfWork)
 	signUpUseCase := provideSignUpUseCase(eventIDGenerator, userIDGenerator, userNumberGenerator, hasher, userRepository, eventRepository, unitOfWork)
-	client, err := provideRedis(app)
+	client, err := provideRedis(appConfig)
 	if err != nil {
 		return nil, err
 	}
 	refreshTokenRepository := provideAuthorizationRefreshTokenRepository(client)
-	accessTokenManager := provideAccessTokenManager(app)
-	refreshTokenGenerator := provideRefreshTokenGenerator(app)
+	accessTokenManager := provideAccessTokenManager(appConfig)
+	refreshTokenGenerator := provideRefreshTokenGenerator(appConfig)
 	loginUseCase := provideLoginUseCase(eventIDGenerator, hasher, userRepository, userRepository, refreshTokenRepository, accessTokenManager, refreshTokenGenerator)
 	refreshAccessTokenUseCase := provideRefreshAccessTokenUseCase(refreshTokenRepository, refreshTokenRepository, accessTokenManager, refreshTokenGenerator)
 	parseAccessTokenUseCase := provideParseAccessTokenUseCase(accessTokenManager)
@@ -47,7 +47,7 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 	roomRepository := provideChatRoomRepository(unitOfWork)
 	sendRoomMessageUseCase := provideSendRoomMessageUseCase(messageIDGenerator, eventIDGenerator, roomRepository, messageRepository, eventRepository, unitOfWork)
 	roomIDGenerator := provideSocialRoomIDGenerator()
-	roomNumberGenerator, err := provideSocialRoomNumberGenerator(app)
+	roomNumberGenerator, err := provideSocialRoomNumberGenerator(appConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -59,33 +59,35 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 	if err != nil {
 		return nil, err
 	}
-	upgrader := provideWebsocketUpgrader(app)
+	upgrader := provideWebsocketUpgrader(appConfig)
 	manager := provideWebsocketManager(upgrader, metrics)
 	repositoryMessageRepository := provideNotificationMessageRepository(unitOfWork)
 	messageReadUseCase := provideNotificationMessageReadUseCase(repositoryMessageRepository)
 	router := provideWebsocketRouter(messageReadUseCase)
 	server := provideWebsocketServer(manager, router, eventRepository, eventIDGenerator)
-	engine := provideHttpRouter(app, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, createRoomUseCase, joinRoomUseCase, leaveRoomUseCase, validator, client, server, metrics)
-	v := provideKafkaTopics()
-	eventPublisher, err := provideKafkaPublisher(app, eventRepository, metrics)
+	engine := provideHttpRouter(appConfig, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, createRoomUseCase, joinRoomUseCase, leaveRoomUseCase, validator, client, server, metrics)
+	ginServer := provideHttpServer(appConfig, engine)
+	eventPublisher, err := provideKafkaPublisher(appConfig, eventRepository, metrics)
 	if err != nil {
 		return nil, err
 	}
-	eventSubscriber, err := provideKafkaSubscriber(app, eventRepository, metrics)
+	eventSubscriber, err := provideKafkaSubscriber(appConfig, eventRepository, metrics)
 	if err != nil {
 		return nil, err
 	}
-	canal, err := provideCanal(app)
+	canal, err := provideCanal(appConfig)
 	if err != nil {
 		return nil, err
 	}
 	outboxConsumer := provideCanalOutboxConsumer(canal, eventPublisher, eventRepository, metrics)
-	dialer, err := provideGomailDialer(app)
+	dialer, err := provideGomailDialer(appConfig)
 	if err != nil {
 		return nil, err
 	}
-	emailNotifier := provideEmailNotifier(app, dialer)
-	emailAvailable := provideEmailAvailable(dialer)
+	emailNotifier := provideEmailNotifier(appConfig, dialer)
+	diEmailServiceAvailable := provideEmailAvailable(dialer)
+	diKafkaTopicEnsured := provideTopicsEnsured(appConfig)
+	diDatabaseMigrated := provideDatabaseMigrated(db)
 	userSessionStartedUseCase := provideWebsocketUserSessionStartedUseCase(eventIDGenerator, eventRepository)
 	userCreatedUseCase := provideAuthUserCreatedUseCase(eventIDGenerator, eventRepository, userRepository)
 	userRepository2 := provideSocialUserRepository(unitOfWork)
@@ -103,8 +105,8 @@ func initializeDependencies(configPath ConfigPath, envPath EnvPath) (*Dependenci
 	messageNotifier := provideMessageNotifier(manager)
 	messageNotificationRequestedUseCase := provideNotificationMessageNotificationRequestedUseCase(repositoryMessageRepository, messageNotifier)
 	undeliveredMessageNotificationRequestedUseCase := provideNotificationUndeliveredMessageNotificationRequestedUseCase(repositoryMessageRepository, messageNotifier)
-	error2 := provideKafkaSubscriptions(eventSubscriber, emailAvailable, userSessionStartedUseCase, userCreatedUseCase, usecaseUserCreatedUseCase, roomCreatedUseCase, roomJoinedUseCase, roomLeftUseCase, userCreatedUseCase2, usecaseRoomCreatedUseCase, usecaseRoomJoinedUseCase, usecaseRoomLeftUseCase, privateMessageCreatedUseCase, roomMessageCreatedUseCase, welcomeEmailNotificationRequestedUseCase, messageNotificationRequestedUseCase, undeliveredMessageNotificationRequestedUseCase)
-	dependencies, err := BuildDependencies(app, engine, db, v, eventPublisher, eventSubscriber, outboxConsumer, emailNotifier, error2)
+	error2 := provideKafkaSubscriptions(eventSubscriber, diEmailServiceAvailable, userSessionStartedUseCase, userCreatedUseCase, usecaseUserCreatedUseCase, roomCreatedUseCase, roomJoinedUseCase, roomLeftUseCase, userCreatedUseCase2, usecaseRoomCreatedUseCase, usecaseRoomJoinedUseCase, usecaseRoomLeftUseCase, privateMessageCreatedUseCase, roomMessageCreatedUseCase, welcomeEmailNotificationRequestedUseCase, messageNotificationRequestedUseCase, undeliveredMessageNotificationRequestedUseCase)
+	dependencies, err := BuildDependencies(ginServer, eventPublisher, eventSubscriber, outboxConsumer, emailNotifier, diEmailServiceAvailable, diKafkaTopicEnsured, diDatabaseMigrated, error2)
 	if err != nil {
 		return nil, err
 	}

@@ -81,3 +81,12 @@ Kafka:
   GroupID: ${KAFKA_GROUP_ID}
   AutoOffsetReset: ${KAFKA_AUTO_OFFSET_RESET}
   EnableAutoCommit: ${KAFKA_ENABLE_AUTO_COMMIT}
+
+Telemetry:
+  TelemetryEnabled: true
+  TraceEnabled: true
+  MetricsEnabled: true
+  SampleRatio: 1.0
+  OTLPEndpoint: http://jaeger:4318
+  ServiceVersion: 1.0.0
+  Environment: development

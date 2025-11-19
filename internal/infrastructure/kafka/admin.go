@@ -3,13 +3,14 @@ package kafka
 import (
 	"context"
 	"fmt"
+	"gochat/internal/shared/event"
 
 	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
 // EnsureTopics creates topics if they do not already exist. It is safe to call repeatedly.
 // numPartitions <= 0 defaults to 1; replicationFactor <= 0 defaults to 1.
-func EnsureTopics(ctx context.Context, config *Config, topics []string, numPartitions int, replicationFactor int) error {
+func EnsureTopics(ctx context.Context, config *Config, topics []event.Topic, numPartitions int, replicationFactor int) error {
 	if config == nil {
 		return fmt.Errorf("kafka ensure topics: config is nil")
 	}
@@ -31,7 +32,7 @@ func EnsureTopics(ctx context.Context, config *Config, topics []string, numParti
 	defer admin.Close()
 
 	// de-dup topics
-	seen := make(map[string]struct{}, len(topics))
+	seen := make(map[event.Topic]struct{}, len(topics))
 	specs := make([]ckafka.TopicSpecification, 0, len(topics))
 	for _, t := range topics {
 		if t == "" {
@@ -42,7 +43,7 @@ func EnsureTopics(ctx context.Context, config *Config, topics []string, numParti
 		}
 		seen[t] = struct{}{}
 		specs = append(specs, ckafka.TopicSpecification{
-			Topic:             t,
+			Topic:             string(t),
 			NumPartitions:     numPartitions,
 			ReplicationFactor: replicationFactor,
 		})

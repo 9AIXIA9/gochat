@@ -19,6 +19,9 @@ const (
 var _ event.Subscriber = (*EventSubscriber)(nil)
 
 type EventSubscriber struct {
+	ctx    context.Context
+	cancel func()
+
 	consumer        *ckafka.Consumer
 	producer        *ckafka.Producer
 	deadLetterSaver event.DeadLetterSaver
@@ -41,7 +44,10 @@ func NewEventSubscriber(config *Config, saver event.DeadLetterSaver, metrics *pr
 		return nil, fmt.Errorf("create kafka producer failed: %w", err)
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
 	return &EventSubscriber{
+		ctx:             ctx,
+		cancel:          cancel,
 		consumer:        consumer,
 		producer:        producer,
 		deadLetterSaver: saver,
@@ -61,7 +67,7 @@ func (s *EventSubscriber) Subscribe(topic event.Topic, handler event.Handler) {
 }
 
 // Start begins polling and dispatching messages.
-func (s *EventSubscriber) Start(ctx context.Context) error {
+func (s *EventSubscriber) Start() error {
 	if s.running {
 		return nil
 	}
@@ -85,7 +91,7 @@ func (s *EventSubscriber) Start(ctx context.Context) error {
 		for s.running {
 			// Handle ctx cancellation
 			select {
-			case <-ctx.Done():
+			case <-s.ctx.Done():
 				s.running = false
 				return
 			default:
@@ -112,7 +118,7 @@ func (s *EventSubscriber) Start(ctx context.Context) error {
 				}
 
 				// Dispatch with a per-message context (inherits parent)
-				msgCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+				msgCtx, cancel := context.WithTimeout(s.ctx, 30*time.Second)
 				start := time.Now()
 				if err := handler.Handle(msgCtx, e); err != nil {
 					zap.L().Error(
@@ -198,6 +204,7 @@ func (s *EventSubscriber) handleFailedEvent(ev event.Event, reason error, retry 
 
 func (s *EventSubscriber) Close() {
 	s.running = false
+	s.cancel()
 	if s.consumer != nil {
 		_ = s.consumer.Close()
 	}
