@@ -10,7 +10,7 @@ type TelemetryConfig struct {
 	TraceEnabled   bool    `mapstructure:"TraceEnabled"`
 	MetricsEnabled bool    `mapstructure:"MetricsEnabled"`
 	SampleRatio    float64 `mapstructure:"SampleRatio"`
-	OTLPEndpoint   string  `mapstructure:"OTLPEndpoint"`
+	OTLPHost       string  `mapstructure:"OTLPHost"`
 	ServiceVersion string  `mapstructure:"ServiceVersion"`
 	Environment    string  `mapstructure:"Environment"`
 }
@@ -23,8 +23,8 @@ func (c *TelemetryConfig) Validate() error {
 	if c.SampleRatio < 0 || c.SampleRatio > 1 {
 		return fmt.Errorf("Telemetry.SampleRatio: %w: must be in [0,1], got %f", myErrors.ErrInvalidNumber, c.SampleRatio)
 	}
-	if c.TraceEnabled && c.OTLPEndpoint == "" {
-		return fmt.Errorf("Telemetry.OTLPEndpoint: %w", myErrors.ErrEmptyInput)
+	if c.TraceEnabled && c.OTLPHost == "" {
+		return fmt.Errorf("Telemetry.OTLPHost: %w", myErrors.ErrEmptyInput)
 	}
 
 	return nil
