@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"errors"
-	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/infrastructure/persistence/model"
 	redisutils "gochat/internal/infrastructure/redis"
 	myErrors "gochat/internal/shared/errors"
@@ -14,7 +13,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-var _ application.RefreshTokenRepository = (*RefreshTokenRepository)(nil)
+var _ domain.RefreshTokenRepository = (*RefreshTokenRepository)(nil)
 
 const KeyPrefix = "gochat:authorization"
 const KeyRefreshToken = KeyPrefix + ":refresh_token:"

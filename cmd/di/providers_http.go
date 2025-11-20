@@ -2,6 +2,7 @@ package di
 
 import (
 	"fmt"
+	"gochat/internal/authorization/application"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -9,7 +10,6 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"gochat/config"
-	authorizationUsecase "gochat/internal/authorization/application/usecase"
 	authorizationHttp "gochat/internal/authorization/port/http"
 	chatUsecase "gochat/internal/chat/application/usecase"
 	chatHttp "gochat/internal/chat/port/http"
@@ -30,10 +30,10 @@ var HTTPSet = wire.NewSet(
 
 func provideHttpRouter(
 	appConfig *config.App,
-	signUp authorizationUsecase.SignUpUseCase,
-	login authorizationUsecase.LoginUseCase,
-	refreshAccessToken authorizationUsecase.RefreshAccessTokenUseCase,
-	parseAccessToken authorizationUsecase.ParseAccessTokenUseCase,
+	signUp application.SignUpUseCase,
+	login application.LoginUseCase,
+	refreshAccessToken application.RefreshAccessTokenUseCase,
+	parseAccessToken application.ParseAccessTokenUseCase,
 	sendPrivateMessage chatUsecase.SendPrivateMessageUseCase,
 	sendRoomMessage chatUsecase.SendRoomMessageUseCase,
 	createRoom socialUseCase.CreateRoomUseCase,

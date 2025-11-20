@@ -1,7 +1,7 @@
 package di
 
 import (
-	authorizationApp "gochat/internal/authorization/application"
+	"gochat/internal/authorization/domain"
 	authorizationConverter "gochat/internal/authorization/infrastructure/persistence/converter"
 	authorizationModel "gochat/internal/authorization/infrastructure/persistence/model"
 	authorizationRepository "gochat/internal/authorization/infrastructure/persistence/repository"
@@ -45,11 +45,10 @@ var RepoSet = wire.NewSet(
 	wire.Bind(new(event.UnpublishedEventSaver), new(*repository.EventRepository)),
 	wire.Bind(new(event.UnpublishedEventsSaver), new(*repository.EventRepository)),
 	// Authorization repository binds
-	wire.Bind(new(authorizationApp.UserSaver), new(*authorizationRepository.UserRepository)),
-	wire.Bind(new(authorizationApp.UserFinderByNumber), new(*authorizationRepository.UserRepository)),
-	wire.Bind(new(authorizationApp.UserLoggedInAtUpdater), new(*authorizationRepository.UserRepository)),
-	wire.Bind(new(authorizationApp.RefreshTokenSaver), new(*authorizationRepository.RefreshTokenRepository)),
-	wire.Bind(new(authorizationApp.RefreshTokenFinder), new(*authorizationRepository.RefreshTokenRepository)),
+	wire.Bind(new(domain.UserSaver), new(*authorizationRepository.UserRepository)),
+	wire.Bind(new(domain.UserFinderByNumber), new(*authorizationRepository.UserRepository)),
+	wire.Bind(new(domain.RefreshTokenSaver), new(*authorizationRepository.RefreshTokenRepository)),
+	wire.Bind(new(domain.RefreshTokenFinder), new(*authorizationRepository.RefreshTokenRepository)),
 	// Social repository binds
 	wire.Bind(new(socialApp.RoomSaver), new(*socialRepository.RoomRepository)),
 	wire.Bind(new(socialApp.RoomFinderByNumber), new(*socialRepository.RoomRepository)),

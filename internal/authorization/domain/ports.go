@@ -1,7 +1,6 @@
-package application
+package domain
 
 import (
-	"gochat/internal/authorization/domain"
 	"gochat/internal/shared/kernel"
 )
 
@@ -14,15 +13,15 @@ type Comparator interface {
 }
 
 type AccessTokenParser interface {
-	Parse(token domain.AccessToken) (kernel.UserID, error)
+	Parse(token AccessToken) (kernel.UserID, error)
 }
 
 type AccessTokenGenerator interface {
-	Generate(userID kernel.UserID) (domain.AccessToken, error)
+	Generate(userID kernel.UserID) (AccessToken, error)
 }
 
 type RefreshTokenGenerator interface {
-	Generate() (domain.RefreshToken, error)
+	Generate() (RefreshToken, error)
 }
 
 type UserNumberGenerator interface {

@@ -2,7 +2,7 @@ package di
 
 import (
 	"gochat/config"
-	authorizationApp "gochat/internal/authorization/application"
+	authorizationApp "gochat/internal/authorization/domain"
 	"gochat/internal/authorization/infrastructure/crypto"
 	"gochat/internal/authorization/infrastructure/jwt"
 	authorizationSnowflake "gochat/internal/authorization/infrastructure/snowflake"

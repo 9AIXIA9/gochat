@@ -1,12 +1,10 @@
-package usecase
+package application
 
 import (
 	"context"
-	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"time"
 )
 
 type SignUpUseCase kernel.UseCase[*SignUpInput, *SignUpOutput]
@@ -29,20 +27,20 @@ type SignUpOutput struct {
 
 type signUpUseCase struct {
 	eventIDGenerator event.IDGenerator
-	userIDGenerator  application.UserIDGenerator
-	numberGenerator  application.UserNumberGenerator
-	encryptor        application.Encryptor
-	userSaver        application.UserSaver
+	userIDGenerator  domain.UserIDGenerator
+	numberGenerator  domain.UserNumberGenerator
+	encryptor        domain.Encryptor
+	userSaver        domain.UserSaver
 	eventSaver       event.UnpublishedEventsSaver
 	unitOfWork       kernel.UnitOfWork
 }
 
 func NewSignUpUseCase(
 	eventIDGenerator event.IDGenerator,
-	userIDGenerator application.UserIDGenerator,
-	numberGenerator application.UserNumberGenerator,
-	encryptor application.Encryptor,
-	userSaver application.UserSaver,
+	userIDGenerator domain.UserIDGenerator,
+	numberGenerator domain.UserNumberGenerator,
+	encryptor domain.Encryptor,
+	userSaver domain.UserSaver,
 	eventSaver event.UnpublishedEventsSaver,
 	unitOfWork kernel.UnitOfWork,
 ) SignUpUseCase {
@@ -58,21 +56,18 @@ func NewSignUpUseCase(
 }
 
 func (uc *signUpUseCase) Execute(ctx context.Context, input *SignUpInput) (*SignUpOutput, error) {
-	now := time.Now().UTC()
-	passwordEncrypted, err := uc.encryptor.Encrypt(input.Password.String())
+	passwordEncrypted, err := input.Password.Encrypt(uc.encryptor)
 	if err != nil {
 		return nil, err
 	}
 
-	user := domain.NewUser(uc.userIDGenerator.Generate(),
+	user, err := domain.CreateUser(
 		input.Email,
-		uc.numberGenerator.Generate(),
 		passwordEncrypted,
-		now,
-		now,
+		uc.userIDGenerator,
+		uc.numberGenerator,
+		uc.eventIDGenerator,
 	)
-
-	err = user.SignUp(uc.eventIDGenerator)
 	if err != nil {
 		return nil, err
 	}
@@ -91,6 +86,5 @@ func (uc *signUpUseCase) Execute(ctx context.Context, input *SignUpInput) (*Sign
 	}); err != nil {
 		return nil, err
 	}
-
 	return &SignUpOutput{UserNumber: user.Number()}, nil
 }

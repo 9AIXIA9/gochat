@@ -1,13 +1,13 @@
 package uuid
 
 import (
-	"gochat/internal/authorization/application"
+	"gochat/internal/authorization/domain"
 	"gochat/internal/shared/kernel"
 
 	"github.com/google/uuid"
 )
 
-var _ application.UserIDGenerator = (*UserIDGenerator)(nil)
+var _ domain.UserIDGenerator = (*UserIDGenerator)(nil)
 
 type UserIDGenerator struct{}
 

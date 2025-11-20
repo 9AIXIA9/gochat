@@ -10,35 +10,63 @@ type User struct {
 	id                kernel.UserID
 	email             kernel.Email
 	number            kernel.UserNumber
-	passwordEncrypted string
-	lastLoggedInAt    time.Time // UTC
+	passwordEncrypted PasswordEncrypted
 	signedUpAt        time.Time // UTC
 	eventManager      *event.Manager
 }
 
-func NewUser(id kernel.UserID, email kernel.Email, number kernel.UserNumber, passwordEncrypted string, lastLoggedInAt time.Time, signedUpAt time.Time) *User {
+func CreateUser(
+	email kernel.Email,
+	passwordEncrypted PasswordEncrypted,
+	userIDGenerator UserIDGenerator,
+	numberGenerator UserNumberGenerator,
+	eventIDGenerator event.IDGenerator,
+) (*User, error) {
+	now := time.Now().UTC()
+	u := &User{
+		id:                userIDGenerator.Generate(),
+		email:             email,
+		number:            numberGenerator.Generate(),
+		passwordEncrypted: passwordEncrypted,
+		signedUpAt:        now,
+		eventManager:      event.NewEventManager(),
+	}
+
+	ev, err := NewUserCreatedEvent(eventIDGenerator.Generate(), u.id)
+	if err != nil {
+		return nil, err
+	}
+
+	u.eventManager.RecordEvent(ev)
+	return u, nil
+}
+
+func LoadUser(
+	id kernel.UserID,
+	email kernel.Email,
+	number kernel.UserNumber,
+	passwordEncrypted PasswordEncrypted,
+	signedUpAt time.Time,
+) *User {
 	return &User{
 		id:                id,
 		email:             email,
 		number:            number,
 		passwordEncrypted: passwordEncrypted,
-		lastLoggedInAt:    lastLoggedInAt,
 		signedUpAt:        signedUpAt,
 		eventManager:      event.NewEventManager(),
 	}
 }
 
-func (u *User) SignUp(eventIDGenerator event.IDGenerator) error {
-	e, err := NewUserCreatedEvent(eventIDGenerator.Generate(), u.id)
-	if err != nil {
-		return err
+func (u *User) Login(
+	password Password,
+	comparator Comparator,
+	refreshTokenGenerator RefreshTokenGenerator,
+) (*RefreshTokenEntity, error) {
+	if err := comparator.Compare(u.passwordEncrypted.String(), password.String()); err != nil {
+		return nil, err
 	}
-	u.eventManager.RecordEvent(e)
-	return nil
-}
-
-func (u *User) Login() {
-	u.lastLoggedInAt = time.Now().UTC()
+	return CreateRefreshToken(u.id, refreshTokenGenerator)
 }
 
 // getter
@@ -51,11 +79,7 @@ func (u *User) SignedUpAt() time.Time {
 	return u.signedUpAt
 }
 
-func (u *User) LastLoggedInAt() time.Time {
-	return u.lastLoggedInAt
-}
-
-func (u *User) PasswordEncrypted() string {
+func (u *User) PasswordEncrypted() PasswordEncrypted {
 	return u.passwordEncrypted
 }
 func (u *User) Email() kernel.Email {

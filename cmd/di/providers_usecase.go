@@ -2,8 +2,8 @@ package di
 
 import (
 	"gochat/internal/application/usecase"
-	authorizationApp "gochat/internal/authorization/application"
-	authorizationUsecase "gochat/internal/authorization/application/usecase"
+	"gochat/internal/authorization/application"
+	"gochat/internal/authorization/domain"
 	authorizationRepository "gochat/internal/authorization/infrastructure/persistence/repository"
 	chatApp "gochat/internal/chat/application"
 	chatUsecase "gochat/internal/chat/application/usecase"
@@ -56,37 +56,36 @@ var UseCaseKafkaSet = wire.NewSet(
 // -------------------- UseCases (HTTP side) --------------------
 func provideSignUpUseCase(
 	eventIDGen event.IDGenerator,
-	userIDGen authorizationApp.UserIDGenerator,
-	numberGen authorizationApp.UserNumberGenerator,
-	encryptor authorizationApp.Encryptor,
-	userSaver authorizationApp.UserSaver,
+	userIDGen domain.UserIDGenerator,
+	numberGen domain.UserNumberGenerator,
+	encryptor domain.Encryptor,
+	userSaver domain.UserSaver,
 	eventSaver event.UnpublishedEventsSaver,
 	unitOfWork kernel.UnitOfWork,
-) authorizationUsecase.SignUpUseCase {
-	return authorizationUsecase.NewSignUpUseCase(eventIDGen, userIDGen, numberGen, encryptor, userSaver, eventSaver, unitOfWork)
+) application.SignUpUseCase {
+	return application.NewSignUpUseCase(eventIDGen, userIDGen, numberGen, encryptor, userSaver, eventSaver, unitOfWork)
 }
 
 func provideLoginUseCase(
 	eventIDGen event.IDGenerator,
-	comparator authorizationApp.Comparator,
-	userFinder authorizationApp.UserFinderByNumber,
-	userUpdater authorizationApp.UserLoggedInAtUpdater,
-	refreshTokenSaver authorizationApp.RefreshTokenSaver,
-	accessTokenGenerator authorizationApp.AccessTokenGenerator,
-	refreshTokenGenerator authorizationApp.RefreshTokenGenerator,
-) authorizationUsecase.LoginUseCase {
-	return authorizationUsecase.NewLoginUseCase(eventIDGen, comparator, userFinder, userUpdater, refreshTokenSaver, accessTokenGenerator, refreshTokenGenerator)
+	comparator domain.Comparator,
+	userFinder domain.UserFinderByNumber,
+	refreshTokenSaver domain.RefreshTokenSaver,
+	accessTokenGenerator domain.AccessTokenGenerator,
+	refreshTokenGenerator domain.RefreshTokenGenerator,
+) application.LoginUseCase {
+	return application.NewLoginUseCase(eventIDGen, comparator, userFinder, refreshTokenSaver, accessTokenGenerator, refreshTokenGenerator)
 }
 func provideRefreshAccessTokenUseCase(
-	refreshTokenSaver authorizationApp.RefreshTokenSaver,
-	refreshTokenFinder authorizationApp.RefreshTokenFinder,
-	accessTokenGenerator authorizationApp.AccessTokenGenerator,
-	refreshTokenGenerator authorizationApp.RefreshTokenGenerator,
-) authorizationUsecase.RefreshAccessTokenUseCase {
-	return authorizationUsecase.NewRefreshAccessTokenUseCase(refreshTokenSaver, refreshTokenFinder, accessTokenGenerator, refreshTokenGenerator)
+	refreshTokenSaver domain.RefreshTokenSaver,
+	refreshTokenFinder domain.RefreshTokenFinder,
+	accessTokenGenerator domain.AccessTokenGenerator,
+	refreshTokenGenerator domain.RefreshTokenGenerator,
+) application.RefreshAccessTokenUseCase {
+	return application.NewRefreshAccessTokenUseCase(refreshTokenSaver, refreshTokenFinder, accessTokenGenerator, refreshTokenGenerator)
 }
-func provideParseAccessTokenUseCase(accessTokenParser authorizationApp.AccessTokenParser) authorizationUsecase.ParseAccessTokenUseCase {
-	return authorizationUsecase.NewParseAccessTokenUseCase(accessTokenParser)
+func provideParseAccessTokenUseCase(accessTokenParser domain.AccessTokenParser) application.ParseAccessTokenUseCase {
+	return application.NewParseAccessTokenUseCase(accessTokenParser)
 }
 func provideSendPrivateMessageUseCase(
 	messageIDGen chatApp.MessageIDGenerator,
@@ -143,8 +142,8 @@ func provideLeaveRoomUseCase(
 func provideWebsocketUserSessionStartedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventSaver) usecase.UserSessionStartedUseCase {
 	return usecase.NewUserSessionStartedUseCase(eventIDGen, saver)
 }
-func provideAuthUserCreatedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventsSaver, userRepo *authorizationRepository.UserRepository) authorizationUsecase.UserCreatedUseCase {
-	return authorizationUsecase.NewUserCreatedUseCase(eventIDGen, saver, userRepo)
+func provideAuthUserCreatedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventsSaver, userRepo *authorizationRepository.UserRepository) application.UserCreatedUseCase {
+	return application.NewUserCreatedUseCase(eventIDGen, saver, userRepo)
 }
 func provideSocialUserCreatedUseCase(userRepo *socialRepository.UserRepository) socialUseCase.UserCreatedUseCase {
 	return socialUseCase.NewUserCreatedUseCase(userRepo)

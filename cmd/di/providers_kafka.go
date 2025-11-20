@@ -4,7 +4,7 @@ import (
 	"context"
 	"gochat/config"
 	"gochat/internal/application/usecase"
-	authorizationUsecase "gochat/internal/authorization/application/usecase"
+	authorizationUsecase "gochat/internal/authorization/application"
 	authorizationDomain "gochat/internal/authorization/domain"
 	authorizationKafka "gochat/internal/authorization/port/kafka"
 	chatUsecase "gochat/internal/chat/application/usecase"

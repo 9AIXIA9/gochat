@@ -1,8 +1,8 @@
-package usecase
+package application
 
 import (
 	"context"
-	"gochat/internal/authorization/application"
+	"gochat/internal/authorization/domain"
 	chatDomain "gochat/internal/chat/domain"
 	notificationDomain "gochat/internal/notification/domain"
 	myErrors "gochat/internal/shared/errors"
@@ -27,13 +27,13 @@ func (r *UserCreatedInput) Validate() error {
 type userCreatedUseCase struct {
 	idGenerator event.IDGenerator
 	saver       event.UnpublishedEventsSaver
-	finder      application.UserFinderByID
+	finder      domain.UserFinderByID
 }
 
 func NewUserCreatedUseCase(
 	idGenerator event.IDGenerator,
 	saver event.UnpublishedEventsSaver,
-	finder application.UserFinderByID,
+	finder domain.UserFinderByID,
 ) UserCreatedUseCase {
 	return &userCreatedUseCase{
 		idGenerator: idGenerator,

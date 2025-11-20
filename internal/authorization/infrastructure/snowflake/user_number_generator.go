@@ -1,13 +1,13 @@
 package snowflake
 
 import (
-	"gochat/internal/authorization/application"
+	"gochat/internal/authorization/domain"
 	"gochat/internal/shared/kernel"
 
 	"github.com/bwmarrin/snowflake"
 )
 
-var _ application.UserNumberGenerator = (*UserNumberGenerator)(nil)
+var _ domain.UserNumberGenerator = (*UserNumberGenerator)(nil)
 
 type UserNumberGenerator struct {
 	node *snowflake.Node

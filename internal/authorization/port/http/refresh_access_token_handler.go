@@ -3,7 +3,7 @@ package http
 import (
 	"errors"
 	"gochat/config"
-	"gochat/internal/authorization/application/usecase"
+	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/infrastructure/validator"
@@ -32,16 +32,16 @@ func (r *RefreshAccessTokenRequest) Bind(ginContext *gin.Context) error {
 	return nil
 }
 
-func NewRefreshAccessTokenHandler(useCase usecase.RefreshAccessTokenUseCase, validator *validator.Validator, cookieConfig *config.Cookie) gin.HandlerFunc {
-	return ginutils.AdaptUseCaseToHandler[RefreshAccessTokenRequest, *RefreshAccessTokenRequest, *usecase.RefreshAccessTokenInput, *usecase.RefreshAccessTokenOutput](
+func NewRefreshAccessTokenHandler(useCase application.RefreshAccessTokenUseCase, validator *validator.Validator, cookieConfig *config.Cookie) gin.HandlerFunc {
+	return ginutils.AdaptUseCaseToHandler[RefreshAccessTokenRequest, *RefreshAccessTokenRequest, *application.RefreshAccessTokenInput, *application.RefreshAccessTokenOutput](
 		useCase,
 		validator,
-		func(request *RefreshAccessTokenRequest) *usecase.RefreshAccessTokenInput {
-			return &usecase.RefreshAccessTokenInput{
+		func(request *RefreshAccessTokenRequest) *application.RefreshAccessTokenInput {
+			return &application.RefreshAccessTokenInput{
 				RefreshToken: request.RefreshToken,
 			}
 		},
-		func(ginContext *gin.Context, output *usecase.RefreshAccessTokenOutput) {
+		func(ginContext *gin.Context, output *application.RefreshAccessTokenOutput) {
 			if time.Now().After(output.RefreshToken.ExpiredAt()) {
 				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
 				return

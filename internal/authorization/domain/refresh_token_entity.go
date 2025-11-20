@@ -13,54 +13,95 @@ const (
 )
 
 type RefreshTokenEntity struct {
-	token        RefreshToken
 	userID       kernel.UserID
+	token        RefreshToken
 	expiredAt    time.Time
 	refreshCount int
+	generated    bool
 }
 
-func NewRefreshToken(token RefreshToken, userID kernel.UserID, expiredAt time.Time, refreshCount int) *RefreshTokenEntity {
+func CreateRefreshToken(
+	userID kernel.UserID,
+	generator RefreshTokenGenerator,
+) (*RefreshTokenEntity, error) {
+	token, err := generator.Generate()
+	if err != nil {
+		return nil, err
+	}
 	return &RefreshTokenEntity{
-		token:        token,
 		userID:       userID,
+		token:        token,
+		expiredAt:    time.Now().Add(refreshTokenValidityDuration),
+		refreshCount: 0,
+		generated:    false,
+	}, nil
+}
+
+func LoadRefreshToken(
+	token RefreshToken,
+	userID kernel.UserID,
+	expiredAt time.Time,
+	refreshCount int,
+) *RefreshTokenEntity {
+	return &RefreshTokenEntity{
+		userID:       userID,
+		token:        token,
 		expiredAt:    expiredAt,
 		refreshCount: refreshCount,
+		generated:    false,
 	}
 }
 
-func CreateRefreshToken(token RefreshToken, userID kernel.UserID) *RefreshTokenEntity {
-	return NewRefreshToken(token, userID, time.Now().Add(refreshTokenValidityDuration), 0)
+func (t *RefreshTokenEntity) GenerateAccessToken(
+	accessTokenGenerator AccessTokenGenerator,
+) (AccessToken, error) {
+	if t.generated || time.Now().After(t.expiredAt) {
+		return "", errors.ErrAlreadyDone
+	}
+	t.generated = true
+	return accessTokenGenerator.Generate(t.userID)
 }
 
-func (r *RefreshTokenEntity) CanBeRefreshed() error {
-	if time.Now().After(r.expiredAt) {
+func (t *RefreshTokenEntity) CanBeRefreshed() error {
+	if time.Now().After(t.expiredAt) {
 		return errors.ErrExpired
 	}
 
-	if refreshTokenMaxRefreshCount <= r.refreshCount {
+	if refreshTokenMaxRefreshCount <= t.refreshCount {
 		return errors.ErrExceedMaxValue
 	}
 	return nil
 }
 
-func (r *RefreshTokenEntity) RefreshAccessToken(newToken RefreshToken) {
-	r.token = newToken
-	r.refreshCount++
-	r.expiredAt.Add(refreshExtendedDuration)
+func (t *RefreshTokenEntity) Refresh(
+	refreshTokenGenerator RefreshTokenGenerator,
+) error {
+	if err := t.CanBeRefreshed(); err != nil {
+		return err
+	}
+	newToken, err := refreshTokenGenerator.Generate()
+	if err != nil {
+		return err
+	}
+	t.token = newToken
+	t.refreshCount++
+	t.expiredAt.Add(refreshExtendedDuration)
+	t.generated = false
+	return nil
 }
 
-func (r *RefreshTokenEntity) Token() RefreshToken {
-	return r.token
+func (t *RefreshTokenEntity) Token() RefreshToken {
+	return t.token
 }
 
-func (r *RefreshTokenEntity) UserID() kernel.UserID {
-	return r.userID
+func (t *RefreshTokenEntity) UserID() kernel.UserID {
+	return t.userID
 }
 
-func (r *RefreshTokenEntity) ExpiredAt() time.Time {
-	return r.expiredAt
+func (t *RefreshTokenEntity) ExpiredAt() time.Time {
+	return t.expiredAt
 }
 
-func (r *RefreshTokenEntity) RefreshCount() int {
-	return r.refreshCount
+func (t *RefreshTokenEntity) RefreshCount() int {
+	return t.refreshCount
 }

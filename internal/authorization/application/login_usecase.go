@@ -1,8 +1,7 @@
-package usecase
+package application
 
 import (
 	"context"
-	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
@@ -29,28 +28,25 @@ func (i *LoginInput) Validate() error {
 
 type loginUseCase struct {
 	eventIDGenerator      event.IDGenerator
-	comparator            application.Comparator
-	userFinder            application.UserFinderByNumber
-	userUpdater           application.UserLoggedInAtUpdater
-	refreshTokenSaver     application.RefreshTokenSaver
-	accessTokenGenerator  application.AccessTokenGenerator
-	refreshTokenGenerator application.RefreshTokenGenerator
+	comparator            domain.Comparator
+	userFinder            domain.UserFinderByNumber
+	refreshTokenSaver     domain.RefreshTokenSaver
+	accessTokenGenerator  domain.AccessTokenGenerator
+	refreshTokenGenerator domain.RefreshTokenGenerator
 }
 
 func NewLoginUseCase(
 	idGenerator event.IDGenerator,
-	comparator application.Comparator,
-	userFinder application.UserFinderByNumber,
-	userUpdater application.UserLoggedInAtUpdater,
-	refreshTokenSaver application.RefreshTokenSaver,
-	accessTokenGenerator application.AccessTokenGenerator,
-	refreshTokenGenerator application.RefreshTokenGenerator,
+	comparator domain.Comparator,
+	userFinder domain.UserFinderByNumber,
+	refreshTokenSaver domain.RefreshTokenSaver,
+	accessTokenGenerator domain.AccessTokenGenerator,
+	refreshTokenGenerator domain.RefreshTokenGenerator,
 ) LoginUseCase {
 	return &loginUseCase{
 		eventIDGenerator:      idGenerator,
 		comparator:            comparator,
 		userFinder:            userFinder,
-		userUpdater:           userUpdater,
 		refreshTokenSaver:     refreshTokenSaver,
 		accessTokenGenerator:  accessTokenGenerator,
 		refreshTokenGenerator: refreshTokenGenerator,
@@ -63,29 +59,21 @@ func (uc *loginUseCase) Execute(ctx context.Context, input *LoginInput) (*LoginO
 		return nil, err
 	}
 
-	if err := uc.comparator.Compare(user.PasswordEncrypted(), input.Password.String()); err != nil {
-		return nil, err
-	}
-
-	user.Login()
-
-	accessToken, err := uc.accessTokenGenerator.Generate(user.ID())
+	refreshToken, err := user.Login(
+		input.Password,
+		uc.comparator,
+		uc.refreshTokenGenerator,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	token, err := uc.refreshTokenGenerator.Generate()
+	accessToken, err := refreshToken.GenerateAccessToken(uc.accessTokenGenerator)
 	if err != nil {
 		return nil, err
 	}
-
-	refreshToken := domain.CreateRefreshToken(token, user.ID())
 
 	if err := uc.refreshTokenSaver.Save(ctx, refreshToken); err != nil {
-		return nil, err
-	}
-
-	if err := uc.userUpdater.UpdateLoggedInAt(ctx, user.ID(), user.LastLoggedInAt()); err != nil {
 		return nil, err
 	}
 

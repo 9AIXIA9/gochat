@@ -21,5 +21,5 @@ func (c *RefreshTokenConverter) ToModel(refreshToken *domain.RefreshTokenEntity)
 }
 
 func (c *RefreshTokenConverter) ToDomain(refreshToken *model.RefreshToken) *domain.RefreshTokenEntity {
-	return domain.NewRefreshToken(refreshToken.Token, refreshToken.UserID, refreshToken.ExpiredAt, refreshToken.RefreshCount)
+	return domain.LoadRefreshToken(refreshToken.Token, refreshToken.UserID, refreshToken.ExpiredAt, refreshToken.RefreshCount)
 }

@@ -1,8 +1,7 @@
-package usecase
+package application
 
 import (
 	"context"
-	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
 	"gochat/internal/shared/kernel"
 )
@@ -22,10 +21,10 @@ type ParseAccessTokenOutput struct {
 }
 
 type parseAccessTokenUseCase struct {
-	accessTokenParser application.AccessTokenParser
+	accessTokenParser domain.AccessTokenParser
 }
 
-func NewParseAccessTokenUseCase(accessTokenParser application.AccessTokenParser) ParseAccessTokenUseCase {
+func NewParseAccessTokenUseCase(accessTokenParser domain.AccessTokenParser) ParseAccessTokenUseCase {
 	return &parseAccessTokenUseCase{accessTokenParser: accessTokenParser}
 }
 

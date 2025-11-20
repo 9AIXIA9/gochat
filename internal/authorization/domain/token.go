@@ -1,6 +1,8 @@
 package domain
 
-import myErrors "gochat/internal/shared/errors"
+import (
+	myErrors "gochat/internal/shared/errors"
+)
 
 type (
 	Token        string

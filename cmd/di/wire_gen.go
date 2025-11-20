@@ -37,7 +37,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	refreshTokenRepository := provideAuthorizationRefreshTokenRepository(client)
 	accessTokenManager := provideAccessTokenManager(appConfig)
 	refreshTokenGenerator := provideRefreshTokenGenerator(appConfig)
-	loginUseCase := provideLoginUseCase(eventIDGenerator, hasher, userRepository, userRepository, refreshTokenRepository, accessTokenManager, refreshTokenGenerator)
+	loginUseCase := provideLoginUseCase(eventIDGenerator, hasher, userRepository, refreshTokenRepository, accessTokenManager, refreshTokenGenerator)
 	refreshAccessTokenUseCase := provideRefreshAccessTokenUseCase(refreshTokenRepository, refreshTokenRepository, accessTokenManager, refreshTokenGenerator)
 	parseAccessTokenUseCase := provideParseAccessTokenUseCase(accessTokenManager)
 	messageIDGenerator := provideMessageIDGenerator()

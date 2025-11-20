@@ -1,7 +1,6 @@
-package usecase
+package application
 
 import (
-	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
 	"gochat/internal/shared/kernel"
 
@@ -24,17 +23,17 @@ func (input *RefreshAccessTokenInput) Validate() error {
 }
 
 type refreshAccessTokenUseCase struct {
-	refreshTokenSaver     application.RefreshTokenSaver
-	refreshTokenFinder    application.RefreshTokenFinder
-	accessTokenGenerator  application.AccessTokenGenerator
-	refreshTokenGenerator application.RefreshTokenGenerator
+	refreshTokenSaver     domain.RefreshTokenSaver
+	refreshTokenFinder    domain.RefreshTokenFinder
+	accessTokenGenerator  domain.AccessTokenGenerator
+	refreshTokenGenerator domain.RefreshTokenGenerator
 }
 
 func NewRefreshAccessTokenUseCase(
-	refreshTokenSaver application.RefreshTokenSaver,
-	refreshTokenFinder application.RefreshTokenFinder,
-	accessTokenGenerator application.AccessTokenGenerator,
-	refreshTokenGenerator application.RefreshTokenGenerator,
+	refreshTokenSaver domain.RefreshTokenSaver,
+	refreshTokenFinder domain.RefreshTokenFinder,
+	accessTokenGenerator domain.AccessTokenGenerator,
+	refreshTokenGenerator domain.RefreshTokenGenerator,
 ) RefreshAccessTokenUseCase {
 	return &refreshAccessTokenUseCase{
 		refreshTokenSaver:     refreshTokenSaver,
@@ -49,21 +48,18 @@ func (uc *refreshAccessTokenUseCase) Execute(ctx context.Context, input *Refresh
 		return nil, err
 	}
 
-	if err := refreshToken.CanBeRefreshed(); err != nil {
+	if err := refreshToken.Refresh(
+		uc.refreshTokenGenerator,
+	); err != nil {
 		return nil, err
 	}
 
-	accessToken, err := uc.accessTokenGenerator.Generate(refreshToken.UserID())
+	accessToken, err := refreshToken.GenerateAccessToken(
+		uc.accessTokenGenerator,
+	)
 	if err != nil {
 		return nil, err
 	}
-
-	newRefreshToken, err := uc.refreshTokenGenerator.Generate()
-	if err != nil {
-		return nil, err
-	}
-
-	refreshToken.RefreshAccessToken(newRefreshToken)
 
 	if err := uc.refreshTokenSaver.Save(ctx, refreshToken); err != nil {
 		return nil, err
