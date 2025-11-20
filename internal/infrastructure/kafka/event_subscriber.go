@@ -15,6 +15,8 @@ import (
 	"go.uber.org/zap"
 )
 
+//TODO 添加中间件而不是直接在handle里处理链路和指标
+
 const (
 	maxRetries = 3
 )
@@ -126,11 +128,6 @@ func (s *EventSubscriber) Start(serviceName string) error {
 				start := time.Now()
 				ctx, span := tracer.Start(context.Background(), topic.String(), trace.WithSpanKind(trace.SpanKindConsumer))
 				timeoutCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
-				span.SetAttributes(
-					attribute.String("kafka.topic", topic.String()),
-					attribute.String("event.id", e.ID().String()),
-					attribute.Int("event.retry", retry),
-				)
 
 				if err := handler.Handle(timeoutCtx, e); err != nil {
 					zap.L().Error(
@@ -148,6 +145,14 @@ func (s *EventSubscriber) Start(serviceName string) error {
 					}
 
 					cancel()
+					span.SetAttributes(
+						attribute.String("kafka.topic", topic.String()),
+						attribute.String("event.id", e.ID().String()),
+						attribute.Int("event.retry", retry),
+						attribute.Float64("event.handle_duration_ms", float64(time.Since(start).Milliseconds())),
+					)
+					span.End()
+
 					// 提交偏移量，防止该消息反复重投造成堵塞
 					if _, cErr := s.consumer.CommitMessage(m); cErr != nil {
 						zap.L().Warn(
@@ -160,7 +165,12 @@ func (s *EventSubscriber) Start(serviceName string) error {
 					continue
 				}
 				cancel()
-
+				span.SetAttributes(
+					attribute.String("kafka.topic", topic.String()),
+					attribute.String("event.id", e.ID().String()),
+					attribute.Int("event.retry", retry),
+					attribute.Float64("event.handle_duration_ms", float64(time.Since(start).Milliseconds())),
+				)
 				span.End()
 
 				if s.metrics != nil {

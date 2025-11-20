@@ -63,7 +63,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	manager := provideWebsocketManager(upgrader, metrics)
 	repositoryMessageRepository := provideNotificationMessageRepository(unitOfWork)
 	messageReadUseCase := provideNotificationMessageReadUseCase(repositoryMessageRepository)
-	router := provideWebsocketRouter(messageReadUseCase)
+	router := provideWebsocketRouter(appConfig, messageReadUseCase)
 	server := provideWebsocketServer(manager, router, eventRepository, eventIDGenerator)
 	engine := provideHttpRouter(appConfig, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, createRoomUseCase, joinRoomUseCase, leaveRoomUseCase, validator, client, server, metrics)
 	ginServer := provideHttpServer(appConfig, engine)

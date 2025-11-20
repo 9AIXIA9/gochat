@@ -2,6 +2,7 @@ package di
 
 import (
 	"gochat/config"
+	websocketDelivery "gochat/internal/delivery/websocket"
 	"gochat/internal/infrastructure/persistence/repository"
 	"gochat/internal/infrastructure/prometheus"
 	"gochat/internal/infrastructure/websocket"
@@ -31,9 +32,14 @@ func provideWebsocketManager(upgrader *gorillaWebsocket.Upgrader, metrics *prome
 }
 
 func provideWebsocketRouter(
+	appConfig *config.App,
 	notificationMessageRead notificationUsecase.MessageReadUseCase,
 ) *websocket.Router {
 	router := websocket.NewRouter()
+
+	if appConfig.Telemetry != nil && appConfig.Telemetry.Enabled && appConfig.Telemetry.TraceEnabled {
+		router.Use(websocketDelivery.NewTelemetryMiddleware(appConfig.Name))
+	}
 
 	router.Handle(notificationWebsocket.MessageReadRequestTopic, notificationWebsocket.NewMessageReadHandler(notificationMessageRead))
 
