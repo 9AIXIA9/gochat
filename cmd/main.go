@@ -35,11 +35,6 @@ func main() {
 		log.Fatalf("load config file failed,err:%v", err)
 	}
 
-	dependencies, err := di.Initialize(conf)
-	if err != nil {
-		log.Fatalf("initialize dependencies failed,err:%v", err)
-	}
-
 	closeOtel, teleErr := otelInfra.Initialize(context.Background(), conf.Name, conf.Telemetry)
 	if teleErr != nil {
 		zap.L().Warn("initialize telemetry failed", zap.Error(teleErr))
@@ -49,6 +44,14 @@ func main() {
 		log.Fatalf("initialize zap failed:%v", err)
 	}
 
+	dependencies, err := di.Initialize(conf)
+	if err != nil {
+		log.Fatalf("initialize dependencies failed,err:%v", err)
+	}
+
+	zap.L().Info("server started", zap.String("app", conf.Name))
+
+	//启动各个组件
 	dependencies.EmailNotifier.Start()
 	dependencies.KafkaEventPublisher.Start()
 	if err := dependencies.KafkaEventSubscriber.Start(conf.Name); err != nil {
@@ -61,6 +64,8 @@ func main() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 	<-quit
+
+	zap.L().Info("server is shutting down...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 	defer cancel()
