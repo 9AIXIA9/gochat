@@ -5,7 +5,7 @@ import (
 	"fmt"
 	authorizationApplication "gochat/internal/authorization/domain"
 	myErrors "gochat/internal/shared/errors"
-	socialApplication "gochat/internal/social/application"
+	socialApplication "gochat/internal/social/domain"
 
 	"golang.org/x/crypto/bcrypt"
 )

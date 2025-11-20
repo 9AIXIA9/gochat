@@ -1,11 +1,11 @@
-package usecase
+package application
 
 import (
 	"context"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"gochat/internal/social/application"
+	"gochat/internal/social/domain"
 )
 
 type LeaveRoomUseCase kernel.UseCase[*LeaveRoomInput, *kernel.NoOutput]
@@ -24,16 +24,16 @@ func (r *LeaveRoomInput) Validate() error {
 
 type leaveRoomUseCase struct {
 	eventIDGenerator  event.IDGenerator
-	finder            application.RoomFinderByNumber
-	roomMemberDeleter application.RoomMemberDeleter
+	finder            domain.RoomFinderByNumber
+	roomMemberDeleter domain.RoomMemberDeleter
 	eventSaver        event.UnpublishedEventsSaver
 	unitOfWork        kernel.UnitOfWork
 }
 
 func NewLeaveRoomUseCase(
 	eventIDGenerator event.IDGenerator,
-	finder application.RoomFinderByNumber,
-	roomMemberDeleter application.RoomMemberDeleter,
+	finder domain.RoomFinderByNumber,
+	roomMemberDeleter domain.RoomMemberDeleter,
 	eventSaver event.UnpublishedEventsSaver,
 	unitOfWork kernel.UnitOfWork,
 ) LeaveRoomUseCase {
@@ -52,7 +52,10 @@ func (uc *leaveRoomUseCase) Execute(ctx context.Context, input *LeaveRoomInput) 
 		return nil, err
 	}
 
-	if err := room.Leave(input.UserID, uc.eventIDGenerator); err != nil {
+	if err := room.DeleteMember(
+		input.UserID,
+		uc.eventIDGenerator,
+	); err != nil {
 		return nil, err
 	}
 

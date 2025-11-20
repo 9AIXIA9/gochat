@@ -1,4 +1,4 @@
-package usecase
+package application
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"gochat/internal/social/application"
+	"gochat/internal/social/domain"
 )
 
 type RoomCreatedUseCase kernel.UseCase[*RoomCreatedInput, *kernel.NoOutput]
@@ -25,13 +25,13 @@ func (r *RoomCreatedInput) Validate() error {
 type roomCreatedUseCase struct {
 	idGenerator event.IDGenerator
 	saver       event.UnpublishedEventSaver
-	finder      application.RoomFinderByID
+	finder      domain.RoomFinderByID
 }
 
 func NewRoomCreatedUseCase(
 	idGenerator event.IDGenerator,
 	saver event.UnpublishedEventSaver,
-	finder application.RoomFinderByID,
+	finder domain.RoomFinderByID,
 ) RoomCreatedUseCase {
 	return &roomCreatedUseCase{
 		idGenerator: idGenerator,

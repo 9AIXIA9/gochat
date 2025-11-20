@@ -4,13 +4,13 @@ import (
 	"context"
 	gormutils "gochat/internal/infrastructure/gorm"
 	"gochat/internal/shared/kernel"
-	"gochat/internal/social/application"
+	"gochat/internal/social/domain"
 	"gochat/internal/social/infrastructure/persistence/model"
 
 	"gorm.io/gorm/clause"
 )
 
-var _ application.UserRepository = (*UserRepository)(nil)
+var _ domain.UserRepository = (*UserRepository)(nil)
 
 type UserRepository struct {
 	unitOfWork *gormutils.UnitOfWork

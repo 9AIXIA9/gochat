@@ -15,7 +15,7 @@ import (
 	notificationRepository "gochat/internal/notification/infrastructure/persistence/repository"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	socialApp "gochat/internal/social/application"
+	socialApp "gochat/internal/social/domain"
 	socialModel "gochat/internal/social/infrastructure/persistence/model"
 	socialRepository "gochat/internal/social/infrastructure/persistence/repository"
 

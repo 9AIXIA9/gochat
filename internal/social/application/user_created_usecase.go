@@ -1,10 +1,10 @@
-package usecase
+package application
 
 import (
 	"context"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
-	"gochat/internal/social/application"
+	"gochat/internal/social/domain"
 )
 
 type UserCreatedUseCase kernel.UseCase[*UserCreatedInput, *kernel.NoOutput]
@@ -22,11 +22,11 @@ func (r *UserCreatedInput) Validate() error {
 }
 
 type userCreatedUseCase struct {
-	userIDSaver application.UserIDSaver
+	userIDSaver domain.UserIDSaver
 }
 
 func NewUserCreatedUseCase(
-	userIDSaver application.UserIDSaver,
+	userIDSaver domain.UserIDSaver,
 ) UserCreatedUseCase {
 	return &userCreatedUseCase{
 		userIDSaver: userIDSaver,

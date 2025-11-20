@@ -3,6 +3,7 @@ package di
 import (
 	"fmt"
 	"gochat/internal/authorization/application"
+	application2 "gochat/internal/social/application"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -19,7 +20,6 @@ import (
 	"gochat/internal/infrastructure/prometheus"
 	"gochat/internal/infrastructure/validator"
 	"gochat/internal/infrastructure/websocket"
-	socialUseCase "gochat/internal/social/application/usecase"
 	socialHttp "gochat/internal/social/port/http"
 )
 
@@ -36,9 +36,9 @@ func provideHttpRouter(
 	parseAccessToken application.ParseAccessTokenUseCase,
 	sendPrivateMessage chatUsecase.SendPrivateMessageUseCase,
 	sendRoomMessage chatUsecase.SendRoomMessageUseCase,
-	createRoom socialUseCase.CreateRoomUseCase,
-	joinRoom socialUseCase.JoinRoomUseCase,
-	leaveRoom socialUseCase.LeaveRoomUseCase,
+	createRoom application2.CreateRoomUseCase,
+	joinRoom application2.JoinRoomUseCase,
+	leaveRoom application2.LeaveRoomUseCase,
 	validator *validator.Validator,
 	redisClient *redis.Client,
 	websocketServer *websocket.Server,

@@ -1,9 +1,8 @@
-package application
+package domain
 
 import (
 	"context"
 	"gochat/internal/shared/kernel"
-	"gochat/internal/social/domain"
 )
 
 type RoomRepository interface {
@@ -15,15 +14,15 @@ type RoomRepository interface {
 }
 
 type RoomSaver interface {
-	Save(ctx context.Context, room *domain.Room) error
+	Save(ctx context.Context, room *Room) error
 }
 
 type RoomFinderByNumber interface {
-	FindByNumber(ctx context.Context, number kernel.RoomNumber) (*domain.Room, error)
+	FindByNumber(ctx context.Context, number kernel.RoomNumber) (*Room, error)
 }
 
 type RoomFinderByID interface {
-	FindByID(ctx context.Context, id kernel.RoomID) (*domain.Room, error)
+	FindByID(ctx context.Context, id kernel.RoomID) (*Room, error)
 }
 
 type RoomMemberSaver interface {

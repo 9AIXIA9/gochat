@@ -4,18 +4,18 @@ import (
 	"context"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"gochat/internal/social/application/usecase"
+	"gochat/internal/social/application"
 	"gochat/internal/social/domain"
 )
 
-func NewRoomLeftEventHandler(uc usecase.RoomLeftUseCase) event.HandlerFunc {
+func NewRoomLeftEventHandler(uc application.RoomLeftUseCase) event.HandlerFunc {
 	return func(ctx context.Context, e event.Event) error {
 		ev, err := domain.ToRoomLeftEvent(e)
 		if err != nil {
 			return err
 		}
 
-		input := usecase.RoomLeftInput{
+		input := application.RoomLeftInput{
 			RoomID: kernel.RoomID(ev.AggregateID()),
 			UserID: ev.UserID(),
 		}

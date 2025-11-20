@@ -19,7 +19,7 @@ import (
 	notificationDomain "gochat/internal/notification/domain"
 	notificationKafka "gochat/internal/notification/port/kafka"
 	"gochat/internal/shared/event"
-	socialUseCase "gochat/internal/social/application/usecase"
+	"gochat/internal/social/application"
 	socialDomain "gochat/internal/social/domain"
 	socialKafka "gochat/internal/social/port/kafka"
 
@@ -56,10 +56,10 @@ func provideKafkaTopicsSubscribed(
 	// auth
 	authUserCreated authorizationUsecase.UserCreatedUseCase,
 	// social
-	socialUserCreated socialUseCase.UserCreatedUseCase,
-	socialRoomCreated socialUseCase.RoomCreatedUseCase,
-	socialRoomJoined socialUseCase.RoomJoinedUseCase,
-	socialRoomLeft socialUseCase.RoomLeftUseCase,
+	socialUserCreated application.UserCreatedUseCase,
+	socialRoomCreated application.RoomCreatedUseCase,
+	socialRoomJoined application.RoomJoinedUseCase,
+	socialRoomLeft application.RoomLeftUseCase,
 	// chat
 	chatUserCreated chatUsecase.UserCreatedUseCase,
 	chatRoomCreated chatUsecase.RoomCreatedUseCase,

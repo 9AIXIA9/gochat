@@ -15,8 +15,8 @@ import (
 	notificationWebsocketInfrastructure "gochat/internal/notification/infrastructure/websocket"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	socialApp "gochat/internal/social/application"
-	socialUseCase "gochat/internal/social/application/usecase"
+	application2 "gochat/internal/social/application"
+	domain2 "gochat/internal/social/domain"
 	socialRepository "gochat/internal/social/infrastructure/persistence/repository"
 
 	"github.com/google/wire"
@@ -109,33 +109,33 @@ func provideSendRoomMessageUseCase(
 }
 func provideCreateRoomUseCase(
 	eventIDGen event.IDGenerator,
-	roomIDGen socialApp.RoomIDGenerator,
-	numberGen socialApp.RoomNumberGenerator,
-	encryptor socialApp.Encryptor,
-	roomSaver socialApp.RoomSaver,
+	roomIDGen domain2.RoomIDGenerator,
+	numberGen domain2.RoomNumberGenerator,
+	encryptor domain2.Encryptor,
+	roomSaver domain2.RoomSaver,
 	eventSaver event.UnpublishedEventsSaver,
 	unitOfWork kernel.UnitOfWork,
-) socialUseCase.CreateRoomUseCase {
-	return socialUseCase.NewCreateRoomUseCase(eventIDGen, roomIDGen, numberGen, encryptor, roomSaver, eventSaver, unitOfWork)
+) application2.CreateRoomUseCase {
+	return application2.NewCreateRoomUseCase(eventIDGen, roomIDGen, numberGen, encryptor, roomSaver, eventSaver, unitOfWork)
 }
 func provideJoinRoomUseCase(
 	eventIDGen event.IDGenerator,
 	eventSaver event.UnpublishedEventsSaver,
-	finder socialApp.RoomFinderByNumber,
-	comparator socialApp.Comparator,
-	roomMemberSaver socialApp.RoomMemberSaver,
+	finder domain2.RoomFinderByNumber,
+	comparator domain2.Comparator,
+	roomMemberSaver domain2.RoomMemberSaver,
 	unitOfWork kernel.UnitOfWork,
-) socialUseCase.JoinRoomUseCase {
-	return socialUseCase.NewJoinRoomUseCase(eventIDGen, eventSaver, finder, comparator, roomMemberSaver, unitOfWork)
+) application2.JoinRoomUseCase {
+	return application2.NewJoinRoomUseCase(eventIDGen, eventSaver, finder, comparator, roomMemberSaver, unitOfWork)
 }
 func provideLeaveRoomUseCase(
 	eventIDGen event.IDGenerator,
-	finder socialApp.RoomFinderByNumber,
-	roomMemberDeleter socialApp.RoomMemberDeleter,
+	finder domain2.RoomFinderByNumber,
+	roomMemberDeleter domain2.RoomMemberDeleter,
 	eventSaver event.UnpublishedEventsSaver,
 	unitOfWork kernel.UnitOfWork,
-) socialUseCase.LeaveRoomUseCase {
-	return socialUseCase.NewLeaveRoomUseCase(eventIDGen, finder, roomMemberDeleter, eventSaver, unitOfWork)
+) application2.LeaveRoomUseCase {
+	return application2.NewLeaveRoomUseCase(eventIDGen, finder, roomMemberDeleter, eventSaver, unitOfWork)
 }
 
 // -------------------- Event UseCases (Kafka consumer side) --------------------
@@ -145,17 +145,17 @@ func provideWebsocketUserSessionStartedUseCase(eventIDGen *uuid.EventIDGenerator
 func provideAuthUserCreatedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventsSaver, userRepo *authorizationRepository.UserRepository) application.UserCreatedUseCase {
 	return application.NewUserCreatedUseCase(eventIDGen, saver, userRepo)
 }
-func provideSocialUserCreatedUseCase(userRepo *socialRepository.UserRepository) socialUseCase.UserCreatedUseCase {
-	return socialUseCase.NewUserCreatedUseCase(userRepo)
+func provideSocialUserCreatedUseCase(userRepo *socialRepository.UserRepository) application2.UserCreatedUseCase {
+	return application2.NewUserCreatedUseCase(userRepo)
 }
-func provideSocialRoomCreatedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventSaver, roomRepo *socialRepository.RoomRepository) socialUseCase.RoomCreatedUseCase {
-	return socialUseCase.NewRoomCreatedUseCase(eventIDGen, saver, roomRepo)
+func provideSocialRoomCreatedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventSaver, roomRepo *socialRepository.RoomRepository) application2.RoomCreatedUseCase {
+	return application2.NewRoomCreatedUseCase(eventIDGen, saver, roomRepo)
 }
-func provideSocialRoomJoinedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventSaver) socialUseCase.RoomJoinedUseCase {
-	return socialUseCase.NewRoomJoinedUseCase(eventIDGen, saver)
+func provideSocialRoomJoinedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventSaver) application2.RoomJoinedUseCase {
+	return application2.NewRoomJoinedUseCase(eventIDGen, saver)
 }
-func provideSocialRoomLeftUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventSaver) socialUseCase.RoomLeftUseCase {
-	return socialUseCase.NewRoomLeftUseCase(eventIDGen, saver)
+func provideSocialRoomLeftUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventSaver) application2.RoomLeftUseCase {
+	return application2.NewRoomLeftUseCase(eventIDGen, saver)
 }
 func provideChatUserCreatedUseCase(userRepo *chatRepository.UserRepository) chatUsecase.UserCreatedUseCase {
 	return chatUsecase.NewUserCreatedUseCase(userRepo)

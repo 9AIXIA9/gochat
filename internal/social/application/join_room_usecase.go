@@ -1,11 +1,10 @@
-package usecase
+package application
 
 import (
 	"context"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"gochat/internal/social/application"
 	"gochat/internal/social/domain"
 )
 
@@ -29,9 +28,9 @@ func (r *JoinRoomInput) Validate() error {
 
 type joinRoomUseCase struct {
 	eventIDGenerator event.IDGenerator
-	finder           application.RoomFinderByNumber
-	comparator       application.Comparator
-	roomMemberSaver  application.RoomMemberSaver
+	finder           domain.RoomFinderByNumber
+	comparator       domain.Comparator
+	roomMemberSaver  domain.RoomMemberSaver
 	eventSaver       event.UnpublishedEventsSaver
 	unitOfWork       kernel.UnitOfWork
 }
@@ -39,9 +38,9 @@ type joinRoomUseCase struct {
 func NewJoinRoomUseCase(
 	eventIDGenerator event.IDGenerator,
 	eventSaver event.UnpublishedEventsSaver,
-	finder application.RoomFinderByNumber,
-	comparator application.Comparator,
-	roomMemberSaver application.RoomMemberSaver,
+	finder domain.RoomFinderByNumber,
+	comparator domain.Comparator,
+	roomMemberSaver domain.RoomMemberSaver,
 	unitOfWork kernel.UnitOfWork,
 ) JoinRoomUseCase {
 	return &joinRoomUseCase{
@@ -60,13 +59,12 @@ func (uc *joinRoomUseCase) Execute(ctx context.Context, input *JoinRoomInput) (*
 		return nil, err
 	}
 
-	if encrypted := room.PasswordEncrypted(); len(encrypted) != 0 {
-		if err := uc.comparator.Compare(encrypted, input.Password.String()); err != nil {
-			return nil, err
-		}
-	}
-
-	if err := room.Join(input.UserID, uc.eventIDGenerator); err != nil {
+	if err := room.AddMember(
+		input.UserID,
+		input.Password,
+		uc.comparator,
+		uc.eventIDGenerator,
+	); err != nil {
 		return nil, err
 	}
 

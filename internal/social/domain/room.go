@@ -7,22 +7,38 @@ import (
 	"time"
 )
 
+const (
+	defaultMaxMemberCount = 20
+)
+
 type Room struct {
 	id                kernel.RoomID
 	number            kernel.RoomNumber
 	owner             kernel.UserID
-	passwordEncrypted string
+	passwordEncrypted PasswordEncrypted
 	members           []kernel.UserID
 	maxMemberCount    int
 	createdAt         time.Time
 	eventManager      *event.Manager
 }
 
-func NewRoom(
+type RoomOption struct {
+	MaxMemberCount    int
+	PasswordEncrypted PasswordEncrypted
+}
+
+func (o *RoomOption) Validate() error {
+	if o.MaxMemberCount < 2 {
+		return myErrors.ErrLessThanMin
+	}
+	return nil
+}
+
+func LoadRoom(
 	id kernel.RoomID,
 	owner kernel.UserID,
 	number kernel.RoomNumber,
-	passwordEncrypted string,
+	passwordEncrypted PasswordEncrypted,
 	members []kernel.UserID,
 	maxMemberCount int,
 	createdAt time.Time,
@@ -39,16 +55,60 @@ func NewRoom(
 	}
 }
 
-func (r *Room) Create(generator event.IDGenerator) error {
-	ev, err := NewRoomCreatedEvent(generator.Generate(), r.id)
+func CreateRoom(
+	owner kernel.UserID,
+	roomIDGenerator RoomIDGenerator,
+	roomNumberGenerator RoomNumberGenerator,
+	eventIDGenerator event.IDGenerator,
+	options ...*RoomOption,
+) (*Room, error) {
+	var opt *RoomOption
+	if len(options) == 0 {
+		opt = &RoomOption{
+			MaxMemberCount:    defaultMaxMemberCount,
+			PasswordEncrypted: "",
+		}
+	} else {
+		opt = options[0]
+	}
+
+	if err := opt.Validate(); err != nil {
+		return nil, err
+	}
+
+	r := &Room{
+		id:                roomIDGenerator.Generate(),
+		number:            roomNumberGenerator.Generate(),
+		owner:             owner,
+		passwordEncrypted: opt.PasswordEncrypted,
+		members:           make([]kernel.UserID, 0, 1),
+		maxMemberCount:    opt.MaxMemberCount,
+		createdAt:         time.Now().UTC(),
+		eventManager:      event.NewEventManager(),
+	}
+
+	r.members = append(r.members, owner)
+
+	ev, err := NewRoomCreatedEvent(eventIDGenerator.Generate(), r.id)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	r.eventManager.RecordEvent(ev)
-	return nil
+	return r, nil
 }
 
-func (r *Room) Join(userID kernel.UserID, generator event.IDGenerator) error {
+func (r *Room) AddMember(
+	userID kernel.UserID,
+	rawPassword Password,
+	comparator Comparator,
+	generator event.IDGenerator,
+) error {
+	if len(r.passwordEncrypted) != 0 {
+		if err := comparator.Compare(r.passwordEncrypted.String(), rawPassword.String()); err != nil {
+			return err
+		}
+	}
+
 	if r.maxMemberCount <= r.MemberCount() {
 		return myErrors.ErrExceedMaxValue
 	}
@@ -68,7 +128,10 @@ func (r *Room) Join(userID kernel.UserID, generator event.IDGenerator) error {
 	return nil
 }
 
-func (r *Room) Leave(userID kernel.UserID, generator event.IDGenerator) error {
+func (r *Room) DeleteMember(
+	userID kernel.UserID,
+	generator event.IDGenerator,
+) error {
 	if userID == r.owner {
 		return myErrors.ErrOwnerCantLeave
 	}
@@ -122,7 +185,7 @@ func (r *Room) Number() kernel.RoomNumber {
 	return r.number
 }
 
-func (r *Room) PasswordEncrypted() string {
+func (r *Room) PasswordEncrypted() PasswordEncrypted {
 	return r.passwordEncrypted
 }
 

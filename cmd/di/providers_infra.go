@@ -20,7 +20,7 @@ import (
 	gomailUtil "gochat/internal/notification/infrastructure/gomail"
 	notificationWebsocketInfrastructure "gochat/internal/notification/infrastructure/websocket"
 	"gochat/internal/shared/event"
-	socialApp "gochat/internal/social/application"
+	socialApp "gochat/internal/social/domain"
 	socialSnowflake "gochat/internal/social/infrastructure/snowflake"
 	socialUUID "gochat/internal/social/infrastructure/uuid"
 	socialUuid "gochat/internal/social/infrastructure/uuid"

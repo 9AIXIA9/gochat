@@ -12,6 +12,9 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
+//TODO: 除去异步发送，直接由kafka调用（错误信息如果包含 login failed 转换为 服务不可用）
+// 提供一个熔断机制，防止邮件服务不可用时大量请求堆积
+
 var _ application.WelcomeEmailNotifier = (*EmailNotifier)(nil)
 
 const (

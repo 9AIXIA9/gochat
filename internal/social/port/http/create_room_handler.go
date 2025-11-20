@@ -7,7 +7,7 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	sharedHttp "gochat/internal/shared/http"
 	"gochat/internal/shared/kernel"
-	"gochat/internal/social/application/usecase"
+	"gochat/internal/social/application"
 	"gochat/internal/social/domain"
 	"time"
 
@@ -31,18 +31,18 @@ func (r *CreateRoomRequest) Bind(ginContext *gin.Context) error {
 	return ginContext.ShouldBind(r)
 }
 
-func NewCreateRoomHandler(useCase usecase.CreateRoomUseCase, validator *validator.Validator) gin.HandlerFunc {
+func NewCreateRoomHandler(useCase application.CreateRoomUseCase, validator *validator.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,
 		validator,
-		func(request *CreateRoomRequest) *usecase.CreateRoomInput {
-			return &usecase.CreateRoomInput{
+		func(request *CreateRoomRequest) *application.CreateRoomInput {
+			return &application.CreateRoomInput{
 				Owner:          request.Owner,
 				MaxMemberCount: request.MaxMemberCount,
 				Password:       request.Password,
 			}
 		},
-		func(ginContext *gin.Context, output *usecase.CreateRoomOutput) {
+		func(ginContext *gin.Context, output *application.CreateRoomOutput) {
 			ginutils.Response(ginContext, sharedHttp.NewApiResponseWithData(&CreateRoomResponseData{
 				RoomNumber: output.RoomNumber,
 			}))

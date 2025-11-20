@@ -7,7 +7,7 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	sharedHttp "gochat/internal/shared/http"
 	"gochat/internal/shared/kernel"
-	"gochat/internal/social/application/usecase"
+	"gochat/internal/social/application"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -25,12 +25,12 @@ func (r *LeaveRoomRequest) Bind(ginContext *gin.Context) error {
 	return ginContext.ShouldBind(r)
 }
 
-func NewLeaveRoomHandler(useCase usecase.LeaveRoomUseCase, validator *validator.Validator) gin.HandlerFunc {
+func NewLeaveRoomHandler(useCase application.LeaveRoomUseCase, validator *validator.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,
 		validator,
-		func(request *LeaveRoomRequest) *usecase.LeaveRoomInput {
-			return &usecase.LeaveRoomInput{
+		func(request *LeaveRoomRequest) *application.LeaveRoomInput {
+			return &application.LeaveRoomInput{
 				UserID:     request.UserID,
 				RoomNumber: request.RoomNumber,
 			}

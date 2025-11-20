@@ -1,13 +1,11 @@
-package usecase
+package application
 
 import (
 	"context"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"gochat/internal/social/application"
 	"gochat/internal/social/domain"
-	"time"
 )
 
 const defaultMemberCount = 20
@@ -39,20 +37,20 @@ type CreateRoomOutput struct {
 
 type createRoomUseCase struct {
 	eventIDGenerator event.IDGenerator
-	roomIDGenerator  application.RoomIDGenerator
-	numberGenerator  application.RoomNumberGenerator
-	encryptor        application.Encryptor
-	roomSaver        application.RoomSaver
+	roomIDGenerator  domain.RoomIDGenerator
+	numberGenerator  domain.RoomNumberGenerator
+	encryptor        domain.Encryptor
+	roomSaver        domain.RoomSaver
 	eventSaver       event.UnpublishedEventsSaver
 	unitOfWork       kernel.UnitOfWork
 }
 
 func NewCreateRoomUseCase(
 	eventIDGenerator event.IDGenerator,
-	roomIDGenerator application.RoomIDGenerator,
-	numberGenerator application.RoomNumberGenerator,
-	encryptor application.Encryptor,
-	roomSaver application.RoomSaver,
+	roomIDGenerator domain.RoomIDGenerator,
+	numberGenerator domain.RoomNumberGenerator,
+	encryptor domain.Encryptor,
+	roomSaver domain.RoomSaver,
 	eventSaver event.UnpublishedEventsSaver,
 	unitOfWork kernel.UnitOfWork,
 ) CreateRoomUseCase {
@@ -68,33 +66,21 @@ func NewCreateRoomUseCase(
 }
 
 func (uc *createRoomUseCase) Execute(ctx context.Context, input *CreateRoomInput) (*CreateRoomOutput, error) {
-	now := time.Now().UTC()
-	var passwordEncrypted string
-	if len(input.Password) != 0 {
-		encrypted, err := uc.encryptor.Encrypt(input.Password.String())
-		if err != nil {
-			return nil, err
-		}
-		passwordEncrypted = encrypted
+	passwordEncrypted, err := input.Password.Encrypt(uc.encryptor)
+	if err != nil {
+		return nil, err
 	}
 
-	room := domain.NewRoom(
-		uc.roomIDGenerator.Generate(),
+	room, err := domain.CreateRoom(
 		input.Owner,
-		uc.numberGenerator.Generate(),
-		passwordEncrypted,
-		make([]kernel.UserID, 0, 1),
-		input.MaxMemberCount,
-		now,
+		uc.roomIDGenerator,
+		uc.numberGenerator,
+		uc.eventIDGenerator,
+		&domain.RoomOption{
+			MaxMemberCount:    input.MaxMemberCount,
+			PasswordEncrypted: passwordEncrypted,
+		},
 	)
-
-	if err := room.Create(uc.eventIDGenerator); err != nil {
-		return nil, err
-	}
-
-	if err := room.Join(input.Owner, uc.eventIDGenerator); err != nil {
-		return nil, err
-	}
 
 	if err := uc.unitOfWork.Execute(ctx, func(txCtx context.Context) error {
 		if err := uc.roomSaver.Save(txCtx, room); err != nil {

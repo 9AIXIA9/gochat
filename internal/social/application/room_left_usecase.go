@@ -1,4 +1,4 @@
-package usecase
+package application
 
 import (
 	"context"
@@ -8,37 +8,37 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-type RoomJoinedUseCase kernel.UseCase[*RoomJoinedInput, *kernel.NoOutput]
+type RoomLeftUseCase kernel.UseCase[*RoomLeftInput, *kernel.NoOutput]
 
-type RoomJoinedInput struct {
+type RoomLeftInput struct {
 	RoomID kernel.RoomID
 	UserID kernel.UserID
 }
 
-func (r *RoomJoinedInput) Validate() error {
+func (r *RoomLeftInput) Validate() error {
 	if len(r.RoomID) == 0 || len(r.UserID) == 0 {
 		return myErrors.ErrEmptyInput
 	}
 	return nil
 }
 
-type roomJoinedUseCase struct {
+type roomLeftUseCase struct {
 	idGenerator event.IDGenerator
 	saver       event.UnpublishedEventSaver
 }
 
-func NewRoomJoinedUseCase(
+func NewRoomLeftUseCase(
 	idGenerator event.IDGenerator,
 	saver event.UnpublishedEventSaver,
-) RoomJoinedUseCase {
-	return &roomJoinedUseCase{
+) RoomLeftUseCase {
+	return &roomLeftUseCase{
 		idGenerator: idGenerator,
 		saver:       saver,
 	}
 }
 
-func (uc *roomJoinedUseCase) Execute(ctx context.Context, input *RoomJoinedInput) (*kernel.NoOutput, error) {
-	chatEv, err := chatDomain.NewRoomJoinedEvent(uc.idGenerator.Generate(), input.RoomID, input.UserID)
+func (uc *roomLeftUseCase) Execute(ctx context.Context, input *RoomLeftInput) (*kernel.NoOutput, error) {
+	chatEv, err := chatDomain.NewRoomLeftEvent(uc.idGenerator.Generate(), input.RoomID, input.UserID)
 	if err != nil {
 		return nil, err
 	}

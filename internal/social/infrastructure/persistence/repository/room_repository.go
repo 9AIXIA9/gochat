@@ -7,14 +7,13 @@ import (
 	myErrors "gochat/internal/shared/errors"
 
 	"gochat/internal/shared/kernel"
-	"gochat/internal/social/application"
 	"gochat/internal/social/domain"
 	"gochat/internal/social/infrastructure/persistence/model"
 
 	"gorm.io/gorm"
 )
 
-var _ application.RoomRepository = (*RoomRepository)(nil)
+var _ domain.RoomRepository = (*RoomRepository)(nil)
 
 type RoomRepository struct {
 	unitOfWork *gormutils.UnitOfWork
@@ -115,7 +114,7 @@ func toDomainRoom(m *model.Room) *domain.Room {
 	for _, u := range m.Members {
 		memberIDs = append(memberIDs, u.ID)
 	}
-	return domain.NewRoom(
+	return domain.LoadRoom(
 		m.ID,
 		m.OwnerID,
 		m.Number,
