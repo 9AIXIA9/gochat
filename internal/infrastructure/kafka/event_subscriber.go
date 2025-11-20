@@ -9,6 +9,9 @@ import (
 	"gochat/internal/shared/event"
 
 	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -67,7 +70,7 @@ func (s *EventSubscriber) Subscribe(topic event.Topic, handler event.Handler) {
 }
 
 // Start begins polling and dispatching messages.
-func (s *EventSubscriber) Start() error {
+func (s *EventSubscriber) Start(serviceName string) error {
 	if s.running {
 		return nil
 	}
@@ -86,6 +89,8 @@ func (s *EventSubscriber) Start() error {
 	}
 
 	s.running = true
+
+	tracer := otel.Tracer(serviceName + "/kafka-subscriber")
 
 	go func() {
 		for s.running {
@@ -118,9 +123,16 @@ func (s *EventSubscriber) Start() error {
 				}
 
 				// Dispatch with a per-message context (inherits parent)
-				msgCtx, cancel := context.WithTimeout(s.ctx, 30*time.Second)
 				start := time.Now()
-				if err := handler.Handle(msgCtx, e); err != nil {
+				ctx, span := tracer.Start(context.Background(), topic.String(), trace.WithSpanKind(trace.SpanKindConsumer))
+				timeoutCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+				span.SetAttributes(
+					attribute.String("kafka.topic", topic.String()),
+					attribute.String("event.id", e.ID().String()),
+					attribute.Int("event.retry", retry),
+				)
+
+				if err := handler.Handle(timeoutCtx, e); err != nil {
 					zap.L().Error(
 						"kafka handler error",
 						zap.Error(err),
@@ -128,6 +140,8 @@ func (s *EventSubscriber) Start() error {
 						zap.String("topic", topic.String()),
 						zap.Int("retry", retry),
 					)
+					span.RecordError(err)
+
 					if s.metrics != nil {
 						s.metrics.KafkaConsumed.WithLabelValues(topic.String(), "error").Inc()
 						s.metrics.KafkaHandleDur.WithLabelValues(topic.String()).Observe(time.Since(start).Seconds())
@@ -146,6 +160,8 @@ func (s *EventSubscriber) Start() error {
 					continue
 				}
 				cancel()
+
+				span.End()
 
 				if s.metrics != nil {
 					s.metrics.KafkaConsumed.WithLabelValues(topic.String(), "success").Inc()

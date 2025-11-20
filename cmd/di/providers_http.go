@@ -71,7 +71,7 @@ func provideHttpRouter(
 
 	// 遥测追踪中间件（如果启用）
 	if appConfig.Telemetry != nil && appConfig.Telemetry.Enabled && appConfig.Telemetry.TraceEnabled {
-		baseGroup.Use(middleware.TelemetryMiddleware(appConfig.Name))
+		baseGroup.Use(middleware.NewTelemetryMiddleware(appConfig.Name))
 	}
 
 	// 授权相关路由

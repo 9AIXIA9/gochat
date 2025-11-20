@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+//TODO为处理器添加信息 链路和指标
+
 type Router struct {
 	handlers    map[RequestTopic]Handler
 	middlewares []Middleware

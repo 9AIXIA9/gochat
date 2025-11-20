@@ -51,7 +51,7 @@ func main() {
 
 	dependencies.EmailNotifier.Start()
 	dependencies.KafkaEventPublisher.Start()
-	if err := dependencies.KafkaEventSubscriber.Start(); err != nil {
+	if err := dependencies.KafkaEventSubscriber.Start(conf.Name); err != nil {
 		zap.L().Fatal("start kafka event subscriber failed", zap.Error(err))
 	}
 	dependencies.OutboxConsumer.Start()

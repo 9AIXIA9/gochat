@@ -9,8 +9,8 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-// TelemetryMiddleware creates spans and attaches trace & span IDs into gin context for later logging.
-func TelemetryMiddleware(serviceName string) gin.HandlerFunc {
+// NewTelemetryMiddleware creates spans and attaches trace & span IDs into gin context for later logging.
+func NewTelemetryMiddleware(serviceName string) gin.HandlerFunc {
 	tracer := otel.Tracer(serviceName + "/http")
 	return func(c *gin.Context) {
 		start := time.Now()

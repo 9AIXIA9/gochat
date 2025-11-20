@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 )
 
+//TODO 模仿 gin的路由模式 重构router，保证上下文信息
+
 type RequestTopic string
 
 type Request struct {
