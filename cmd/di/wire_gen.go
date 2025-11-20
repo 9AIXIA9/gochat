@@ -87,7 +87,6 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	emailNotifier := provideEmailNotifier(appConfig, dialer)
 	diEmailServiceAvailable := provideEmailAvailable(dialer)
 	diKafkaTopicEnsured := provideTopicsEnsured(appConfig)
-	diDatabaseMigrated := provideDatabaseMigrated(db)
 	userSessionStartedUseCase := provideWebsocketUserSessionStartedUseCase(eventIDGenerator, eventRepository)
 	userCreatedUseCase := provideAuthUserCreatedUseCase(eventIDGenerator, eventRepository, userRepository)
 	userRepository2 := provideSocialUserRepository(unitOfWork)
@@ -105,8 +104,9 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	messageNotifier := provideMessageNotifier(manager)
 	messageNotificationRequestedUseCase := provideNotificationMessageNotificationRequestedUseCase(repositoryMessageRepository, messageNotifier)
 	undeliveredMessageNotificationRequestedUseCase := provideNotificationUndeliveredMessageNotificationRequestedUseCase(repositoryMessageRepository, messageNotifier)
-	error2 := provideKafkaSubscriptions(eventSubscriber, diEmailServiceAvailable, userSessionStartedUseCase, userCreatedUseCase, usecaseUserCreatedUseCase, roomCreatedUseCase, roomJoinedUseCase, roomLeftUseCase, userCreatedUseCase2, usecaseRoomCreatedUseCase, usecaseRoomJoinedUseCase, usecaseRoomLeftUseCase, privateMessageCreatedUseCase, roomMessageCreatedUseCase, welcomeEmailNotificationRequestedUseCase, messageNotificationRequestedUseCase, undeliveredMessageNotificationRequestedUseCase)
-	dependencies, err := BuildDependencies(ginServer, eventPublisher, eventSubscriber, outboxConsumer, emailNotifier, diEmailServiceAvailable, diKafkaTopicEnsured, diDatabaseMigrated, error2)
+	diKafkaTopicSubscribed := provideKafkaTopicsSubscribed(diKafkaTopicEnsured, eventSubscriber, diEmailServiceAvailable, userSessionStartedUseCase, userCreatedUseCase, usecaseUserCreatedUseCase, roomCreatedUseCase, roomJoinedUseCase, roomLeftUseCase, userCreatedUseCase2, usecaseRoomCreatedUseCase, usecaseRoomJoinedUseCase, usecaseRoomLeftUseCase, privateMessageCreatedUseCase, roomMessageCreatedUseCase, welcomeEmailNotificationRequestedUseCase, messageNotificationRequestedUseCase, undeliveredMessageNotificationRequestedUseCase)
+	diDatabaseMigrated := provideDatabaseMigrated(db)
+	dependencies, err := BuildDependencies(ginServer, eventPublisher, eventSubscriber, outboxConsumer, emailNotifier, diEmailServiceAvailable, diKafkaTopicEnsured, diKafkaTopicSubscribed, diDatabaseMigrated)
 	if err != nil {
 		return nil, err
 	}

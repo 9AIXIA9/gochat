@@ -27,13 +27,16 @@ import (
 	"go.uber.org/zap"
 )
 
-type kafkaTopicEnsured bool
+type (
+	kafkaTopicEnsured    bool
+	kafkaTopicSubscribed bool
+)
 
 var KafkaSet = wire.NewSet(
 	provideTopicsEnsured,
 	provideKafkaPublisher,
 	provideKafkaSubscriber,
-	provideKafkaSubscriptions,
+	provideKafkaTopicsSubscribed,
 )
 
 func provideKafkaPublisher(appConfig *config.App, eventRepo *repository.EventRepository, metrics *prometheus.Metrics) (*kafkautil.EventPublisher, error) {
@@ -44,7 +47,8 @@ func provideKafkaSubscriber(appConfig *config.App, eventRepo *repository.EventRe
 	return kafkautil.NewEventSubscriber(appConfig.Kafka, eventRepo, metrics)
 }
 
-func provideKafkaSubscriptions(
+func provideKafkaTopicsSubscribed(
+	ensured kafkaTopicEnsured,
 	subscriber *kafkautil.EventSubscriber,
 	emailAvailable emailServiceAvailable,
 	//websocket
@@ -67,7 +71,11 @@ func provideKafkaSubscriptions(
 	notificationWelcomeEmailNotificationRequested notificationUsecase.WelcomeEmailNotificationRequestedUseCase,
 	notificationMessageNotificationRequested notificationUsecase.MessageNotificationRequestedUseCase,
 	notificationUndeliveredMessageNotificationRequested notificationUsecase.UndeliveredMessageNotificationRequestedUseCase,
-) error {
+) kafkaTopicSubscribed {
+	if !ensured {
+		zap.L().Warn("Kafka topics are not ensured, skipping subscription")
+		return false
+	}
 	//websocket
 	subscriber.Subscribe(websocket.TopicUserSessionStarted, kafka.NewUserSessionStartedEventHandler(userSessionStartedUseCase))
 	// Authorization
@@ -93,7 +101,7 @@ func provideKafkaSubscriptions(
 	}
 	subscriber.Subscribe(notificationDomain.TopicMessageNotificationRequested, notificationKafka.NewMessageNotificationRequestedEventHandler(notificationMessageNotificationRequested))
 	subscriber.Subscribe(notificationDomain.TopicUndeliveredMessageNotificationRequested, notificationKafka.NewUndeliveredMessageNotificationRequestedEventHandler(notificationUndeliveredMessageNotificationRequested))
-	return nil
+	return true
 }
 
 func provideTopicsEnsured(appConfig *config.App) kafkaTopicEnsured {

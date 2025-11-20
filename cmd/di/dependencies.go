@@ -23,8 +23,8 @@ func BuildDependencies(
 	emailNotifier *gomailUtil.EmailNotifier,
 	_ emailServiceAvailable,
 	_ kafkaTopicEnsured,
+	_ kafkaTopicSubscribed,
 	_ databaseMigrated,
-	_ error, // consume provideKafkaSubscriptions side-effect; ignored
 ) (*Dependencies, error) {
 	deps := &Dependencies{
 		HttpServer:           httpServer,
