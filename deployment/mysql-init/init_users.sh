@@ -17,11 +17,14 @@ APP_PASS=${MYSQL_PASSWORD:-change_me_app}
 BINLOG_USER=${BINLOG_USER:-}
 BINLOG_PASSWORD=${BINLOG_PASSWORD:-}
 
-mysql=( mysql -uroot -p"${MYSQL_ROOT_PASSWORD}" )
+# 使用环境变量安全传递密码
+export MYSQL_PWD="${MYSQL_ROOT_PASSWORD}"
+mysql=( mysql -uroot )
 
 # Create application user & grant privileges on its schema
 "${mysql[@]}" <<SQL
-CREATE USER IF NOT EXISTS '${APP_USER}'@'%' IDENTIFIED WITH mysql_native_password BY '${APP_PASS}';
+SET NAMES utf8mb4;
+CREATE USER IF NOT EXISTS '${APP_USER}'@'%' IDENTIFIED BY '${APP_PASS}';
 GRANT ALL PRIVILEGES ON \`${APP_DB}\`.* TO '${APP_USER}'@'%';
 FLUSH PRIVILEGES;
 SQL
@@ -29,7 +32,8 @@ SQL
 # Create binlog user only if both env vars are non-empty
 if [ -n "${BINLOG_USER}" ] && [ -n "${BINLOG_PASSWORD}" ]; then
   "${mysql[@]}" <<SQL
-CREATE USER IF NOT EXISTS '${BINLOG_USER}'@'%' IDENTIFIED WITH mysql_native_password BY '${BINLOG_PASSWORD}';
+SET NAMES utf8mb4;
+CREATE USER IF NOT EXISTS '${BINLOG_USER}'@'%' IDENTIFIED BY '${BINLOG_PASSWORD}';
 -- Replication related privileges (for row-based binlog consumption)
 GRANT REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO '${BINLOG_USER}'@'%';
 -- Needed for consistent snapshot / listing databases
@@ -41,6 +45,6 @@ SQL
 fi
 
 # Log created users (host only) for debugging
-"${mysql[@]}" -e "SELECT user, host, plugin FROM mysql.user WHERE user IN ('${APP_USER}', '${BINLOG_USER}');"
+"${mysql[@]}" -e "SET NAMES utf8mb4; SELECT user, host, plugin FROM mysql.user WHERE user IN ('${APP_USER}', '${BINLOG_USER}');"
 
 echo "[init_users] Completed user initialization for app='${APP_USER}' binlog='${BINLOG_USER}'"

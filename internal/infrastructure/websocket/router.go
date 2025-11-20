@@ -3,7 +3,11 @@ package websocket
 import (
 	"context"
 	"fmt"
+
+	"go.uber.org/zap"
 )
+
+//TODO为处理器添加信息 链路和指标
 
 type Router struct {
 	handlers    map[RequestTopic]Handler
@@ -13,7 +17,8 @@ type Router struct {
 
 func NewRouter() *Router {
 	return &Router{
-		handlers: make(map[RequestTopic]Handler),
+		handlers:    make(map[RequestTopic]Handler),
+		middlewares: make([]Middleware, 0),
 		notFound: HandlerFunc(func(ctx context.Context, req *Request) (*Response, error) {
 			return nil, fmt.Errorf("no handler for topic %s", req.RequestTopic)
 		}),
@@ -26,7 +31,9 @@ func (r *Router) Use(mw ...Middleware) {
 
 func (r *Router) Handle(topic RequestTopic, h Handler) {
 	if _, ok := r.handlers[topic]; ok {
-		panic("duplicate handler for topic: " + string(topic))
+		zap.L().Warn("handler already registered for topic", zap.String("topic", string(topic)))
+		r.handlers[topic] = h
+		return
 	}
 	if len(r.middlewares) > 0 {
 		h = Chain(h, r.middlewares...)

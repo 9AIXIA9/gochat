@@ -5,7 +5,13 @@ import (
 	"encoding/json"
 )
 
+//TODO 模仿 gin的路由模式 重构router，保证上下文信息
+
 type RequestTopic string
+
+func (t RequestTopic) String() string {
+	return string(t)
+}
 
 type Request struct {
 	RequestTopic RequestTopic    `json:"topic"`
@@ -30,17 +36,17 @@ func (f HandlerFunc) Handle(ctx context.Context, request *Request) (*Response, e
 
 type Middleware func(Handler) Handler
 
+func MiddlewareFunc(f func(ctx context.Context, req *Request, next Handler) (*Response, error)) Middleware {
+	return func(next Handler) Handler {
+		return HandlerFunc(func(ctx context.Context, req *Request) (*Response, error) {
+			return f(ctx, req, next)
+		})
+	}
+}
+
 func Chain(h Handler, mws ...Middleware) Handler {
 	for i := len(mws) - 1; i >= 0; i-- {
 		h = mws[i](h)
 	}
 	return h
 }
-
-//func MiddlewareFunc(f func(ctx context.Context, req *Request, next Handler) (*Response, error)) Middleware {
-//	return func(next Handler) Handler {
-//		return HandlerFunc(func(ctx context.Context, req *Request) (*Response, error) {
-//			return f(ctx, req, next)
-//		})
-//	}
-//}

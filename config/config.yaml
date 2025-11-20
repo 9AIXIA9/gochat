@@ -81,3 +81,12 @@ Kafka:
   GroupID: ${KAFKA_GROUP_ID}
   AutoOffsetReset: ${KAFKA_AUTO_OFFSET_RESET}
   EnableAutoCommit: ${KAFKA_ENABLE_AUTO_COMMIT}
+
+Telemetry:
+  TelemetryEnabled: ${TELEMETRY_ENABLED}
+  TraceEnabled: ${TELEMETRY_TRACE_ENABLED}
+  MetricsEnabled: ${TELEMETRY_METRICS_ENABLED}
+  SampleRatio: ${TELEMETRY_SAMPLE_RATIO}
+  OTLPEndpoint: ${TELEMETRY_OTLP_HOST}:${TELEMETRY_OTLP_PORT}
+  ServiceVersion: ${TELEMETRY_SERVICE_VERSION}
+  Environment: ${TELEMETRY_ENVIRONMENT}

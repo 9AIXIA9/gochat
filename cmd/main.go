@@ -2,14 +2,18 @@ package main
 
 import (
 	"context"
-	"errors"
 	"flag"
-	"fmt"
+	"gochat/cmd/di"
+	"gochat/internal/infrastructure/godotenv"
+	otelInfra "gochat/internal/infrastructure/otel"
+	"gochat/internal/infrastructure/viper"
+	zaputils "gochat/internal/infrastructure/zap"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 const (
@@ -22,39 +26,59 @@ func main() {
 	env := flag.String("env", defaultENVFilePath, "env file path")
 	flag.Parse()
 
-	dependencies, err := initializeDependencies(ConfigPath(*path), EnvPath(*env))
+	if err := godotenv.LoadEnvFile(*env); err != nil {
+		log.Fatalf("load env failed,err:%v", err)
+	}
+
+	conf, err := viper.LoadConfigFile(*path)
 	if err != nil {
-		log.Fatalf("initialize Dependencies failed,err:%v", err)
+		log.Fatalf("load config file failed,err:%v", err)
 	}
 
-	// 创建HTTP服务器
-	srv := &http.Server{
-		Addr:    fmt.Sprintf("%s:%d", dependencies.config.Host, dependencies.config.Port),
-		Handler: dependencies.HttpRouter,
+	dependencies, err := di.Initialize(conf)
+	if err != nil {
+		log.Fatalf("initialize dependencies failed,err:%v", err)
 	}
 
-	// 启动 HTTP 服务器
-	go func() {
-		log.Printf("starting http server on %s", srv.Addr)
-		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Fatalf("start http server failed: %s\n", err)
-		}
-	}()
+	closeOtel, teleErr := otelInfra.Initialize(context.Background(), conf.Name, conf.Telemetry)
+	if teleErr != nil {
+		zap.L().Warn("initialize telemetry failed", zap.Error(teleErr))
+	}
 
-	// 等待中断信号以优雅地关闭服务器（设置 5 秒的超时时间）
+	if err := zaputils.Initialize(conf.Logger); err != nil {
+		log.Fatalf("initialize zap failed:%v", err)
+	}
+
+	dependencies.EmailNotifier.Start()
+	dependencies.KafkaEventPublisher.Start()
+	if err := dependencies.KafkaEventSubscriber.Start(conf.Name); err != nil {
+		zap.L().Fatal("start kafka event subscriber failed", zap.Error(err))
+	}
+	dependencies.OutboxConsumer.Start()
+	dependencies.HttpServer.Start()
+
+	//优雅关机
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 	<-quit
-	log.Println("closing server...")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 	defer cancel()
 
-	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatal("close server failed:", err)
+	if err := dependencies.HttpServer.Close(ctx); err != nil {
+		zap.L().Error("shutdown http server failed", zap.Error(err))
 	}
-	if dependencies.closeAll != nil {
-		dependencies.closeAll()
+
+	dependencies.EmailNotifier.Close()
+	dependencies.KafkaEventPublisher.Close()
+	dependencies.KafkaEventSubscriber.Close()
+	dependencies.OutboxConsumer.Close()
+
+	if closeOtel != nil {
+		if err := closeOtel(ctx); err != nil {
+			zap.L().Error("shutdown telemetry failed", zap.Error(err))
+		}
 	}
-	log.Println("server has been closed")
+
+	zap.L().Info("server exited properly")
 }

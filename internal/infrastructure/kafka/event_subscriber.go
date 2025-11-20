@@ -9,8 +9,13 @@ import (
 	"gochat/internal/shared/event"
 
 	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
+
+//TODO 添加中间件而不是直接在handle里处理链路和指标
 
 const (
 	maxRetries = 3
@@ -19,6 +24,9 @@ const (
 var _ event.Subscriber = (*EventSubscriber)(nil)
 
 type EventSubscriber struct {
+	ctx    context.Context
+	cancel func()
+
 	consumer        *ckafka.Consumer
 	producer        *ckafka.Producer
 	deadLetterSaver event.DeadLetterSaver
@@ -41,7 +49,10 @@ func NewEventSubscriber(config *Config, saver event.DeadLetterSaver, metrics *pr
 		return nil, fmt.Errorf("create kafka producer failed: %w", err)
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
 	return &EventSubscriber{
+		ctx:             ctx,
+		cancel:          cancel,
 		consumer:        consumer,
 		producer:        producer,
 		deadLetterSaver: saver,
@@ -61,7 +72,7 @@ func (s *EventSubscriber) Subscribe(topic event.Topic, handler event.Handler) {
 }
 
 // Start begins polling and dispatching messages.
-func (s *EventSubscriber) Start(ctx context.Context) error {
+func (s *EventSubscriber) Start(serviceName string) error {
 	if s.running {
 		return nil
 	}
@@ -81,11 +92,13 @@ func (s *EventSubscriber) Start(ctx context.Context) error {
 
 	s.running = true
 
+	tracer := otel.Tracer(serviceName + "/kafka-subscriber")
+
 	go func() {
 		for s.running {
 			// Handle ctx cancellation
 			select {
-			case <-ctx.Done():
+			case <-s.ctx.Done():
 				s.running = false
 				return
 			default:
@@ -112,9 +125,11 @@ func (s *EventSubscriber) Start(ctx context.Context) error {
 				}
 
 				// Dispatch with a per-message context (inherits parent)
-				msgCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 				start := time.Now()
-				if err := handler.Handle(msgCtx, e); err != nil {
+				ctx, span := tracer.Start(context.Background(), topic.String(), trace.WithSpanKind(trace.SpanKindConsumer))
+				timeoutCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+
+				if err := handler.Handle(timeoutCtx, e); err != nil {
 					zap.L().Error(
 						"kafka handler error",
 						zap.Error(err),
@@ -122,12 +137,22 @@ func (s *EventSubscriber) Start(ctx context.Context) error {
 						zap.String("topic", topic.String()),
 						zap.Int("retry", retry),
 					)
+					span.RecordError(err)
+
 					if s.metrics != nil {
 						s.metrics.KafkaConsumed.WithLabelValues(topic.String(), "error").Inc()
 						s.metrics.KafkaHandleDur.WithLabelValues(topic.String()).Observe(time.Since(start).Seconds())
 					}
 
 					cancel()
+					span.SetAttributes(
+						attribute.String("kafka.topic", topic.String()),
+						attribute.String("event.id", e.ID().String()),
+						attribute.Int("event.retry", retry),
+						attribute.Float64("event.handle_duration_ms", float64(time.Since(start).Milliseconds())),
+					)
+					span.End()
+
 					// 提交偏移量，防止该消息反复重投造成堵塞
 					if _, cErr := s.consumer.CommitMessage(m); cErr != nil {
 						zap.L().Warn(
@@ -140,6 +165,13 @@ func (s *EventSubscriber) Start(ctx context.Context) error {
 					continue
 				}
 				cancel()
+				span.SetAttributes(
+					attribute.String("kafka.topic", topic.String()),
+					attribute.String("event.id", e.ID().String()),
+					attribute.Int("event.retry", retry),
+					attribute.Float64("event.handle_duration_ms", float64(time.Since(start).Milliseconds())),
+				)
+				span.End()
 
 				if s.metrics != nil {
 					s.metrics.KafkaConsumed.WithLabelValues(topic.String(), "success").Inc()
@@ -198,6 +230,7 @@ func (s *EventSubscriber) handleFailedEvent(ev event.Event, reason error, retry 
 
 func (s *EventSubscriber) Close() {
 	s.running = false
+	s.cancel()
 	if s.consumer != nil {
 		_ = s.consumer.Close()
 	}
