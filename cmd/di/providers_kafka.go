@@ -3,7 +3,7 @@ package di
 import (
 	"context"
 	"gochat/config"
-	"gochat/internal/application/usecase"
+	application4 "gochat/internal/application"
 	authorizationUsecase "gochat/internal/authorization/application"
 	authorizationDomain "gochat/internal/authorization/domain"
 	authorizationKafka "gochat/internal/authorization/port/kafka"
@@ -52,7 +52,7 @@ func provideKafkaTopicsSubscribed(
 	subscriber *kafkautil.EventSubscriber,
 	emailAvailable emailServiceAvailable,
 	//websocket
-	userSessionStartedUseCase usecase.UserSessionStartedUseCase,
+	userSessionStartedUseCase application4.UserSessionStartedUseCase,
 	// auth
 	authUserCreated authorizationUsecase.UserCreatedUseCase,
 	// social

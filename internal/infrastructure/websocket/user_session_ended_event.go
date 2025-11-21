@@ -14,7 +14,8 @@ type UserSessionEndedEvent struct {
 	*event.StandardEvent
 }
 
-func ToUserSessionEndedEvent(ev event.Event) (*UserSessionEndedEvent, error) {
+// func ToUserSessionEndedEvent(ev event.Event) (*UserSessionEndedEvent, error) {
+func _(ev event.Event) (*UserSessionEndedEvent, error) {
 	e := &UserSessionEndedEvent{StandardEvent: event.NewStandardEventFrom(ev)}
 	if len(ev.Payload()) > 0 {
 		if err := e.Unmarshal(ev.Payload()); err != nil {

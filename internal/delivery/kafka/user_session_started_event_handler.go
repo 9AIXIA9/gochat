@@ -2,20 +2,20 @@ package kafka
 
 import (
 	"context"
-	"gochat/internal/application/usecase"
+	"gochat/internal/application"
 	"gochat/internal/infrastructure/websocket"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 )
 
-func NewUserSessionStartedEventHandler(uc usecase.UserSessionStartedUseCase) event.HandlerFunc {
+func NewUserSessionStartedEventHandler(uc application.UserSessionStartedUseCase) event.HandlerFunc {
 	return func(ctx context.Context, e event.Event) error {
 		ev, err := websocket.ToUserSessionStartedEvent(e)
 		if err != nil {
 			return err
 		}
 
-		input := usecase.UserSessionStartedInput{
+		input := application.UserSessionStartedInput{
 			UserID: kernel.UserID(ev.AggregateID()),
 		}
 

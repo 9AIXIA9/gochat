@@ -1,7 +1,7 @@
 package di
 
 import (
-	"gochat/internal/application/usecase"
+	application5 "gochat/internal/application"
 	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
 	authorizationRepository "gochat/internal/authorization/infrastructure/persistence/repository"
@@ -143,8 +143,8 @@ func provideLeaveRoomUseCase(
 }
 
 // -------------------- Event UseCases (Kafka consumer side) --------------------
-func provideWebsocketUserSessionStartedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventsSaver) usecase.UserSessionStartedUseCase {
-	return usecase.NewUserSessionStartedUseCase(eventIDGen, saver)
+func provideWebsocketUserSessionStartedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventsSaver) application5.UserSessionStartedUseCase {
+	return application5.NewUserSessionStartedUseCase(eventIDGen, saver)
 }
 func provideAuthUserCreatedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventsSaver, userRepo *authorizationRepository.UserRepository) application.UserCreatedUseCase {
 	return application.NewUserCreatedUseCase(eventIDGen, saver, userRepo)
