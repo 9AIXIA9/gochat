@@ -1,4 +1,4 @@
-package application
+package domain
 
 import "gochat/internal/shared/kernel"
 

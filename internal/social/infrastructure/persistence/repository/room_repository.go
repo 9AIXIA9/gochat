@@ -102,7 +102,7 @@ func (repo *RoomRepository) DeleteMember(ctx context.Context, roomID kernel.Room
 func toModelRoom(room *domain.Room) *model.Room {
 	return &model.Room{
 		ID:                room.ID(),
-		OwnerID:           room.Owner(),
+		OwnerID:           room.OwnerID(),
 		Number:            room.Number(),
 		PasswordEncrypted: room.PasswordEncrypted(),
 		MaxMemberCount:    room.MaxMemberCount(),

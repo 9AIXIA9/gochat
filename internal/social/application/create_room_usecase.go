@@ -13,7 +13,7 @@ const defaultMemberCount = 20
 type CreateRoomUseCase kernel.UseCase[*CreateRoomInput, *CreateRoomOutput]
 
 type CreateRoomInput struct {
-	Owner          kernel.UserID
+	OwnerID        kernel.UserID
 	MaxMemberCount int
 	Password       domain.Password
 }
@@ -22,7 +22,7 @@ func (r *CreateRoomInput) Validate() error {
 	if err := r.Password.Validate(); err != nil {
 		return err
 	}
-	if len(r.Owner) == 0 {
+	if len(r.OwnerID) == 0 {
 		return myErrors.ErrEmptyInput
 	}
 	if r.MaxMemberCount < 2 {
@@ -72,7 +72,7 @@ func (uc *createRoomUseCase) Execute(ctx context.Context, input *CreateRoomInput
 	}
 
 	room, err := domain.CreateRoom(
-		input.Owner,
+		input.OwnerID,
 		uc.roomIDGenerator,
 		uc.numberGenerator,
 		uc.eventIDGenerator,

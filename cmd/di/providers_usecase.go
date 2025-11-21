@@ -5,9 +5,10 @@ import (
 	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
 	authorizationRepository "gochat/internal/authorization/infrastructure/persistence/repository"
-	chatApp "gochat/internal/chat/application"
-	chatUsecase "gochat/internal/chat/application/usecase"
+	application3 "gochat/internal/chat/application"
+	chatApp "gochat/internal/chat/domain"
 	chatRepository "gochat/internal/chat/infrastructure/persistence/repository"
+	gormutils "gochat/internal/infrastructure/gorm"
 	"gochat/internal/infrastructure/uuid"
 	notificationUsecase "gochat/internal/notification/application/usecase"
 	gomailUtil "gochat/internal/notification/infrastructure/gomail"
@@ -94,8 +95,8 @@ func provideSendPrivateMessageUseCase(
 	msgRepo *chatRepository.MessageRepository,
 	eventSaver event.UnpublishedEventsSaver,
 	unitOfWork kernel.UnitOfWork,
-) chatUsecase.SendPrivateMessageUseCase {
-	return chatUsecase.NewSendPrivateMessageUseCase(messageIDGen, eventIDGen, userRepo, msgRepo, eventSaver, unitOfWork)
+) application3.SendPrivateMessageUseCase {
+	return application3.NewSendPrivateMessageUseCase(messageIDGen, eventIDGen, userRepo, msgRepo, eventSaver, unitOfWork)
 }
 func provideSendRoomMessageUseCase(
 	messageIDGen chatApp.MessageIDGenerator,
@@ -104,8 +105,8 @@ func provideSendRoomMessageUseCase(
 	msgRepo *chatRepository.MessageRepository,
 	eventSaver event.UnpublishedEventsSaver,
 	unitOfWork kernel.UnitOfWork,
-) chatUsecase.SendRoomMessageUseCase {
-	return chatUsecase.NewSendRoomMessageUseCase(messageIDGen, eventIDGen, roomRepo, msgRepo, eventSaver, unitOfWork)
+) application3.SendRoomMessageUseCase {
+	return application3.NewSendRoomMessageUseCase(messageIDGen, eventIDGen, roomRepo, msgRepo, eventSaver, unitOfWork)
 }
 func provideCreateRoomUseCase(
 	eventIDGen event.IDGenerator,
@@ -157,23 +158,23 @@ func provideSocialRoomJoinedUseCase(eventIDGen *uuid.EventIDGenerator, saver eve
 func provideSocialRoomLeftUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventSaver) application2.RoomLeftUseCase {
 	return application2.NewRoomLeftUseCase(eventIDGen, saver)
 }
-func provideChatUserCreatedUseCase(userRepo *chatRepository.UserRepository) chatUsecase.UserCreatedUseCase {
-	return chatUsecase.NewUserCreatedUseCase(userRepo)
+func provideChatUserCreatedUseCase(userRepo *chatRepository.UserRepository) application3.UserCreatedUseCase {
+	return application3.NewUserCreatedUseCase(userRepo)
 }
-func provideChatRoomCreatedUseCase(roomRepo *chatRepository.RoomRepository) chatUsecase.RoomCreatedUseCase {
-	return chatUsecase.NewRoomCreatedUseCase(roomRepo)
+func provideChatRoomCreatedUseCase(roomRepo *chatRepository.RoomRepository, unitOfWork *gormutils.UnitOfWork) application3.RoomCreatedUseCase {
+	return application3.NewRoomCreatedUseCase(roomRepo, roomRepo, unitOfWork)
 }
-func provideChatRoomJoinedUseCase(roomRepo *chatRepository.RoomRepository) chatUsecase.RoomJoinedUseCase {
-	return chatUsecase.NewRoomJoinedUseCase(roomRepo)
+func provideChatRoomJoinedUseCase(roomRepo *chatRepository.RoomRepository) application3.RoomJoinedUseCase {
+	return application3.NewRoomJoinedUseCase(roomRepo)
 }
-func provideChatRoomLeftUseCase(roomRepo *chatRepository.RoomRepository) chatUsecase.RoomLeftUseCase {
-	return chatUsecase.NewRoomLeftUseCase(roomRepo)
+func provideChatRoomLeftUseCase(roomRepo *chatRepository.RoomRepository) application3.RoomLeftUseCase {
+	return application3.NewRoomLeftUseCase(roomRepo)
 }
-func provideChatPrivateMessageCreatedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventSaver, messageRepo *chatRepository.MessageRepository) chatUsecase.PrivateMessageCreatedUseCase {
-	return chatUsecase.NewPrivateMessageCreatedUseCase(eventIDGen, messageRepo, saver)
+func provideChatPrivateMessageCreatedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventSaver, messageRepo *chatRepository.MessageRepository) application3.PrivateMessageCreatedUseCase {
+	return application3.NewPrivateMessageCreatedUseCase(eventIDGen, messageRepo, saver)
 }
-func provideChatRoomMessageCreatedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventsSaver, messageRepo *chatRepository.MessageRepository) chatUsecase.RoomMessageCreatedUseCase {
-	return chatUsecase.NewRoomMessageCreatedUseCase(eventIDGen, messageRepo, saver)
+func provideChatRoomMessageCreatedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventsSaver, roomRepo *chatRepository.RoomRepository, messageRepo *chatRepository.MessageRepository) application3.RoomMessageCreatedUseCase {
+	return application3.NewRoomMessageCreatedUseCase(eventIDGen, messageRepo, roomRepo, saver)
 }
 func provideNotificationWelcomeEmailNotificationRequestedUseCase(emailNotifier *gomailUtil.EmailNotifier) notificationUsecase.WelcomeEmailNotificationRequestedUseCase {
 	return notificationUsecase.NewWelcomeEmailNotificationRequestedUseCase(emailNotifier)

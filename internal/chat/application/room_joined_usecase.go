@@ -1,8 +1,8 @@
-package usecase
+package application
 
 import (
 	"context"
-	"gochat/internal/chat/application"
+	"gochat/internal/chat/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 )
@@ -23,11 +23,11 @@ func (r *RoomJoinedInput) Validate() error {
 }
 
 type roomJoinedUseCase struct {
-	roomMemberSaver application.RoomMemberSaver
+	roomMemberSaver domain.RoomMemberSaver
 }
 
 func NewRoomJoinedUseCase(
-	roomMemberSaver application.RoomMemberSaver,
+	roomMemberSaver domain.RoomMemberSaver,
 ) RoomJoinedUseCase {
 	return &roomJoinedUseCase{
 		roomMemberSaver: roomMemberSaver,

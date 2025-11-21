@@ -1,8 +1,8 @@
-package usecase
+package application
 
 import (
 	"context"
-	"gochat/internal/chat/application"
+	"gochat/internal/chat/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
@@ -29,26 +29,26 @@ func (i *SendPrivateMessageInput) Validate() error {
 }
 
 type sendPrivateMessageUseCase struct {
-	messageIDGenerator    application.MessageIDGenerator
+	messageIDGenerator    domain.MessageIDGenerator
 	eventIDGenerator      event.IDGenerator
-	userFinder            application.UserFinder
-	messageSaver          application.PrivateMessageSaver
+	userFinderByNumber    domain.UserFinderByNumber
+	messageSaver          domain.PrivateMessageSaver
 	unpublishedEventSaver event.UnpublishedEventsSaver
 	unitOfWork            kernel.UnitOfWork
 }
 
 func NewSendPrivateMessageUseCase(
-	messageIDGenerator application.MessageIDGenerator,
+	messageIDGenerator domain.MessageIDGenerator,
 	eventIDGenerator event.IDGenerator,
-	userFinder application.UserFinder,
-	messageSaver application.PrivateMessageSaver,
+	userFinderByNumber domain.UserFinderByNumber,
+	messageSaver domain.PrivateMessageSaver,
 	unpublishedEventSaver event.UnpublishedEventsSaver,
 	unitOfWork kernel.UnitOfWork,
 ) SendPrivateMessageUseCase {
 	return &sendPrivateMessageUseCase{
 		messageIDGenerator:    messageIDGenerator,
 		eventIDGenerator:      eventIDGenerator,
-		userFinder:            userFinder,
+		userFinderByNumber:    userFinderByNumber,
 		messageSaver:          messageSaver,
 		unpublishedEventSaver: unpublishedEventSaver,
 		unitOfWork:            unitOfWork,
@@ -56,23 +56,28 @@ func NewSendPrivateMessageUseCase(
 }
 
 func (uc *sendPrivateMessageUseCase) Execute(ctx context.Context, input *SendPrivateMessageInput) (*kernel.NoOutput, error) {
-	user, err := uc.userFinder.FindByNumber(ctx, input.RecipientNumber)
+	recipient, err := uc.userFinderByNumber.FindByNumber(ctx, input.RecipientNumber)
 	if err != nil {
 		return nil, err
 	}
 
-	message, err := user.ReceiveMessage(uc.messageIDGenerator.Generate(), input.SenderID, input.Content, uc.eventIDGenerator)
+	message, err := domain.SendPrivateMessage(
+		recipient,
+		input.SenderID,
+		input.Content,
+		uc.messageIDGenerator,
+		uc.eventIDGenerator,
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	if err := uc.unitOfWork.Execute(ctx, func(txCtx context.Context) error {
-		if err := uc.messageSaver.SavePrivateMessage(txCtx, user.ID(), message); err != nil {
+		if err := uc.messageSaver.SavePrivateMessage(txCtx, message); err != nil {
 			return err
 		}
 
-		events := user.GetEvents()
-		if err := uc.unpublishedEventSaver.Saves(txCtx, events); err != nil {
+		if err := uc.unpublishedEventSaver.Saves(txCtx, message.GetEvents()); err != nil {
 			return err
 		}
 		return nil

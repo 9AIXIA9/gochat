@@ -1,8 +1,8 @@
-package usecase
+package application
 
 import (
 	"context"
-	"gochat/internal/chat/application"
+	"gochat/internal/chat/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
@@ -29,19 +29,19 @@ func (i *SendRoomMessageInput) Validate() error {
 }
 
 type sendRoomMessageUseCase struct {
-	messageIDGenerator    application.MessageIDGenerator
+	messageIDGenerator    domain.MessageIDGenerator
 	eventIDGenerator      event.IDGenerator
-	roomFinder            application.RoomFinder
-	messageSaver          application.RoomMessageSaver
+	roomFinder            domain.RoomFinder
+	messageSaver          domain.RoomMessageSaver
 	unpublishedEventSaver event.UnpublishedEventsSaver
 	unitOfWork            kernel.UnitOfWork
 }
 
 func NewSendRoomMessageUseCase(
-	messageIDGenerator application.MessageIDGenerator,
+	messageIDGenerator domain.MessageIDGenerator,
 	eventIDGenerator event.IDGenerator,
-	roomFinder application.RoomFinder,
-	messageSaver application.RoomMessageSaver,
+	roomFinder domain.RoomFinder,
+	messageSaver domain.RoomMessageSaver,
 	unpublishedEventSaver event.UnpublishedEventsSaver,
 	unitOfWork kernel.UnitOfWork,
 ) SendRoomMessageUseCase {
@@ -61,17 +61,23 @@ func (uc *sendRoomMessageUseCase) Execute(ctx context.Context, input *SendRoomMe
 		return nil, err
 	}
 
-	message, err := room.ReceiveMessage(uc.messageIDGenerator.Generate(), input.SenderID, input.Content, uc.eventIDGenerator)
+	message, err := domain.SendRoomMessage(
+		room,
+		input.SenderID,
+		input.Content,
+		uc.messageIDGenerator,
+		uc.eventIDGenerator,
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	if err := uc.unitOfWork.Execute(ctx, func(txCtx context.Context) error {
-		if err := uc.messageSaver.SaveRoomMessage(txCtx, room.ID(), message); err != nil {
+		if err := uc.messageSaver.SaveRoomMessage(txCtx, message); err != nil {
 			return err
 		}
 
-		if err := uc.unpublishedEventSaver.Saves(txCtx, room.GetEvents()); err != nil {
+		if err := uc.unpublishedEventSaver.Saves(txCtx, message.GetEvents()); err != nil {
 			return err
 		}
 		return nil

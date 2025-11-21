@@ -3,6 +3,7 @@ package di
 import (
 	"fmt"
 	"gochat/internal/authorization/application"
+	application3 "gochat/internal/chat/application"
 	application2 "gochat/internal/social/application"
 	"net/http"
 
@@ -12,7 +13,6 @@ import (
 
 	"gochat/config"
 	authorizationHttp "gochat/internal/authorization/port/http"
-	chatUsecase "gochat/internal/chat/application/usecase"
 	chatHttp "gochat/internal/chat/port/http"
 	"gochat/internal/delivery/http/handler"
 	"gochat/internal/delivery/http/middleware"
@@ -34,8 +34,8 @@ func provideHttpRouter(
 	login application.LoginUseCase,
 	refreshAccessToken application.RefreshAccessTokenUseCase,
 	parseAccessToken application.ParseAccessTokenUseCase,
-	sendPrivateMessage chatUsecase.SendPrivateMessageUseCase,
-	sendRoomMessage chatUsecase.SendRoomMessageUseCase,
+	sendPrivateMessage application3.SendPrivateMessageUseCase,
+	sendRoomMessage application3.SendRoomMessageUseCase,
 	createRoom application2.CreateRoomUseCase,
 	joinRoom application2.JoinRoomUseCase,
 	leaveRoom application2.LeaveRoomUseCase,

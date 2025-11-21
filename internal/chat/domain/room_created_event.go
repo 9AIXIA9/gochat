@@ -12,7 +12,8 @@ const TopicRoomCreated event.Topic = "chat.room.created"
 var _ event.SpecificEvent = (*RoomCreatedEvent)(nil)
 
 type RoomCreatedEvent struct {
-	number kernel.RoomNumber
+	ownerID kernel.UserID
+	number  kernel.RoomNumber
 	*event.StandardEvent
 }
 
@@ -26,9 +27,10 @@ func ToRoomCreatedEvent(ev event.Event) (*RoomCreatedEvent, error) {
 	return e, nil
 }
 
-func NewRoomCreatedEvent(id event.ID, roomID kernel.RoomID, number kernel.RoomNumber) (*RoomCreatedEvent, error) {
+func NewRoomCreatedEvent(id event.ID, roomID kernel.RoomID, number kernel.RoomNumber, ownerID kernel.UserID) (*RoomCreatedEvent, error) {
 	e := &RoomCreatedEvent{
-		number: number,
+		ownerID: ownerID,
+		number:  number,
 	}
 	payload, err := e.Marshal()
 	if err != nil {
@@ -41,23 +43,33 @@ func NewRoomCreatedEvent(id event.ID, roomID kernel.RoomID, number kernel.RoomNu
 
 func (e *RoomCreatedEvent) Marshal() ([]byte, error) {
 	type Alias struct {
-		Number kernel.RoomNumber
+		OwnerID kernel.UserID
+		Number  kernel.RoomNumber
 	}
-	return json.Marshal(&Alias{Number: e.number})
+	return json.Marshal(&Alias{
+		OwnerID: e.ownerID,
+		Number:  e.number,
+	})
 }
 
 func (e *RoomCreatedEvent) Unmarshal(data []byte) error {
 	type Alias struct {
-		Number kernel.RoomNumber
+		OwnerID kernel.UserID
+		Number  kernel.RoomNumber
 	}
 	var tmp Alias
 	if err := json.Unmarshal(data, &tmp); err != nil {
 		return err
 	}
 	e.number = tmp.Number
+	e.ownerID = tmp.OwnerID
 	return nil
 }
 
 func (e *RoomCreatedEvent) Number() kernel.RoomNumber {
 	return e.number
+}
+
+func (e *RoomCreatedEvent) OwnerID() kernel.UserID {
+	return e.ownerID
 }

@@ -2,20 +2,20 @@ package kafka
 
 import (
 	"context"
-	"gochat/internal/chat/application/usecase"
+	"gochat/internal/chat/application"
 	"gochat/internal/chat/domain"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 )
 
-func NewRoomJoinedEventHandler(uc usecase.RoomJoinedUseCase) event.HandlerFunc {
+func NewRoomJoinedEventHandler(uc application.RoomJoinedUseCase) event.HandlerFunc {
 	return func(ctx context.Context, e event.Event) error {
 		ev, err := domain.ToRoomJoinedEvent(e)
 		if err != nil {
 			return err
 		}
 
-		input := usecase.RoomJoinedInput{
+		input := application.RoomJoinedInput{
 			RoomID: kernel.RoomID(e.AggregateID()),
 			UserID: ev.UserID(),
 		}

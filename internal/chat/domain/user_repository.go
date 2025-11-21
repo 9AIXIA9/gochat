@@ -1,18 +1,17 @@
-package application
+package domain
 
 import (
 	"context"
-	"gochat/internal/chat/domain"
 	"gochat/internal/shared/kernel"
 )
 
 type UserRepository interface {
-	UserFinder
+	UserFinderByNumber
 	UserNumberSaver
 }
 
-type UserFinder interface {
-	FindByNumber(ctx context.Context, number kernel.UserNumber) (*domain.User, error)
+type UserFinderByNumber interface {
+	FindByNumber(ctx context.Context, number kernel.UserNumber) (*User, error)
 }
 
 type UserNumberSaver interface {

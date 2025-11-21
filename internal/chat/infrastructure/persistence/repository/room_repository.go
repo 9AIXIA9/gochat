@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"errors"
-	"gochat/internal/chat/application"
 	"gochat/internal/chat/domain"
 	"gochat/internal/chat/infrastructure/persistence/model"
 	gormutils "gochat/internal/infrastructure/gorm"
@@ -13,7 +12,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-var _ application.RoomRepository = (*RoomRepository)(nil)
+var _ domain.RoomRepository = (*RoomRepository)(nil)
 
 type RoomRepository struct {
 	unitOfWork *gormutils.UnitOfWork
@@ -34,7 +33,7 @@ func (repo *RoomRepository) FindByNumber(ctx context.Context, number kernel.Room
 		members = append(members, member.ID)
 	}
 
-	return domain.NewRoom(room.ID, room.Number, members), nil
+	return domain.LoadRoom(room.ID, room.Number, members), nil
 }
 
 func (repo *RoomRepository) SaveNumber(ctx context.Context, roomID kernel.RoomID, number kernel.RoomNumber) error {
@@ -75,4 +74,18 @@ func (repo *RoomRepository) DeleteMember(ctx context.Context, roomID kernel.Room
 		return err
 	}
 	return nil
+}
+
+func (repo *RoomRepository) FindMembers(ctx context.Context, roomID kernel.RoomID) ([]kernel.UserID, error) {
+	var room model.Room
+	if err := repo.unitOfWork.DB(ctx).WithContext(ctx).Preload("Members").First(&room, "id = ?", roomID).Error; err != nil {
+		return nil, gormutils.TranslateError(err)
+	}
+
+	members := make([]kernel.UserID, 0, len(room.Members))
+	for _, member := range room.Members {
+		members = append(members, member.ID)
+	}
+
+	return members, nil
 }

@@ -7,7 +7,7 @@ import (
 	"gochat/internal/authorization/infrastructure/jwt"
 	authorizationSnowflake "gochat/internal/authorization/infrastructure/snowflake"
 	authorizationUuid "gochat/internal/authorization/infrastructure/uuid"
-	chatApp "gochat/internal/chat/application"
+	chatApp "gochat/internal/chat/domain"
 	chatUUID "gochat/internal/chat/infrastructure/uuid"
 	chatUuid "gochat/internal/chat/infrastructure/uuid"
 	"gochat/internal/infrastructure/bcrypt"

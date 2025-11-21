@@ -11,8 +11,7 @@ type RoomMessage struct {
 	RoomID   kernel.RoomID    `gorm:"type:char(36);not null;index"`
 	SenderID kernel.UserID    `gorm:"type:char(36);not null;index"`
 
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	SentAt time.Time
 
 	Sender *User `gorm:"foreignKey:SenderID;references:ID"`
 	Room   *Room `gorm:"foreignKey:RoomID;references:ID"`

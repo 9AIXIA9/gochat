@@ -14,6 +14,8 @@ var _ kernel.UnitOfWork = (*UnitOfWork)(nil)
 
 const unitOfWorkKey = "unit_of_work"
 
+//TODO 实现不妥
+
 type UnitOfWork struct {
 	db      *gorm.DB
 	metrics *prometheus.Metrics

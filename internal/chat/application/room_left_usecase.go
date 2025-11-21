@@ -1,8 +1,8 @@
-package usecase
+package application
 
 import (
 	"context"
-	"gochat/internal/chat/application"
+	"gochat/internal/chat/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 )
@@ -23,11 +23,11 @@ func (r *RoomLeftInput) Validate() error {
 }
 
 type roomLeftUseCase struct {
-	roomMemberDeleter application.RoomMemberDeleter
+	roomMemberDeleter domain.RoomMemberDeleter
 }
 
 func NewRoomLeftUseCase(
-	roomMemberDeleter application.RoomMemberDeleter,
+	roomMemberDeleter domain.RoomMemberDeleter,
 ) RoomLeftUseCase {
 	return &roomLeftUseCase{
 		roomMemberDeleter: roomMemberDeleter,

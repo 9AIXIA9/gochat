@@ -16,7 +16,7 @@ import (
 )
 
 type CreateRoomRequest struct {
-	Owner          kernel.UserID   `json:"-" validate:"required"`
+	OwnerID        kernel.UserID   `json:"-" validate:"required"`
 	MaxMemberCount int             `json:"max_member_count" validate:"min=2,max=100"`
 	Password       domain.Password `json:"password" validate:"max=100"`
 }
@@ -26,8 +26,8 @@ type CreateRoomResponseData struct {
 }
 
 func (r *CreateRoomRequest) Bind(ginContext *gin.Context) error {
-	owner := ginutils.GetUserID(ginContext)
-	r.Owner = owner
+	userID := ginutils.GetUserID(ginContext)
+	r.OwnerID = userID
 	return ginContext.ShouldBind(r)
 }
 
@@ -37,7 +37,7 @@ func NewCreateRoomHandler(useCase application.CreateRoomUseCase, validator *vali
 		validator,
 		func(request *CreateRoomRequest) *application.CreateRoomInput {
 			return &application.CreateRoomInput{
-				Owner:          request.Owner,
+				OwnerID:        request.OwnerID,
 				MaxMemberCount: request.MaxMemberCount,
 				Password:       request.Password,
 			}

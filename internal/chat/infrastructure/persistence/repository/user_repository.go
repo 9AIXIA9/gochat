@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"gochat/internal/chat/application"
 	"gochat/internal/chat/domain"
 	"gochat/internal/chat/infrastructure/persistence/model"
 	gormutils "gochat/internal/infrastructure/gorm"
@@ -11,7 +10,7 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-var _ application.UserRepository = (*UserRepository)(nil)
+var _ domain.UserRepository = (*UserRepository)(nil)
 
 type UserRepository struct {
 	unitOfWork *gormutils.UnitOfWork
@@ -28,7 +27,7 @@ func (repo *UserRepository) FindByNumber(ctx context.Context, number kernel.User
 		return nil, gormutils.TranslateError(err)
 	}
 
-	return domain.NewUser(user.ID, user.Number), nil
+	return domain.LoadUser(user.ID, user.Number), nil
 }
 
 func (repo *UserRepository) SaveNumber(ctx context.Context, userID kernel.UserID, number kernel.UserNumber) error {

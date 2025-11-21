@@ -14,7 +14,7 @@ const (
 type Room struct {
 	id                kernel.RoomID
 	number            kernel.RoomNumber
-	owner             kernel.UserID
+	ownerID           kernel.UserID
 	passwordEncrypted PasswordEncrypted
 	members           []kernel.UserID
 	maxMemberCount    int
@@ -36,7 +36,7 @@ func (o *RoomOption) Validate() error {
 
 func LoadRoom(
 	id kernel.RoomID,
-	owner kernel.UserID,
+	ownerID kernel.UserID,
 	number kernel.RoomNumber,
 	passwordEncrypted PasswordEncrypted,
 	members []kernel.UserID,
@@ -45,7 +45,7 @@ func LoadRoom(
 ) *Room {
 	return &Room{
 		id:                id,
-		owner:             owner,
+		ownerID:           ownerID,
 		number:            number,
 		passwordEncrypted: passwordEncrypted,
 		members:           members,
@@ -56,7 +56,7 @@ func LoadRoom(
 }
 
 func CreateRoom(
-	owner kernel.UserID,
+	ownerID kernel.UserID,
 	roomIDGenerator RoomIDGenerator,
 	roomNumberGenerator RoomNumberGenerator,
 	eventIDGenerator event.IDGenerator,
@@ -79,7 +79,7 @@ func CreateRoom(
 	r := &Room{
 		id:                roomIDGenerator.Generate(),
 		number:            roomNumberGenerator.Generate(),
-		owner:             owner,
+		ownerID:           ownerID,
 		passwordEncrypted: opt.PasswordEncrypted,
 		members:           make([]kernel.UserID, 0, 1),
 		maxMemberCount:    opt.MaxMemberCount,
@@ -87,7 +87,7 @@ func CreateRoom(
 		eventManager:      event.NewEventManager(),
 	}
 
-	r.members = append(r.members, owner)
+	r.members = append(r.members, ownerID)
 
 	ev, err := NewRoomCreatedEvent(eventIDGenerator.Generate(), r.id)
 	if err != nil {
@@ -132,7 +132,7 @@ func (r *Room) DeleteMember(
 	userID kernel.UserID,
 	generator event.IDGenerator,
 ) error {
-	if userID == r.owner {
+	if userID == r.ownerID {
 		return myErrors.ErrOwnerCantLeave
 	}
 
@@ -177,8 +177,8 @@ func (r *Room) MemberCount() int {
 	return len(r.members)
 }
 
-func (r *Room) Owner() kernel.UserID {
-	return r.owner
+func (r *Room) OwnerID() kernel.UserID {
+	return r.ownerID
 }
 
 func (r *Room) Number() kernel.RoomNumber {
