@@ -26,7 +26,7 @@ func (i *RoomMessageCreatedInput) Validate() error {
 
 type roomMessageCreatedUseCase struct {
 	eventIDGenerator  event.IDGenerator
-	saver             event.UnpublishedEventsSaver
+	saver             event.UnpublishedEventSaver
 	roomMessageFinder domain.RoomMessageFinder
 	roomMembersFinder domain.RoomMembersFinder
 }
@@ -35,7 +35,7 @@ func NewRoomMessageCreatedUseCase(
 	eventIDGenerator event.IDGenerator,
 	roomMessageFinder domain.RoomMessageFinder,
 	roomMembersFinder domain.RoomMembersFinder,
-	saver event.UnpublishedEventsSaver,
+	saver event.UnpublishedEventSaver,
 ) RoomMessageCreatedUseCase {
 	return &roomMessageCreatedUseCase{
 		eventIDGenerator:  eventIDGenerator,
@@ -56,26 +56,20 @@ func (uc *roomMessageCreatedUseCase) Execute(ctx context.Context, input *RoomMes
 		return nil, err
 	}
 
-	evs := make([]event.Event, 0, len(members))
-	for _, member := range members {
-		if member == message.SenderID() {
-			continue
-		}
-		ev, err := notificationDomain.NewMessageNotificationRequestedEvent(
-			uc.eventIDGenerator.Generate(),
-			message.ID(),
-			member,
-			message.SenderID(),
-			message.Content(),
-			message.SentAt(),
-		)
-		if err != nil {
-			return nil, err
-		}
-		evs = append(evs, ev)
+	ev, err := notificationDomain.NewRoomMessageNotificationRequestedEvent(
+		uc.eventIDGenerator.Generate(),
+		message.ID(),
+		message.SenderID(),
+		message.RoomID(),
+		members,
+		message.Content(),
+		message.SentAt(),
+	)
+	if err != nil {
+		return nil, err
 	}
 
-	if err := uc.saver.Saves(ctx, evs); err != nil {
+	if err := uc.saver.Save(ctx, ev); err != nil {
 		return nil, err
 	}
 

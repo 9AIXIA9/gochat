@@ -5,11 +5,10 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-type MessageRepository interface {
+type PrivateMessageRepository interface {
 	PrivateMessageSaver
 	PrivateMessageFinder
-	RoomMessageSaver
-	RoomMessageFinder
+	ReceivedPrivateMessageFinder
 }
 
 type PrivateMessageSaver interface {
@@ -20,10 +19,6 @@ type PrivateMessageFinder interface {
 	FindPrivateMessage(ctx context.Context, messageID kernel.MessageID) (*PrivateMessage, error)
 }
 
-type RoomMessageSaver interface {
-	SaveRoomMessage(ctx context.Context, message *RoomMessage) error
-}
-
-type RoomMessageFinder interface {
-	FindRoomMessage(ctx context.Context, messageID kernel.MessageID) (*RoomMessage, error)
+type ReceivedPrivateMessageFinder interface {
+	FindReceivedPrivateMessage(ctx context.Context, userID kernel.UserID) ([]*PrivateMessage, error)
 }

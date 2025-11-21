@@ -10,7 +10,7 @@ import (
 	chatRepository "gochat/internal/chat/infrastructure/persistence/repository"
 	gormutils "gochat/internal/infrastructure/gorm"
 	"gochat/internal/infrastructure/uuid"
-	notificationUsecase "gochat/internal/notification/application/usecase"
+	application4 "gochat/internal/notification/application"
 	gomailUtil "gochat/internal/notification/infrastructure/gomail"
 	notificationRepository "gochat/internal/notification/infrastructure/persistence/repository"
 	notificationWebsocketInfrastructure "gochat/internal/notification/infrastructure/websocket"
@@ -33,8 +33,10 @@ var UseCaseHTTPSet = wire.NewSet(
 	provideCreateRoomUseCase,
 	provideJoinRoomUseCase,
 	provideLeaveRoomUseCase,
-	provideNotificationUndeliveredMessageNotificationRequestedUseCase,
-	provideNotificationMessageReadUseCase,
+	provideNotificationPrivateMessageReadUseCase,
+	provideNotificationRoomMessageReadUseCase,
+	provideNotificationReceivedPrivateMessageNotificationRequestedUseCase,
+	provideNotificationReceivedRoomMessageNotificationRequestedUseCase,
 )
 
 var UseCaseKafkaSet = wire.NewSet(
@@ -51,7 +53,8 @@ var UseCaseKafkaSet = wire.NewSet(
 	provideChatRoomMessageCreatedUseCase,
 	provideChatPrivateMessageCreatedUseCase,
 	provideNotificationWelcomeEmailNotificationRequestedUseCase,
-	provideNotificationMessageNotificationRequestedUseCase,
+	provideNotificationRoomMessageNotificationRequestedUseCase,
+	provideNotificationPrivateMessageNotificationRequestedUseCase,
 )
 
 // -------------------- UseCases (HTTP side) --------------------
@@ -92,7 +95,7 @@ func provideSendPrivateMessageUseCase(
 	messageIDGen chatApp.MessageIDGenerator,
 	eventIDGen event.IDGenerator,
 	userRepo *chatRepository.UserRepository,
-	msgRepo *chatRepository.MessageRepository,
+	msgRepo *chatRepository.PrivateMessageRepository,
 	eventSaver event.UnpublishedEventsSaver,
 	unitOfWork kernel.UnitOfWork,
 ) application3.SendPrivateMessageUseCase {
@@ -102,7 +105,7 @@ func provideSendRoomMessageUseCase(
 	messageIDGen chatApp.MessageIDGenerator,
 	eventIDGen event.IDGenerator,
 	roomRepo *chatRepository.RoomRepository,
-	msgRepo *chatRepository.MessageRepository,
+	msgRepo *chatRepository.RoomMessageRepository,
 	eventSaver event.UnpublishedEventsSaver,
 	unitOfWork kernel.UnitOfWork,
 ) application3.SendRoomMessageUseCase {
@@ -140,7 +143,7 @@ func provideLeaveRoomUseCase(
 }
 
 // -------------------- Event UseCases (Kafka consumer side) --------------------
-func provideWebsocketUserSessionStartedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventSaver) usecase.UserSessionStartedUseCase {
+func provideWebsocketUserSessionStartedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventsSaver) usecase.UserSessionStartedUseCase {
 	return usecase.NewUserSessionStartedUseCase(eventIDGen, saver)
 }
 func provideAuthUserCreatedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventsSaver, userRepo *authorizationRepository.UserRepository) application.UserCreatedUseCase {
@@ -170,21 +173,30 @@ func provideChatRoomJoinedUseCase(roomRepo *chatRepository.RoomRepository) appli
 func provideChatRoomLeftUseCase(roomRepo *chatRepository.RoomRepository) application3.RoomLeftUseCase {
 	return application3.NewRoomLeftUseCase(roomRepo)
 }
-func provideChatPrivateMessageCreatedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventSaver, messageRepo *chatRepository.MessageRepository) application3.PrivateMessageCreatedUseCase {
+func provideChatPrivateMessageCreatedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventSaver, messageRepo *chatRepository.PrivateMessageRepository) application3.PrivateMessageCreatedUseCase {
 	return application3.NewPrivateMessageCreatedUseCase(eventIDGen, messageRepo, saver)
 }
-func provideChatRoomMessageCreatedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventsSaver, roomRepo *chatRepository.RoomRepository, messageRepo *chatRepository.MessageRepository) application3.RoomMessageCreatedUseCase {
+func provideChatRoomMessageCreatedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventSaver, roomRepo *chatRepository.RoomRepository, messageRepo *chatRepository.RoomMessageRepository) application3.RoomMessageCreatedUseCase {
 	return application3.NewRoomMessageCreatedUseCase(eventIDGen, messageRepo, roomRepo, saver)
 }
-func provideNotificationWelcomeEmailNotificationRequestedUseCase(emailNotifier *gomailUtil.EmailNotifier) notificationUsecase.WelcomeEmailNotificationRequestedUseCase {
-	return notificationUsecase.NewWelcomeEmailNotificationRequestedUseCase(emailNotifier)
+func provideNotificationWelcomeEmailNotificationRequestedUseCase(emailNotifier *gomailUtil.EmailNotifier) application4.WelcomeEmailNotificationRequestedUseCase {
+	return application4.NewWelcomeEmailNotificationRequestedUseCase(emailNotifier)
 }
-func provideNotificationMessageNotificationRequestedUseCase(messageRepo *notificationRepository.MessageRepository, messageNotifier *notificationWebsocketInfrastructure.MessageNotifier) notificationUsecase.MessageNotificationRequestedUseCase {
-	return notificationUsecase.NewMessageNotificationRequestedUseCase(messageRepo, messageNotifier, messageRepo)
+func provideNotificationPrivateMessageNotificationRequestedUseCase(messageRepo *notificationRepository.PrivateMessageRepository, messageNotifier *notificationWebsocketInfrastructure.PrivateMessageNotifier) application4.PrivateMessageNotificationRequestedUseCase {
+	return application4.NewPrivateMessageNotificationRequestedUseCase(messageRepo, messageNotifier)
 }
-func provideNotificationUndeliveredMessageNotificationRequestedUseCase(messageRepo *notificationRepository.MessageRepository, messageNotifier *notificationWebsocketInfrastructure.MessageNotifier) notificationUsecase.UndeliveredMessageNotificationRequestedUseCase {
-	return notificationUsecase.NewUndeliveredMessageNotificationRequestedUseCase(messageRepo, messageNotifier, messageRepo)
+func provideNotificationRoomMessageNotificationRequestedUseCase(messageRepo *notificationRepository.RoomMessageRepository, messageNotifier *notificationWebsocketInfrastructure.RoomMessageNotifier) application4.RoomMessageNotificationRequestedUseCase {
+	return application4.NewRoomMessageNotificationRequestedUseCase(messageNotifier, messageRepo)
 }
-func provideNotificationMessageReadUseCase(messageRepo *notificationRepository.MessageRepository) notificationUsecase.MessageReadUseCase {
-	return notificationUsecase.NewMessageReadUseCase(messageRepo)
+func provideNotificationReceivedPrivateMessageNotificationRequestedUseCase(messageRepo *notificationRepository.PrivateMessageRepository, messageNotifier *notificationWebsocketInfrastructure.PrivateMessageNotifier) application4.ReceivedPrivateMessageNotificationRequestedUseCase {
+	return application4.NewReceivedPrivateMessageNotificationRequestedUseCase(messageRepo, messageRepo, messageNotifier)
+}
+func provideNotificationReceivedRoomMessageNotificationRequestedUseCase(messageRepo *notificationRepository.RoomMessageRepository, messageNotifier *notificationWebsocketInfrastructure.RoomMessageNotifier) application4.ReceivedRoomMessageNotificationRequestedUseCase {
+	return application4.NewReceivedRoomMessageNotificationRequestedUseCase(messageRepo, messageRepo, messageNotifier)
+}
+func provideNotificationPrivateMessageReadUseCase(messageRepo *notificationRepository.PrivateMessageRepository) application4.PrivateMessageReadUseCase {
+	return application4.NewPrivateMessageReadUseCase(messageRepo, messageRepo)
+}
+func provideNotificationRoomMessageReadUseCase(messageRepo *notificationRepository.RoomMessageRepository) application4.RoomMessageReadUseCase {
+	return application4.NewRoomMessageReadUseCase(messageRepo, messageRepo)
 }

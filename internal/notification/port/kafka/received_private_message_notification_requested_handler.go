@@ -8,17 +8,15 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-func NewWelcomeEmailNotificationRequestedEventHandler(uc application.WelcomeEmailNotificationRequestedUseCase) event.HandlerFunc {
+func NewReceivedPrivateMessageNotificationRequestedEventHandler(uc application.ReceivedPrivateMessageNotificationRequestedUseCase) event.HandlerFunc {
 	return func(ctx context.Context, e event.Event) error {
-		ev, err := domain.ToWelcomeEmailNotificationRequestedEvent(e)
+		ev, err := domain.ToReceivedPrivateMessageNotificationRequestedEvent(e)
 		if err != nil {
 			return err
 		}
 
-		input := application.WelcomeEmailNotificationRequestedInput{
-			UserID:     kernel.UserID(ev.AggregateID()),
-			UserNumber: ev.Number(),
-			Email:      ev.Email(),
+		input := application.ReceivedPrivateMessageNotificationRequestedInput{
+			UserID: kernel.UserID(ev.AggregateID()),
 		}
 
 		if err := input.Validate(); err != nil {

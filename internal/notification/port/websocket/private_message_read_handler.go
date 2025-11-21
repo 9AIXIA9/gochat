@@ -4,28 +4,26 @@ import (
 	"context"
 	"encoding/json"
 	"gochat/internal/infrastructure/websocket"
-	"gochat/internal/notification/application/usecase"
+	"gochat/internal/notification/application"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
 )
 
-const MessageReadRequestTopic websocket.RequestTopic = "notification.message_read"
+const PrivateMessageReadRequestTopic websocket.RequestTopic = "notification.private_message_read"
 
-type MessageReadRequestData struct {
+type PrivateMessageReadRequestData struct {
 	MessageID kernel.MessageID `json:"message_id"`
 }
 
-func NewMessageReadHandler(
-	uc usecase.MessageReadUseCase,
+func NewPrivateMessageReadHandler(
+	uc application.PrivateMessageReadUseCase,
 ) websocket.HandlerFunc {
 	return func(ctx context.Context, request *websocket.Request) (*websocket.Response, error) {
-		var reqData MessageReadRequestData
+		var reqData PrivateMessageReadRequestData
 		if err := json.Unmarshal(request.Data, &reqData); err != nil {
 			return nil, err
 		}
 
-		input := &usecase.MessageReadInput{
-			UserID:    utils.GetUserIDFromCtx(ctx),
+		input := &application.PrivateMessageReadInput{
 			MessageID: reqData.MessageID,
 		}
 

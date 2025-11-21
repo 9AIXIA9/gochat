@@ -2,20 +2,20 @@ package kafka
 
 import (
 	"context"
-	"gochat/internal/notification/application/usecase"
+	"gochat/internal/notification/application"
 	"gochat/internal/notification/domain"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 )
 
-func NewUndeliveredMessageNotificationRequestedEventHandler(uc usecase.UndeliveredMessageNotificationRequestedUseCase) event.HandlerFunc {
+func NewReceivedRoomMessageNotificationRequestedEventHandler(uc application.ReceivedRoomMessageNotificationRequestedUseCase) event.HandlerFunc {
 	return func(ctx context.Context, e event.Event) error {
-		ev, err := domain.ToUndeliveredMessageNotificationRequestedEvent(e)
+		ev, err := domain.ToReceivedRoomMessageNotificationRequestedEvent(e)
 		if err != nil {
 			return err
 		}
 
-		input := usecase.UndeliveredMessageNotificationRequestedInput{
+		input := application.ReceivedRoomMessageNotificationRequestedInput{
 			UserID: kernel.UserID(ev.AggregateID()),
 		}
 

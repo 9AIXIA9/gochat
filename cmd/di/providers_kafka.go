@@ -15,7 +15,7 @@ import (
 	"gochat/internal/infrastructure/persistence/repository"
 	"gochat/internal/infrastructure/prometheus"
 	"gochat/internal/infrastructure/websocket"
-	notificationUsecase "gochat/internal/notification/application/usecase"
+	application3 "gochat/internal/notification/application"
 	notificationDomain "gochat/internal/notification/domain"
 	notificationKafka "gochat/internal/notification/port/kafka"
 	"gochat/internal/shared/event"
@@ -68,9 +68,11 @@ func provideKafkaTopicsSubscribed(
 	chatPrivateMessageCreated application2.PrivateMessageCreatedUseCase,
 	chatRoomMessageCreated application2.RoomMessageCreatedUseCase,
 	// notification
-	notificationWelcomeEmailNotificationRequested notificationUsecase.WelcomeEmailNotificationRequestedUseCase,
-	notificationMessageNotificationRequested notificationUsecase.MessageNotificationRequestedUseCase,
-	notificationUndeliveredMessageNotificationRequested notificationUsecase.UndeliveredMessageNotificationRequestedUseCase,
+	notificationWelcomeEmailNotificationRequested application3.WelcomeEmailNotificationRequestedUseCase,
+	notificationPrivateMessageNotificationRequested application3.PrivateMessageNotificationRequestedUseCase,
+	notificationReceivedPrivateMessageNotificationRequested application3.ReceivedPrivateMessageNotificationRequestedUseCase,
+	notificationRoomMessageNotificationRequested application3.RoomMessageNotificationRequestedUseCase,
+	notificationReceivedRoomMessageNotificationRequested application3.ReceivedRoomMessageNotificationRequestedUseCase,
 ) kafkaTopicSubscribed {
 	if !ensured {
 		zap.L().Warn("Kafka topics are not ensured, skipping subscription")
@@ -99,8 +101,10 @@ func provideKafkaTopicsSubscribed(
 	} else {
 		zap.L().Info("Skipping subscription to WelcomeEmailNotificationRequested topic as email dialer is not connected")
 	}
-	subscriber.Subscribe(notificationDomain.TopicMessageNotificationRequested, notificationKafka.NewMessageNotificationRequestedEventHandler(notificationMessageNotificationRequested))
-	subscriber.Subscribe(notificationDomain.TopicUndeliveredMessageNotificationRequested, notificationKafka.NewUndeliveredMessageNotificationRequestedEventHandler(notificationUndeliveredMessageNotificationRequested))
+	subscriber.Subscribe(notificationDomain.TopicPrivateMessageNotificationRequested, notificationKafka.NewPrivateMessageNotificationRequestedEventHandler(notificationPrivateMessageNotificationRequested))
+	subscriber.Subscribe(notificationDomain.TopicRoomMessageNotificationRequested, notificationKafka.NewRoomMessageNotificationRequestedEventHandler(notificationRoomMessageNotificationRequested))
+	subscriber.Subscribe(notificationDomain.TopicReceivedPrivateMessageNotificationRequested, notificationKafka.NewReceivedPrivateMessageNotificationRequestedEventHandler(notificationReceivedPrivateMessageNotificationRequested))
+	subscriber.Subscribe(notificationDomain.TopicReceivedRoomMessageNotificationRequested, notificationKafka.NewReceivedRoomMessageNotificationRequestedEventHandler(notificationReceivedRoomMessageNotificationRequested))
 	return true
 }
 
@@ -127,8 +131,10 @@ func provideTopicsEnsured(appConfig *config.App) kafkaTopicEnsured {
 			chatDomain.TopicRoomMessageCreated,
 			// notification
 			notificationDomain.TopicWelcomeEmailNotificationRequested,
-			notificationDomain.TopicMessageNotificationRequested,
-			notificationDomain.TopicUndeliveredMessageNotificationRequested,
+			notificationDomain.TopicPrivateMessageNotificationRequested,
+			notificationDomain.TopicRoomMessageNotificationRequested,
+			notificationDomain.TopicReceivedPrivateMessageNotificationRequested,
+			notificationDomain.TopicReceivedRoomMessageNotificationRequested,
 		},
 		1,
 		1,

@@ -52,7 +52,8 @@ var InfraSet = wire.NewSet(
 	provideGomailDialer,
 	provideEmailAvailable,
 	provideEmailNotifier,
-	provideMessageNotifier,
+	providePrivateMessageNotifier,
+	provideRoomMessageNotifier,
 	// Binds
 	wire.Bind(new(event.IDGenerator), new(*uuid.EventIDGenerator)),
 	// Authorization binds
@@ -121,6 +122,9 @@ func provideEmailAvailable(d *gomail.Dialer) emailServiceAvailable {
 func provideEmailNotifier(appConfig *config.App, dialer *gomail.Dialer) *gomailUtil.EmailNotifier {
 	return gomailUtil.NewEmailNotifier(appConfig.Name, dialer)
 }
-func provideMessageNotifier(manager *websocket.Manager) *notificationWebsocketInfrastructure.MessageNotifier {
-	return notificationWebsocketInfrastructure.NewMessageNotifier(manager)
+func providePrivateMessageNotifier(manager *websocket.Manager) *notificationWebsocketInfrastructure.PrivateMessageNotifier {
+	return notificationWebsocketInfrastructure.NewPrivateMessageNotifier(manager)
+}
+func provideRoomMessageNotifier(manager *websocket.Manager) *notificationWebsocketInfrastructure.RoomMessageNotifier {
+	return notificationWebsocketInfrastructure.NewRoomMessageNotifier(manager)
 }

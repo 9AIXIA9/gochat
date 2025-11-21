@@ -35,10 +35,12 @@ var RepoSet = wire.NewSet(
 	provideAuthorizationRefreshTokenRepository,
 	provideChatUserRepository,
 	provideChatRoomRepository,
-	provideChatMessageRepository,
+	provideChatPrivateMessageRepository,
+	provideChatRoomMessageRepository,
 	provideSocialUserRepository,
 	provideSocialRoomRepository,
-	provideNotificationMessageRepository,
+	provideNotificationPrivateMessageRepository,
+	provideNotificationRoomMessageRepository,
 	// Binds whose concrete types are provided in this set
 	wire.Bind(new(kernel.UnitOfWork), new(*gormutils.UnitOfWork)),
 	// Event store binds
@@ -60,8 +62,10 @@ func provideDatabaseMigrated(mysql *gorm.DB) databaseMigrated {
 	if err := gormutils.AutoMigrate(
 		mysql,
 		&authorizationModel.User{},
-		&notificationModel.Message{},
-		&notificationModel.MessageState{},
+		&notificationModel.PrivateMessage{},
+		&notificationModel.RoomMessage{},
+		&notificationModel.RoomMessageRecipient{},
+		&notificationModel.RoomMessageState{},
 		&chatModel.User{},
 		&chatModel.Room{},
 		&chatModel.PrivateMessage{},
@@ -98,8 +102,11 @@ func provideChatUserRepository(unitOfWork *gormutils.UnitOfWork) *chatRepository
 func provideChatRoomRepository(unitOfWork *gormutils.UnitOfWork) *chatRepository.RoomRepository {
 	return chatRepository.NewRoomRepository(unitOfWork)
 }
-func provideChatMessageRepository(unitOfWork *gormutils.UnitOfWork) *chatRepository.MessageRepository {
-	return chatRepository.NewMessageRepository(unitOfWork)
+func provideChatPrivateMessageRepository(unitOfWork *gormutils.UnitOfWork) *chatRepository.PrivateMessageRepository {
+	return chatRepository.NewPrivateMessageRepository(unitOfWork)
+}
+func provideChatRoomMessageRepository(unitOfWork *gormutils.UnitOfWork) *chatRepository.RoomMessageRepository {
+	return chatRepository.NewRoomMessageRepository(unitOfWork)
 }
 func provideSocialUserRepository(unitOfWork *gormutils.UnitOfWork) *socialRepository.UserRepository {
 	return socialRepository.NewUserRepository(unitOfWork)
@@ -107,6 +114,9 @@ func provideSocialUserRepository(unitOfWork *gormutils.UnitOfWork) *socialReposi
 func provideSocialRoomRepository(unitOfWork *gormutils.UnitOfWork) *socialRepository.RoomRepository {
 	return socialRepository.NewRoomRepository(unitOfWork)
 }
-func provideNotificationMessageRepository(unitOfWork *gormutils.UnitOfWork) *notificationRepository.MessageRepository {
-	return notificationRepository.NewMessageRepository(unitOfWork)
+func provideNotificationPrivateMessageRepository(unitOfWork *gormutils.UnitOfWork) *notificationRepository.PrivateMessageRepository {
+	return notificationRepository.NewPrivateMessageRepository(unitOfWork)
+}
+func provideNotificationRoomMessageRepository(unitOfWork *gormutils.UnitOfWork) *notificationRepository.RoomMessageRepository {
+	return notificationRepository.NewRoomMessageRepository(unitOfWork)
 }

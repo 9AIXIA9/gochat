@@ -81,16 +81,22 @@ func (m *Manager) SendTo(id kernel.UserID, b []byte) error {
 	return myErrors.ErrNotFound
 }
 
-func (m *Manager) Broadcast(b []byte) int {
+func (m *Manager) Broadcast(ids []kernel.UserID, b []byte) []kernel.UserID {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	n := 0
-	for _, c := range m.connections {
-		_ = c.Send(b)
+
+	idsSuccess := make([]kernel.UserID, 0, len(ids))
+	for _, id := range ids {
+		if err := m.SendTo(id, b); err != nil {
+			continue
+		}
+		idsSuccess = append(idsSuccess, id)
 		n++
 	}
+
 	if m.metrics != nil {
 		m.metrics.WSMessagesOut.WithLabelValues("broadcast").Add(float64(n))
 	}
-	return n
+	return idsSuccess
 }

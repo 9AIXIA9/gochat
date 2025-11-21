@@ -45,7 +45,7 @@ func NewSendPrivateMessageHandler(useCase application.SendPrivateMessageUseCase,
 			case errors.Is(err, myErrors.ErrEmptyInput):
 				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty"))
 			case errors.Is(err, myErrors.ErrNotFound):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "recipient not found"))
+				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "recipientID not found"))
 			default:
 				zap.L().Error("send private message handler failed", zap.Error(err))
 				ginutils.Response(ginContext, sharedHttp.ResponseServerError)

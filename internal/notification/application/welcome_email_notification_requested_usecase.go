@@ -1,8 +1,7 @@
-package usecase
+package application
 
 import (
 	"context"
-	"gochat/internal/notification/application"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 )
@@ -27,10 +26,10 @@ func (r *WelcomeEmailNotificationRequestedInput) Validate() error {
 }
 
 type welcomeEmailNotificationRequestedUseCase struct {
-	emailNotifier application.WelcomeEmailNotifier
+	emailNotifier WelcomeEmailNotifier
 }
 
-func NewWelcomeEmailNotificationRequestedUseCase(emailNotifier application.WelcomeEmailNotifier) WelcomeEmailNotificationRequestedUseCase {
+func NewWelcomeEmailNotificationRequestedUseCase(emailNotifier WelcomeEmailNotifier) WelcomeEmailNotificationRequestedUseCase {
 	return &welcomeEmailNotificationRequestedUseCase{emailNotifier: emailNotifier}
 }
 
