@@ -24,18 +24,18 @@ func (r *RoomCreatedInput) Validate() error {
 
 type roomCreatedUseCase struct {
 	idGenerator event.IDGenerator
-	saver       event.UnpublishedEventSaver
+	creator     event.UnpublishedEventCreator
 	finder      domain.RoomFinderByID
 }
 
 func NewRoomCreatedUseCase(
 	idGenerator event.IDGenerator,
-	saver event.UnpublishedEventSaver,
+	creator event.UnpublishedEventCreator,
 	finder domain.RoomFinderByID,
 ) RoomCreatedUseCase {
 	return &roomCreatedUseCase{
 		idGenerator: idGenerator,
-		saver:       saver,
+		creator:     creator,
 		finder:      finder,
 	}
 }
@@ -50,7 +50,7 @@ func (uc *roomCreatedUseCase) Execute(ctx context.Context, input *RoomCreatedInp
 	if err != nil {
 		return nil, err
 	}
-	if err := uc.saver.Save(ctx, chatEv); err != nil {
+	if err := uc.creator.CreateUnpublishedEvent(ctx, chatEv); err != nil {
 		return nil, err
 	}
 	return nil, nil

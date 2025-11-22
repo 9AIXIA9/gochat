@@ -26,18 +26,18 @@ func (i *PrivateMessageCreatedInput) Validate() error {
 
 type privateMessageCreatedUseCase struct {
 	eventIDGenerator     event.IDGenerator
-	saver                event.UnpublishedEventSaver
+	creator              event.UnpublishedEventCreator
 	privateMessageFinder domain.PrivateMessageFinder
 }
 
 func NewPrivateMessageCreatedUseCase(
 	eventIDGenerator event.IDGenerator,
 	privateMessageFinder domain.PrivateMessageFinder,
-	saver event.UnpublishedEventSaver,
+	creator event.UnpublishedEventCreator,
 ) PrivateMessageCreatedUseCase {
 	return &privateMessageCreatedUseCase{
 		eventIDGenerator:     eventIDGenerator,
-		saver:                saver,
+		creator:              creator,
 		privateMessageFinder: privateMessageFinder,
 	}
 }
@@ -65,7 +65,7 @@ func (uc *privateMessageCreatedUseCase) Execute(ctx context.Context, input *Priv
 		return nil, err
 	}
 
-	if err := uc.saver.Save(ctx, ev); err != nil {
+	if err := uc.creator.CreateUnpublishedEvent(ctx, ev); err != nil {
 		return nil, err
 	}
 

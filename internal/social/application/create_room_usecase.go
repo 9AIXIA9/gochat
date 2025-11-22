@@ -41,7 +41,7 @@ type createRoomUseCase struct {
 	numberGenerator  domain.RoomNumberGenerator
 	encryptor        domain.Encryptor
 	roomSaver        domain.RoomSaver
-	eventSaver       event.UnpublishedEventsSaver
+	eventsCreator    event.UnpublishedEventsCreator
 	unitOfWork       kernel.UnitOfWork
 }
 
@@ -51,7 +51,7 @@ func NewCreateRoomUseCase(
 	numberGenerator domain.RoomNumberGenerator,
 	encryptor domain.Encryptor,
 	roomSaver domain.RoomSaver,
-	eventSaver event.UnpublishedEventsSaver,
+	eventsCreator event.UnpublishedEventsCreator,
 	unitOfWork kernel.UnitOfWork,
 ) CreateRoomUseCase {
 	return &createRoomUseCase{
@@ -60,7 +60,7 @@ func NewCreateRoomUseCase(
 		numberGenerator:  numberGenerator,
 		encryptor:        encryptor,
 		roomSaver:        roomSaver,
-		eventSaver:       eventSaver,
+		eventsCreator:    eventsCreator,
 		unitOfWork:       unitOfWork,
 	}
 }
@@ -87,7 +87,7 @@ func (uc *createRoomUseCase) Execute(ctx context.Context, input *CreateRoomInput
 			return err
 		}
 
-		if err := uc.eventSaver.Saves(txCtx, room.GetEvents()); err != nil {
+		if err := uc.eventsCreator.CreateUnpublishedEvents(txCtx, room.GetEvents()); err != nil {
 			return err
 		}
 		return nil

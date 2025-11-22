@@ -26,7 +26,7 @@ type leaveRoomUseCase struct {
 	eventIDGenerator  event.IDGenerator
 	finder            domain.RoomFinderByNumber
 	roomMemberDeleter domain.RoomMemberDeleter
-	eventSaver        event.UnpublishedEventsSaver
+	eventsCreator     event.UnpublishedEventsCreator
 	unitOfWork        kernel.UnitOfWork
 }
 
@@ -34,14 +34,14 @@ func NewLeaveRoomUseCase(
 	eventIDGenerator event.IDGenerator,
 	finder domain.RoomFinderByNumber,
 	roomMemberDeleter domain.RoomMemberDeleter,
-	eventSaver event.UnpublishedEventsSaver,
+	eventsCreator event.UnpublishedEventsCreator,
 	unitOfWork kernel.UnitOfWork,
 ) LeaveRoomUseCase {
 	return &leaveRoomUseCase{
 		eventIDGenerator:  eventIDGenerator,
 		finder:            finder,
 		roomMemberDeleter: roomMemberDeleter,
-		eventSaver:        eventSaver,
+		eventsCreator:     eventsCreator,
 		unitOfWork:        unitOfWork,
 	}
 }
@@ -64,7 +64,7 @@ func (uc *leaveRoomUseCase) Execute(ctx context.Context, input *LeaveRoomInput) 
 			return err
 		}
 
-		if err := uc.eventSaver.Saves(txCtx, room.GetEvents()); err != nil {
+		if err := uc.eventsCreator.CreateUnpublishedEvents(txCtx, room.GetEvents()); err != nil {
 			return err
 		}
 		return nil

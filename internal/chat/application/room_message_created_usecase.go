@@ -26,7 +26,7 @@ func (i *RoomMessageCreatedInput) Validate() error {
 
 type roomMessageCreatedUseCase struct {
 	eventIDGenerator  event.IDGenerator
-	saver             event.UnpublishedEventSaver
+	creator           event.UnpublishedEventCreator
 	roomMessageFinder domain.RoomMessageFinder
 	roomMembersFinder domain.RoomMembersFinder
 }
@@ -35,11 +35,11 @@ func NewRoomMessageCreatedUseCase(
 	eventIDGenerator event.IDGenerator,
 	roomMessageFinder domain.RoomMessageFinder,
 	roomMembersFinder domain.RoomMembersFinder,
-	saver event.UnpublishedEventSaver,
+	creator event.UnpublishedEventCreator,
 ) RoomMessageCreatedUseCase {
 	return &roomMessageCreatedUseCase{
 		eventIDGenerator:  eventIDGenerator,
-		saver:             saver,
+		creator:           creator,
 		roomMessageFinder: roomMessageFinder,
 		roomMembersFinder: roomMembersFinder,
 	}
@@ -69,7 +69,7 @@ func (uc *roomMessageCreatedUseCase) Execute(ctx context.Context, input *RoomMes
 		return nil, err
 	}
 
-	if err := uc.saver.Save(ctx, ev); err != nil {
+	if err := uc.creator.CreateUnpublishedEvent(ctx, ev); err != nil {
 		return nil, err
 	}
 
