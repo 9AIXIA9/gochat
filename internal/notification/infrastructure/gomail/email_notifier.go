@@ -5,6 +5,7 @@ import (
 	"gochat/internal/notification/application"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
+	"strings"
 	"sync"
 	"time"
 
@@ -75,6 +76,16 @@ func (n *EmailNotifier) Start() {
 		go func() {
 			for t := range n.taskChan {
 				if err := n.dialer.DialAndSend(t.message); err != nil {
+					if !strings.Contains(err.Error(), "550") {
+						zap.L().Error(
+							"WelcomeEmailNotifier send error, retrying",
+							zap.String("email", t.email.String()),
+							zap.Error(err),
+						)
+						// 对于非永久性错误，可以考虑重新入队或做其他处理
+						continue
+					}
+
 					zap.L().Error(
 						"WelcomeEmailNotifier send error",
 						zap.String("email", t.email.String()),

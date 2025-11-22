@@ -18,10 +18,11 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 		RepoSet,
 		KafkaSet,
 		CanalSet,
+		UseCaseHTTPSet,
+		UseCaseWebsocketSet,
+		UseCaseKafkaSet,
 		WebsocketSet,
 		HTTPSet,
-		UseCaseHTTPSet,
-		UseCaseKafkaSet,
 		BuildDependencies,
 	)
 	return &Dependencies{}, nil

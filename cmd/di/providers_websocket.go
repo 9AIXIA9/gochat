@@ -6,7 +6,7 @@ import (
 	"gochat/internal/infrastructure/persistence/repository"
 	"gochat/internal/infrastructure/prometheus"
 	"gochat/internal/infrastructure/websocket"
-	notificationUsecase "gochat/internal/notification/application"
+	notificationApp "gochat/internal/notification/application"
 	notificationWebsocket "gochat/internal/notification/port/websocket"
 	"gochat/internal/shared/event"
 
@@ -33,8 +33,8 @@ func provideWebsocketManager(upgrader *gorillaWebsocket.Upgrader, metrics *prome
 
 func provideWebsocketRouter(
 	appConfig *config.App,
-	notificationPrivateMessageRead notificationUsecase.PrivateMessageReadUseCase,
-	notificationRoomMessageRead notificationUsecase.RoomMessageReadUseCase,
+	notificationPrivateMessageRead notificationApp.PrivateMessageReadUseCase,
+	notificationRoomMessageRead notificationApp.RoomMessageReadUseCase,
 ) *websocket.Router {
 	router := websocket.NewRouter()
 

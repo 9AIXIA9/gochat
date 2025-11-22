@@ -45,7 +45,7 @@ func ReceiveRoomMessage(
 ) *RoomMessage {
 	states := make(map[kernel.UserID]MessageState)
 	for _, recipientID := range recipientIDs {
-		states[recipientID] = MessageStateReceived
+		states[recipientID] = MessageStateUndelivered
 	}
 
 	return &RoomMessage{
@@ -64,7 +64,7 @@ func (m *RoomMessage) Deliver(
 ) error {
 	recipientIDsNotDelivered := make([]kernel.UserID, 0)
 	for _, recipientID := range m.recipientIDs {
-		if m.states[recipientID] == MessageStateReceived {
+		if m.states[recipientID] == MessageStateUndelivered {
 			recipientIDsNotDelivered = append(recipientIDsNotDelivered, recipientID)
 		}
 	}

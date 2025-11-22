@@ -30,15 +30,15 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	userRepository := provideAuthorizationUserRepository(unitOfWork)
 	eventRepository := provideEventRepository(unitOfWork)
 	signUpUseCase := provideSignUpUseCase(eventIDGenerator, userIDGenerator, userNumberGenerator, hasher, userRepository, eventRepository, unitOfWork)
+	accessTokenManager := provideAccessTokenManager(appConfig)
+	refreshTokenGenerator := provideRefreshTokenGenerator(appConfig)
 	client, err := provideRedis(appConfig)
 	if err != nil {
 		return nil, err
 	}
 	refreshTokenRepository := provideAuthorizationRefreshTokenRepository(client)
-	accessTokenManager := provideAccessTokenManager(appConfig)
-	refreshTokenGenerator := provideRefreshTokenGenerator(appConfig)
-	loginUseCase := provideLoginUseCase(eventIDGenerator, hasher, userRepository, refreshTokenRepository, accessTokenManager, refreshTokenGenerator)
-	refreshAccessTokenUseCase := provideRefreshAccessTokenUseCase(refreshTokenRepository, refreshTokenRepository, accessTokenManager, refreshTokenGenerator)
+	loginUseCase := provideLoginUseCase(eventIDGenerator, hasher, accessTokenManager, refreshTokenGenerator, userRepository, refreshTokenRepository)
+	refreshAccessTokenUseCase := provideRefreshAccessTokenUseCase(refreshTokenRepository, accessTokenManager, refreshTokenGenerator)
 	parseAccessTokenUseCase := provideParseAccessTokenUseCase(accessTokenManager)
 	messageIDGenerator := provideMessageIDGenerator()
 	repositoryUserRepository := provideChatUserRepository(unitOfWork)
@@ -54,8 +54,8 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	}
 	repositoryRoomRepository := provideSocialRoomRepository(unitOfWork)
 	createRoomUseCase := provideCreateRoomUseCase(eventIDGenerator, roomIDGenerator, roomNumberGenerator, hasher, repositoryRoomRepository, eventRepository, unitOfWork)
-	joinRoomUseCase := provideJoinRoomUseCase(eventIDGenerator, eventRepository, repositoryRoomRepository, hasher, repositoryRoomRepository, unitOfWork)
-	leaveRoomUseCase := provideLeaveRoomUseCase(eventIDGenerator, repositoryRoomRepository, repositoryRoomRepository, eventRepository, unitOfWork)
+	joinRoomUseCase := provideJoinRoomUseCase(eventIDGenerator, hasher, repositoryRoomRepository, eventRepository, unitOfWork)
+	leaveRoomUseCase := provideLeaveRoomUseCase(eventIDGenerator, repositoryRoomRepository, eventRepository, unitOfWork)
 	validator, err := provideValidator()
 	if err != nil {
 		return nil, err
@@ -94,7 +94,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	userCreatedUseCase := provideAuthUserCreatedUseCase(eventIDGenerator, eventRepository, userRepository)
 	userRepository2 := provideSocialUserRepository(unitOfWork)
 	applicationUserCreatedUseCase := provideSocialUserCreatedUseCase(userRepository2)
-	roomCreatedUseCase := provideSocialRoomCreatedUseCase(eventIDGenerator, eventRepository, repositoryRoomRepository)
+	roomCreatedUseCase := provideSocialRoomCreatedUseCase(eventIDGenerator, repositoryRoomRepository, eventRepository)
 	roomJoinedUseCase := provideSocialRoomJoinedUseCase(eventIDGenerator, eventRepository)
 	roomLeftUseCase := provideSocialRoomLeftUseCase(eventIDGenerator, eventRepository)
 	userCreatedUseCase2 := provideChatUserCreatedUseCase(repositoryUserRepository)
@@ -106,11 +106,10 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	welcomeEmailNotificationRequestedUseCase := provideNotificationWelcomeEmailNotificationRequestedUseCase(emailNotifier)
 	privateMessageNotifier := providePrivateMessageNotifier(manager)
 	privateMessageNotificationRequestedUseCase := provideNotificationPrivateMessageNotificationRequestedUseCase(repositoryPrivateMessageRepository, privateMessageNotifier)
-	receivedPrivateMessageNotificationRequestedUseCase := provideNotificationReceivedPrivateMessageNotificationRequestedUseCase(repositoryPrivateMessageRepository, privateMessageNotifier)
 	roomMessageNotifier := provideRoomMessageNotifier(manager)
 	roomMessageNotificationRequestedUseCase := provideNotificationRoomMessageNotificationRequestedUseCase(repositoryRoomMessageRepository, roomMessageNotifier)
-	receivedRoomMessageNotificationRequestedUseCase := provideNotificationReceivedRoomMessageNotificationRequestedUseCase(repositoryRoomMessageRepository, roomMessageNotifier)
-	diKafkaTopicSubscribed := provideKafkaTopicsSubscribed(diKafkaTopicEnsured, eventSubscriber, diEmailServiceAvailable, userSessionStartedUseCase, userCreatedUseCase, applicationUserCreatedUseCase, roomCreatedUseCase, roomJoinedUseCase, roomLeftUseCase, userCreatedUseCase2, applicationRoomCreatedUseCase, applicationRoomJoinedUseCase, applicationRoomLeftUseCase, privateMessageCreatedUseCase, roomMessageCreatedUseCase, welcomeEmailNotificationRequestedUseCase, privateMessageNotificationRequestedUseCase, receivedPrivateMessageNotificationRequestedUseCase, roomMessageNotificationRequestedUseCase, receivedRoomMessageNotificationRequestedUseCase)
+	undeliveredMessagesNotificationRequestedUseCase := provideNotificationUndeliveredMessagesNotificationRequestedUseCase(repositoryPrivateMessageRepository, repositoryRoomMessageRepository, privateMessageNotifier, roomMessageNotifier)
+	diKafkaTopicSubscribed := provideKafkaTopicsSubscribed(diKafkaTopicEnsured, eventSubscriber, diEmailServiceAvailable, userSessionStartedUseCase, userCreatedUseCase, applicationUserCreatedUseCase, roomCreatedUseCase, roomJoinedUseCase, roomLeftUseCase, userCreatedUseCase2, applicationRoomCreatedUseCase, applicationRoomJoinedUseCase, applicationRoomLeftUseCase, privateMessageCreatedUseCase, roomMessageCreatedUseCase, welcomeEmailNotificationRequestedUseCase, privateMessageNotificationRequestedUseCase, roomMessageNotificationRequestedUseCase, undeliveredMessagesNotificationRequestedUseCase)
 	diDatabaseMigrated := provideDatabaseMigrated(db)
 	dependencies, err := BuildDependencies(ginServer, eventPublisher, eventSubscriber, outboxConsumer, emailNotifier, diEmailServiceAvailable, diKafkaTopicEnsured, diKafkaTopicSubscribed, diDatabaseMigrated)
 	if err != nil {

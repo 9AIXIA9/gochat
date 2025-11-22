@@ -35,7 +35,7 @@ func (*RoomMessageRecipient) TableName() string {
 type RoomMessageState struct {
 	MessageID kernel.MessageID    `gorm:"type:char(36);index;not null"`
 	UserID    kernel.UserID       `gorm:"type:char(36);index;not null"`
-	State     domain.MessageState `gorm:"type:varchar(10);index,not null"`
+	State     domain.MessageState `gorm:"type:varchar(36);index,not null"`
 }
 
 func (*RoomMessageState) TableName() string {

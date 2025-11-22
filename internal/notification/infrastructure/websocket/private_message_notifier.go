@@ -10,9 +10,9 @@ import (
 
 var _ domain.PrivateMessageNotifier = (*PrivateMessageNotifier)(nil)
 
-const NotifyingPrivateMessageTopic websocket.ResponseTopic = "notification.notifying_private_message"
+const NotifyPrivateMessageTopic websocket.ResponseTopic = "notification.notify_private_message"
 
-type NotifyingPrivateMessageResponseData struct {
+type NotifyPrivateMessageResponseData struct {
 	ID       kernel.MessageID
 	SenderID kernel.UserID
 	State    domain.MessageState
@@ -29,7 +29,7 @@ func NewPrivateMessageNotifier(manager *websocket.Manager) *PrivateMessageNotifi
 }
 
 func (n *PrivateMessageNotifier) NotifyPrivateMessage(message *domain.PrivateMessage) error {
-	responseData := &NotifyingPrivateMessageResponseData{
+	responseData := &NotifyPrivateMessageResponseData{
 		ID:       message.ID(),
 		SenderID: message.SenderID(),
 		State:    message.State(),
@@ -43,7 +43,7 @@ func (n *PrivateMessageNotifier) NotifyPrivateMessage(message *domain.PrivateMes
 	}
 
 	response := &websocket.Response{
-		ResponseTopic: NotifyingPrivateMessageTopic,
+		ResponseTopic: NotifyPrivateMessageTopic,
 		Data:          data,
 	}
 

@@ -8,14 +8,14 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-func NewReceivedRoomMessageNotificationRequestedEventHandler(uc application.ReceivedRoomMessageNotificationRequestedUseCase) event.HandlerFunc {
+func NewUndeliveredMessagesNotificationRequestedEventHandler(uc application.UndeliveredMessagesNotificationRequestedUseCase) event.HandlerFunc {
 	return func(ctx context.Context, e event.Event) error {
-		ev, err := domain.ToReceivedRoomMessageNotificationRequestedEvent(e)
+		ev, err := domain.ToUndeliveredMessagesNotificationRequestedEvent(e)
 		if err != nil {
 			return err
 		}
 
-		input := application.ReceivedRoomMessageNotificationRequestedInput{
+		input := application.UndeliveredMessagesNotificationRequestedInput{
 			UserID: kernel.UserID(ev.AggregateID()),
 		}
 

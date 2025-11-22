@@ -10,6 +10,8 @@ import (
 	"go.uber.org/zap"
 )
 
+//TODO websocket 连接 保持有问题
+
 type Server struct {
 	manager *Manager
 	router  *Router
@@ -56,7 +58,7 @@ func (s *Server) ServeWS(w http.ResponseWriter, r *http.Request, userID kernel.U
 	}
 
 	// 当连接关闭时自动注销
-	<-ctx.Done()
+	<-ctxWithUserID.Done()
 	s.manager.Unregister(userID)
 
 	ev2, err := NewUserSessionEndedEvent(s.idGenerator.Generate(), userID)

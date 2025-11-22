@@ -6,8 +6,6 @@ import (
 	"time"
 )
 
-//TODO: 重构事件命名  重构事件处理
-
 const TopicPrivateMessageCreated event.Topic = "chat.private_message.created"
 
 var _ event.SpecificEvent = (*PrivateMessageCreatedEvent)(nil)

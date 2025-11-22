@@ -43,7 +43,7 @@ func ReceivePrivateMessage(
 		id:          id,
 		senderID:    senderID,
 		recipientID: recipientID,
-		state:       MessageStateReceived,
+		state:       MessageStateUndelivered,
 		content:     content,
 		sentAt:      sentAt,
 	}

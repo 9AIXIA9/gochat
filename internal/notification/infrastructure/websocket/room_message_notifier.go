@@ -10,9 +10,9 @@ import (
 
 var _ domain.RoomMessageNotifier = (*RoomMessageNotifier)(nil)
 
-const NotifyingRoomMessageTopic websocket.ResponseTopic = "notification.notifying_room_message"
+const NotifyRoomMessageTopic websocket.ResponseTopic = "notification.notify_room_message"
 
-type NotifyingRoomMessageResponseData struct {
+type NotifyRoomMessageResponseData struct {
 	ID       kernel.MessageID
 	SenderID kernel.UserID
 	RoomID   kernel.RoomID
@@ -30,7 +30,7 @@ func NewRoomMessageNotifier(manager *websocket.Manager) *RoomMessageNotifier {
 }
 
 func (n *RoomMessageNotifier) NotifyRoomMessage(message *domain.RoomMessage, recipients []kernel.UserID) ([]kernel.UserID, error) {
-	responseData := &NotifyingRoomMessageResponseData{
+	responseData := &NotifyRoomMessageResponseData{
 		ID:       message.ID(),
 		SenderID: message.SenderID(),
 		RoomID:   message.RoomID(),
@@ -45,7 +45,7 @@ func (n *RoomMessageNotifier) NotifyRoomMessage(message *domain.RoomMessage, rec
 	}
 
 	response := &websocket.Response{
-		ResponseTopic: NotifyingRoomMessageTopic,
+		ResponseTopic: NotifyRoomMessageTopic,
 		Data:          data,
 	}
 
