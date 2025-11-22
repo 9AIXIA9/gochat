@@ -18,12 +18,12 @@ import (
 // using the provided event.ManyPublisher. This is an infrastructure adapter implementing CDC for the outbox table.
 type OutboxConsumer struct {
 	publisher event.ManyPublisher
-	lister    event.UnpublishedLister
+	lister    event.UnpublishedEventsLister
 	canal     *canal.Canal
 	metrics   *prometheus.Metrics
 }
 
-func NewOutboxConsumer(c *canal.Canal, publisher event.ManyPublisher, lister event.UnpublishedLister) *OutboxConsumer {
+func NewOutboxConsumer(c *canal.Canal, publisher event.ManyPublisher, lister event.UnpublishedEventsLister) *OutboxConsumer {
 	return &OutboxConsumer{
 		publisher: publisher,
 		lister:    lister,
@@ -56,7 +56,7 @@ func (c *OutboxConsumer) Close() {
 type outboxHandler struct {
 	canal.DummyEventHandler
 	publisher event.ManyPublisher
-	lister    event.UnpublishedLister
+	lister    event.UnpublishedEventsLister
 	metrics   *prometheus.Metrics
 }
 
@@ -69,7 +69,7 @@ func (h *outboxHandler) OnRow(e *canal.RowsEvent) error {
 		h.metrics.OutboxPolled.Inc()
 	}
 
-	events, err := h.lister.UnpublishedList(context.Background())
+	events, err := h.lister.ListUnpublishedEvents(context.Background())
 	if err != nil {
 		return err
 	}

@@ -24,16 +24,16 @@ func (r *RoomLeftInput) Validate() error {
 
 type roomLeftUseCase struct {
 	idGenerator event.IDGenerator
-	saver       event.UnpublishedEventSaver
+	creator     event.UnpublishedEventCreator
 }
 
 func NewRoomLeftUseCase(
 	idGenerator event.IDGenerator,
-	saver event.UnpublishedEventSaver,
+	creator event.UnpublishedEventCreator,
 ) RoomLeftUseCase {
 	return &roomLeftUseCase{
 		idGenerator: idGenerator,
-		saver:       saver,
+		creator:     creator,
 	}
 }
 
@@ -42,7 +42,7 @@ func (uc *roomLeftUseCase) Execute(ctx context.Context, input *RoomLeftInput) (*
 	if err != nil {
 		return nil, err
 	}
-	if err := uc.saver.Save(ctx, chatEv); err != nil {
+	if err := uc.creator.CreateUnpublishedEvent(ctx, chatEv); err != nil {
 		return nil, err
 	}
 	return nil, nil

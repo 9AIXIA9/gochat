@@ -7,6 +7,8 @@ import (
 	"gochat/internal/shared/event"
 )
 
+//TODO 在 saveUser等聚合根保存操作中统一处理
+
 var _ event.Repository = (*EventRepository)(nil)
 
 type EventRepository struct {
@@ -19,24 +21,47 @@ func NewEventRepository(unitOfWork *gormutils.UnitOfWork) *EventRepository {
 	}
 }
 
-func (repo *EventRepository) Save(ctx context.Context, event event.Event) error {
-	ev := &model.Event{
-		ID:          event.ID(),
-		AggregateID: event.AggregateID(),
-		Topic:       event.Topic(),
-		Published:   false,
-		Payload:     event.Payload(),
-		CreatedAt:   event.OccurredAt(),
-	}
-	return gormutils.TranslateError(repo.unitOfWork.DB(ctx).WithContext(ctx).Create(ev).Error)
+func (repo *EventRepository) CreateUnpublishedEvent(ctx context.Context, e event.Event) error {
+	return gormutils.TranslateError(repo.unitOfWork.DB(ctx).WithContext(ctx).Create(repo.toModel(e)).Error)
 }
 
-func (repo *EventRepository) Saves(ctx context.Context, events []event.Event) error {
-	if len(events) == 0 {
+func (repo *EventRepository) CreateUnpublishedEvents(ctx context.Context, evs []event.Event) error {
+	return gormutils.TranslateError(repo.unitOfWork.DB(ctx).WithContext(ctx).Create(repo.toModels(evs)).Error)
+}
+
+func (repo *EventRepository) ListUnpublishedEvents(ctx context.Context) ([]event.Event, error) {
+	var models []*model.Event
+
+	if err := repo.unitOfWork.DB(ctx).WithContext(ctx).Where("published = false").Find(&models).Error; err != nil {
+		return nil, gormutils.TranslateError(err)
+	}
+	return repo.toEvents(models), nil
+}
+
+func (repo *EventRepository) Publish(ctx context.Context, ID event.ID) error {
+	return gormutils.TranslateError(repo.unitOfWork.DB(ctx).WithContext(ctx).Model(&model.Event{}).Where("id = ?", ID).Update("published", true).Error)
+}
+
+func (repo *EventRepository) CreateDeadLetter(ctx context.Context, e event.Event, reason error) error {
+	return gormutils.TranslateError(repo.unitOfWork.DB(ctx).WithContext(ctx).Create(repo.toDeadLetter(e, reason)).Error)
+}
+
+func (repo *EventRepository) toModel(e event.Event) *model.Event {
+	return &model.Event{
+		ID:          e.ID(),
+		AggregateID: e.AggregateID(),
+		Topic:       e.Topic(),
+		Payload:     e.Payload(),
+		CreatedAt:   e.OccurredAt(),
+	}
+}
+
+func (repo *EventRepository) toModels(evs []event.Event) []*model.Event {
+	if len(evs) == 0 {
 		return nil
 	}
-	models := make([]*model.Event, 0, len(events))
-	for _, e := range events {
+	models := make([]*model.Event, 0, len(evs))
+	for _, e := range evs {
 		models = append(models, &model.Event{
 			ID:          e.ID(),
 			AggregateID: e.AggregateID(),
@@ -46,35 +71,29 @@ func (repo *EventRepository) Saves(ctx context.Context, events []event.Event) er
 			CreatedAt:   e.OccurredAt(),
 		})
 	}
-	return gormutils.TranslateError(repo.unitOfWork.DB(ctx).WithContext(ctx).Create(&models).Error)
+	return models
 }
 
-func (repo *EventRepository) UnpublishedList(ctx context.Context) ([]event.Event, error) {
-	var models []*model.Event
+func (repo *EventRepository) toDeadLetter(e event.Event, reason error) *model.DeadLetter {
+	return &model.DeadLetter{
+		Event: &model.Event{
+			ID:          e.ID(),
+			AggregateID: e.AggregateID(),
+			Topic:       e.Topic(),
+			Payload:     e.Payload(),
+			CreatedAt:   e.OccurredAt(),
+		},
+		Reason: reason.Error(),
+	}
+}
 
-	if err := repo.unitOfWork.DB(ctx).WithContext(ctx).Where("published = false").Find(&models).Error; err != nil {
-		return nil, gormutils.TranslateError(err)
+func (repo *EventRepository) toEvents(models []*model.Event) []event.Event {
+	if len(models) == 0 {
+		return nil
 	}
 	events := make([]event.Event, 0, len(models))
 	for _, m := range models {
 		events = append(events, event.NewStandardEvent(m.ID, m.AggregateID, m.CreatedAt, m.Topic, m.Payload))
 	}
-	return events, nil
-}
-
-func (repo *EventRepository) MarkPublished(ctx context.Context, ID event.ID) error {
-	return gormutils.TranslateError(repo.unitOfWork.DB(ctx).WithContext(ctx).Model(&model.Event{}).Where("id = ?", ID).Update("published", true).Error)
-}
-
-func (repo *EventRepository) SaveDeadLetter(ctx context.Context, event event.Event, reason error) error {
-	return gormutils.TranslateError(repo.unitOfWork.DB(ctx).WithContext(ctx).Create(&model.DeadLetter{
-		Event: &model.Event{
-			ID:          event.ID(),
-			AggregateID: event.AggregateID(),
-			Topic:       event.Topic(),
-			Payload:     event.Payload(),
-			CreatedAt:   event.OccurredAt(),
-		},
-		Reason: reason.Error(),
-	}).Error)
+	return events
 }

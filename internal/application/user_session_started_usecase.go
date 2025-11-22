@@ -23,16 +23,16 @@ func (r *UserSessionStartedInput) Validate() error {
 
 type userCreatedUseCase struct {
 	idGenerator event.IDGenerator
-	saver       event.UnpublishedEventSaver
+	creator     event.UnpublishedEventCreator
 }
 
 func NewUserSessionStartedUseCase(
 	idGenerator event.IDGenerator,
-	saver event.UnpublishedEventSaver,
+	creator event.UnpublishedEventCreator,
 ) UserSessionStartedUseCase {
 	return &userCreatedUseCase{
 		idGenerator: idGenerator,
-		saver:       saver,
+		creator:     creator,
 	}
 }
 
@@ -42,7 +42,7 @@ func (uc *userCreatedUseCase) Execute(ctx context.Context, input *UserSessionSta
 		return nil, err
 	}
 
-	if err := uc.saver.Save(ctx, ev); err != nil {
+	if err := uc.creator.CreateUnpublishedEvent(ctx, ev); err != nil {
 		return nil, err
 	}
 	return nil, nil

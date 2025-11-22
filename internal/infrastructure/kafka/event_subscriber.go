@@ -27,9 +27,9 @@ type EventSubscriber struct {
 	ctx    context.Context
 	cancel func()
 
-	consumer        *ckafka.Consumer
-	producer        *ckafka.Producer
-	deadLetterSaver event.DeadLetterSaver
+	consumer          *ckafka.Consumer
+	producer          *ckafka.Producer
+	deadLetterCreator event.DeadLetterCreator
 
 	handlers    map[event.Topic]event.Handler
 	pollTimeout time.Duration
@@ -38,7 +38,7 @@ type EventSubscriber struct {
 }
 
 // NewEventSubscriber creates a Kafka consumer-based subscriber.
-func NewEventSubscriber(config *Config, saver event.DeadLetterSaver, metrics *prometheus.Metrics) (*EventSubscriber, error) {
+func NewEventSubscriber(config *Config, saver event.DeadLetterCreator, metrics *prometheus.Metrics) (*EventSubscriber, error) {
 	consumer, err := ckafka.NewConsumer(getConsumerConfigMap(config))
 	if err != nil {
 		return nil, fmt.Errorf("create kafka consumer failed: %w", err)
@@ -51,15 +51,15 @@ func NewEventSubscriber(config *Config, saver event.DeadLetterSaver, metrics *pr
 
 	ctx, cancel := context.WithCancel(context.Background())
 	return &EventSubscriber{
-		ctx:             ctx,
-		cancel:          cancel,
-		consumer:        consumer,
-		producer:        producer,
-		deadLetterSaver: saver,
-		handlers:        make(map[event.Topic]event.Handler),
-		pollTimeout:     500 * time.Millisecond,
-		running:         false,
-		metrics:         metrics,
+		ctx:               ctx,
+		cancel:            cancel,
+		consumer:          consumer,
+		producer:          producer,
+		deadLetterCreator: saver,
+		handlers:          make(map[event.Topic]event.Handler),
+		pollTimeout:       500 * time.Millisecond,
+		running:           false,
+		metrics:           metrics,
 	}, nil
 }
 
@@ -196,7 +196,7 @@ func (s *EventSubscriber) Start(serviceName string) error {
 
 func (s *EventSubscriber) handleFailedEvent(ev event.Event, reason error, retry int) {
 	if retry >= maxRetries {
-		if err := s.deadLetterSaver.SaveDeadLetter(context.Background(), ev, reason); err != nil {
+		if err := s.deadLetterCreator.CreateDeadLetter(context.Background(), ev, reason); err != nil {
 			zap.L().Error(
 				"retry >= maxRetries and save dead letter failed",
 				zap.String("id", ev.ID().String()),
@@ -212,7 +212,7 @@ func (s *EventSubscriber) handleFailedEvent(ev event.Event, reason error, retry 
 	}
 
 	if err := s.producer.Produce(getMessage(ev, retry+1), nil); err != nil {
-		if err := s.deadLetterSaver.SaveDeadLetter(context.Background(), ev, reason); err != nil {
+		if err := s.deadLetterCreator.CreateDeadLetter(context.Background(), ev, reason); err != nil {
 			zap.L().Error(
 				"republish failed and save dead letter failed",
 				zap.String("id", ev.ID().String()),

@@ -31,7 +31,7 @@ type signUpUseCase struct {
 	numberGenerator  domain.UserNumberGenerator
 	encryptor        domain.Encryptor
 	userSaver        domain.UserSaver
-	eventSaver       event.UnpublishedEventsSaver
+	eventsCreator    event.UnpublishedEventsCreator
 	unitOfWork       kernel.UnitOfWork
 }
 
@@ -41,7 +41,7 @@ func NewSignUpUseCase(
 	numberGenerator domain.UserNumberGenerator,
 	encryptor domain.Encryptor,
 	userSaver domain.UserSaver,
-	eventSaver event.UnpublishedEventsSaver,
+	eventsCreator event.UnpublishedEventsCreator,
 	unitOfWork kernel.UnitOfWork,
 ) SignUpUseCase {
 	return &signUpUseCase{
@@ -50,7 +50,7 @@ func NewSignUpUseCase(
 		numberGenerator:  numberGenerator,
 		encryptor:        encryptor,
 		userSaver:        userSaver,
-		eventSaver:       eventSaver,
+		eventsCreator:    eventsCreator,
 		unitOfWork:       unitOfWork,
 	}
 }
@@ -78,7 +78,7 @@ func (uc *signUpUseCase) Execute(ctx context.Context, input *SignUpInput) (*Sign
 			return err
 		}
 
-		err = uc.eventSaver.Saves(txCtx, user.GetEvents())
+		err = uc.eventsCreator.CreateUnpublishedEvents(txCtx, user.GetEvents())
 		if err != nil {
 			return err
 		}

@@ -26,18 +26,18 @@ func (r *UserCreatedInput) Validate() error {
 
 type userCreatedUseCase struct {
 	idGenerator event.IDGenerator
-	saver       event.UnpublishedEventsSaver
+	creator     event.UnpublishedEventsCreator
 	finder      domain.UserFinderByID
 }
 
 func NewUserCreatedUseCase(
 	idGenerator event.IDGenerator,
-	saver event.UnpublishedEventsSaver,
+	creator event.UnpublishedEventsCreator,
 	finder domain.UserFinderByID,
 ) UserCreatedUseCase {
 	return &userCreatedUseCase{
 		idGenerator: idGenerator,
-		saver:       saver,
+		creator:     creator,
 		finder:      finder,
 	}
 }
@@ -72,7 +72,7 @@ func (uc *userCreatedUseCase) Execute(ctx context.Context, input *UserCreatedInp
 		return nil, err
 	}
 
-	if err := uc.saver.Saves(ctx, []event.Event{
+	if err := uc.creator.CreateUnpublishedEvents(ctx, []event.Event{
 		socialEv, chatEv, notificationEv,
 	}); err != nil {
 		return nil, err

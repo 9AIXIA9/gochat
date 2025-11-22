@@ -16,13 +16,13 @@ var _ event.ManyPublisher = (*EventPublisher)(nil)
 type EventPublisher struct {
 	publishResultChan chan ckafka.Event
 	producer          *ckafka.Producer
-	publishedMarker   event.PublishedMarker
+	publisher         event.Publisher
 	metrics           *prometheus.Metrics
 }
 
 func NewEventPublisher(
 	config *Config,
-	publishedMarker event.PublishedMarker,
+	publisher event.Publisher,
 	metrics *prometheus.Metrics,
 ) (*EventPublisher, error) {
 	producer, err := ckafka.NewProducer(getProducerConfigMap(config))
@@ -33,7 +33,7 @@ func NewEventPublisher(
 	return &EventPublisher{
 		publishResultChan: make(chan ckafka.Event, 512),
 		producer:          producer,
-		publishedMarker:   publishedMarker,
+		publisher:         publisher,
 		metrics:           metrics,
 	}, nil
 }
@@ -79,7 +79,7 @@ func (p *EventPublisher) processSendingResponse() {
 			}
 
 			id := message.Opaque.(event.ID)
-			if err := p.publishedMarker.MarkPublished(context.Background(), id); err != nil {
+			if err := p.publisher.Publish(context.Background(), id); err != nil {
 				zap.L().Error(
 					"mark event published failed",
 					zap.Error(err),

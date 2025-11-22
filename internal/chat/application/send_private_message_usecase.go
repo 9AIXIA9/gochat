@@ -29,12 +29,12 @@ func (i *SendPrivateMessageInput) Validate() error {
 }
 
 type sendPrivateMessageUseCase struct {
-	messageIDGenerator    domain.MessageIDGenerator
-	eventIDGenerator      event.IDGenerator
-	userFinderByNumber    domain.UserFinderByNumber
-	messageSaver          domain.PrivateMessageSaver
-	unpublishedEventSaver event.UnpublishedEventsSaver
-	unitOfWork            kernel.UnitOfWork
+	messageIDGenerator domain.MessageIDGenerator
+	eventIDGenerator   event.IDGenerator
+	userFinderByNumber domain.UserFinderByNumber
+	messageSaver       domain.PrivateMessageSaver
+	creator            event.UnpublishedEventsCreator
+	unitOfWork         kernel.UnitOfWork
 }
 
 func NewSendPrivateMessageUseCase(
@@ -42,16 +42,16 @@ func NewSendPrivateMessageUseCase(
 	eventIDGenerator event.IDGenerator,
 	userFinderByNumber domain.UserFinderByNumber,
 	messageSaver domain.PrivateMessageSaver,
-	unpublishedEventSaver event.UnpublishedEventsSaver,
+	creator event.UnpublishedEventsCreator,
 	unitOfWork kernel.UnitOfWork,
 ) SendPrivateMessageUseCase {
 	return &sendPrivateMessageUseCase{
-		messageIDGenerator:    messageIDGenerator,
-		eventIDGenerator:      eventIDGenerator,
-		userFinderByNumber:    userFinderByNumber,
-		messageSaver:          messageSaver,
-		unpublishedEventSaver: unpublishedEventSaver,
-		unitOfWork:            unitOfWork,
+		messageIDGenerator: messageIDGenerator,
+		eventIDGenerator:   eventIDGenerator,
+		userFinderByNumber: userFinderByNumber,
+		messageSaver:       messageSaver,
+		creator:            creator,
+		unitOfWork:         unitOfWork,
 	}
 }
 
@@ -77,7 +77,7 @@ func (uc *sendPrivateMessageUseCase) Execute(ctx context.Context, input *SendPri
 			return err
 		}
 
-		if err := uc.unpublishedEventSaver.Saves(txCtx, message.GetEvents()); err != nil {
+		if err := uc.creator.CreateUnpublishedEvents(txCtx, message.GetEvents()); err != nil {
 			return err
 		}
 		return nil
