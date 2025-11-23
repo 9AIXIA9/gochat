@@ -23,20 +23,20 @@ func (input *RefreshAccessTokenInput) Validate() error {
 }
 
 type refreshAccessTokenUseCase struct {
-	refreshTokenSaver     domain.RefreshTokenSaver
+	refreshTokenCreator   domain.RefreshTokenCreator
 	refreshTokenFinder    domain.RefreshTokenFinder
 	accessTokenGenerator  domain.AccessTokenGenerator
 	refreshTokenGenerator domain.RefreshTokenGenerator
 }
 
 func NewRefreshAccessTokenUseCase(
-	refreshTokenSaver domain.RefreshTokenSaver,
+	refreshTokenCreator domain.RefreshTokenCreator,
 	refreshTokenFinder domain.RefreshTokenFinder,
 	accessTokenGenerator domain.AccessTokenGenerator,
 	refreshTokenGenerator domain.RefreshTokenGenerator,
 ) RefreshAccessTokenUseCase {
 	return &refreshAccessTokenUseCase{
-		refreshTokenSaver:     refreshTokenSaver,
+		refreshTokenCreator:   refreshTokenCreator,
 		refreshTokenFinder:    refreshTokenFinder,
 		accessTokenGenerator:  accessTokenGenerator,
 		refreshTokenGenerator: refreshTokenGenerator,
@@ -61,7 +61,7 @@ func (uc *refreshAccessTokenUseCase) Execute(ctx context.Context, input *Refresh
 		return nil, err
 	}
 
-	if err := uc.refreshTokenSaver.Save(ctx, refreshToken); err != nil {
+	if err := uc.refreshTokenCreator.Create(ctx, refreshToken); err != nil {
 		return nil, err
 	}
 

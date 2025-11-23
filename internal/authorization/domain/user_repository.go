@@ -6,13 +6,13 @@ import (
 )
 
 type UserRepository interface {
-	UserSaver
+	UserCreator
 	UserFinderByNumber
 	UserFinderByID
 }
 
-type UserSaver interface {
-	Save(ctx context.Context, user *User) error
+type UserCreator interface {
+	Create(ctx context.Context, user *User) error
 }
 
 type UserFinderByNumber interface {
