@@ -30,7 +30,7 @@ type loginUseCase struct {
 	eventIDGenerator      event.IDGenerator
 	comparator            domain.Comparator
 	userFinder            domain.UserFinderByNumber
-	refreshTokenCreator   domain.RefreshTokenCreator
+	refreshTokenUpserter  domain.RefreshTokenUpserter
 	accessTokenGenerator  domain.AccessTokenGenerator
 	refreshTokenGenerator domain.RefreshTokenGenerator
 }
@@ -39,7 +39,7 @@ func NewLoginUseCase(
 	idGenerator event.IDGenerator,
 	comparator domain.Comparator,
 	userFinder domain.UserFinderByNumber,
-	refreshTokenCreator domain.RefreshTokenCreator,
+	refreshTokenUpserter domain.RefreshTokenUpserter,
 	accessTokenGenerator domain.AccessTokenGenerator,
 	refreshTokenGenerator domain.RefreshTokenGenerator,
 ) LoginUseCase {
@@ -47,7 +47,7 @@ func NewLoginUseCase(
 		eventIDGenerator:      idGenerator,
 		comparator:            comparator,
 		userFinder:            userFinder,
-		refreshTokenCreator:   refreshTokenCreator,
+		refreshTokenUpserter:  refreshTokenUpserter,
 		accessTokenGenerator:  accessTokenGenerator,
 		refreshTokenGenerator: refreshTokenGenerator,
 	}
@@ -73,7 +73,7 @@ func (uc *loginUseCase) Execute(ctx context.Context, input *LoginInput) (*LoginO
 		return nil, err
 	}
 
-	if err := uc.refreshTokenCreator.Create(ctx, refreshToken); err != nil {
+	if err := uc.refreshTokenUpserter.Upsert(ctx, refreshToken); err != nil {
 		return nil, err
 	}
 

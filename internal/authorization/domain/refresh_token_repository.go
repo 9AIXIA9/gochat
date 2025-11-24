@@ -5,12 +5,12 @@ import (
 )
 
 type RefreshTokenRepository interface {
-	RefreshTokenCreator
+	RefreshTokenUpserter
 	RefreshTokenFinder
 }
 
-type RefreshTokenCreator interface {
-	Create(ctx context.Context, token *RefreshTokenEntity) error
+type RefreshTokenUpserter interface {
+	Upsert(ctx context.Context, token *RefreshTokenEntity) error
 }
 
 type RefreshTokenFinder interface {

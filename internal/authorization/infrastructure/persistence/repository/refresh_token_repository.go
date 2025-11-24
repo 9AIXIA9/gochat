@@ -30,9 +30,7 @@ func NewRefreshTokenRepository(rdb *redis.Client, converter redisutils.GenericMo
 	}
 }
 
-//TODO 这里应该是 upsert
-
-func (r *RefreshTokenRepository) Create(ctx context.Context, token *domain.RefreshTokenEntity) error {
+func (r *RefreshTokenRepository) Upsert(ctx context.Context, token *domain.RefreshTokenEntity) error {
 	// 确保 userID 与 Token 一一对应
 	existing, err := r.innerRepository.Find(ctx, token.UserID().String())
 	if err != nil && !errors.Is(err, myErrors.ErrNotFound) {
