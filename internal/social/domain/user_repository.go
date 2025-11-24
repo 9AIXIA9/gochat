@@ -2,13 +2,12 @@ package domain
 
 import (
 	"context"
-	"gochat/internal/shared/kernel"
 )
 
 type UserRepository interface {
-	UserIDSaver
+	UserCreator
 }
 
-type UserIDSaver interface {
-	SaveID(ctx context.Context, id kernel.UserID) error
+type UserCreator interface {
+	Create(ctx context.Context, user *User) error
 }

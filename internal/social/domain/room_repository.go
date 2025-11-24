@@ -6,15 +6,18 @@ import (
 )
 
 type RoomRepository interface {
-	RoomSaver
+	RoomCreator
+	RoomUpdater
 	RoomFinderByNumber
 	RoomFinderByID
-	RoomMemberSaver
-	RoomMemberDeleter
 }
 
-type RoomSaver interface {
-	Save(ctx context.Context, room *Room) error
+type RoomCreator interface {
+	Create(ctx context.Context, room *Room) error
+}
+
+type RoomUpdater interface {
+	Update(ctx context.Context, room *Room) error
 }
 
 type RoomFinderByNumber interface {
@@ -23,12 +26,4 @@ type RoomFinderByNumber interface {
 
 type RoomFinderByID interface {
 	FindByID(ctx context.Context, id kernel.RoomID) (*Room, error)
-}
-
-type RoomMemberSaver interface {
-	SaveMember(ctx context.Context, roomID kernel.RoomID, userID kernel.UserID) error
-}
-
-type RoomMemberDeleter interface {
-	DeleteMember(ctx context.Context, roomID kernel.RoomID, userID kernel.UserID) error
 }

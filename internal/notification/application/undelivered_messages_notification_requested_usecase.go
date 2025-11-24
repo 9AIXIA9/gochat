@@ -2,7 +2,6 @@ package application
 
 import (
 	"context"
-	"fmt"
 	"gochat/internal/notification/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
@@ -54,14 +53,10 @@ func (uc *undeliveredMessagesNotificationRequestedUseCase) Execute(ctx context.C
 		return nil, err
 	}
 
-	fmt.Println("Undelivered private messages found:", len(privateMessages))
-
 	roomMessages, err := uc.undeliveredRoomMessageFinder.FindUndeliveredRoomMessages(ctx, input.UserID)
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println("Undelivered room messages found:", len(roomMessages))
 
 	if err := domain.NotifyUndeliveredMessages(
 		input.UserID,

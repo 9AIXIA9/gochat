@@ -112,27 +112,21 @@ func provideCreateRoomUseCase(
 	numberGen socialDomain.RoomNumberGenerator,
 	encryptor socialDomain.Encryptor,
 	roomRepo socialDomain.RoomRepository,
-	eventRepo event.Repository,
-	unitOfWork kernel.UnitOfWork,
 ) socialApp.CreateRoomUseCase {
-	return socialApp.NewCreateRoomUseCase(eventIDGen, roomIDGen, numberGen, encryptor, roomRepo, eventRepo, unitOfWork)
+	return socialApp.NewCreateRoomUseCase(eventIDGen, roomIDGen, numberGen, encryptor, roomRepo)
 }
 func provideJoinRoomUseCase(
 	eventIDGen event.IDGenerator,
 	comparator socialDomain.Comparator,
 	roomRepo socialDomain.RoomRepository,
-	eventRepo event.Repository,
-	unitOfWork kernel.UnitOfWork,
 ) socialApp.JoinRoomUseCase {
-	return socialApp.NewJoinRoomUseCase(eventIDGen, eventRepo, roomRepo, comparator, roomRepo, unitOfWork)
+	return socialApp.NewJoinRoomUseCase(eventIDGen, roomRepo, comparator, roomRepo)
 }
 func provideLeaveRoomUseCase(
 	eventIDGen event.IDGenerator,
 	roomRepo socialDomain.RoomRepository,
-	eventRepo event.Repository,
-	unitOfWork kernel.UnitOfWork,
 ) socialApp.LeaveRoomUseCase {
-	return socialApp.NewLeaveRoomUseCase(eventIDGen, roomRepo, roomRepo, eventRepo, unitOfWork)
+	return socialApp.NewLeaveRoomUseCase(eventIDGen, roomRepo, roomRepo)
 }
 
 // -------------------- Event UseCases (websocket side) --------------------

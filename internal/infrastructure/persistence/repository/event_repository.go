@@ -22,10 +22,16 @@ func NewEventRepository(unitOfWork *gormutils.UnitOfWork) *EventRepository {
 }
 
 func (repo *EventRepository) CreateUnpublishedEvent(ctx context.Context, e event.Event) error {
+	if e == nil {
+		return nil
+	}
 	return gormutils.TranslateError(repo.unitOfWork.DB(ctx).WithContext(ctx).Create(repo.toModel(e)).Error)
 }
 
 func (repo *EventRepository) CreateUnpublishedEvents(ctx context.Context, evs []event.Event) error {
+	if len(evs) == 0 {
+		return nil
+	}
 	return gormutils.TranslateError(repo.unitOfWork.DB(ctx).WithContext(ctx).Create(repo.toModels(evs)).Error)
 }
 
@@ -43,6 +49,9 @@ func (repo *EventRepository) Publish(ctx context.Context, ID event.ID) error {
 }
 
 func (repo *EventRepository) CreateDeadLetter(ctx context.Context, e event.Event, reason error) error {
+	if e == nil {
+		return nil
+	}
 	return gormutils.TranslateError(repo.unitOfWork.DB(ctx).WithContext(ctx).Create(repo.toDeadLetter(e, reason)).Error)
 }
 

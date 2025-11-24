@@ -52,10 +52,10 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	repositoryRoomRepository := provideSocialRoomRepository(unitOfWork)
-	createRoomUseCase := provideCreateRoomUseCase(eventIDGenerator, roomIDGenerator, roomNumberGenerator, hasher, repositoryRoomRepository, eventRepository, unitOfWork)
-	joinRoomUseCase := provideJoinRoomUseCase(eventIDGenerator, hasher, repositoryRoomRepository, eventRepository, unitOfWork)
-	leaveRoomUseCase := provideLeaveRoomUseCase(eventIDGenerator, repositoryRoomRepository, eventRepository, unitOfWork)
+	repositoryRoomRepository := provideSocialRoomRepository(db, eventRepository)
+	createRoomUseCase := provideCreateRoomUseCase(eventIDGenerator, roomIDGenerator, roomNumberGenerator, hasher, repositoryRoomRepository)
+	joinRoomUseCase := provideJoinRoomUseCase(eventIDGenerator, hasher, repositoryRoomRepository)
+	leaveRoomUseCase := provideLeaveRoomUseCase(eventIDGenerator, repositoryRoomRepository)
 	validator, err := provideValidator()
 	if err != nil {
 		return nil, err

@@ -23,26 +23,20 @@ func (r *LeaveRoomInput) Validate() error {
 }
 
 type leaveRoomUseCase struct {
-	eventIDGenerator  event.IDGenerator
-	finder            domain.RoomFinderByNumber
-	roomMemberDeleter domain.RoomMemberDeleter
-	eventsCreator     event.UnpublishedEventsCreator
-	unitOfWork        kernel.UnitOfWork
+	eventIDGenerator event.IDGenerator
+	finder           domain.RoomFinderByNumber
+	roomUpdater      domain.RoomUpdater
 }
 
 func NewLeaveRoomUseCase(
 	eventIDGenerator event.IDGenerator,
 	finder domain.RoomFinderByNumber,
-	roomMemberDeleter domain.RoomMemberDeleter,
-	eventsCreator event.UnpublishedEventsCreator,
-	unitOfWork kernel.UnitOfWork,
+	roomUpdater domain.RoomUpdater,
 ) LeaveRoomUseCase {
 	return &leaveRoomUseCase{
-		eventIDGenerator:  eventIDGenerator,
-		finder:            finder,
-		roomMemberDeleter: roomMemberDeleter,
-		eventsCreator:     eventsCreator,
-		unitOfWork:        unitOfWork,
+		eventIDGenerator: eventIDGenerator,
+		finder:           finder,
+		roomUpdater:      roomUpdater,
 	}
 }
 
@@ -59,16 +53,7 @@ func (uc *leaveRoomUseCase) Execute(ctx context.Context, input *LeaveRoomInput) 
 		return nil, err
 	}
 
-	if err := uc.unitOfWork.Execute(ctx, func(txCtx context.Context) error {
-		if err := uc.roomMemberDeleter.DeleteMember(txCtx, room.ID(), input.UserID); err != nil {
-			return err
-		}
-
-		if err := uc.eventsCreator.CreateUnpublishedEvents(txCtx, room.GetEvents()); err != nil {
-			return err
-		}
-		return nil
-	}); err != nil {
+	if err := uc.roomUpdater.Update(ctx, room); err != nil {
 		return nil, err
 	}
 

@@ -36,13 +36,11 @@ type CreateRoomOutput struct {
 }
 
 type createRoomUseCase struct {
-	eventIDGenerator event.IDGenerator
-	roomIDGenerator  domain.RoomIDGenerator
-	numberGenerator  domain.RoomNumberGenerator
-	encryptor        domain.Encryptor
-	roomSaver        domain.RoomSaver
-	eventsCreator    event.UnpublishedEventsCreator
-	unitOfWork       kernel.UnitOfWork
+	eventIDGenerator    event.IDGenerator
+	roomIDGenerator     domain.RoomIDGenerator
+	roomNumberGenerator domain.RoomNumberGenerator
+	encryptor           domain.Encryptor
+	roomCreator         domain.RoomCreator
 }
 
 func NewCreateRoomUseCase(
@@ -50,18 +48,14 @@ func NewCreateRoomUseCase(
 	roomIDGenerator domain.RoomIDGenerator,
 	numberGenerator domain.RoomNumberGenerator,
 	encryptor domain.Encryptor,
-	roomSaver domain.RoomSaver,
-	eventsCreator event.UnpublishedEventsCreator,
-	unitOfWork kernel.UnitOfWork,
+	roomCreator domain.RoomCreator,
 ) CreateRoomUseCase {
 	return &createRoomUseCase{
-		eventIDGenerator: eventIDGenerator,
-		roomIDGenerator:  roomIDGenerator,
-		numberGenerator:  numberGenerator,
-		encryptor:        encryptor,
-		roomSaver:        roomSaver,
-		eventsCreator:    eventsCreator,
-		unitOfWork:       unitOfWork,
+		eventIDGenerator:    eventIDGenerator,
+		roomIDGenerator:     roomIDGenerator,
+		roomNumberGenerator: numberGenerator,
+		encryptor:           encryptor,
+		roomCreator:         roomCreator,
 	}
 }
 
@@ -74,7 +68,7 @@ func (uc *createRoomUseCase) Execute(ctx context.Context, input *CreateRoomInput
 	room, err := domain.CreateRoom(
 		input.OwnerID,
 		uc.roomIDGenerator,
-		uc.numberGenerator,
+		uc.roomNumberGenerator,
 		uc.eventIDGenerator,
 		&domain.RoomOption{
 			MaxMemberCount:    input.MaxMemberCount,
@@ -82,16 +76,11 @@ func (uc *createRoomUseCase) Execute(ctx context.Context, input *CreateRoomInput
 		},
 	)
 
-	if err := uc.unitOfWork.Execute(ctx, func(txCtx context.Context) error {
-		if err := uc.roomSaver.Save(txCtx, room); err != nil {
-			return err
-		}
+	if err != nil {
+		return nil, err
+	}
 
-		if err := uc.eventsCreator.CreateUnpublishedEvents(txCtx, room.GetEvents()); err != nil {
-			return err
-		}
-		return nil
-	}); err != nil {
+	if err := uc.roomCreator.Create(ctx, room); err != nil {
 		return nil, err
 	}
 
