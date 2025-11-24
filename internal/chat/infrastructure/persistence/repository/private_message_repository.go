@@ -27,11 +27,11 @@ func NewPrivateMessageRepository(db *gorm.DB, eventRepo event.Repository) *Priva
 
 func (repo *PrivateMessageRepository) Create(ctx context.Context, message *domain.PrivateMessage) error {
 	return repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := repo.db.WithContext(ctx).Create(repo.toModel(message)).Error; err != nil {
+		if err := tx.Create(repo.toModel(message)).Error; err != nil {
 			return gormutils.TranslateError(err)
 		}
 
-		txCtx := context.WithValue(ctx, gormutils.UnitOfWorkKey, tx)
+		txCtx := context.WithValue(ctx, "transaction", tx)
 
 		if err := repo.eventRepo.CreateUnpublishedEvents(txCtx, message.GetEvents()); err != nil {
 			return gormutils.TranslateError(err)

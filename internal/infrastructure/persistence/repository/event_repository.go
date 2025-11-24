@@ -5,19 +5,19 @@ import (
 	gormutils "gochat/internal/infrastructure/gorm"
 	"gochat/internal/infrastructure/persistence/model"
 	"gochat/internal/shared/event"
-)
 
-//TODO 在 saveUser等聚合根保存操作中统一处理
+	"gorm.io/gorm"
+)
 
 var _ event.Repository = (*EventRepository)(nil)
 
 type EventRepository struct {
-	unitOfWork *gormutils.UnitOfWork
+	db *gorm.DB
 }
 
-func NewEventRepository(unitOfWork *gormutils.UnitOfWork) *EventRepository {
+func NewEventRepository(db *gorm.DB) *EventRepository {
 	return &EventRepository{
-		unitOfWork: unitOfWork,
+		db: db,
 	}
 }
 
@@ -25,34 +25,37 @@ func (repo *EventRepository) CreateUnpublishedEvent(ctx context.Context, e event
 	if e == nil {
 		return nil
 	}
-	return gormutils.TranslateError(repo.unitOfWork.DB(ctx).WithContext(ctx).Create(repo.toModel(e)).Error)
+	return gormutils.TranslateError(repo.db.WithContext(ctx).Create(repo.toModel(e)).Error)
 }
 
 func (repo *EventRepository) CreateUnpublishedEvents(ctx context.Context, evs []event.Event) error {
 	if len(evs) == 0 {
 		return nil
 	}
-	return gormutils.TranslateError(repo.unitOfWork.DB(ctx).WithContext(ctx).Create(repo.toModels(evs)).Error)
+	if err := gormutils.TranslateError(repo.getTx(ctx).WithContext(ctx).Create(repo.toModels(evs)).Error); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (repo *EventRepository) ListUnpublishedEvents(ctx context.Context) ([]event.Event, error) {
 	var models []*model.Event
 
-	if err := repo.unitOfWork.DB(ctx).WithContext(ctx).Where("published = false").Find(&models).Error; err != nil {
+	if err := repo.db.WithContext(ctx).Where("published = false").Find(&models).Error; err != nil {
 		return nil, gormutils.TranslateError(err)
 	}
 	return repo.toEvents(models), nil
 }
 
-func (repo *EventRepository) Publish(ctx context.Context, ID event.ID) error {
-	return gormutils.TranslateError(repo.unitOfWork.DB(ctx).WithContext(ctx).Model(&model.Event{}).Where("id = ?", ID).Update("published", true).Error)
+func (repo *EventRepository) MarkAsPublished(ctx context.Context, ID event.ID) error {
+	return gormutils.TranslateError(repo.db.WithContext(ctx).Model(&model.Event{}).Where("id = ?", ID).Update("published", true).Error)
 }
 
 func (repo *EventRepository) CreateDeadLetter(ctx context.Context, e event.Event, reason error) error {
 	if e == nil {
 		return nil
 	}
-	return gormutils.TranslateError(repo.unitOfWork.DB(ctx).WithContext(ctx).Create(repo.toDeadLetter(e, reason)).Error)
+	return gormutils.TranslateError(repo.db.WithContext(ctx).Create(repo.toDeadLetter(e, reason)).Error)
 }
 
 func (repo *EventRepository) toModel(e event.Event) *model.Event {
@@ -63,6 +66,18 @@ func (repo *EventRepository) toModel(e event.Event) *model.Event {
 		Payload:     e.Payload(),
 		CreatedAt:   e.OccurredAt(),
 	}
+}
+
+func (repo *EventRepository) getTx(ctx context.Context) *gorm.DB {
+	if ctx == nil {
+		return repo.db
+	}
+	txInCtx := ctx.Value("transaction")
+	tx, ok := txInCtx.(*gorm.DB)
+	if !ok {
+		return repo.db
+	}
+	return tx
 }
 
 func (repo *EventRepository) toModels(evs []event.Event) []*model.Event {

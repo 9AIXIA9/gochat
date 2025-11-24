@@ -6,7 +6,7 @@ type Repository interface {
 	UnpublishedEventCreator
 	UnpublishedEventsCreator
 	UnpublishedEventsLister
-	Publisher
+	PublishedMarker
 	DeadLetterCreator
 }
 
@@ -22,8 +22,8 @@ type UnpublishedEventsLister interface {
 	ListUnpublishedEvents(ctx context.Context) ([]Event, error)
 }
 
-type Publisher interface {
-	Publish(ctx context.Context, ID ID) error
+type PublishedMarker interface {
+	MarkAsPublished(ctx context.Context, ID ID) error
 }
 
 type DeadLetterCreator interface {

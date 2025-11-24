@@ -11,12 +11,10 @@ import (
 	gormInfra "gochat/internal/infrastructure/gorm"
 	"gochat/internal/infrastructure/persistence/model"
 	"gochat/internal/infrastructure/persistence/repository"
-	"gochat/internal/infrastructure/prometheus"
 	notificationDomain "gochat/internal/notification/domain"
 	notificationModel "gochat/internal/notification/infrastructure/persistence/model"
 	notificationRepo "gochat/internal/notification/infrastructure/persistence/repository"
 	"gochat/internal/shared/event"
-	"gochat/internal/shared/kernel"
 	socialDomain "gochat/internal/social/domain"
 	socialModel "gochat/internal/social/infrastructure/persistence/model"
 	socialRepo "gochat/internal/social/infrastructure/persistence/repository"
@@ -30,7 +28,6 @@ import (
 type databaseMigrated bool
 
 var RepoSet = wire.NewSet(
-	wire.Bind(new(kernel.UnitOfWork), new(*gormInfra.UnitOfWork)),
 	// Bind repositories to their interfaces
 	wire.Bind(new(event.Repository), new(*repository.EventRepository)),
 
@@ -49,7 +46,6 @@ var RepoSet = wire.NewSet(
 	wire.Bind(new(notificationDomain.RoomMessageRepository), new(*notificationRepo.RoomMessageRepository)),
 
 	provideDatabaseMigrated,
-	provideUnitOfWork,
 	provideEventRepository,
 	provideAuthorizationUserRepository,
 	provideAuthorizationRefreshTokenRepository,
@@ -86,14 +82,8 @@ func provideDatabaseMigrated(mysql *gorm.DB) databaseMigrated {
 	return true
 }
 
-func provideUnitOfWork(mysql *gorm.DB, metrics *prometheus.Metrics) *gormInfra.UnitOfWork {
-	u := gormInfra.NewUnitOfWork(mysql)
-	u.SetMetrics(metrics)
-	return u
-}
-
-func provideEventRepository(unitOfWork *gormInfra.UnitOfWork) *repository.EventRepository {
-	return repository.NewEventRepository(unitOfWork)
+func provideEventRepository(db *gorm.DB) *repository.EventRepository {
+	return repository.NewEventRepository(db)
 }
 func provideAuthorizationUserRepository(db *gorm.DB, eventRepo event.Repository) *authRepo.UserRepository {
 	return authRepo.NewUserRepository(db, eventRepo)
@@ -113,8 +103,8 @@ func provideChatPrivateMessageRepository(db *gorm.DB, eventRepo event.Repository
 func provideChatRoomMessageRepository(db *gorm.DB, eventRepo event.Repository) *chatRepo.RoomMessageRepository {
 	return chatRepo.NewRoomMessageRepository(db, eventRepo)
 }
-func provideSocialUserRepository(unitOfWork *gormInfra.UnitOfWork) *socialRepo.UserRepository {
-	return socialRepo.NewUserRepository(unitOfWork)
+func provideSocialUserRepository(db *gorm.DB) *socialRepo.UserRepository {
+	return socialRepo.NewUserRepository(db)
 }
 func provideSocialRoomRepository(db *gorm.DB, eventRepo event.Repository) *socialRepo.RoomRepository {
 	return socialRepo.NewRoomRepository(db, eventRepo)

@@ -28,12 +28,11 @@ func NewRoomRepository(db *gorm.DB, eventRepo event.Repository) *RoomRepository 
 
 func (repo *RoomRepository) Create(ctx context.Context, room *domain.Room) error {
 	return repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := repo.db.Create(repo.toModel(room)).Error; err != nil {
+		if err := tx.Create(repo.toModel(room)).Error; err != nil {
 			return gormutils.TranslateError(err)
 		}
 
-		//TODO 传递事务
-		txCtx := context.WithValue(ctx, gormutils.UnitOfWorkKey, tx)
+		txCtx := context.WithValue(ctx, "transaction", tx)
 
 		if err := repo.eventRepo.CreateUnpublishedEvents(txCtx, room.GetEvents()); err != nil {
 			return gormutils.TranslateError(err)
@@ -57,7 +56,7 @@ func (repo *RoomRepository) Update(ctx context.Context, room *domain.Room) error
 			return gormutils.TranslateError(err)
 		}
 
-		txCtx := context.WithValue(ctx, gormutils.UnitOfWorkKey, tx)
+		txCtx := context.WithValue(ctx, "transaction", tx)
 
 		if err := repo.eventRepo.CreateUnpublishedEvents(txCtx, room.GetEvents()); err != nil {
 			return gormutils.TranslateError(err)

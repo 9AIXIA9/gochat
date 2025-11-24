@@ -25,9 +25,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	metrics := provideMetrics()
-	unitOfWork := provideUnitOfWork(db, metrics)
-	eventRepository := provideEventRepository(unitOfWork)
+	eventRepository := provideEventRepository(db)
 	userRepository := provideAuthorizationUserRepository(db, eventRepository)
 	signUpUseCase := provideSignUpUseCase(eventIDGenerator, userIDGenerator, userNumberGenerator, hasher, userRepository)
 	accessTokenManager := provideAccessTokenManager(appConfig)
@@ -61,6 +59,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 		return nil, err
 	}
 	upgrader := provideWebsocketUpgrader(appConfig)
+	metrics := provideMetrics()
 	manager := provideWebsocketManager(upgrader, metrics)
 	repositoryPrivateMessageRepository := provideNotificationPrivateMessageRepository(db)
 	privateMessageReadUseCase := provideNotificationPrivateMessageReadUseCase(repositoryPrivateMessageRepository)
@@ -92,7 +91,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	diKafkaTopicEnsured := provideTopicsEnsured(appConfig)
 	userSessionStartedUseCase := provideWebsocketUserSessionStartedUseCase(eventIDGenerator, eventRepository)
 	userCreatedUseCase := provideAuthUserCreatedUseCase(eventIDGenerator, eventRepository, userRepository)
-	userRepository2 := provideSocialUserRepository(unitOfWork)
+	userRepository2 := provideSocialUserRepository(db)
 	applicationUserCreatedUseCase := provideSocialUserCreatedUseCase(userRepository2)
 	roomCreatedUseCase := provideSocialRoomCreatedUseCase(eventIDGenerator, repositoryRoomRepository, eventRepository)
 	roomJoinedUseCase := provideSocialRoomJoinedUseCase(eventIDGenerator, eventRepository)

@@ -6,21 +6,22 @@ import (
 	"gochat/internal/social/domain"
 	"gochat/internal/social/infrastructure/persistence/model"
 
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 var _ domain.UserRepository = (*UserRepository)(nil)
 
 type UserRepository struct {
-	unitOfWork *gormutils.UnitOfWork
+	db *gorm.DB
 }
 
-func NewUserRepository(unitOfWork *gormutils.UnitOfWork) *UserRepository {
-	return &UserRepository{unitOfWork: unitOfWork}
+func NewUserRepository(db *gorm.DB) *UserRepository {
+	return &UserRepository{db: db}
 }
 
 func (repo *UserRepository) Create(ctx context.Context, user *domain.User) error {
-	return gormutils.TranslateError(repo.unitOfWork.DB(ctx).WithContext(ctx).Clauses(
+	return gormutils.TranslateError(repo.db.WithContext(ctx).Clauses(
 		clause.OnConflict{
 			Columns:   []clause.Column{{Name: "id"}}, // 冲突的列
 			DoNothing: true,

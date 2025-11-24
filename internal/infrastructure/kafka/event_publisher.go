@@ -11,18 +11,18 @@ import (
 	"go.uber.org/zap"
 )
 
-var _ event.ManyPublisher = (*EventPublisher)(nil)
+var _ event.Publisher = (*EventPublisher)(nil)
 
 type EventPublisher struct {
 	publishResultChan chan ckafka.Event
 	producer          *ckafka.Producer
-	publisher         event.Publisher
+	publishedMarker   event.PublishedMarker
 	metrics           *prometheus.Metrics
 }
 
 func NewEventPublisher(
 	config *Config,
-	publisher event.Publisher,
+	publisher event.PublishedMarker,
 	metrics *prometheus.Metrics,
 ) (*EventPublisher, error) {
 	producer, err := ckafka.NewProducer(getProducerConfigMap(config))
@@ -33,12 +33,12 @@ func NewEventPublisher(
 	return &EventPublisher{
 		publishResultChan: make(chan ckafka.Event, 512),
 		producer:          producer,
-		publisher:         publisher,
+		publishedMarker:   publisher,
 		metrics:           metrics,
 	}, nil
 }
 
-func (p *EventPublisher) Publish(event event.Event) error {
+func (p *EventPublisher) publish(event event.Event) error {
 	if event == nil {
 		return nil
 	}
@@ -54,13 +54,13 @@ func (p *EventPublisher) Publish(event event.Event) error {
 	return nil
 }
 
-func (p *EventPublisher) Publishes(events []event.Event) error {
+func (p *EventPublisher) Publish(events []event.Event) error {
 	if len(events) == 0 {
 		return nil
 	}
 
 	for _, e := range events {
-		if err := p.Publish(e); err != nil {
+		if err := p.publish(e); err != nil {
 			return err
 		}
 	}
@@ -79,7 +79,7 @@ func (p *EventPublisher) processSendingResponse() {
 			}
 
 			id := message.Opaque.(event.ID)
-			if err := p.publisher.Publish(context.Background(), id); err != nil {
+			if err := p.publishedMarker.MarkAsPublished(context.Background(), id); err != nil {
 				zap.L().Error(
 					"mark event published failed",
 					zap.Error(err),

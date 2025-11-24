@@ -27,12 +27,11 @@ func NewUserRepository(db *gorm.DB, eventRepo event.Repository) *UserRepository 
 
 func (repo *UserRepository) Create(ctx context.Context, user *domain.User) error {
 	return repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := repo.db.Create(repo.toModel(user)).Error; err != nil {
+		if err := tx.Create(repo.toModel(user)).Error; err != nil {
 			return gormutils.TranslateError(err)
 		}
 
-		//TODO 传递事务
-		txCtx := context.WithValue(ctx, gormutils.UnitOfWorkKey, tx)
+		txCtx := context.WithValue(ctx, "transaction", tx)
 
 		if err := repo.eventRepo.CreateUnpublishedEvents(txCtx, user.GetEvents()); err != nil {
 			return gormutils.TranslateError(err)

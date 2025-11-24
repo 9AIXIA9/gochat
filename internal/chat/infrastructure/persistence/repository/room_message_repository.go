@@ -27,11 +27,11 @@ func NewRoomMessageRepository(db *gorm.DB, eventRepo event.Repository) *RoomMess
 
 func (repo *RoomMessageRepository) Create(ctx context.Context, message *domain.RoomMessage) error {
 	return repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := repo.db.WithContext(ctx).Create(repo.toModel(message)).Error; err != nil {
+		if err := tx.WithContext(ctx).Create(repo.toModel(message)).Error; err != nil {
 			return gormutils.TranslateError(err)
 		}
 
-		txCtx := context.WithValue(ctx, gormutils.UnitOfWorkKey, tx)
+		txCtx := context.WithValue(ctx, "transaction", tx)
 
 		if err := repo.eventRepo.CreateUnpublishedEvents(txCtx, message.GetEvents()); err != nil {
 			return gormutils.TranslateError(err)
