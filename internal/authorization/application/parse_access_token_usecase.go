@@ -21,10 +21,10 @@ type ParseAccessTokenOutput struct {
 }
 
 type parseAccessTokenUseCase struct {
-	accessTokenParser domain.AccessTokenParser
+	accessTokenParser AccessTokenParser
 }
 
-func NewParseAccessTokenUseCase(accessTokenParser domain.AccessTokenParser) ParseAccessTokenUseCase {
+func NewParseAccessTokenUseCase(accessTokenParser AccessTokenParser) ParseAccessTokenUseCase {
 	return &parseAccessTokenUseCase{accessTokenParser: accessTokenParser}
 }
 

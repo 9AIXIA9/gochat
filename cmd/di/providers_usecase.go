@@ -80,7 +80,7 @@ func provideRefreshAccessTokenUseCase(
 ) authApp.RefreshAccessTokenUseCase {
 	return authApp.NewRefreshAccessTokenUseCase(refreshTokenRepo, refreshTokenRepo, accessTokenGenerator, refreshTokenGenerator)
 }
-func provideParseAccessTokenUseCase(accessTokenParser authDomain.AccessTokenParser) authApp.ParseAccessTokenUseCase {
+func provideParseAccessTokenUseCase(accessTokenParser authApp.AccessTokenParser) authApp.ParseAccessTokenUseCase {
 	return authApp.NewParseAccessTokenUseCase(accessTokenParser)
 }
 func provideSendPrivateMessageUseCase(
