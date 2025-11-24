@@ -4,18 +4,18 @@ import (
 	"context"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"gochat/internal/social/application/usecase"
+	"gochat/internal/social/application"
 	"gochat/internal/social/domain"
 )
 
-func NewUserCreatedEventHandler(uc usecase.UserCreatedUseCase) event.HandlerFunc {
+func NewUserCreatedEventHandler(uc application.UserCreatedUseCase) event.HandlerFunc {
 	return func(ctx context.Context, e event.Event) error {
 		ev, err := domain.ToUserCreatedEvent(e)
 		if err != nil {
 			return err
 		}
 
-		input := usecase.UserCreatedInput{
+		input := application.UserCreatedInput{
 			UserID: kernel.UserID(ev.AggregateID()),
 		}
 

@@ -2,8 +2,8 @@ package event
 
 import "context"
 
-type ManyPublisher interface {
-	Publishes(event []Event) error
+type Publisher interface {
+	Publish(event []Event) error
 }
 
 type Subscriber interface {

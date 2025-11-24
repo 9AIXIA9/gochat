@@ -7,7 +7,7 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	sharedHttp "gochat/internal/shared/http"
 	"gochat/internal/shared/kernel"
-	"gochat/internal/social/application/usecase"
+	"gochat/internal/social/application"
 	"gochat/internal/social/domain"
 	"time"
 
@@ -27,12 +27,12 @@ func (r *JoinRoomRequest) Bind(ginContext *gin.Context) error {
 	return ginContext.ShouldBind(r)
 }
 
-func NewJoinRoomHandler(useCase usecase.JoinRoomUseCase, validator *validator.Validator) gin.HandlerFunc {
+func NewJoinRoomHandler(useCase application.JoinRoomUseCase, validator *validator.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,
 		validator,
-		func(request *JoinRoomRequest) *usecase.JoinRoomInput {
-			return &usecase.JoinRoomInput{
+		func(request *JoinRoomRequest) *application.JoinRoomInput {
+			return &application.JoinRoomInput{
 				UserID:     request.UserID,
 				RoomNumber: request.RoomNumber,
 				Password:   request.Password,

@@ -1,36 +1,32 @@
 package domain
 
-import myErrors "gochat/internal/shared/errors"
-
-type (
-	Token        string
-	RefreshToken Token
-	AccessToken  Token
+import (
+	myErrors "gochat/internal/shared/errors"
 )
 
-func (t Token) Validate() error {
+type (
+	RefreshToken string
+	AccessToken  string
+)
+
+func (t AccessToken) Validate() error {
 	if len(t) == 0 {
 		return myErrors.ErrEmptyInput
 	}
 	return nil
 }
 
-func (t Token) String() string {
+func (t AccessToken) String() string {
 	return string(t)
 }
 
-func (t AccessToken) Validate() error {
-	return Token(t).Validate()
-}
-
-func (t AccessToken) String() string {
-	return Token(t).String()
-}
-
 func (t RefreshToken) Validate() error {
-	return Token(t).Validate()
+	if len(t) == 0 {
+		return myErrors.ErrEmptyInput
+	}
+	return nil
 }
 
 func (t RefreshToken) String() string {
-	return Token(t).String()
+	return string(t)
 }

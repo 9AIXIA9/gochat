@@ -13,7 +13,7 @@ import (
 )
 
 var _ application.AccessTokenParser = (*AccessTokenManager)(nil)
-var _ application.AccessTokenGenerator = (*AccessTokenManager)(nil)
+var _ domain.AccessTokenGenerator = (*AccessTokenManager)(nil)
 
 type AccessTokenManager struct {
 	secret           string

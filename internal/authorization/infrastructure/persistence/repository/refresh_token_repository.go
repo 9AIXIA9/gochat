@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"errors"
-	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/infrastructure/persistence/model"
 	redisutils "gochat/internal/infrastructure/redis"
 	myErrors "gochat/internal/shared/errors"
@@ -14,7 +13,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-var _ application.RefreshTokenRepository = (*RefreshTokenRepository)(nil)
+var _ domain.RefreshTokenRepository = (*RefreshTokenRepository)(nil)
 
 const KeyPrefix = "gochat:authorization"
 const KeyRefreshToken = KeyPrefix + ":refresh_token:"
@@ -31,9 +30,9 @@ func NewRefreshTokenRepository(rdb *redis.Client, converter redisutils.GenericMo
 	}
 }
 
-func (r *RefreshTokenRepository) Save(ctx context.Context, t *domain.RefreshTokenEntity) error {
+func (r *RefreshTokenRepository) Upsert(ctx context.Context, token *domain.RefreshTokenEntity) error {
 	// 确保 userID 与 Token 一一对应
-	existing, err := r.innerRepository.Find(ctx, t.UserID().String())
+	existing, err := r.innerRepository.Find(ctx, token.UserID().String())
 	if err != nil && !errors.Is(err, myErrors.ErrNotFound) {
 		return err
 	}
@@ -43,12 +42,12 @@ func (r *RefreshTokenRepository) Save(ctx context.Context, t *domain.RefreshToke
 		}
 	}
 
-	ttl := time.Until(t.ExpiredAt())
+	ttl := time.Until(token.ExpiredAt())
 
-	if err := r.innerRepository.Save(ctx, t.UserID().String(), t, ttl); err != nil {
+	if err := r.innerRepository.Save(ctx, token.UserID().String(), token, ttl); err != nil {
 		return err
 	}
-	return r.innerRepository.Save(ctx, t.Token().String(), t, ttl)
+	return r.innerRepository.Save(ctx, token.Token().String(), token, ttl)
 }
 
 func (r *RefreshTokenRepository) FindByToken(ctx context.Context, token domain.RefreshToken) (*domain.RefreshTokenEntity, error) {

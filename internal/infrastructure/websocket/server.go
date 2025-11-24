@@ -10,24 +10,26 @@ import (
 	"go.uber.org/zap"
 )
 
+//TODO websocket 连接 保持有问题
+
 type Server struct {
 	manager *Manager
 	router  *Router
 
-	saver       event.UnpublishedEventSaver
+	creator     event.UnpublishedEventCreator
 	idGenerator event.IDGenerator
 }
 
 func NewServer(
 	manager *Manager,
 	router *Router,
-	saver event.UnpublishedEventSaver,
+	creator event.UnpublishedEventCreator,
 	generator event.IDGenerator,
 ) *Server {
 	return &Server{
 		manager:     manager,
 		router:      router,
-		saver:       saver,
+		creator:     creator,
 		idGenerator: generator,
 	}
 }
@@ -46,25 +48,25 @@ func (s *Server) ServeWS(w http.ResponseWriter, r *http.Request, userID kernel.U
 	s.manager.Register(userID, client)
 	client.Start()
 
-	ev, err := NewUserSessionStartedEvent(s.idGenerator.Generate(), userID)
+	ev, err := NewUserSessionStartedEvent(userID, s.idGenerator)
 	if err != nil {
 		zap.L().Error("failed to create UserSessionStartedEvent", zap.Error(err))
 	}
 
-	if err := s.saver.Save(ctx, ev); err != nil {
+	if err := s.creator.CreateUnpublishedEvent(ctx, ev); err != nil {
 		zap.L().Error("failed to publish UserSessionStartedEvent", zap.Error(err))
 	}
 
 	// 当连接关闭时自动注销
-	<-ctx.Done()
+	<-ctxWithUserID.Done()
 	s.manager.Unregister(userID)
 
-	ev2, err := NewUserSessionEndedEvent(s.idGenerator.Generate(), userID)
+	ev2, err := NewUserSessionEndedEvent(userID, s.idGenerator)
 	if err != nil {
 		zap.L().Error("failed to create UserSessionEndedEvent", zap.Error(err))
 	}
 
-	if err := s.saver.Save(context.Background(), ev2); err != nil {
+	if err := s.creator.CreateUnpublishedEvent(context.Background(), ev2); err != nil {
 		zap.L().Error("failed to publish UserSessionEndedEvent", zap.Error(err))
 	}
 

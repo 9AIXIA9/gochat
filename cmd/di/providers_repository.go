@@ -1,23 +1,23 @@
 package di
 
 import (
-	authorizationApp "gochat/internal/authorization/application"
-	authorizationConverter "gochat/internal/authorization/infrastructure/persistence/converter"
-	authorizationModel "gochat/internal/authorization/infrastructure/persistence/model"
-	authorizationRepository "gochat/internal/authorization/infrastructure/persistence/repository"
+	authDomain "gochat/internal/authorization/domain"
+	authConverter "gochat/internal/authorization/infrastructure/persistence/converter"
+	authModel "gochat/internal/authorization/infrastructure/persistence/model"
+	authRepo "gochat/internal/authorization/infrastructure/persistence/repository"
+	chatDomain "gochat/internal/chat/domain"
 	chatModel "gochat/internal/chat/infrastructure/persistence/model"
-	chatRepository "gochat/internal/chat/infrastructure/persistence/repository"
-	gormutils "gochat/internal/infrastructure/gorm"
+	chatRepo "gochat/internal/chat/infrastructure/persistence/repository"
+	gormInfra "gochat/internal/infrastructure/gorm"
 	"gochat/internal/infrastructure/persistence/model"
 	"gochat/internal/infrastructure/persistence/repository"
-	"gochat/internal/infrastructure/prometheus"
+	notificationDomain "gochat/internal/notification/domain"
 	notificationModel "gochat/internal/notification/infrastructure/persistence/model"
-	notificationRepository "gochat/internal/notification/infrastructure/persistence/repository"
+	notificationRepo "gochat/internal/notification/infrastructure/persistence/repository"
 	"gochat/internal/shared/event"
-	"gochat/internal/shared/kernel"
-	socialApp "gochat/internal/social/application"
+	socialDomain "gochat/internal/social/domain"
 	socialModel "gochat/internal/social/infrastructure/persistence/model"
-	socialRepository "gochat/internal/social/infrastructure/persistence/repository"
+	socialRepo "gochat/internal/social/infrastructure/persistence/repository"
 
 	"github.com/google/wire"
 	"github.com/redis/go-redis/v9"
@@ -28,41 +28,45 @@ import (
 type databaseMigrated bool
 
 var RepoSet = wire.NewSet(
+	// Bind repositories to their interfaces
+	wire.Bind(new(event.Repository), new(*repository.EventRepository)),
+
+	wire.Bind(new(authDomain.UserRepository), new(*authRepo.UserRepository)),
+	wire.Bind(new(authDomain.RefreshTokenRepository), new(*authRepo.RefreshTokenRepository)),
+
+	wire.Bind(new(socialDomain.UserRepository), new(*socialRepo.UserRepository)),
+	wire.Bind(new(socialDomain.RoomRepository), new(*socialRepo.RoomRepository)),
+
+	wire.Bind(new(chatDomain.UserRepository), new(*chatRepo.UserRepository)),
+	wire.Bind(new(chatDomain.RoomRepository), new(*chatRepo.RoomRepository)),
+	wire.Bind(new(chatDomain.PrivateMessageRepository), new(*chatRepo.PrivateMessageRepository)),
+	wire.Bind(new(chatDomain.RoomMessageRepository), new(*chatRepo.RoomMessageRepository)),
+
+	wire.Bind(new(notificationDomain.PrivateMessageRepository), new(*notificationRepo.PrivateMessageRepository)),
+	wire.Bind(new(notificationDomain.RoomMessageRepository), new(*notificationRepo.RoomMessageRepository)),
+
 	provideDatabaseMigrated,
-	provideUnitOfWork,
 	provideEventRepository,
 	provideAuthorizationUserRepository,
 	provideAuthorizationRefreshTokenRepository,
 	provideChatUserRepository,
 	provideChatRoomRepository,
-	provideChatMessageRepository,
+	provideChatPrivateMessageRepository,
+	provideChatRoomMessageRepository,
 	provideSocialUserRepository,
 	provideSocialRoomRepository,
-	provideNotificationMessageRepository,
-	// Binds whose concrete types are provided in this set
-	wire.Bind(new(kernel.UnitOfWork), new(*gormutils.UnitOfWork)),
-	// Event store binds
-	wire.Bind(new(event.UnpublishedEventSaver), new(*repository.EventRepository)),
-	wire.Bind(new(event.UnpublishedEventsSaver), new(*repository.EventRepository)),
-	// Authorization repository binds
-	wire.Bind(new(authorizationApp.UserSaver), new(*authorizationRepository.UserRepository)),
-	wire.Bind(new(authorizationApp.UserFinderByNumber), new(*authorizationRepository.UserRepository)),
-	wire.Bind(new(authorizationApp.UserLoggedInAtUpdater), new(*authorizationRepository.UserRepository)),
-	wire.Bind(new(authorizationApp.RefreshTokenSaver), new(*authorizationRepository.RefreshTokenRepository)),
-	wire.Bind(new(authorizationApp.RefreshTokenFinder), new(*authorizationRepository.RefreshTokenRepository)),
-	// Social repository binds
-	wire.Bind(new(socialApp.RoomSaver), new(*socialRepository.RoomRepository)),
-	wire.Bind(new(socialApp.RoomFinderByNumber), new(*socialRepository.RoomRepository)),
-	wire.Bind(new(socialApp.RoomMemberSaver), new(*socialRepository.RoomRepository)),
-	wire.Bind(new(socialApp.RoomMemberDeleter), new(*socialRepository.RoomRepository)),
+	provideNotificationPrivateMessageRepository,
+	provideNotificationRoomMessageRepository,
 )
 
 func provideDatabaseMigrated(mysql *gorm.DB) databaseMigrated {
-	if err := gormutils.AutoMigrate(
+	if err := gormInfra.AutoMigrate(
 		mysql,
-		&authorizationModel.User{},
-		&notificationModel.Message{},
-		&notificationModel.MessageState{},
+		&authModel.User{},
+		&notificationModel.PrivateMessage{},
+		&notificationModel.RoomMessage{},
+		&notificationModel.RoomMessageRecipient{},
+		&notificationModel.RoomMessageState{},
 		&chatModel.User{},
 		&chatModel.Room{},
 		&chatModel.PrivateMessage{},
@@ -78,36 +82,36 @@ func provideDatabaseMigrated(mysql *gorm.DB) databaseMigrated {
 	return true
 }
 
-func provideUnitOfWork(mysql *gorm.DB, metrics *prometheus.Metrics) *gormutils.UnitOfWork {
-	u := gormutils.NewUnitOfWork(mysql)
-	u.SetMetrics(metrics)
-	return u
+func provideEventRepository(db *gorm.DB) *repository.EventRepository {
+	return repository.NewEventRepository(db)
 }
-
-func provideEventRepository(unitOfWork *gormutils.UnitOfWork) *repository.EventRepository {
-	return repository.NewEventRepository(unitOfWork)
+func provideAuthorizationUserRepository(db *gorm.DB, eventRepo event.Repository) *authRepo.UserRepository {
+	return authRepo.NewUserRepository(db, eventRepo)
 }
-func provideAuthorizationUserRepository(unitOfWork *gormutils.UnitOfWork) *authorizationRepository.UserRepository {
-	return authorizationRepository.NewUserRepository(unitOfWork)
+func provideAuthorizationRefreshTokenRepository(redisClient *redis.Client) *authRepo.RefreshTokenRepository {
+	return authRepo.NewRefreshTokenRepository(redisClient, &authConverter.RefreshTokenConverter{})
 }
-func provideAuthorizationRefreshTokenRepository(redisClient *redis.Client) *authorizationRepository.RefreshTokenRepository {
-	return authorizationRepository.NewRefreshTokenRepository(redisClient, &authorizationConverter.RefreshTokenConverter{})
+func provideChatUserRepository(db *gorm.DB) *chatRepo.UserRepository {
+	return chatRepo.NewUserRepository(db)
 }
-func provideChatUserRepository(unitOfWork *gormutils.UnitOfWork) *chatRepository.UserRepository {
-	return chatRepository.NewUserRepository(unitOfWork)
+func provideChatRoomRepository(db *gorm.DB) *chatRepo.RoomRepository {
+	return chatRepo.NewRoomRepository(db)
 }
-func provideChatRoomRepository(unitOfWork *gormutils.UnitOfWork) *chatRepository.RoomRepository {
-	return chatRepository.NewRoomRepository(unitOfWork)
+func provideChatPrivateMessageRepository(db *gorm.DB, eventRepo event.Repository) *chatRepo.PrivateMessageRepository {
+	return chatRepo.NewPrivateMessageRepository(db, eventRepo)
 }
-func provideChatMessageRepository(unitOfWork *gormutils.UnitOfWork) *chatRepository.MessageRepository {
-	return chatRepository.NewMessageRepository(unitOfWork)
+func provideChatRoomMessageRepository(db *gorm.DB, eventRepo event.Repository) *chatRepo.RoomMessageRepository {
+	return chatRepo.NewRoomMessageRepository(db, eventRepo)
 }
-func provideSocialUserRepository(unitOfWork *gormutils.UnitOfWork) *socialRepository.UserRepository {
-	return socialRepository.NewUserRepository(unitOfWork)
+func provideSocialUserRepository(db *gorm.DB) *socialRepo.UserRepository {
+	return socialRepo.NewUserRepository(db)
 }
-func provideSocialRoomRepository(unitOfWork *gormutils.UnitOfWork) *socialRepository.RoomRepository {
-	return socialRepository.NewRoomRepository(unitOfWork)
+func provideSocialRoomRepository(db *gorm.DB, eventRepo event.Repository) *socialRepo.RoomRepository {
+	return socialRepo.NewRoomRepository(db, eventRepo)
 }
-func provideNotificationMessageRepository(unitOfWork *gormutils.UnitOfWork) *notificationRepository.MessageRepository {
-	return notificationRepository.NewMessageRepository(unitOfWork)
+func provideNotificationPrivateMessageRepository(db *gorm.DB) *notificationRepo.PrivateMessageRepository {
+	return notificationRepo.NewPrivateMessageRepository(db)
+}
+func provideNotificationRoomMessageRepository(db *gorm.DB) *notificationRepo.RoomMessageRepository {
+	return notificationRepo.NewRoomMessageRepository(db)
 }

@@ -3,11 +3,10 @@ package crypto
 import (
 	"crypto/rand"
 	"encoding/base64"
-	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
 )
 
-var _ application.RefreshTokenGenerator = (*RefreshTokenGenerator)(nil)
+var _ domain.RefreshTokenGenerator = (*RefreshTokenGenerator)(nil)
 
 type RefreshTokenGenerator struct {
 	length int

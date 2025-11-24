@@ -3,7 +3,6 @@ package domain
 import (
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"time"
 )
 
 const TopicRoomCreated event.Topic = "social.room.created"
@@ -15,7 +14,7 @@ type RoomCreatedEvent struct {
 }
 
 func ToRoomCreatedEvent(ev event.Event) (*RoomCreatedEvent, error) {
-	e := &RoomCreatedEvent{StandardEvent: event.NewStandardEventFrom(ev)}
+	e := &RoomCreatedEvent{StandardEvent: event.LoadStandardEventFromEvent(ev)}
 	if len(ev.Payload()) > 0 {
 		if err := e.Unmarshal(ev.Payload()); err != nil {
 			return nil, err
@@ -24,14 +23,22 @@ func ToRoomCreatedEvent(ev event.Event) (*RoomCreatedEvent, error) {
 	return e, nil
 }
 
-func NewRoomCreatedEvent(id event.ID, roomID kernel.RoomID) (*RoomCreatedEvent, error) {
+func NewRoomCreatedEvent(
+	roomID kernel.RoomID,
+	generator event.IDGenerator,
+) (*RoomCreatedEvent, error) {
 	e := &RoomCreatedEvent{}
 	payload, err := e.Marshal()
 	if err != nil {
 		return nil, err
 	}
 
-	e.StandardEvent = event.NewStandardEvent(id, kernel.ID(roomID), time.Now().UTC(), TopicRoomCreated, payload)
+	e.StandardEvent = event.NewStandardEvent(
+		kernel.ID(roomID),
+		TopicRoomCreated,
+		payload,
+		generator,
+	)
 	return e, nil
 }
 

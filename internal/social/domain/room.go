@@ -7,29 +7,45 @@ import (
 	"time"
 )
 
+const (
+	defaultMaxMemberCount = 20
+)
+
 type Room struct {
 	id                kernel.RoomID
 	number            kernel.RoomNumber
-	owner             kernel.UserID
-	passwordEncrypted string
+	ownerID           kernel.UserID
+	passwordEncrypted PasswordEncrypted
 	members           []kernel.UserID
 	maxMemberCount    int
 	createdAt         time.Time
 	eventManager      *event.Manager
 }
 
-func NewRoom(
+type RoomOption struct {
+	MaxMemberCount    int
+	PasswordEncrypted PasswordEncrypted
+}
+
+func (o *RoomOption) Validate() error {
+	if o.MaxMemberCount < 2 {
+		return myErrors.ErrLessThanMin
+	}
+	return nil
+}
+
+func LoadRoom(
 	id kernel.RoomID,
-	owner kernel.UserID,
+	ownerID kernel.UserID,
 	number kernel.RoomNumber,
-	passwordEncrypted string,
+	passwordEncrypted PasswordEncrypted,
 	members []kernel.UserID,
 	maxMemberCount int,
 	createdAt time.Time,
 ) *Room {
 	return &Room{
 		id:                id,
-		owner:             owner,
+		ownerID:           ownerID,
 		number:            number,
 		passwordEncrypted: passwordEncrypted,
 		members:           members,
@@ -39,16 +55,60 @@ func NewRoom(
 	}
 }
 
-func (r *Room) Create(generator event.IDGenerator) error {
-	ev, err := NewRoomCreatedEvent(generator.Generate(), r.id)
+func CreateRoom(
+	ownerID kernel.UserID,
+	roomIDGenerator RoomIDGenerator,
+	roomNumberGenerator RoomNumberGenerator,
+	eventIDGenerator event.IDGenerator,
+	options ...*RoomOption,
+) (*Room, error) {
+	var opt *RoomOption
+	if len(options) == 0 {
+		opt = &RoomOption{
+			MaxMemberCount:    defaultMaxMemberCount,
+			PasswordEncrypted: "",
+		}
+	} else {
+		opt = options[0]
+	}
+
+	if err := opt.Validate(); err != nil {
+		return nil, err
+	}
+
+	r := &Room{
+		id:                roomIDGenerator.Generate(),
+		number:            roomNumberGenerator.Generate(),
+		ownerID:           ownerID,
+		passwordEncrypted: opt.PasswordEncrypted,
+		members:           make([]kernel.UserID, 0, 1),
+		maxMemberCount:    opt.MaxMemberCount,
+		createdAt:         time.Now().UTC(),
+		eventManager:      event.NewEventManager(),
+	}
+
+	r.members = append(r.members, ownerID)
+
+	ev, err := NewRoomCreatedEvent(r.id, eventIDGenerator)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	r.eventManager.RecordEvent(ev)
-	return nil
+	return r, nil
 }
 
-func (r *Room) Join(userID kernel.UserID, generator event.IDGenerator) error {
+func (r *Room) AddMember(
+	userID kernel.UserID,
+	rawPassword Password,
+	comparator Comparator,
+	generator event.IDGenerator,
+) error {
+	if len(r.passwordEncrypted) != 0 {
+		if err := comparator.Compare(r.passwordEncrypted.String(), rawPassword.String()); err != nil {
+			return err
+		}
+	}
+
 	if r.maxMemberCount <= r.MemberCount() {
 		return myErrors.ErrExceedMaxValue
 	}
@@ -59,7 +119,7 @@ func (r *Room) Join(userID kernel.UserID, generator event.IDGenerator) error {
 
 	r.members = append(r.members, userID)
 
-	ev, err := NewRoomJoinedEvent(generator.Generate(), userID, r.id)
+	ev, err := NewRoomJoinedEvent(userID, r.id, generator)
 	if err != nil {
 		return err
 	}
@@ -68,8 +128,11 @@ func (r *Room) Join(userID kernel.UserID, generator event.IDGenerator) error {
 	return nil
 }
 
-func (r *Room) Leave(userID kernel.UserID, generator event.IDGenerator) error {
-	if userID == r.owner {
+func (r *Room) DeleteMember(
+	userID kernel.UserID,
+	generator event.IDGenerator,
+) error {
+	if userID == r.ownerID {
 		return myErrors.ErrOwnerCantLeave
 	}
 
@@ -77,7 +140,7 @@ func (r *Room) Leave(userID kernel.UserID, generator event.IDGenerator) error {
 		if member == userID {
 			r.members = append(r.members[:i], r.members[i+1:]...)
 
-			ev, err := NewRoomLeftEvent(generator.Generate(), userID, r.id)
+			ev, err := NewRoomLeftEvent(userID, r.id, generator)
 			if err != nil {
 				return err
 			}
@@ -114,15 +177,15 @@ func (r *Room) MemberCount() int {
 	return len(r.members)
 }
 
-func (r *Room) Owner() kernel.UserID {
-	return r.owner
+func (r *Room) OwnerID() kernel.UserID {
+	return r.ownerID
 }
 
 func (r *Room) Number() kernel.RoomNumber {
 	return r.number
 }
 
-func (r *Room) PasswordEncrypted() string {
+func (r *Room) PasswordEncrypted() PasswordEncrypted {
 	return r.passwordEncrypted
 }
 

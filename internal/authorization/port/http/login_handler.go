@@ -3,7 +3,7 @@ package http
 import (
 	"errors"
 	"gochat/config"
-	"gochat/internal/authorization/application/usecase"
+	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/infrastructure/validator"
@@ -31,17 +31,17 @@ func (r *LoginRequest) Bind(ginContext *gin.Context) error {
 	return ginContext.ShouldBind(r)
 }
 
-func NewLoginHandler(useCase usecase.LoginUseCase, validator *validator.Validator, cookieConfig *config.Cookie) gin.HandlerFunc {
-	return ginutils.AdaptUseCaseToHandler[LoginRequest, *LoginRequest, *usecase.LoginInput, *usecase.LoginOutput](
+func NewLoginHandler(useCase application.LoginUseCase, validator *validator.Validator, cookieConfig *config.Cookie) gin.HandlerFunc {
+	return ginutils.AdaptUseCaseToHandler[LoginRequest, *LoginRequest, *application.LoginInput, *application.LoginOutput](
 		useCase,
 		validator,
-		func(request *LoginRequest) *usecase.LoginInput {
-			return &usecase.LoginInput{
+		func(request *LoginRequest) *application.LoginInput {
+			return &application.LoginInput{
 				Number:   request.Number,
 				Password: request.Password,
 			}
 		},
-		func(ginContext *gin.Context, output *usecase.LoginOutput) {
+		func(ginContext *gin.Context, output *application.LoginOutput) {
 			if time.Now().After(output.RefreshToken.ExpiredAt()) {
 				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
 				return

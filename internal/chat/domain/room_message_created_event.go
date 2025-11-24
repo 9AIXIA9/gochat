@@ -1,10 +1,8 @@
 package domain
 
 import (
-	"encoding/json"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"time"
 )
 
 const TopicRoomMessageCreated event.Topic = "chat.room_message.created"
@@ -12,16 +10,11 @@ const TopicRoomMessageCreated event.Topic = "chat.room_message.created"
 var _ event.SpecificEvent = (*RoomMessageCreatedEvent)(nil)
 
 type RoomMessageCreatedEvent struct {
-	messageID  kernel.MessageID
-	sender     kernel.UserID
-	recipients []kernel.UserID
-	content    string
-	sentAt     time.Time
 	*event.StandardEvent
 }
 
 func ToRoomMessageCreatedEvent(ev event.Event) (*RoomMessageCreatedEvent, error) {
-	e := &RoomMessageCreatedEvent{StandardEvent: event.NewStandardEventFrom(ev)}
+	e := &RoomMessageCreatedEvent{StandardEvent: event.LoadStandardEventFromEvent(ev)}
 	if len(ev.Payload()) > 0 {
 		if err := e.Unmarshal(ev.Payload()); err != nil {
 			return nil, err
@@ -31,83 +24,23 @@ func ToRoomMessageCreatedEvent(ev event.Event) (*RoomMessageCreatedEvent, error)
 }
 
 func NewRoomMessageCreatedEvent(
-	id event.ID,
 	messageID kernel.MessageID,
-	roomID kernel.RoomID,
-	recipients []kernel.UserID,
-	sender kernel.UserID,
-	content string,
-	sentAt time.Time,
+	generator event.IDGenerator,
 ) (*RoomMessageCreatedEvent, error) {
-	e := &RoomMessageCreatedEvent{
-		messageID:  messageID,
-		sender:     sender,
-		recipients: recipients,
-		content:    content,
-		sentAt:     sentAt,
-	}
+	e := &RoomMessageCreatedEvent{}
 	payload, err := e.Marshal()
 	if err != nil {
 		return nil, err
 	}
 
-	e.StandardEvent = event.NewStandardEvent(id, kernel.ID(roomID), time.Now().UTC(), TopicRoomMessageCreated, payload)
+	e.StandardEvent = event.NewStandardEvent(kernel.ID(messageID), TopicRoomMessageCreated, payload, generator)
 	return e, nil
 }
 
 func (e *RoomMessageCreatedEvent) Marshal() ([]byte, error) {
-	type Alias struct {
-		MessageID  kernel.MessageID
-		Sender     kernel.UserID
-		Recipients []kernel.UserID
-		Content    string
-		SentAt     time.Time
-	}
-	return json.Marshal(Alias{
-		MessageID:  e.messageID,
-		Sender:     e.sender,
-		Recipients: e.recipients,
-		Content:    e.content,
-		SentAt:     e.sentAt,
-	})
+	return []byte(""), nil
 }
 
-func (e *RoomMessageCreatedEvent) Unmarshal(data []byte) error {
-	type Alias struct {
-		MessageID  kernel.MessageID
-		Sender     kernel.UserID
-		Recipients []kernel.UserID
-		Content    string
-		SentAt     time.Time
-	}
-	var tmp Alias
-	if err := json.Unmarshal(data, &tmp); err != nil {
-		return err
-	}
-	e.messageID = tmp.MessageID
-	e.sender = tmp.Sender
-	e.recipients = tmp.Recipients
-	e.content = tmp.Content
-	e.sentAt = tmp.SentAt
+func (e *RoomMessageCreatedEvent) Unmarshal([]byte) error {
 	return nil
-}
-
-func (e *RoomMessageCreatedEvent) MessageID() kernel.MessageID {
-	return e.messageID
-}
-
-func (e *RoomMessageCreatedEvent) Sender() kernel.UserID {
-	return e.sender
-}
-
-func (e *RoomMessageCreatedEvent) Recipients() []kernel.UserID {
-	return e.recipients
-}
-
-func (e *RoomMessageCreatedEvent) Content() string {
-	return e.content
-}
-
-func (e *RoomMessageCreatedEvent) SentAt() time.Time {
-	return e.sentAt
 }

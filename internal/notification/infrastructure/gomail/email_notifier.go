@@ -5,12 +5,16 @@ import (
 	"gochat/internal/notification/application"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
+	"strings"
 	"sync"
 	"time"
 
 	"go.uber.org/zap"
 	"gopkg.in/gomail.v2"
 )
+
+//TODO: 除去异步发送，直接由kafka调用（错误信息如果包含 login failed 转换为 服务不可用）
+// 提供一个熔断机制，防止邮件服务不可用时大量请求堆积
 
 var _ application.WelcomeEmailNotifier = (*EmailNotifier)(nil)
 
@@ -72,6 +76,16 @@ func (n *EmailNotifier) Start() {
 		go func() {
 			for t := range n.taskChan {
 				if err := n.dialer.DialAndSend(t.message); err != nil {
+					if !strings.Contains(err.Error(), "550") {
+						zap.L().Error(
+							"WelcomeEmailNotifier send error, retrying",
+							zap.String("email", t.email.String()),
+							zap.Error(err),
+						)
+						// 对于非永久性错误，可以考虑重新入队或做其他处理
+						continue
+					}
+
 					zap.L().Error(
 						"WelcomeEmailNotifier send error",
 						zap.String("email", t.email.String()),

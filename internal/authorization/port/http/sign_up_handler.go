@@ -2,7 +2,7 @@ package http
 
 import (
 	"errors"
-	"gochat/internal/authorization/application/usecase"
+	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/infrastructure/validator"
@@ -28,17 +28,17 @@ type SignUpResponseData struct {
 	UserNumber kernel.UserNumber `json:"user_number"`
 }
 
-func NewSignUpHandler(useCase usecase.SignUpUseCase, validator *validator.Validator) gin.HandlerFunc {
-	return ginutils.AdaptUseCaseToHandler[SignUpRequest, *SignUpRequest, *usecase.SignUpInput, *usecase.SignUpOutput](
+func NewSignUpHandler(useCase application.SignUpUseCase, validator *validator.Validator) gin.HandlerFunc {
+	return ginutils.AdaptUseCaseToHandler[SignUpRequest, *SignUpRequest, *application.SignUpInput, *application.SignUpOutput](
 		useCase,
 		validator,
-		func(request *SignUpRequest) *usecase.SignUpInput {
-			return &usecase.SignUpInput{
+		func(request *SignUpRequest) *application.SignUpInput {
+			return &application.SignUpInput{
 				Email:    request.Email,
 				Password: request.Password,
 			}
 		},
-		func(ginContext *gin.Context, output *usecase.SignUpOutput) {
+		func(ginContext *gin.Context, output *application.SignUpOutput) {
 			ginutils.Response(ginContext, sharedHttp.NewApiResponseWithData(&SignUpResponseData{UserNumber: output.UserNumber}))
 		},
 		func(ginContext *gin.Context, err error) {

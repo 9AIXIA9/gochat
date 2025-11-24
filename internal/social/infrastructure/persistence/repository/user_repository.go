@@ -3,29 +3,33 @@ package repository
 import (
 	"context"
 	gormutils "gochat/internal/infrastructure/gorm"
-	"gochat/internal/shared/kernel"
-	"gochat/internal/social/application"
+	"gochat/internal/social/domain"
 	"gochat/internal/social/infrastructure/persistence/model"
 
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
-var _ application.UserRepository = (*UserRepository)(nil)
+var _ domain.UserRepository = (*UserRepository)(nil)
 
 type UserRepository struct {
-	unitOfWork *gormutils.UnitOfWork
+	db *gorm.DB
 }
 
-func NewUserRepository(unitOfWork *gormutils.UnitOfWork) *UserRepository {
-	return &UserRepository{unitOfWork: unitOfWork}
+func NewUserRepository(db *gorm.DB) *UserRepository {
+	return &UserRepository{db: db}
 }
 
-func (repo *UserRepository) SaveID(ctx context.Context, id kernel.UserID) error {
-	return gormutils.TranslateError(repo.unitOfWork.DB(ctx).WithContext(ctx).Clauses(
+func (repo *UserRepository) Create(ctx context.Context, user *domain.User) error {
+	return gormutils.TranslateError(repo.db.WithContext(ctx).Clauses(
 		clause.OnConflict{
 			Columns:   []clause.Column{{Name: "id"}}, // 冲突的列
 			DoNothing: true,
-		}).Create(&model.User{
-		ID: id,
-	}).Error)
+		}).Create(repo.toModel(user)).Error)
+}
+
+func (repo *UserRepository) toModel(user *domain.User) *model.User {
+	return &model.User{
+		ID: user.ID(),
+	}
 }

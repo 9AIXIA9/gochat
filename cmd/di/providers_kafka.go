@@ -3,23 +3,23 @@ package di
 import (
 	"context"
 	"gochat/config"
-	"gochat/internal/application/usecase"
-	authorizationUsecase "gochat/internal/authorization/application/usecase"
-	authorizationDomain "gochat/internal/authorization/domain"
-	authorizationKafka "gochat/internal/authorization/port/kafka"
-	chatUsecase "gochat/internal/chat/application/usecase"
+	rootApp "gochat/internal/application"
+	authApp "gochat/internal/authorization/application"
+	authDomain "gochat/internal/authorization/domain"
+	authKafka "gochat/internal/authorization/port/kafka"
+	chatApp "gochat/internal/chat/application"
 	chatDomain "gochat/internal/chat/domain"
 	chatKafka "gochat/internal/chat/port/kafka"
 	"gochat/internal/delivery/kafka"
-	kafkautil "gochat/internal/infrastructure/kafka"
+	kafkaInfra "gochat/internal/infrastructure/kafka"
 	"gochat/internal/infrastructure/persistence/repository"
 	"gochat/internal/infrastructure/prometheus"
 	"gochat/internal/infrastructure/websocket"
-	notificationUsecase "gochat/internal/notification/application/usecase"
+	notificationApp "gochat/internal/notification/application"
 	notificationDomain "gochat/internal/notification/domain"
 	notificationKafka "gochat/internal/notification/port/kafka"
 	"gochat/internal/shared/event"
-	socialUseCase "gochat/internal/social/application/usecase"
+	socialApp "gochat/internal/social/application"
 	socialDomain "gochat/internal/social/domain"
 	socialKafka "gochat/internal/social/port/kafka"
 
@@ -27,51 +27,60 @@ import (
 	"go.uber.org/zap"
 )
 
-type kafkaTopicEnsured bool
+type (
+	kafkaTopicEnsured    bool
+	kafkaTopicSubscribed bool
+)
 
 var KafkaSet = wire.NewSet(
 	provideTopicsEnsured,
 	provideKafkaPublisher,
 	provideKafkaSubscriber,
-	provideKafkaSubscriptions,
+	provideKafkaTopicsSubscribed,
 )
 
-func provideKafkaPublisher(appConfig *config.App, eventRepo *repository.EventRepository, metrics *prometheus.Metrics) (*kafkautil.EventPublisher, error) {
-	return kafkautil.NewEventPublisher(appConfig.Kafka, eventRepo, metrics)
+func provideKafkaPublisher(appConfig *config.App, eventRepo *repository.EventRepository, metrics *prometheus.Metrics) (*kafkaInfra.EventPublisher, error) {
+	return kafkaInfra.NewEventPublisher(appConfig.Kafka, eventRepo, metrics)
 }
 
-func provideKafkaSubscriber(appConfig *config.App, eventRepo *repository.EventRepository, metrics *prometheus.Metrics) (*kafkautil.EventSubscriber, error) {
-	return kafkautil.NewEventSubscriber(appConfig.Kafka, eventRepo, metrics)
+func provideKafkaSubscriber(appConfig *config.App, eventRepo *repository.EventRepository, metrics *prometheus.Metrics) (*kafkaInfra.EventSubscriber, error) {
+	return kafkaInfra.NewEventSubscriber(appConfig.Kafka, eventRepo, metrics)
 }
 
-func provideKafkaSubscriptions(
-	subscriber *kafkautil.EventSubscriber,
+func provideKafkaTopicsSubscribed(
+	ensured kafkaTopicEnsured,
+	subscriber *kafkaInfra.EventSubscriber,
 	emailAvailable emailServiceAvailable,
 	//websocket
-	userSessionStartedUseCase usecase.UserSessionStartedUseCase,
+	userSessionStartedUseCase rootApp.UserSessionStartedUseCase,
 	// auth
-	authUserCreated authorizationUsecase.UserCreatedUseCase,
+	authUserCreated authApp.UserCreatedUseCase,
 	// social
-	socialUserCreated socialUseCase.UserCreatedUseCase,
-	socialRoomCreated socialUseCase.RoomCreatedUseCase,
-	socialRoomJoined socialUseCase.RoomJoinedUseCase,
-	socialRoomLeft socialUseCase.RoomLeftUseCase,
+	socialUserCreated socialApp.UserCreatedUseCase,
+	socialRoomCreated socialApp.RoomCreatedUseCase,
+	socialRoomJoined socialApp.RoomJoinedUseCase,
+	socialRoomLeft socialApp.RoomLeftUseCase,
 	// chat
-	chatUserCreated chatUsecase.UserCreatedUseCase,
-	chatRoomCreated chatUsecase.RoomCreatedUseCase,
-	chatRoomJoined chatUsecase.RoomJoinedUseCase,
-	chatRoomLeft chatUsecase.RoomLeftUseCase,
-	chatPrivateMessageCreated chatUsecase.PrivateMessageCreatedUseCase,
-	chatRoomMessageCreated chatUsecase.RoomMessageCreatedUseCase,
+	chatUserCreated chatApp.UserCreatedUseCase,
+	chatRoomCreated chatApp.RoomCreatedUseCase,
+	chatRoomJoined chatApp.RoomJoinedUseCase,
+	chatRoomLeft chatApp.RoomLeftUseCase,
+	chatPrivateMessageCreated chatApp.PrivateMessageCreatedUseCase,
+	chatRoomMessageCreated chatApp.RoomMessageCreatedUseCase,
 	// notification
-	notificationWelcomeEmailNotificationRequested notificationUsecase.WelcomeEmailNotificationRequestedUseCase,
-	notificationMessageNotificationRequested notificationUsecase.MessageNotificationRequestedUseCase,
-	notificationUndeliveredMessageNotificationRequested notificationUsecase.UndeliveredMessageNotificationRequestedUseCase,
-) error {
+	notificationWelcomeEmailNotificationRequested notificationApp.WelcomeEmailNotificationRequestedUseCase,
+	notificationPrivateMessageNotificationRequested notificationApp.PrivateMessageNotificationRequestedUseCase,
+	notificationRoomMessageNotificationRequested notificationApp.RoomMessageNotificationRequestedUseCase,
+	notificationUndeliveredMessagesRequested notificationApp.UndeliveredMessagesNotificationRequestedUseCase,
+) kafkaTopicSubscribed {
+	if !ensured {
+		zap.L().Warn("Kafka topics are not ensured, skipping subscription")
+		return false
+	}
 	//websocket
 	subscriber.Subscribe(websocket.TopicUserSessionStarted, kafka.NewUserSessionStartedEventHandler(userSessionStartedUseCase))
 	// Authorization
-	subscriber.Subscribe(authorizationDomain.TopicUserCreated, authorizationKafka.NewUserCreatedEventHandler(authUserCreated))
+	subscriber.Subscribe(authDomain.TopicUserCreated, authKafka.NewUserCreatedEventHandler(authUserCreated))
 	// Social
 	subscriber.Subscribe(socialDomain.TopicUserCreated, socialKafka.NewUserCreatedEventHandler(socialUserCreated))
 	subscriber.Subscribe(socialDomain.TopicRoomCreated, socialKafka.NewRoomCreatedEventHandler(socialRoomCreated))
@@ -91,20 +100,21 @@ func provideKafkaSubscriptions(
 	} else {
 		zap.L().Info("Skipping subscription to WelcomeEmailNotificationRequested topic as email dialer is not connected")
 	}
-	subscriber.Subscribe(notificationDomain.TopicMessageNotificationRequested, notificationKafka.NewMessageNotificationRequestedEventHandler(notificationMessageNotificationRequested))
-	subscriber.Subscribe(notificationDomain.TopicUndeliveredMessageNotificationRequested, notificationKafka.NewUndeliveredMessageNotificationRequestedEventHandler(notificationUndeliveredMessageNotificationRequested))
-	return nil
+	subscriber.Subscribe(notificationDomain.TopicPrivateMessageNotificationRequested, notificationKafka.NewPrivateMessageNotificationRequestedEventHandler(notificationPrivateMessageNotificationRequested))
+	subscriber.Subscribe(notificationDomain.TopicRoomMessageNotificationRequested, notificationKafka.NewRoomMessageNotificationRequestedEventHandler(notificationRoomMessageNotificationRequested))
+	subscriber.Subscribe(notificationDomain.TopicUndeliveredMessagesNotificationRequested, notificationKafka.NewUndeliveredMessagesNotificationRequestedEventHandler(notificationUndeliveredMessagesRequested))
+	return true
 }
 
 func provideTopicsEnsured(appConfig *config.App) kafkaTopicEnsured {
-	if err := kafkautil.EnsureTopics(
+	if err := kafkaInfra.EnsureTopics(
 		context.Background(),
 		appConfig.Kafka,
 		[]event.Topic{
 			// websocket
 			websocket.TopicUserSessionStarted,
 			// authorization
-			authorizationDomain.TopicUserCreated,
+			authDomain.TopicUserCreated,
 			// social
 			socialDomain.TopicUserCreated,
 			socialDomain.TopicRoomCreated,
@@ -119,8 +129,9 @@ func provideTopicsEnsured(appConfig *config.App) kafkaTopicEnsured {
 			chatDomain.TopicRoomMessageCreated,
 			// notification
 			notificationDomain.TopicWelcomeEmailNotificationRequested,
-			notificationDomain.TopicMessageNotificationRequested,
-			notificationDomain.TopicUndeliveredMessageNotificationRequested,
+			notificationDomain.TopicPrivateMessageNotificationRequested,
+			notificationDomain.TopicRoomMessageNotificationRequested,
+			notificationDomain.TopicUndeliveredMessagesNotificationRequested,
 		},
 		1,
 		1,

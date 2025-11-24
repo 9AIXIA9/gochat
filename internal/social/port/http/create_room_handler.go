@@ -7,7 +7,7 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	sharedHttp "gochat/internal/shared/http"
 	"gochat/internal/shared/kernel"
-	"gochat/internal/social/application/usecase"
+	"gochat/internal/social/application"
 	"gochat/internal/social/domain"
 	"time"
 
@@ -16,7 +16,7 @@ import (
 )
 
 type CreateRoomRequest struct {
-	Owner          kernel.UserID   `json:"-" validate:"required"`
+	OwnerID        kernel.UserID   `json:"-" validate:"required"`
 	MaxMemberCount int             `json:"max_member_count" validate:"min=2,max=100"`
 	Password       domain.Password `json:"password" validate:"max=100"`
 }
@@ -26,23 +26,23 @@ type CreateRoomResponseData struct {
 }
 
 func (r *CreateRoomRequest) Bind(ginContext *gin.Context) error {
-	owner := ginutils.GetUserID(ginContext)
-	r.Owner = owner
+	userID := ginutils.GetUserID(ginContext)
+	r.OwnerID = userID
 	return ginContext.ShouldBind(r)
 }
 
-func NewCreateRoomHandler(useCase usecase.CreateRoomUseCase, validator *validator.Validator) gin.HandlerFunc {
+func NewCreateRoomHandler(useCase application.CreateRoomUseCase, validator *validator.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,
 		validator,
-		func(request *CreateRoomRequest) *usecase.CreateRoomInput {
-			return &usecase.CreateRoomInput{
-				Owner:          request.Owner,
+		func(request *CreateRoomRequest) *application.CreateRoomInput {
+			return &application.CreateRoomInput{
+				OwnerID:        request.OwnerID,
 				MaxMemberCount: request.MaxMemberCount,
 				Password:       request.Password,
 			}
 		},
-		func(ginContext *gin.Context, output *usecase.CreateRoomOutput) {
+		func(ginContext *gin.Context, output *application.CreateRoomOutput) {
 			ginutils.Response(ginContext, sharedHttp.NewApiResponseWithData(&CreateRoomResponseData{
 				RoomNumber: output.RoomNumber,
 			}))

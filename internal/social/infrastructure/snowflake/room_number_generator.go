@@ -2,12 +2,12 @@ package snowflake
 
 import (
 	"gochat/internal/shared/kernel"
-	"gochat/internal/social/application"
+	"gochat/internal/social/domain"
 
 	"github.com/bwmarrin/snowflake"
 )
 
-var _ application.RoomNumberGenerator = (*RoomNumberGenerator)(nil)
+var _ domain.RoomNumberGenerator = (*RoomNumberGenerator)(nil)
 
 type RoomNumberGenerator struct {
 	node *snowflake.Node

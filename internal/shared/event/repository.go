@@ -3,29 +3,29 @@ package event
 import "context"
 
 type Repository interface {
-	UnpublishedEventSaver
-	UnpublishedEventsSaver
-	UnpublishedLister
+	UnpublishedEventCreator
+	UnpublishedEventsCreator
+	UnpublishedEventsLister
 	PublishedMarker
-	DeadLetterSaver
+	DeadLetterCreator
 }
 
-type UnpublishedEventSaver interface {
-	Save(ctx context.Context, event Event) error
+type UnpublishedEventCreator interface {
+	CreateUnpublishedEvent(ctx context.Context, e Event) error
 }
 
-type UnpublishedEventsSaver interface {
-	Saves(ctx context.Context, events []Event) error
+type UnpublishedEventsCreator interface {
+	CreateUnpublishedEvents(ctx context.Context, evs []Event) error
 }
 
-type UnpublishedLister interface {
-	UnpublishedList(ctx context.Context) ([]Event, error)
+type UnpublishedEventsLister interface {
+	ListUnpublishedEvents(ctx context.Context) ([]Event, error)
 }
 
 type PublishedMarker interface {
-	MarkPublished(ctx context.Context, ID ID) error
+	MarkAsPublished(ctx context.Context, ID ID) error
 }
 
-type DeadLetterSaver interface {
-	SaveDeadLetter(ctx context.Context, event Event, reason error) error
+type DeadLetterCreator interface {
+	CreateDeadLetter(ctx context.Context, e Event, reason error) error
 }

@@ -2,12 +2,12 @@ package uuid
 
 import (
 	"gochat/internal/shared/kernel"
-	"gochat/internal/social/application"
+	"gochat/internal/social/domain"
 
 	"github.com/google/uuid"
 )
 
-var _ application.RoomIDGenerator = (*RoomIDGenerator)(nil)
+var _ domain.RoomIDGenerator = (*RoomIDGenerator)(nil)
 
 type RoomIDGenerator struct{}
 

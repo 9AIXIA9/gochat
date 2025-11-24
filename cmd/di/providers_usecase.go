@@ -1,23 +1,17 @@
 package di
 
 import (
-	"gochat/internal/application/usecase"
-	authorizationApp "gochat/internal/authorization/application"
-	authorizationUsecase "gochat/internal/authorization/application/usecase"
-	authorizationRepository "gochat/internal/authorization/infrastructure/persistence/repository"
+	rootapp "gochat/internal/application"
+	authApp "gochat/internal/authorization/application"
+	authDomain "gochat/internal/authorization/domain"
 	chatApp "gochat/internal/chat/application"
-	chatUsecase "gochat/internal/chat/application/usecase"
-	chatRepository "gochat/internal/chat/infrastructure/persistence/repository"
-	"gochat/internal/infrastructure/uuid"
-	notificationUsecase "gochat/internal/notification/application/usecase"
-	gomailUtil "gochat/internal/notification/infrastructure/gomail"
-	notificationRepository "gochat/internal/notification/infrastructure/persistence/repository"
-	notificationWebsocketInfrastructure "gochat/internal/notification/infrastructure/websocket"
+	chatDomain "gochat/internal/chat/domain"
+	notificationApp "gochat/internal/notification/application"
+	notificationDomain "gochat/internal/notification/domain"
 	"gochat/internal/shared/event"
-	"gochat/internal/shared/kernel"
 	socialApp "gochat/internal/social/application"
-	socialUseCase "gochat/internal/social/application/usecase"
-	socialRepository "gochat/internal/social/infrastructure/persistence/repository"
+	socialDomain "gochat/internal/social/domain"
+	socialPersistence "gochat/internal/social/infrastructure/persistence/repository"
 
 	"github.com/google/wire"
 )
@@ -32,12 +26,15 @@ var UseCaseHTTPSet = wire.NewSet(
 	provideCreateRoomUseCase,
 	provideJoinRoomUseCase,
 	provideLeaveRoomUseCase,
-	provideNotificationUndeliveredMessageNotificationRequestedUseCase,
-	provideNotificationMessageReadUseCase,
+)
+
+var UseCaseWebsocketSet = wire.NewSet(
+	provideWebsocketUserSessionStartedUseCase,
+	provideNotificationPrivateMessageReadUseCase,
+	provideNotificationRoomMessageReadUseCase,
 )
 
 var UseCaseKafkaSet = wire.NewSet(
-	provideWebsocketUserSessionStartedUseCase,
 	provideAuthUserCreatedUseCase,
 	provideSocialUserCreatedUseCase,
 	provideSocialRoomCreatedUseCase,
@@ -50,141 +47,175 @@ var UseCaseKafkaSet = wire.NewSet(
 	provideChatRoomMessageCreatedUseCase,
 	provideChatPrivateMessageCreatedUseCase,
 	provideNotificationWelcomeEmailNotificationRequestedUseCase,
-	provideNotificationMessageNotificationRequestedUseCase,
+	provideNotificationRoomMessageNotificationRequestedUseCase,
+	provideNotificationPrivateMessageNotificationRequestedUseCase,
+	provideNotificationUndeliveredMessagesNotificationRequestedUseCase,
 )
 
 // -------------------- UseCases (HTTP side) --------------------
 func provideSignUpUseCase(
 	eventIDGen event.IDGenerator,
-	userIDGen authorizationApp.UserIDGenerator,
-	numberGen authorizationApp.UserNumberGenerator,
-	encryptor authorizationApp.Encryptor,
-	userSaver authorizationApp.UserSaver,
-	eventSaver event.UnpublishedEventsSaver,
-	unitOfWork kernel.UnitOfWork,
-) authorizationUsecase.SignUpUseCase {
-	return authorizationUsecase.NewSignUpUseCase(eventIDGen, userIDGen, numberGen, encryptor, userSaver, eventSaver, unitOfWork)
+	userIDGen authDomain.UserIDGenerator,
+	numberGen authDomain.UserNumberGenerator,
+	encryptor authDomain.Encryptor,
+	userRepo authDomain.UserRepository,
+) authApp.SignUpUseCase {
+	return authApp.NewSignUpUseCase(eventIDGen, userIDGen, numberGen, encryptor, userRepo)
 }
 
 func provideLoginUseCase(
 	eventIDGen event.IDGenerator,
-	comparator authorizationApp.Comparator,
-	userFinder authorizationApp.UserFinderByNumber,
-	userUpdater authorizationApp.UserLoggedInAtUpdater,
-	refreshTokenSaver authorizationApp.RefreshTokenSaver,
-	accessTokenGenerator authorizationApp.AccessTokenGenerator,
-	refreshTokenGenerator authorizationApp.RefreshTokenGenerator,
-) authorizationUsecase.LoginUseCase {
-	return authorizationUsecase.NewLoginUseCase(eventIDGen, comparator, userFinder, userUpdater, refreshTokenSaver, accessTokenGenerator, refreshTokenGenerator)
+	comparator authDomain.Comparator,
+	accessTokenGenerator authDomain.AccessTokenGenerator,
+	refreshTokenGenerator authDomain.RefreshTokenGenerator,
+	userRepo authDomain.UserRepository,
+	refreshTokenRepo authDomain.RefreshTokenRepository,
+) authApp.LoginUseCase {
+	return authApp.NewLoginUseCase(eventIDGen, comparator, userRepo, refreshTokenRepo, accessTokenGenerator, refreshTokenGenerator)
 }
 func provideRefreshAccessTokenUseCase(
-	refreshTokenSaver authorizationApp.RefreshTokenSaver,
-	refreshTokenFinder authorizationApp.RefreshTokenFinder,
-	accessTokenGenerator authorizationApp.AccessTokenGenerator,
-	refreshTokenGenerator authorizationApp.RefreshTokenGenerator,
-) authorizationUsecase.RefreshAccessTokenUseCase {
-	return authorizationUsecase.NewRefreshAccessTokenUseCase(refreshTokenSaver, refreshTokenFinder, accessTokenGenerator, refreshTokenGenerator)
+	refreshTokenRepo authDomain.RefreshTokenRepository,
+	accessTokenGenerator authDomain.AccessTokenGenerator,
+	refreshTokenGenerator authDomain.RefreshTokenGenerator,
+) authApp.RefreshAccessTokenUseCase {
+	return authApp.NewRefreshAccessTokenUseCase(refreshTokenRepo, refreshTokenRepo, accessTokenGenerator, refreshTokenGenerator)
 }
-func provideParseAccessTokenUseCase(accessTokenParser authorizationApp.AccessTokenParser) authorizationUsecase.ParseAccessTokenUseCase {
-	return authorizationUsecase.NewParseAccessTokenUseCase(accessTokenParser)
+func provideParseAccessTokenUseCase(accessTokenParser authApp.AccessTokenParser) authApp.ParseAccessTokenUseCase {
+	return authApp.NewParseAccessTokenUseCase(accessTokenParser)
 }
 func provideSendPrivateMessageUseCase(
-	messageIDGen chatApp.MessageIDGenerator,
+	messageIDGen chatDomain.MessageIDGenerator,
 	eventIDGen event.IDGenerator,
-	userRepo *chatRepository.UserRepository,
-	msgRepo *chatRepository.MessageRepository,
-	eventSaver event.UnpublishedEventsSaver,
-	unitOfWork kernel.UnitOfWork,
-) chatUsecase.SendPrivateMessageUseCase {
-	return chatUsecase.NewSendPrivateMessageUseCase(messageIDGen, eventIDGen, userRepo, msgRepo, eventSaver, unitOfWork)
+	userRepo chatDomain.UserRepository,
+	messageRepo chatDomain.PrivateMessageRepository,
+) chatApp.SendPrivateMessageUseCase {
+	return chatApp.NewSendPrivateMessageUseCase(messageIDGen, eventIDGen, userRepo, messageRepo)
 }
 func provideSendRoomMessageUseCase(
-	messageIDGen chatApp.MessageIDGenerator,
+	messageIDGen chatDomain.MessageIDGenerator,
 	eventIDGen event.IDGenerator,
-	roomRepo *chatRepository.RoomRepository,
-	msgRepo *chatRepository.MessageRepository,
-	eventSaver event.UnpublishedEventsSaver,
-	unitOfWork kernel.UnitOfWork,
-) chatUsecase.SendRoomMessageUseCase {
-	return chatUsecase.NewSendRoomMessageUseCase(messageIDGen, eventIDGen, roomRepo, msgRepo, eventSaver, unitOfWork)
+	roomRepo chatDomain.RoomRepository,
+	messageRepo chatDomain.RoomMessageRepository,
+) chatApp.SendRoomMessageUseCase {
+	return chatApp.NewSendRoomMessageUseCase(messageIDGen, eventIDGen, roomRepo, messageRepo)
 }
 func provideCreateRoomUseCase(
 	eventIDGen event.IDGenerator,
-	roomIDGen socialApp.RoomIDGenerator,
-	numberGen socialApp.RoomNumberGenerator,
-	encryptor socialApp.Encryptor,
-	roomSaver socialApp.RoomSaver,
-	eventSaver event.UnpublishedEventsSaver,
-	unitOfWork kernel.UnitOfWork,
-) socialUseCase.CreateRoomUseCase {
-	return socialUseCase.NewCreateRoomUseCase(eventIDGen, roomIDGen, numberGen, encryptor, roomSaver, eventSaver, unitOfWork)
+	roomIDGen socialDomain.RoomIDGenerator,
+	numberGen socialDomain.RoomNumberGenerator,
+	encryptor socialDomain.Encryptor,
+	roomRepo socialDomain.RoomRepository,
+) socialApp.CreateRoomUseCase {
+	return socialApp.NewCreateRoomUseCase(eventIDGen, roomIDGen, numberGen, encryptor, roomRepo)
 }
 func provideJoinRoomUseCase(
 	eventIDGen event.IDGenerator,
-	eventSaver event.UnpublishedEventsSaver,
-	finder socialApp.RoomFinderByNumber,
-	comparator socialApp.Comparator,
-	roomMemberSaver socialApp.RoomMemberSaver,
-	unitOfWork kernel.UnitOfWork,
-) socialUseCase.JoinRoomUseCase {
-	return socialUseCase.NewJoinRoomUseCase(eventIDGen, eventSaver, finder, comparator, roomMemberSaver, unitOfWork)
+	comparator socialDomain.Comparator,
+	roomRepo socialDomain.RoomRepository,
+) socialApp.JoinRoomUseCase {
+	return socialApp.NewJoinRoomUseCase(eventIDGen, roomRepo, comparator, roomRepo)
 }
 func provideLeaveRoomUseCase(
 	eventIDGen event.IDGenerator,
-	finder socialApp.RoomFinderByNumber,
-	roomMemberDeleter socialApp.RoomMemberDeleter,
-	eventSaver event.UnpublishedEventsSaver,
-	unitOfWork kernel.UnitOfWork,
-) socialUseCase.LeaveRoomUseCase {
-	return socialUseCase.NewLeaveRoomUseCase(eventIDGen, finder, roomMemberDeleter, eventSaver, unitOfWork)
+	roomRepo socialDomain.RoomRepository,
+) socialApp.LeaveRoomUseCase {
+	return socialApp.NewLeaveRoomUseCase(eventIDGen, roomRepo, roomRepo)
+}
+
+// -------------------- Event UseCases (websocket side) --------------------
+func provideWebsocketUserSessionStartedUseCase(
+	eventIDGen event.IDGenerator,
+	eventRepo event.Repository,
+) rootapp.UserSessionStartedUseCase {
+	return rootapp.NewUserSessionStartedUseCase(eventIDGen, eventRepo)
+}
+func provideNotificationPrivateMessageReadUseCase(messageRepo notificationDomain.PrivateMessageRepository) notificationApp.PrivateMessageReadUseCase {
+	return notificationApp.NewPrivateMessageReadUseCase(messageRepo, messageRepo)
+}
+func provideNotificationRoomMessageReadUseCase(messageRepo notificationDomain.RoomMessageRepository) notificationApp.RoomMessageReadUseCase {
+	return notificationApp.NewRoomMessageReadUseCase(messageRepo, messageRepo)
 }
 
 // -------------------- Event UseCases (Kafka consumer side) --------------------
-func provideWebsocketUserSessionStartedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventSaver) usecase.UserSessionStartedUseCase {
-	return usecase.NewUserSessionStartedUseCase(eventIDGen, saver)
+
+func provideAuthUserCreatedUseCase(
+	eventIDGen event.IDGenerator,
+	eventRepo event.Repository,
+	userRepo authDomain.UserRepository,
+) authApp.UserCreatedUseCase {
+	return authApp.NewUserCreatedUseCase(eventIDGen, eventRepo, userRepo)
 }
-func provideAuthUserCreatedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventsSaver, userRepo *authorizationRepository.UserRepository) authorizationUsecase.UserCreatedUseCase {
-	return authorizationUsecase.NewUserCreatedUseCase(eventIDGen, saver, userRepo)
+func provideSocialUserCreatedUseCase(userRepo *socialPersistence.UserRepository) socialApp.UserCreatedUseCase {
+	return socialApp.NewUserCreatedUseCase(userRepo)
 }
-func provideSocialUserCreatedUseCase(userRepo *socialRepository.UserRepository) socialUseCase.UserCreatedUseCase {
-	return socialUseCase.NewUserCreatedUseCase(userRepo)
+func provideSocialRoomCreatedUseCase(
+	eventIDGen event.IDGenerator,
+	roomRepo socialDomain.RoomRepository,
+	eventRepo event.Repository,
+) socialApp.RoomCreatedUseCase {
+	return socialApp.NewRoomCreatedUseCase(eventIDGen, eventRepo, roomRepo)
 }
-func provideSocialRoomCreatedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventSaver, roomRepo *socialRepository.RoomRepository) socialUseCase.RoomCreatedUseCase {
-	return socialUseCase.NewRoomCreatedUseCase(eventIDGen, saver, roomRepo)
+func provideSocialRoomJoinedUseCase(
+	eventIDGen event.IDGenerator,
+	eventRepo event.Repository,
+) socialApp.RoomJoinedUseCase {
+	return socialApp.NewRoomJoinedUseCase(eventIDGen, eventRepo)
 }
-func provideSocialRoomJoinedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventSaver) socialUseCase.RoomJoinedUseCase {
-	return socialUseCase.NewRoomJoinedUseCase(eventIDGen, saver)
+func provideSocialRoomLeftUseCase(
+	eventIDGen event.IDGenerator,
+	eventRepo event.Repository,
+) socialApp.RoomLeftUseCase {
+	return socialApp.NewRoomLeftUseCase(eventIDGen, eventRepo)
 }
-func provideSocialRoomLeftUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventSaver) socialUseCase.RoomLeftUseCase {
-	return socialUseCase.NewRoomLeftUseCase(eventIDGen, saver)
+func provideChatUserCreatedUseCase(userRepo chatDomain.UserRepository) chatApp.UserCreatedUseCase {
+	return chatApp.NewUserCreatedUseCase(userRepo)
 }
-func provideChatUserCreatedUseCase(userRepo *chatRepository.UserRepository) chatUsecase.UserCreatedUseCase {
-	return chatUsecase.NewUserCreatedUseCase(userRepo)
+func provideChatRoomCreatedUseCase(
+	roomRepo chatDomain.RoomRepository,
+) chatApp.RoomCreatedUseCase {
+	return chatApp.NewRoomCreatedUseCase(roomRepo)
 }
-func provideChatRoomCreatedUseCase(roomRepo *chatRepository.RoomRepository) chatUsecase.RoomCreatedUseCase {
-	return chatUsecase.NewRoomCreatedUseCase(roomRepo)
+func provideChatRoomJoinedUseCase(roomRepo chatDomain.RoomRepository) chatApp.RoomJoinedUseCase {
+	return chatApp.NewRoomJoinedUseCase(roomRepo, roomRepo)
 }
-func provideChatRoomJoinedUseCase(roomRepo *chatRepository.RoomRepository) chatUsecase.RoomJoinedUseCase {
-	return chatUsecase.NewRoomJoinedUseCase(roomRepo)
+func provideChatRoomLeftUseCase(roomRepo chatDomain.RoomRepository) chatApp.RoomLeftUseCase {
+	return chatApp.NewRoomLeftUseCase(roomRepo, roomRepo)
 }
-func provideChatRoomLeftUseCase(roomRepo *chatRepository.RoomRepository) chatUsecase.RoomLeftUseCase {
-	return chatUsecase.NewRoomLeftUseCase(roomRepo)
+func provideChatPrivateMessageCreatedUseCase(
+	eventIDGen event.IDGenerator,
+	eventRepo event.Repository,
+	messageRepo chatDomain.PrivateMessageRepository,
+) chatApp.PrivateMessageCreatedUseCase {
+	return chatApp.NewPrivateMessageCreatedUseCase(eventIDGen, messageRepo, eventRepo)
 }
-func provideChatPrivateMessageCreatedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventSaver, messageRepo *chatRepository.MessageRepository) chatUsecase.PrivateMessageCreatedUseCase {
-	return chatUsecase.NewPrivateMessageCreatedUseCase(eventIDGen, messageRepo, saver)
+func provideChatRoomMessageCreatedUseCase(
+	eventIDGen event.IDGenerator,
+	eventRepo event.Repository,
+	roomRepo chatDomain.RoomRepository,
+	messageRepo chatDomain.RoomMessageRepository,
+) chatApp.RoomMessageCreatedUseCase {
+	return chatApp.NewRoomMessageCreatedUseCase(eventIDGen, messageRepo, roomRepo, eventRepo)
 }
-func provideChatRoomMessageCreatedUseCase(eventIDGen *uuid.EventIDGenerator, saver event.UnpublishedEventsSaver, messageRepo *chatRepository.MessageRepository) chatUsecase.RoomMessageCreatedUseCase {
-	return chatUsecase.NewRoomMessageCreatedUseCase(eventIDGen, messageRepo, saver)
+func provideNotificationWelcomeEmailNotificationRequestedUseCase(emailNotifier notificationApp.WelcomeEmailNotifier) notificationApp.WelcomeEmailNotificationRequestedUseCase {
+	return notificationApp.NewWelcomeEmailNotificationRequestedUseCase(emailNotifier)
 }
-func provideNotificationWelcomeEmailNotificationRequestedUseCase(emailNotifier *gomailUtil.EmailNotifier) notificationUsecase.WelcomeEmailNotificationRequestedUseCase {
-	return notificationUsecase.NewWelcomeEmailNotificationRequestedUseCase(emailNotifier)
+func provideNotificationPrivateMessageNotificationRequestedUseCase(
+	messageRepo notificationDomain.PrivateMessageRepository,
+	messageNotifier notificationDomain.PrivateMessageNotifier,
+) notificationApp.PrivateMessageNotificationRequestedUseCase {
+	return notificationApp.NewPrivateMessageNotificationRequestedUseCase(messageRepo, messageNotifier)
 }
-func provideNotificationMessageNotificationRequestedUseCase(messageRepo *notificationRepository.MessageRepository, messageNotifier *notificationWebsocketInfrastructure.MessageNotifier) notificationUsecase.MessageNotificationRequestedUseCase {
-	return notificationUsecase.NewMessageNotificationRequestedUseCase(messageRepo, messageNotifier, messageRepo)
+func provideNotificationRoomMessageNotificationRequestedUseCase(
+	messageRepo notificationDomain.RoomMessageRepository,
+	messageNotifier notificationDomain.RoomMessageNotifier,
+) notificationApp.RoomMessageNotificationRequestedUseCase {
+	return notificationApp.NewRoomMessageNotificationRequestedUseCase(messageNotifier, messageRepo)
 }
-func provideNotificationUndeliveredMessageNotificationRequestedUseCase(messageRepo *notificationRepository.MessageRepository, messageNotifier *notificationWebsocketInfrastructure.MessageNotifier) notificationUsecase.UndeliveredMessageNotificationRequestedUseCase {
-	return notificationUsecase.NewUndeliveredMessageNotificationRequestedUseCase(messageRepo, messageNotifier, messageRepo)
-}
-func provideNotificationMessageReadUseCase(messageRepo *notificationRepository.MessageRepository) notificationUsecase.MessageReadUseCase {
-	return notificationUsecase.NewMessageReadUseCase(messageRepo)
+func provideNotificationUndeliveredMessagesNotificationRequestedUseCase(
+	privateMessageRepo notificationDomain.PrivateMessageRepository,
+	roomMessageRepo notificationDomain.RoomMessageRepository,
+	privateMessageNotifier notificationDomain.PrivateMessageNotifier,
+	roomMessageNotifier notificationDomain.RoomMessageNotifier,
+) notificationApp.UndeliveredMessagesNotificationRequestedUseCase {
+	return notificationApp.NewUndeliveredMessagesNotificationRequestedUseCase(privateMessageRepo, privateMessageRepo, privateMessageNotifier, roomMessageRepo, roomMessageRepo, roomMessageNotifier)
 }

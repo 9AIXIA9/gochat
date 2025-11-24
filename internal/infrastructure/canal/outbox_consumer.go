@@ -15,15 +15,15 @@ import (
 )
 
 // OutboxConsumer watches MySQL binlog and publishes rows inserted into gochat.unpublished_events
-// using the provided event.ManyPublisher. This is an infrastructure adapter implementing CDC for the outbox table.
+// using the provided event.Publisher. This is an infrastructure adapter implementing CDC for the outbox table.
 type OutboxConsumer struct {
-	publisher event.ManyPublisher
-	lister    event.UnpublishedLister
+	publisher event.Publisher
+	lister    event.UnpublishedEventsLister
 	canal     *canal.Canal
 	metrics   *prometheus.Metrics
 }
 
-func NewOutboxConsumer(c *canal.Canal, publisher event.ManyPublisher, lister event.UnpublishedLister) *OutboxConsumer {
+func NewOutboxConsumer(c *canal.Canal, publisher event.Publisher, lister event.UnpublishedEventsLister) *OutboxConsumer {
 	return &OutboxConsumer{
 		publisher: publisher,
 		lister:    lister,
@@ -55,8 +55,8 @@ func (c *OutboxConsumer) Close() {
 
 type outboxHandler struct {
 	canal.DummyEventHandler
-	publisher event.ManyPublisher
-	lister    event.UnpublishedLister
+	publisher event.Publisher
+	lister    event.UnpublishedEventsLister
 	metrics   *prometheus.Metrics
 }
 
@@ -69,7 +69,7 @@ func (h *outboxHandler) OnRow(e *canal.RowsEvent) error {
 		h.metrics.OutboxPolled.Inc()
 	}
 
-	events, err := h.lister.UnpublishedList(context.Background())
+	events, err := h.lister.ListUnpublishedEvents(context.Background())
 	if err != nil {
 		return err
 	}
@@ -82,7 +82,7 @@ func (h *outboxHandler) OnRow(e *canal.RowsEvent) error {
 	}
 
 	start := time.Now()
-	if err := h.publisher.Publishes(events); err != nil {
+	if err := h.publisher.Publish(events); err != nil {
 		if h.metrics != nil {
 			h.metrics.OutboxPublishes.WithLabelValues("error").Inc()
 			h.metrics.OutboxDur.WithLabelValues("error").Observe(time.Since(start).Seconds())

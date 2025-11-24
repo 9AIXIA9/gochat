@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"time"
 )
 
 const TopicRoomLeft event.Topic = "social.room.left"
@@ -17,7 +16,7 @@ type RoomLeftEvent struct {
 }
 
 func ToRoomLeftEvent(ev event.Event) (*RoomLeftEvent, error) {
-	e := &RoomLeftEvent{StandardEvent: event.NewStandardEventFrom(ev)}
+	e := &RoomLeftEvent{StandardEvent: event.LoadStandardEventFromEvent(ev)}
 	if len(ev.Payload()) > 0 {
 		if err := e.Unmarshal(ev.Payload()); err != nil {
 			return nil, err
@@ -26,7 +25,11 @@ func ToRoomLeftEvent(ev event.Event) (*RoomLeftEvent, error) {
 	return e, nil
 }
 
-func NewRoomLeftEvent(id event.ID, userID kernel.UserID, roomID kernel.RoomID) (*RoomLeftEvent, error) {
+func NewRoomLeftEvent(
+	userID kernel.UserID,
+	roomID kernel.RoomID,
+	generator event.IDGenerator,
+) (*RoomLeftEvent, error) {
 	e := &RoomLeftEvent{
 		userID: userID,
 	}
@@ -35,7 +38,7 @@ func NewRoomLeftEvent(id event.ID, userID kernel.UserID, roomID kernel.RoomID) (
 		return nil, err
 	}
 
-	e.StandardEvent = event.NewStandardEvent(id, kernel.ID(roomID), time.Now().UTC(), TopicRoomLeft, payload)
+	e.StandardEvent = event.NewStandardEvent(kernel.ID(roomID), TopicRoomLeft, payload, generator)
 	return e, nil
 }
 

@@ -2,7 +2,7 @@ package http
 
 import (
 	"errors"
-	"gochat/internal/chat/application/usecase"
+	"gochat/internal/chat/application"
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/infrastructure/validator"
 	myErrors "gochat/internal/shared/errors"
@@ -26,12 +26,12 @@ func (r *SendPrivateMessageRequest) Bind(ginContext *gin.Context) error {
 	return ginContext.ShouldBind(r)
 }
 
-func NewSendPrivateMessageHandler(useCase usecase.SendPrivateMessageUseCase, validator *validator.Validator) gin.HandlerFunc {
+func NewSendPrivateMessageHandler(useCase application.SendPrivateMessageUseCase, validator *validator.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,
 		validator,
-		func(request *SendPrivateMessageRequest) *usecase.SendPrivateMessageInput {
-			return &usecase.SendPrivateMessageInput{
+		func(request *SendPrivateMessageRequest) *application.SendPrivateMessageInput {
+			return &application.SendPrivateMessageInput{
 				SenderID:        request.SenderID,
 				RecipientNumber: request.RecipientNumber,
 				Content:         request.Content,
@@ -45,7 +45,7 @@ func NewSendPrivateMessageHandler(useCase usecase.SendPrivateMessageUseCase, val
 			case errors.Is(err, myErrors.ErrEmptyInput):
 				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty"))
 			case errors.Is(err, myErrors.ErrNotFound):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "recipient not found"))
+				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "recipientID not found"))
 			default:
 				zap.L().Error("send private message handler failed", zap.Error(err))
 				ginutils.Response(ginContext, sharedHttp.ResponseServerError)

@@ -2,6 +2,9 @@ package di
 
 import (
 	"fmt"
+	authApp "gochat/internal/authorization/application"
+	chatApp "gochat/internal/chat/application"
+	socialApp "gochat/internal/social/application"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -9,18 +12,15 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"gochat/config"
-	authorizationUsecase "gochat/internal/authorization/application/usecase"
-	authorizationHttp "gochat/internal/authorization/port/http"
-	chatUsecase "gochat/internal/chat/application/usecase"
-	chatHttp "gochat/internal/chat/port/http"
+	authHTTP "gochat/internal/authorization/port/http"
+	chatHTTP "gochat/internal/chat/port/http"
 	"gochat/internal/delivery/http/handler"
 	"gochat/internal/delivery/http/middleware"
-	ginutils "gochat/internal/infrastructure/gin"
+	ginInfra "gochat/internal/infrastructure/gin"
 	"gochat/internal/infrastructure/prometheus"
 	"gochat/internal/infrastructure/validator"
 	"gochat/internal/infrastructure/websocket"
-	socialUseCase "gochat/internal/social/application/usecase"
-	socialHttp "gochat/internal/social/port/http"
+	socialHTTP "gochat/internal/social/port/http"
 )
 
 var HTTPSet = wire.NewSet(
@@ -30,15 +30,15 @@ var HTTPSet = wire.NewSet(
 
 func provideHttpRouter(
 	appConfig *config.App,
-	signUp authorizationUsecase.SignUpUseCase,
-	login authorizationUsecase.LoginUseCase,
-	refreshAccessToken authorizationUsecase.RefreshAccessTokenUseCase,
-	parseAccessToken authorizationUsecase.ParseAccessTokenUseCase,
-	sendPrivateMessage chatUsecase.SendPrivateMessageUseCase,
-	sendRoomMessage chatUsecase.SendRoomMessageUseCase,
-	createRoom socialUseCase.CreateRoomUseCase,
-	joinRoom socialUseCase.JoinRoomUseCase,
-	leaveRoom socialUseCase.LeaveRoomUseCase,
+	signUp authApp.SignUpUseCase,
+	login authApp.LoginUseCase,
+	refreshAccessToken authApp.RefreshAccessTokenUseCase,
+	parseAccessToken authApp.ParseAccessTokenUseCase,
+	sendPrivateMessage chatApp.SendPrivateMessageUseCase,
+	sendRoomMessage chatApp.SendRoomMessageUseCase,
+	createRoom socialApp.CreateRoomUseCase,
+	joinRoom socialApp.JoinRoomUseCase,
+	leaveRoom socialApp.LeaveRoomUseCase,
 	validator *validator.Validator,
 	redisClient *redis.Client,
 	websocketServer *websocket.Server,
@@ -78,28 +78,28 @@ func provideHttpRouter(
 	authorizationGroup := baseGroup.Group("/authorization")
 	authorizationGroup.Use()
 	{
-		authorizationGroup.POST("/sign_up", authorizationHttp.NewSignUpHandler(signUp, validator))
-		authorizationGroup.POST("/login", authorizationHttp.NewLoginHandler(login, validator, appConfig.Cookie))
-		authorizationGroup.GET("/refresh_access_token", authorizationHttp.NewRefreshAccessTokenHandler(refreshAccessToken, validator, appConfig.Cookie))
+		authorizationGroup.POST("/sign_up", authHTTP.NewSignUpHandler(signUp, validator))
+		authorizationGroup.POST("/login", authHTTP.NewLoginHandler(login, validator, appConfig.Cookie))
+		authorizationGroup.GET("/refresh_access_token", authHTTP.NewRefreshAccessTokenHandler(refreshAccessToken, validator, appConfig.Cookie))
 	}
 
-	authorizationMiddleware := authorizationHttp.NewAuthorizationMiddleware(parseAccessToken)
+	authorizationMiddleware := authHTTP.NewAuthorizationMiddleware(parseAccessToken)
 
 	// 聊天相关路由
 	chatGroup := baseGroup.Group("/chat")
 	chatGroup.Use(authorizationMiddleware)
 	{
-		chatGroup.POST("/private", chatHttp.NewSendPrivateMessageHandler(sendPrivateMessage, validator))
-		chatGroup.POST("/room", chatHttp.NewSendRoomMessageHandler(sendRoomMessage, validator))
+		chatGroup.POST("/private", chatHTTP.NewSendPrivateMessageHandler(sendPrivateMessage, validator))
+		chatGroup.POST("/room", chatHTTP.NewSendRoomMessageHandler(sendRoomMessage, validator))
 	}
 
 	// 社交功能路由
 	socialGroup := baseGroup.Group("/social")
 	socialGroup.Use(authorizationMiddleware)
 	{
-		socialGroup.POST("/room", socialHttp.NewCreateRoomHandler(createRoom, validator))
-		socialGroup.POST("/room/member", socialHttp.NewJoinRoomHandler(joinRoom, validator))
-		socialGroup.DELETE("/room/member", socialHttp.NewLeaveRoomHandler(leaveRoom, validator))
+		socialGroup.POST("/room", socialHTTP.NewCreateRoomHandler(createRoom, validator))
+		socialGroup.POST("/room/member", socialHTTP.NewJoinRoomHandler(joinRoom, validator))
+		socialGroup.DELETE("/room/member", socialHTTP.NewLeaveRoomHandler(leaveRoom, validator))
 	}
 
 	// WebSocket路由
@@ -112,10 +112,10 @@ func provideHttpRouter(
 	return router
 }
 
-func provideHttpServer(appConfig *config.App, router *gin.Engine) *ginutils.Server {
+func provideHttpServer(appConfig *config.App, router *gin.Engine) *ginInfra.Server {
 	srv := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", appConfig.Host, appConfig.Port),
 		Handler: router,
 	}
-	return ginutils.NewServer(router, srv)
+	return ginInfra.NewServer(router, srv)
 }

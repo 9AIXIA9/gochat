@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"time"
 )
 
 const TopicRoomJoined event.Topic = "social.room.joined"
@@ -17,7 +16,7 @@ type RoomJoinedEvent struct {
 }
 
 func ToRoomJoinedEvent(ev event.Event) (*RoomJoinedEvent, error) {
-	e := &RoomJoinedEvent{StandardEvent: event.NewStandardEventFrom(ev)}
+	e := &RoomJoinedEvent{StandardEvent: event.LoadStandardEventFromEvent(ev)}
 	if len(ev.Payload()) > 0 {
 		if err := e.Unmarshal(ev.Payload()); err != nil {
 			return nil, err
@@ -26,7 +25,11 @@ func ToRoomJoinedEvent(ev event.Event) (*RoomJoinedEvent, error) {
 	return e, nil
 }
 
-func NewRoomJoinedEvent(id event.ID, userID kernel.UserID, roomID kernel.RoomID) (*RoomJoinedEvent, error) {
+func NewRoomJoinedEvent(
+	userID kernel.UserID,
+	roomID kernel.RoomID,
+	generator event.IDGenerator,
+) (*RoomJoinedEvent, error) {
 	e := &RoomJoinedEvent{
 		userID: userID,
 	}
@@ -35,7 +38,7 @@ func NewRoomJoinedEvent(id event.ID, userID kernel.UserID, roomID kernel.RoomID)
 		return nil, err
 	}
 
-	e.StandardEvent = event.NewStandardEvent(id, kernel.ID(roomID), time.Now().UTC(), TopicRoomJoined, payload)
+	e.StandardEvent = event.NewStandardEvent(kernel.ID(roomID), TopicRoomJoined, payload, generator)
 	return e, nil
 }
 

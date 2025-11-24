@@ -1,5 +1,7 @@
 package event
 
+//TODO 可以做对象池
+
 type Manager struct {
 	events []Event
 }
