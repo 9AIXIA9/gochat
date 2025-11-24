@@ -119,9 +119,9 @@ func provideSocialUserRepository(unitOfWork *gormInfra.UnitOfWork) *socialRepo.U
 func provideSocialRoomRepository(db *gorm.DB, eventRepo event.Repository) *socialRepo.RoomRepository {
 	return socialRepo.NewRoomRepository(db, eventRepo)
 }
-func provideNotificationPrivateMessageRepository(unitOfWork *gormInfra.UnitOfWork) *notificationRepo.PrivateMessageRepository {
-	return notificationRepo.NewPrivateMessageRepository(unitOfWork)
+func provideNotificationPrivateMessageRepository(db *gorm.DB) *notificationRepo.PrivateMessageRepository {
+	return notificationRepo.NewPrivateMessageRepository(db)
 }
-func provideNotificationRoomMessageRepository(unitOfWork *gormInfra.UnitOfWork) *notificationRepo.RoomMessageRepository {
-	return notificationRepo.NewRoomMessageRepository(unitOfWork)
+func provideNotificationRoomMessageRepository(db *gorm.DB) *notificationRepo.RoomMessageRepository {
+	return notificationRepo.NewRoomMessageRepository(db)
 }

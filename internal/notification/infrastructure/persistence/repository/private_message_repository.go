@@ -7,62 +7,54 @@ import (
 	"gochat/internal/notification/infrastructure/persistence/model"
 	"gochat/internal/shared/kernel"
 
-	"gorm.io/gorm/clause"
+	"gorm.io/gorm"
 )
 
 var _ domain.PrivateMessageRepository = (*PrivateMessageRepository)(nil)
 
 type PrivateMessageRepository struct {
-	unitOfWork *gormutils.UnitOfWork
+	db *gorm.DB
 }
 
-func NewPrivateMessageRepository(unitOfWork *gormutils.UnitOfWork) *PrivateMessageRepository {
-	return &PrivateMessageRepository{unitOfWork: unitOfWork}
+func NewPrivateMessageRepository(db *gorm.DB) *PrivateMessageRepository {
+	return &PrivateMessageRepository{db: db}
 }
 
-func (repo *PrivateMessageRepository) SavePrivateMessage(ctx context.Context, message *domain.PrivateMessage) error {
-	return gormutils.TranslateError(repo.unitOfWork.DB(ctx).WithContext(ctx).Clauses(
-		clause.OnConflict{
-			Columns:   []clause.Column{{Name: "id"}},
-			DoUpdates: clause.AssignmentColumns([]string{"sender_id", "recipient_id", "state", "content", "sent_at"}),
-		},
-	).Create(repo.toModel(message)).Error)
+func (repo *PrivateMessageRepository) Create(ctx context.Context, message *domain.PrivateMessage) error {
+	return gormutils.TranslateError(repo.db.WithContext(ctx).Create(repo.toModel(message)).Error)
 }
 
-func (repo *PrivateMessageRepository) SavePrivateMessages(ctx context.Context, messages []*domain.PrivateMessage) error {
-	models := make([]*model.PrivateMessage, 0, len(messages))
-	for _, message := range messages {
-		models = append(models, repo.toModel(message))
-	}
-	return gormutils.TranslateError(repo.unitOfWork.DB(ctx).WithContext(ctx).Clauses(
-		clause.OnConflict{
-			Columns:   []clause.Column{{Name: "id"}},
-			DoUpdates: clause.AssignmentColumns([]string{"sender_id", "recipient_id", "state", "content", "sent_at"}),
-		},
-	).Create(&models).Error)
+func (repo *PrivateMessageRepository) Update(ctx context.Context, message *domain.PrivateMessage) error {
+	modelMessage := repo.toModel(message)
+	return gormutils.TranslateError(repo.db.WithContext(ctx).Model(&modelMessage).Updates(modelMessage).Error)
 }
 
-func (repo *PrivateMessageRepository) FindUndeliveredPrivateMessages(ctx context.Context, userID kernel.UserID) ([]*domain.PrivateMessage, error) {
-	var msgs []model.PrivateMessage
-	if err := repo.unitOfWork.DB(ctx).WithContext(ctx).
-		Where("recipient_id = ? AND state = ?", userID, domain.MessageStateUndelivered).
-		Find(&msgs).Error; err != nil {
+func (repo *PrivateMessageRepository) Updates(ctx context.Context, messages []*domain.PrivateMessage) error {
+	return repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		for _, message := range messages {
+			modelMessage := repo.toModel(message)
+			if err := tx.Model(&modelMessage).Updates(modelMessage).Error; err != nil {
+				return gormutils.TranslateError(err)
+			}
+		}
+		return nil
+	})
+}
+
+func (repo *PrivateMessageRepository) FindByID(ctx context.Context, messageID kernel.MessageID) (*domain.PrivateMessage, error) {
+	var modelMessage model.PrivateMessage
+	if err := repo.db.WithContext(ctx).First(&modelMessage, "id = ?", messageID).Error; err != nil {
 		return nil, gormutils.TranslateError(err)
 	}
-
-	messages := make([]*domain.PrivateMessage, 0, len(msgs))
-	for _, m := range msgs {
-		messages = append(messages, repo.toDomain(&m))
-	}
-	return messages, nil
+	return repo.toDomain(&modelMessage), nil
 }
 
-func (repo *PrivateMessageRepository) FindPrivateMessage(ctx context.Context, messageID kernel.MessageID) (*domain.PrivateMessage, error) {
-	var m model.PrivateMessage
-	if err := repo.unitOfWork.DB(ctx).WithContext(ctx).Where("id = ?", messageID).First(&m).Error; err != nil {
+func (repo *PrivateMessageRepository) FindsByState(ctx context.Context, userID kernel.UserID, state domain.MessageState) ([]*domain.PrivateMessage, error) {
+	var modelMessages []*model.PrivateMessage
+	if err := repo.db.WithContext(ctx).Where("recipient_id = ? AND state = ?", userID, state).Find(&modelMessages).Error; err != nil {
 		return nil, gormutils.TranslateError(err)
 	}
-	return repo.toDomain(&m), nil
+	return repo.toDomains(modelMessages), nil
 }
 
 func (repo *PrivateMessageRepository) toModel(message *domain.PrivateMessage) *model.PrivateMessage {
@@ -76,6 +68,14 @@ func (repo *PrivateMessageRepository) toModel(message *domain.PrivateMessage) *m
 	}
 }
 
+func (repo *PrivateMessageRepository) toModels(messages []*domain.PrivateMessage) []*model.PrivateMessage {
+	modelMessages := make([]*model.PrivateMessage, 0, len(messages))
+	for _, message := range messages {
+		modelMessages = append(modelMessages, repo.toModel(message))
+	}
+	return modelMessages
+}
+
 func (repo *PrivateMessageRepository) toDomain(message *model.PrivateMessage) *domain.PrivateMessage {
 	return domain.LoadPrivateMessage(
 		message.ID,
@@ -85,4 +85,12 @@ func (repo *PrivateMessageRepository) toDomain(message *model.PrivateMessage) *d
 		message.Content,
 		message.SentAt,
 	)
+}
+
+func (repo *PrivateMessageRepository) toDomains(messages []*model.PrivateMessage) []*domain.PrivateMessage {
+	domainMessages := make([]*domain.PrivateMessage, 0, len(messages))
+	for _, message := range messages {
+		domainMessages = append(domainMessages, repo.toDomain(message))
+	}
+	return domainMessages
 }

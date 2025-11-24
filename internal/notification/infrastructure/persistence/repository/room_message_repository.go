@@ -7,66 +7,117 @@ import (
 	"gochat/internal/notification/infrastructure/persistence/model"
 	"gochat/internal/shared/kernel"
 
-	"gorm.io/gorm/clause"
+	"gorm.io/gorm"
 )
 
 var _ domain.RoomMessageRepository = (*RoomMessageRepository)(nil)
 
 type RoomMessageRepository struct {
-	unitOfWork *gormutils.UnitOfWork
+	db *gorm.DB
 }
 
-func NewRoomMessageRepository(unitOfWork *gormutils.UnitOfWork) *RoomMessageRepository {
-	return &RoomMessageRepository{unitOfWork: unitOfWork}
+func NewRoomMessageRepository(db *gorm.DB) *RoomMessageRepository {
+	return &RoomMessageRepository{db: db}
 }
 
-func (repo *RoomMessageRepository) SaveRoomMessage(ctx context.Context, message *domain.RoomMessage) error {
-	return gormutils.TranslateError(repo.unitOfWork.DB(ctx).WithContext(ctx).Clauses(
-		clause.OnConflict{
-			Columns:   []clause.Column{{Name: "id"}},
-			DoUpdates: clause.AssignmentColumns([]string{"sender_id", "room_id", "content", "sent_at"}),
-		},
-	).Create(repo.toModel(message)).Error)
+func (repo *RoomMessageRepository) Create(ctx context.Context, message *domain.RoomMessage) error {
+	return gormutils.TranslateError(repo.db.WithContext(ctx).Create(repo.toModel(message)).Error)
 }
 
-func (repo *RoomMessageRepository) SaveRoomMessages(ctx context.Context, message []*domain.RoomMessage) error {
-	models := make([]*model.RoomMessage, 0, len(message))
-	for _, msg := range message {
-		models = append(models, repo.toModel(msg))
+func (repo *RoomMessageRepository) Update(ctx context.Context, message *domain.RoomMessage) error {
+	return repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		modelMessage := repo.toModel(message)
+		// 使用 Replace 来更新多对多关联的成员
+		// 删除不再存在的关联并添加新的关联
+		if err := tx.Model(&modelMessage).Association("States").Replace(modelMessage.States); err != nil {
+			return gormutils.TranslateError(err)
+		}
+
+		if err := tx.Model(&modelMessage).Association("Recipients").Replace(modelMessage.Recipients); err != nil {
+			return gormutils.TranslateError(err)
+		}
+
+		// 更新 RoomMessage 表本身的字段
+		if err := tx.Updates(modelMessage).Error; err != nil {
+			return gormutils.TranslateError(err)
+		}
+
+		return nil
+	})
+}
+
+func (repo *RoomMessageRepository) Updates(ctx context.Context, messages []*domain.RoomMessage) error {
+	if len(messages) == 0 {
+		return nil
 	}
-	return gormutils.TranslateError(repo.unitOfWork.DB(ctx).WithContext(ctx).Create(&models).Error)
-}
 
-func (repo *RoomMessageRepository) FindUndeliveredRoomMessages(ctx context.Context, userID kernel.UserID) ([]*domain.RoomMessage, error) {
-	var msgs []model.RoomMessage
-	if err := repo.unitOfWork.DB(ctx).WithContext(ctx).
-		Joins("JOIN notification_room_message_recipients AS recipients ON recipients.message_id = notification_room_messages.id").
-		Joins("JOIN notification_room_message_states AS states ON states.message_id = notification_room_messages.id AND states.user_id = recipients.user_id").
-		Where("recipients.user_id = ? AND states.state = ?", userID, domain.MessageStateUndelivered).
-		Preload("Recipients").
-		Preload("States").
-		Find(&msgs).Error; err != nil {
-		return nil, gormutils.TranslateError(err)
+	modelMessages := repo.toModels(messages)
+	messageIDs := make([]kernel.MessageID, 0, len(modelMessages))
+	allStates := make([]*model.RoomMessageState, 0)
+	allRecipients := make([]*model.RoomMessageRecipient, 0)
+
+	for _, msg := range modelMessages {
+		messageIDs = append(messageIDs, msg.ID)
+		allStates = append(allStates, msg.States...)
+		allRecipients = append(allRecipients, msg.Recipients...)
 	}
 
-	messages := make([]*domain.RoomMessage, 0, len(msgs))
-	for _, m := range msgs {
-		messages = append(messages, repo.toDomain(&m))
-	}
-	return messages, nil
+	return repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// 批量删除旧的关联
+		if err := tx.Where("message_id IN ?", messageIDs).Delete(&model.RoomMessageState{}).Error; err != nil {
+			return gormutils.TranslateError(err)
+		}
+		if err := tx.Where("message_id IN ?", messageIDs).Delete(&model.RoomMessageRecipient{}).Error; err != nil {
+			return gormutils.TranslateError(err)
+		}
+
+		// 批量插入新的关联
+		if len(allStates) > 0 {
+			if err := tx.Create(&allStates).Error; err != nil {
+				return gormutils.TranslateError(err)
+			}
+		}
+		if len(allRecipients) > 0 {
+			if err := tx.Create(&allRecipients).Error; err != nil {
+				return gormutils.TranslateError(err)
+			}
+		}
+
+		// 批量更新 RoomMessage 表本身的字段
+		for _, msg := range modelMessages {
+			if err := tx.Updates(msg).Error; err != nil {
+				return gormutils.TranslateError(err)
+			}
+		}
+
+		return nil
+	})
 }
 
 func (repo *RoomMessageRepository) FindRoomMessage(ctx context.Context, messageID kernel.MessageID) (*domain.RoomMessage, error) {
-	var message model.RoomMessage
-
-	if err := repo.unitOfWork.DB(ctx).WithContext(ctx).
+	var modelMessage model.RoomMessage
+	err := repo.db.WithContext(ctx).
 		Preload("Recipients").
 		Preload("States").
-		Where("id = ?", messageID).First(&message).Error; err != nil {
+		First(&modelMessage, "id = ?", messageID).Error
+	if err != nil {
 		return nil, gormutils.TranslateError(err)
 	}
+	return repo.toDomain(&modelMessage), nil
+}
 
-	return repo.toDomain(&message), nil
+func (repo *RoomMessageRepository) FindsByState(ctx context.Context, userID kernel.UserID, state domain.MessageState) ([]*domain.RoomMessage, error) {
+	var modelMessages []*model.RoomMessage
+	err := repo.db.WithContext(ctx).
+		Joins("JOIN notification_room_message_states ON notification_room_message_states.message_id = notification_room_messages.id").
+		Where("notification_room_message_states.user_id = ? AND notification_room_message_states.state = ?", userID, state).
+		Preload("Recipients").
+		Preload("States").
+		Find(&modelMessages).Error
+	if err != nil {
+		return nil, gormutils.TranslateError(err)
+	}
+	return repo.toDomains(modelMessages), nil
 }
 
 func (repo *RoomMessageRepository) toModel(message *domain.RoomMessage) *model.RoomMessage {
@@ -98,6 +149,14 @@ func (repo *RoomMessageRepository) toModel(message *domain.RoomMessage) *model.R
 	}
 }
 
+func (repo *RoomMessageRepository) toModels(messages []*domain.RoomMessage) []*model.RoomMessage {
+	modelMessages := make([]*model.RoomMessage, 0, len(messages))
+	for _, roomMessage := range messages {
+		modelMessages = append(modelMessages, repo.toModel(roomMessage))
+	}
+	return modelMessages
+}
+
 func (repo *RoomMessageRepository) toDomain(message *model.RoomMessage) *domain.RoomMessage {
 	recipients := make([]kernel.UserID, 0, len(message.Recipients))
 	for _, r := range message.Recipients {
@@ -109,4 +168,12 @@ func (repo *RoomMessageRepository) toDomain(message *model.RoomMessage) *domain.
 		states[s.UserID] = s.State
 	}
 	return domain.LoadRoomMessage(message.ID, message.SenderID, message.RoomID, recipients, states, message.Content, message.SentAt)
+}
+
+func (repo *RoomMessageRepository) toDomains(messages []*model.RoomMessage) []*domain.RoomMessage {
+	domainMessages := make([]*domain.RoomMessage, 0, len(messages))
+	for _, message := range messages {
+		domainMessages = append(domainMessages, repo.toDomain(message))
+	}
+	return domainMessages
 }

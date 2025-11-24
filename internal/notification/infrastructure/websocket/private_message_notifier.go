@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+//TODO 断线重连后消息通知未发送问题
+
 var _ domain.PrivateMessageNotifier = (*PrivateMessageNotifier)(nil)
 
 const NotifyPrivateMessageTopic websocket.ResponseTopic = "notification.notify_private_message"

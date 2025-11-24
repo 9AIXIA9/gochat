@@ -62,9 +62,9 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	}
 	upgrader := provideWebsocketUpgrader(appConfig)
 	manager := provideWebsocketManager(upgrader, metrics)
-	repositoryPrivateMessageRepository := provideNotificationPrivateMessageRepository(unitOfWork)
+	repositoryPrivateMessageRepository := provideNotificationPrivateMessageRepository(db)
 	privateMessageReadUseCase := provideNotificationPrivateMessageReadUseCase(repositoryPrivateMessageRepository)
-	repositoryRoomMessageRepository := provideNotificationRoomMessageRepository(unitOfWork)
+	repositoryRoomMessageRepository := provideNotificationRoomMessageRepository(db)
 	roomMessageReadUseCase := provideNotificationRoomMessageReadUseCase(repositoryRoomMessageRepository)
 	router := provideWebsocketRouter(appConfig, privateMessageReadUseCase, roomMessageReadUseCase)
 	server := provideWebsocketServer(manager, router, eventRepository, eventIDGenerator)

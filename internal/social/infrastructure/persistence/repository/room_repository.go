@@ -48,8 +48,7 @@ func (repo *RoomRepository) Update(ctx context.Context, room *domain.Room) error
 
 		// 使用 Replace 来更新多对多关联的成员
 		// 删除不再存在的关联并添加新的关联
-		err := tx.Model(&modelRoom).Association("Members").Replace(modelRoom.Members)
-		if err != nil {
+		if err := tx.Model(&modelRoom).Association("Members").Replace(modelRoom.Members); err != nil {
 			return gormutils.TranslateError(err)
 		}
 

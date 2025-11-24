@@ -21,29 +21,29 @@ func (r *PrivateMessageReadInput) Validate() error {
 }
 
 type privateMessageReadUseCase struct {
-	messageFinder domain.PrivateMessageFinder
-	messageSaver  domain.PrivateMessageSaver
+	messageFinder  domain.PrivateMessageFinderByID
+	messageUpdater domain.PrivateMessageUpdater
 }
 
 func NewPrivateMessageReadUseCase(
-	messageFinder domain.PrivateMessageFinder,
-	messageSaver domain.PrivateMessageSaver,
+	messageFinder domain.PrivateMessageFinderByID,
+	messageUpdater domain.PrivateMessageUpdater,
 ) PrivateMessageReadUseCase {
 	return &privateMessageReadUseCase{
-		messageFinder: messageFinder,
-		messageSaver:  messageSaver,
+		messageFinder:  messageFinder,
+		messageUpdater: messageUpdater,
 	}
 }
 
 func (uc *privateMessageReadUseCase) Execute(ctx context.Context, input *PrivateMessageReadInput) (*kernel.NoOutput, error) {
-	message, err := uc.messageFinder.FindPrivateMessage(ctx, input.MessageID)
+	message, err := uc.messageFinder.FindByID(ctx, input.MessageID)
 	if err != nil {
 		return nil, err
 	}
 
 	message.Read()
 
-	if err := uc.messageSaver.SavePrivateMessage(ctx, message); err != nil {
+	if err := uc.messageUpdater.Update(ctx, message); err != nil {
 		return nil, err
 	}
 

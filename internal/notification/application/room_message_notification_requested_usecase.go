@@ -32,16 +32,16 @@ func (r *RoomMessageNotificationRequestedInput) Validate() error {
 }
 
 type roomMessageNotificationRequestedUseCase struct {
-	messageSaver    domain.RoomMessageSaver
+	messageCreator  domain.RoomMessageCreator
 	messageNotifier domain.RoomMessageNotifier
 }
 
 func NewRoomMessageNotificationRequestedUseCase(
 	messageNotifier domain.RoomMessageNotifier,
-	messageSaver domain.RoomMessageSaver,
+	messageCreator domain.RoomMessageCreator,
 ) RoomMessageNotificationRequestedUseCase {
 	return &roomMessageNotificationRequestedUseCase{
-		messageSaver:    messageSaver,
+		messageCreator:  messageCreator,
 		messageNotifier: messageNotifier,
 	}
 }
@@ -62,7 +62,7 @@ func (uc *roomMessageNotificationRequestedUseCase) Execute(ctx context.Context, 
 		return nil, err
 	}
 
-	if err := uc.messageSaver.SaveRoomMessage(ctx, message); err != nil {
+	if err := uc.messageCreator.Create(ctx, message); err != nil {
 		return nil, err
 	}
 	return nil, nil

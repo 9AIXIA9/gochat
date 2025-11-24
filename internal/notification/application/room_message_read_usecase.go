@@ -22,17 +22,17 @@ func (r *RoomMessageReadInput) Validate() error {
 }
 
 type roomMessageReadUseCase struct {
-	messageFinder domain.RoomMessageFinder
-	messageSaver  domain.RoomMessageSaver
+	messageFinder  domain.RoomMessageFinderByID
+	messageUpdater domain.RoomMessageUpdater
 }
 
 func NewRoomMessageReadUseCase(
-	messageFinder domain.RoomMessageFinder,
-	messageSaver domain.RoomMessageSaver,
+	messageFinder domain.RoomMessageFinderByID,
+	messageUpdater domain.RoomMessageUpdater,
 ) RoomMessageReadUseCase {
 	return &roomMessageReadUseCase{
-		messageFinder: messageFinder,
-		messageSaver:  messageSaver,
+		messageFinder:  messageFinder,
+		messageUpdater: messageUpdater,
 	}
 }
 
@@ -44,7 +44,7 @@ func (uc *roomMessageReadUseCase) Execute(ctx context.Context, input *RoomMessag
 
 	message.Read(input.UserID)
 
-	if err := uc.messageSaver.SaveRoomMessage(ctx, message); err != nil {
+	if err := uc.messageUpdater.Update(ctx, message); err != nil {
 		return nil, err
 	}
 

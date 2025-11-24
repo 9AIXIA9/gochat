@@ -6,24 +6,29 @@ import (
 )
 
 type RoomMessageRepository interface {
-	RoomMessageSaver
-	RoomMessagesSaver
-	RoomMessageFinder
-	UndeliveredRoomMessageFinder
+	RoomMessageCreator
+	RoomMessageUpdater
+	RoomMessagesUpdater
+	RoomMessageFinderByID
+	UserRoomMessagesFinderByState
 }
 
-type RoomMessageSaver interface {
-	SaveRoomMessage(ctx context.Context, message *RoomMessage) error
+type RoomMessageCreator interface {
+	Create(ctx context.Context, message *RoomMessage) error
 }
 
-type RoomMessagesSaver interface {
-	SaveRoomMessages(ctx context.Context, message []*RoomMessage) error
+type RoomMessageUpdater interface {
+	Update(ctx context.Context, message *RoomMessage) error
 }
 
-type RoomMessageFinder interface {
+type RoomMessagesUpdater interface {
+	Updates(ctx context.Context, messages []*RoomMessage) error
+}
+
+type RoomMessageFinderByID interface {
 	FindRoomMessage(ctx context.Context, messageID kernel.MessageID) (*RoomMessage, error)
 }
 
-type UndeliveredRoomMessageFinder interface {
-	FindUndeliveredRoomMessages(ctx context.Context, userID kernel.UserID) ([]*RoomMessage, error)
+type UserRoomMessagesFinderByState interface {
+	FindsByState(ctx context.Context, userID kernel.UserID, state MessageState) ([]*RoomMessage, error)
 }

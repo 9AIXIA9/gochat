@@ -21,39 +21,39 @@ func (r *UndeliveredMessagesNotificationRequestedInput) Validate() error {
 }
 
 type undeliveredMessagesNotificationRequestedUseCase struct {
-	undeliveredPrivateMessageFinder domain.UndeliveredPrivateMessageFinder
-	privateMessagesSaver            domain.PrivateMessagesSaver
-	privateMessageNotifier          domain.PrivateMessageNotifier
-	undeliveredRoomMessageFinder    domain.UndeliveredRoomMessageFinder
-	roomMessagesSaver               domain.RoomMessagesSaver
-	roomMessageNotifier             domain.RoomMessageNotifier
+	userPrivateMessagesFinderByState domain.UserPrivateMessagesFinderByState
+	privateMessagesUpdater           domain.PrivateMessagesUpdater
+	privateMessageNotifier           domain.PrivateMessageNotifier
+	userRoomMessagesFinderByState    domain.UserRoomMessagesFinderByState
+	roomMessagesUpdater              domain.RoomMessagesUpdater
+	roomMessageNotifier              domain.RoomMessageNotifier
 }
 
 func NewUndeliveredMessagesNotificationRequestedUseCase(
-	undeliveredPrivateMessageFinder domain.UndeliveredPrivateMessageFinder,
-	privateMessagesSaver domain.PrivateMessagesSaver,
+	userPrivateMessagesFinderByState domain.UserPrivateMessagesFinderByState,
+	privateMessagesUpdater domain.PrivateMessagesUpdater,
 	privateMessageNotifier domain.PrivateMessageNotifier,
-	undeliveredRoomMessageFinder domain.UndeliveredRoomMessageFinder,
-	roomMessagesSaver domain.RoomMessagesSaver,
+	userRoomMessagesFinderByState domain.UserRoomMessagesFinderByState,
+	roomMessagesUpdater domain.RoomMessagesUpdater,
 	roomMessageNotifier domain.RoomMessageNotifier,
 ) UndeliveredMessagesNotificationRequestedUseCase {
 	return &undeliveredMessagesNotificationRequestedUseCase{
-		undeliveredPrivateMessageFinder: undeliveredPrivateMessageFinder,
-		privateMessagesSaver:            privateMessagesSaver,
-		privateMessageNotifier:          privateMessageNotifier,
-		undeliveredRoomMessageFinder:    undeliveredRoomMessageFinder,
-		roomMessagesSaver:               roomMessagesSaver,
-		roomMessageNotifier:             roomMessageNotifier,
+		userPrivateMessagesFinderByState: userPrivateMessagesFinderByState,
+		privateMessagesUpdater:           privateMessagesUpdater,
+		privateMessageNotifier:           privateMessageNotifier,
+		userRoomMessagesFinderByState:    userRoomMessagesFinderByState,
+		roomMessagesUpdater:              roomMessagesUpdater,
+		roomMessageNotifier:              roomMessageNotifier,
 	}
 }
 
 func (uc *undeliveredMessagesNotificationRequestedUseCase) Execute(ctx context.Context, input *UndeliveredMessagesNotificationRequestedInput) (*kernel.NoOutput, error) {
-	privateMessages, err := uc.undeliveredPrivateMessageFinder.FindUndeliveredPrivateMessages(ctx, input.UserID)
+	privateMessages, err := uc.userPrivateMessagesFinderByState.FindsByState(ctx, input.UserID, domain.MessageStateUndelivered)
 	if err != nil {
 		return nil, err
 	}
 
-	roomMessages, err := uc.undeliveredRoomMessageFinder.FindUndeliveredRoomMessages(ctx, input.UserID)
+	roomMessages, err := uc.userRoomMessagesFinderByState.FindsByState(ctx, input.UserID, domain.MessageStateUndelivered)
 	if err != nil {
 		return nil, err
 	}
@@ -69,13 +69,13 @@ func (uc *undeliveredMessagesNotificationRequestedUseCase) Execute(ctx context.C
 	}
 
 	if len(privateMessages) > 0 {
-		if err := uc.privateMessagesSaver.SavePrivateMessages(ctx, privateMessages); err != nil {
+		if err := uc.privateMessagesUpdater.Updates(ctx, privateMessages); err != nil {
 			return nil, err
 		}
 	}
 
 	if len(roomMessages) > 0 {
-		if err := uc.roomMessagesSaver.SaveRoomMessages(ctx, roomMessages); err != nil {
+		if err := uc.roomMessagesUpdater.Updates(ctx, roomMessages); err != nil {
 			return nil, err
 		}
 	}

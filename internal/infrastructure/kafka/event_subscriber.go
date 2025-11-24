@@ -38,7 +38,7 @@ type EventSubscriber struct {
 }
 
 // NewEventSubscriber creates a Kafka consumer-based subscriber.
-func NewEventSubscriber(config *Config, saver event.DeadLetterCreator, metrics *prometheus.Metrics) (*EventSubscriber, error) {
+func NewEventSubscriber(config *Config, creator event.DeadLetterCreator, metrics *prometheus.Metrics) (*EventSubscriber, error) {
 	consumer, err := ckafka.NewConsumer(getConsumerConfigMap(config))
 	if err != nil {
 		return nil, fmt.Errorf("create kafka consumer failed: %w", err)
@@ -55,7 +55,7 @@ func NewEventSubscriber(config *Config, saver event.DeadLetterCreator, metrics *
 		cancel:            cancel,
 		consumer:          consumer,
 		producer:          producer,
-		deadLetterCreator: saver,
+		deadLetterCreator: creator,
 		handlers:          make(map[event.Topic]event.Handler),
 		pollTimeout:       500 * time.Millisecond,
 		running:           false,

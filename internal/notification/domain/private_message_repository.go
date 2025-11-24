@@ -5,27 +5,30 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-//TODO 保存和创建要分开
-
 type PrivateMessageRepository interface {
-	PrivateMessageSaver
-	PrivateMessagesSaver
-	PrivateMessageFinder
-	UndeliveredPrivateMessageFinder
+	PrivateMessageCreator
+	PrivateMessageUpdater
+	PrivateMessagesUpdater
+	PrivateMessageFinderByID
+	UserPrivateMessagesFinderByState
 }
 
-type PrivateMessageSaver interface {
-	SavePrivateMessage(ctx context.Context, message *PrivateMessage) error
+type PrivateMessageCreator interface {
+	Create(ctx context.Context, message *PrivateMessage) error
 }
 
-type PrivateMessagesSaver interface {
-	SavePrivateMessages(ctx context.Context, messages []*PrivateMessage) error
+type PrivateMessageUpdater interface {
+	Update(ctx context.Context, message *PrivateMessage) error
 }
 
-type PrivateMessageFinder interface {
-	FindPrivateMessage(ctx context.Context, messageID kernel.MessageID) (*PrivateMessage, error)
+type PrivateMessagesUpdater interface {
+	Updates(ctx context.Context, messages []*PrivateMessage) error
 }
 
-type UndeliveredPrivateMessageFinder interface {
-	FindUndeliveredPrivateMessages(ctx context.Context, userID kernel.UserID) ([]*PrivateMessage, error)
+type PrivateMessageFinderByID interface {
+	FindByID(ctx context.Context, messageID kernel.MessageID) (*PrivateMessage, error)
+}
+
+type UserPrivateMessagesFinderByState interface {
+	FindsByState(ctx context.Context, userID kernel.UserID, state MessageState) ([]*PrivateMessage, error)
 }
