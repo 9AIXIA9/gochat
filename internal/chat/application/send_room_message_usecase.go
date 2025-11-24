@@ -31,27 +31,21 @@ func (i *SendRoomMessageInput) Validate() error {
 type sendRoomMessageUseCase struct {
 	messageIDGenerator domain.MessageIDGenerator
 	eventIDGenerator   event.IDGenerator
-	roomFinder         domain.RoomFinder
-	messageSaver       domain.RoomMessageSaver
-	creator            event.UnpublishedEventsCreator
-	unitOfWork         kernel.UnitOfWork
+	roomFinder         domain.RoomFinderByNumber
+	messageCreator     domain.RoomMessageCreator
 }
 
 func NewSendRoomMessageUseCase(
 	messageIDGenerator domain.MessageIDGenerator,
 	eventIDGenerator event.IDGenerator,
-	roomFinder domain.RoomFinder,
-	messageSaver domain.RoomMessageSaver,
-	creator event.UnpublishedEventsCreator,
-	unitOfWork kernel.UnitOfWork,
+	roomFinder domain.RoomFinderByNumber,
+	messageCreator domain.RoomMessageCreator,
 ) SendRoomMessageUseCase {
 	return &sendRoomMessageUseCase{
 		messageIDGenerator: messageIDGenerator,
 		eventIDGenerator:   eventIDGenerator,
 		roomFinder:         roomFinder,
-		messageSaver:       messageSaver,
-		creator:            creator,
-		unitOfWork:         unitOfWork,
+		messageCreator:     messageCreator,
 	}
 }
 
@@ -61,7 +55,7 @@ func (uc *sendRoomMessageUseCase) Execute(ctx context.Context, input *SendRoomMe
 		return nil, err
 	}
 
-	message, err := domain.SendRoomMessage(
+	message, err := domain.CreateRoomMessage(
 		room,
 		input.SenderID,
 		input.Content,
@@ -72,16 +66,7 @@ func (uc *sendRoomMessageUseCase) Execute(ctx context.Context, input *SendRoomMe
 		return nil, err
 	}
 
-	if err := uc.unitOfWork.Execute(ctx, func(txCtx context.Context) error {
-		if err := uc.messageSaver.SaveRoomMessage(txCtx, message); err != nil {
-			return err
-		}
-
-		if err := uc.creator.CreateUnpublishedEvents(txCtx, message.GetEvents()); err != nil {
-			return err
-		}
-		return nil
-	}); err != nil {
+	if err := uc.messageCreator.Create(ctx, message); err != nil {
 		return nil, err
 	}
 

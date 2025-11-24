@@ -28,7 +28,7 @@ func NewRoomRepository(db *gorm.DB, eventRepo event.Repository) *RoomRepository 
 
 func (repo *RoomRepository) Create(ctx context.Context, room *domain.Room) error {
 	return repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := repo.db.Create(repo.toModelRoom(room)).Error; err != nil {
+		if err := repo.db.Create(repo.toModel(room)).Error; err != nil {
 			return gormutils.TranslateError(err)
 		}
 
@@ -44,7 +44,7 @@ func (repo *RoomRepository) Create(ctx context.Context, room *domain.Room) error
 
 func (repo *RoomRepository) Update(ctx context.Context, room *domain.Room) error {
 	return repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		modelRoom := repo.toModelRoom(room)
+		modelRoom := repo.toModel(room)
 
 		// 使用 Replace 来更新多对多关联的成员
 		// 删除不再存在的关联并添加新的关联
@@ -76,7 +76,7 @@ func (repo *RoomRepository) FindByNumber(ctx context.Context, number kernel.Room
 		First(&m).Error; err != nil {
 		return nil, gormutils.TranslateError(err)
 	}
-	return repo.toDomainRoom(&m), nil
+	return repo.toDomain(&m), nil
 }
 
 func (repo *RoomRepository) FindByID(ctx context.Context, id kernel.RoomID) (*domain.Room, error) {
@@ -87,10 +87,10 @@ func (repo *RoomRepository) FindByID(ctx context.Context, id kernel.RoomID) (*do
 		First(&m).Error; err != nil {
 		return nil, gormutils.TranslateError(err)
 	}
-	return repo.toDomainRoom(&m), nil
+	return repo.toDomain(&m), nil
 }
 
-func (repo *RoomRepository) toModelRoom(room *domain.Room) *model.Room {
+func (repo *RoomRepository) toModel(room *domain.Room) *model.Room {
 	modelMembers := make([]*model.User, 0, len(room.Members()))
 	for _, member := range room.Members() {
 		modelMembers = append(modelMembers, &model.User{
@@ -111,7 +111,7 @@ func (repo *RoomRepository) toModelRoom(room *domain.Room) *model.Room {
 	}
 }
 
-func (repo *RoomRepository) toDomainRoom(m *model.Room) *domain.Room {
+func (repo *RoomRepository) toDomain(m *model.Room) *domain.Room {
 	memberIDs := make([]kernel.UserID, 0, len(m.Members))
 	for _, u := range m.Members {
 		memberIDs = append(memberIDs, u.ID)

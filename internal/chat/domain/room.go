@@ -11,6 +11,18 @@ type Room struct {
 	members []kernel.UserID
 }
 
+func CreateRoom(
+	id kernel.RoomID,
+	number kernel.RoomNumber,
+	ownerID kernel.UserID,
+) *Room {
+	return &Room{
+		id:      id,
+		number:  number,
+		members: []kernel.UserID{ownerID},
+	}
+}
+
 func LoadRoom(
 	id kernel.RoomID,
 	number kernel.RoomNumber,
@@ -20,6 +32,26 @@ func LoadRoom(
 		id:      id,
 		number:  number,
 		members: members,
+	}
+}
+
+func (r *Room) AddMember(
+	userID kernel.UserID,
+) {
+	if r.IsMember(userID) {
+		return
+	}
+	r.members = append(r.members, userID)
+}
+
+func (r *Room) DeleteMember(
+	userID kernel.UserID,
+) {
+	for i, member := range r.members {
+		if member == userID {
+			r.members = append(r.members[:i], r.members[i+1:]...)
+			return
+		}
 	}
 }
 

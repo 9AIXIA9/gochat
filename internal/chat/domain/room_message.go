@@ -34,7 +34,7 @@ func LoadRoomMessage(
 	}
 }
 
-func SendRoomMessage(
+func CreateRoomMessage(
 	room *Room,
 	senderID kernel.UserID,
 	content string,

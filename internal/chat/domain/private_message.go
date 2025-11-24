@@ -33,7 +33,7 @@ func LoadPrivateMessage(
 	}
 }
 
-func SendPrivateMessage(
+func CreatePrivateMessage(
 	recipient *User,
 	senderID kernel.UserID,
 	content string,

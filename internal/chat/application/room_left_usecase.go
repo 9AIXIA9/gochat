@@ -23,17 +23,27 @@ func (r *RoomLeftInput) Validate() error {
 }
 
 type roomLeftUseCase struct {
-	roomMemberDeleter domain.RoomMemberDeleter
+	roomFinder  domain.RoomFinderByID
+	roomUpdater domain.RoomUpdater
 }
 
 func NewRoomLeftUseCase(
-	roomMemberDeleter domain.RoomMemberDeleter,
+	roomFinder domain.RoomFinderByID,
+	roomUpdater domain.RoomUpdater,
 ) RoomLeftUseCase {
 	return &roomLeftUseCase{
-		roomMemberDeleter: roomMemberDeleter,
+		roomFinder:  roomFinder,
+		roomUpdater: roomUpdater,
 	}
 }
 
 func (uc *roomLeftUseCase) Execute(ctx context.Context, input *RoomLeftInput) (*kernel.NoOutput, error) {
-	return nil, uc.roomMemberDeleter.DeleteMember(ctx, input.RoomID, input.UserID)
+	room, err := uc.roomFinder.FindByID(ctx, input.RoomID)
+	if err != nil {
+		return nil, err
+	}
+
+	room.DeleteMember(input.UserID)
+
+	return nil, uc.roomUpdater.Update(ctx, room)
 }

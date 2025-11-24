@@ -19,6 +19,16 @@ func LoadUser(
 	}
 }
 
+func CreateUser(
+	id kernel.UserID,
+	number kernel.UserNumber,
+) *User {
+	return &User{
+		id:     id,
+		number: number,
+	}
+}
+
 func (u *User) ID() kernel.UserID {
 	return u.id
 }

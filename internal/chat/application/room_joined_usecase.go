@@ -23,17 +23,27 @@ func (r *RoomJoinedInput) Validate() error {
 }
 
 type roomJoinedUseCase struct {
-	roomMemberSaver domain.RoomMemberSaver
+	roomFinder  domain.RoomFinderByID
+	roomUpdater domain.RoomUpdater
 }
 
 func NewRoomJoinedUseCase(
-	roomMemberSaver domain.RoomMemberSaver,
+	roomFinder domain.RoomFinderByID,
+	roomUpdater domain.RoomUpdater,
 ) RoomJoinedUseCase {
 	return &roomJoinedUseCase{
-		roomMemberSaver: roomMemberSaver,
+		roomFinder:  roomFinder,
+		roomUpdater: roomUpdater,
 	}
 }
 
 func (uc *roomJoinedUseCase) Execute(ctx context.Context, input *RoomJoinedInput) (*kernel.NoOutput, error) {
-	return nil, uc.roomMemberSaver.SaveMember(ctx, input.RoomID, input.UserID)
+	room, err := uc.roomFinder.FindByID(ctx, input.RoomID)
+	if err != nil {
+		return nil, err
+	}
+
+	room.AddMember(input.UserID)
+
+	return nil, uc.roomUpdater.Update(ctx, room)
 }

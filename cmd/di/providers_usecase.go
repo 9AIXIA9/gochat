@@ -9,7 +9,6 @@ import (
 	notificationApp "gochat/internal/notification/application"
 	notificationDomain "gochat/internal/notification/domain"
 	"gochat/internal/shared/event"
-	"gochat/internal/shared/kernel"
 	socialApp "gochat/internal/social/application"
 	socialDomain "gochat/internal/social/domain"
 	socialPersistence "gochat/internal/social/infrastructure/persistence/repository"
@@ -89,20 +88,16 @@ func provideSendPrivateMessageUseCase(
 	eventIDGen event.IDGenerator,
 	userRepo chatDomain.UserRepository,
 	messageRepo chatDomain.PrivateMessageRepository,
-	eventRepo event.Repository,
-	unitOfWork kernel.UnitOfWork,
 ) chatApp.SendPrivateMessageUseCase {
-	return chatApp.NewSendPrivateMessageUseCase(messageIDGen, eventIDGen, userRepo, messageRepo, eventRepo, unitOfWork)
+	return chatApp.NewSendPrivateMessageUseCase(messageIDGen, eventIDGen, userRepo, messageRepo)
 }
 func provideSendRoomMessageUseCase(
 	messageIDGen chatDomain.MessageIDGenerator,
 	eventIDGen event.IDGenerator,
 	roomRepo chatDomain.RoomRepository,
 	messageRepo chatDomain.RoomMessageRepository,
-	eventRepo event.Repository,
-	unitOfWork kernel.UnitOfWork,
 ) chatApp.SendRoomMessageUseCase {
-	return chatApp.NewSendRoomMessageUseCase(messageIDGen, eventIDGen, roomRepo, messageRepo, eventRepo, unitOfWork)
+	return chatApp.NewSendRoomMessageUseCase(messageIDGen, eventIDGen, roomRepo, messageRepo)
 }
 func provideCreateRoomUseCase(
 	eventIDGen event.IDGenerator,
@@ -177,15 +172,14 @@ func provideChatUserCreatedUseCase(userRepo chatDomain.UserRepository) chatApp.U
 }
 func provideChatRoomCreatedUseCase(
 	roomRepo chatDomain.RoomRepository,
-	unitOfWork kernel.UnitOfWork,
 ) chatApp.RoomCreatedUseCase {
-	return chatApp.NewRoomCreatedUseCase(roomRepo, roomRepo, unitOfWork)
+	return chatApp.NewRoomCreatedUseCase(roomRepo)
 }
 func provideChatRoomJoinedUseCase(roomRepo chatDomain.RoomRepository) chatApp.RoomJoinedUseCase {
-	return chatApp.NewRoomJoinedUseCase(roomRepo)
+	return chatApp.NewRoomJoinedUseCase(roomRepo, roomRepo)
 }
 func provideChatRoomLeftUseCase(roomRepo chatDomain.RoomRepository) chatApp.RoomLeftUseCase {
-	return chatApp.NewRoomLeftUseCase(roomRepo)
+	return chatApp.NewRoomLeftUseCase(roomRepo, roomRepo)
 }
 func provideChatPrivateMessageCreatedUseCase(
 	eventIDGen event.IDGenerator,

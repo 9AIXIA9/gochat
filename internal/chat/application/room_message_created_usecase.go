@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	"gochat/internal/chat/domain"
 	notificationDomain "gochat/internal/notification/domain"
 	myErrors "gochat/internal/shared/errors"
@@ -28,20 +29,20 @@ type roomMessageCreatedUseCase struct {
 	eventIDGenerator  event.IDGenerator
 	creator           event.UnpublishedEventCreator
 	roomMessageFinder domain.RoomMessageFinder
-	roomMembersFinder domain.RoomMembersFinder
+	roomFinder        domain.RoomFinderByID
 }
 
 func NewRoomMessageCreatedUseCase(
 	eventIDGenerator event.IDGenerator,
 	roomMessageFinder domain.RoomMessageFinder,
-	roomMembersFinder domain.RoomMembersFinder,
+	roomFinder domain.RoomFinderByID,
 	creator event.UnpublishedEventCreator,
 ) RoomMessageCreatedUseCase {
 	return &roomMessageCreatedUseCase{
 		eventIDGenerator:  eventIDGenerator,
 		creator:           creator,
 		roomMessageFinder: roomMessageFinder,
-		roomMembersFinder: roomMembersFinder,
+		roomFinder:        roomFinder,
 	}
 }
 
@@ -51,9 +52,25 @@ func (uc *roomMessageCreatedUseCase) Execute(ctx context.Context, input *RoomMes
 		return nil, err
 	}
 
-	members, err := uc.roomMembersFinder.FindMembers(ctx, message.RoomID())
+	room, err := uc.roomFinder.FindByID(ctx, message.RoomID())
 	if err != nil {
+		if errors.Is(err, myErrors.ErrNotFound) {
+			return nil, nil
+
+		}
 		return nil, err
+	}
+
+	recipients := room.Members()
+	for i, recipient := range recipients {
+		if recipient == message.SenderID() {
+			recipients = append(recipients[:i], recipients[i+1:]...)
+			break
+		}
+	}
+
+	if len(recipients) == 0 {
+		return nil, nil
 	}
 
 	ev, err := notificationDomain.NewRoomMessageNotificationRequestedEvent(
@@ -61,7 +78,7 @@ func (uc *roomMessageCreatedUseCase) Execute(ctx context.Context, input *RoomMes
 		message.ID(),
 		message.SenderID(),
 		message.RoomID(),
-		members,
+		recipients,
 		message.Content(),
 		message.SentAt(),
 	)

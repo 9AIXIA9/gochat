@@ -5,32 +5,25 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-//TODO 存储层也要进行重构
-
 type RoomRepository interface {
-	RoomFinder
-	RoomNumberSaver
-	RoomMemberSaver
-	RoomMemberDeleter
-	RoomMembersFinder
+	RoomFinderByID
+	RoomFinderByNumber
+	RoomCreator
+	RoomUpdater
 }
 
-type RoomFinder interface {
+type RoomFinderByID interface {
+	FindByID(ctx context.Context, id kernel.RoomID) (*Room, error)
+}
+
+type RoomFinderByNumber interface {
 	FindByNumber(ctx context.Context, number kernel.RoomNumber) (*Room, error)
 }
 
-type RoomNumberSaver interface {
-	SaveNumber(ctx context.Context, roomID kernel.RoomID, number kernel.RoomNumber) error
+type RoomCreator interface {
+	Create(ctx context.Context, room *Room) error
 }
 
-type RoomMemberSaver interface {
-	SaveMember(ctx context.Context, roomID kernel.RoomID, userID kernel.UserID) error
-}
-
-type RoomMemberDeleter interface {
-	DeleteMember(ctx context.Context, roomID kernel.RoomID, userID kernel.UserID) error
-}
-
-type RoomMembersFinder interface {
-	FindMembers(ctx context.Context, roomID kernel.RoomID) ([]kernel.UserID, error)
+type RoomUpdater interface {
+	Update(ctx context.Context, room *Room) error
 }

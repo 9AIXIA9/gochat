@@ -101,17 +101,17 @@ func provideAuthorizationUserRepository(db *gorm.DB, eventRepo event.Repository)
 func provideAuthorizationRefreshTokenRepository(redisClient *redis.Client) *authRepo.RefreshTokenRepository {
 	return authRepo.NewRefreshTokenRepository(redisClient, &authConverter.RefreshTokenConverter{})
 }
-func provideChatUserRepository(unitOfWork *gormInfra.UnitOfWork) *chatRepo.UserRepository {
-	return chatRepo.NewUserRepository(unitOfWork)
+func provideChatUserRepository(db *gorm.DB) *chatRepo.UserRepository {
+	return chatRepo.NewUserRepository(db)
 }
-func provideChatRoomRepository(unitOfWork *gormInfra.UnitOfWork) *chatRepo.RoomRepository {
-	return chatRepo.NewRoomRepository(unitOfWork)
+func provideChatRoomRepository(db *gorm.DB) *chatRepo.RoomRepository {
+	return chatRepo.NewRoomRepository(db)
 }
-func provideChatPrivateMessageRepository(unitOfWork *gormInfra.UnitOfWork) *chatRepo.PrivateMessageRepository {
-	return chatRepo.NewPrivateMessageRepository(unitOfWork)
+func provideChatPrivateMessageRepository(db *gorm.DB, eventRepo event.Repository) *chatRepo.PrivateMessageRepository {
+	return chatRepo.NewPrivateMessageRepository(db, eventRepo)
 }
-func provideChatRoomMessageRepository(unitOfWork *gormInfra.UnitOfWork) *chatRepo.RoomMessageRepository {
-	return chatRepo.NewRoomMessageRepository(unitOfWork)
+func provideChatRoomMessageRepository(db *gorm.DB, eventRepo event.Repository) *chatRepo.RoomMessageRepository {
+	return chatRepo.NewRoomMessageRepository(db, eventRepo)
 }
 func provideSocialUserRepository(unitOfWork *gormInfra.UnitOfWork) *socialRepo.UserRepository {
 	return socialRepo.NewUserRepository(unitOfWork)

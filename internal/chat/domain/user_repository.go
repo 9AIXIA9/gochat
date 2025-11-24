@@ -7,13 +7,13 @@ import (
 
 type UserRepository interface {
 	UserFinderByNumber
-	UserNumberSaver
+	UserCreator
+}
+
+type UserCreator interface {
+	Create(ctx context.Context, user *User) error
 }
 
 type UserFinderByNumber interface {
 	FindByNumber(ctx context.Context, number kernel.UserNumber) (*User, error)
-}
-
-type UserNumberSaver interface {
-	SaveNumber(ctx context.Context, userID kernel.UserID, number kernel.UserNumber) error
 }

@@ -27,34 +27,21 @@ func (r *RoomCreatedInput) Validate() error {
 }
 
 type roomCreatedUseCase struct {
-	roomNumberSaver domain.RoomNumberSaver
-	roomMemberSaver domain.RoomMemberSaver
-	unitOfWork      kernel.UnitOfWork
+	roomCreator domain.RoomCreator
 }
 
 func NewRoomCreatedUseCase(
-	roomNumberSaver domain.RoomNumberSaver,
-	roomMemberSaver domain.RoomMemberSaver,
-	unitOfWork kernel.UnitOfWork,
+	roomCreator domain.RoomCreator,
 ) RoomCreatedUseCase {
 	return &roomCreatedUseCase{
-		roomNumberSaver: roomNumberSaver,
-		roomMemberSaver: roomMemberSaver,
-		unitOfWork:      unitOfWork,
+		roomCreator: roomCreator,
 	}
 }
 
 func (uc *roomCreatedUseCase) Execute(ctx context.Context, input *RoomCreatedInput) (*kernel.NoOutput, error) {
-	if err := uc.unitOfWork.Execute(ctx, func(txCtx context.Context) error {
-		if err := uc.roomNumberSaver.SaveNumber(txCtx, input.RoomID, input.RoomNumber); err != nil {
-			return err
-		}
+	room := domain.CreateRoom(input.RoomID, input.RoomNumber, input.OwnerID)
 
-		if err := uc.roomMemberSaver.SaveMember(txCtx, input.RoomID, input.OwnerID); err != nil {
-			return err
-		}
-		return nil
-	}); err != nil {
+	if err := uc.roomCreator.Create(ctx, room); err != nil {
 		return nil, err
 	}
 	return nil, nil

@@ -6,12 +6,12 @@ import (
 )
 
 type RoomMessageRepository interface {
-	RoomMessageSaver
+	RoomMessageCreator
 	RoomMessageFinder
 }
 
-type RoomMessageSaver interface {
-	SaveRoomMessage(ctx context.Context, message *RoomMessage) error
+type RoomMessageCreator interface {
+	Create(ctx context.Context, message *RoomMessage) error
 }
 
 type RoomMessageFinder interface {

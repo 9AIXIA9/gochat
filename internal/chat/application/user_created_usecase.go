@@ -27,17 +27,19 @@ func (r *UserCreatedInput) Validate() error {
 }
 
 type userCreatedUseCase struct {
-	userNumberSaver domain.UserNumberSaver
+	userCreator domain.UserCreator
 }
 
 func NewUserCreatedUseCase(
-	userNumberSaver domain.UserNumberSaver,
+	userCreator domain.UserCreator,
 ) UserCreatedUseCase {
 	return &userCreatedUseCase{
-		userNumberSaver: userNumberSaver,
+		userCreator: userCreator,
 	}
 }
 
 func (uc *userCreatedUseCase) Execute(ctx context.Context, input *UserCreatedInput) (*kernel.NoOutput, error) {
-	return nil, uc.userNumberSaver.SaveNumber(ctx, input.UserID, input.UserNumber)
+	user := domain.CreateUser(input.UserID, input.UserNumber)
+
+	return nil, uc.userCreator.Create(ctx, user)
 }

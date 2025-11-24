@@ -6,12 +6,12 @@ import (
 )
 
 type PrivateMessageRepository interface {
-	PrivateMessageSaver
+	PrivateMessageCreator
 	PrivateMessageFinder
 }
 
-type PrivateMessageSaver interface {
-	SavePrivateMessage(ctx context.Context, message *PrivateMessage) error
+type PrivateMessageCreator interface {
+	Create(ctx context.Context, message *PrivateMessage) error
 }
 
 type PrivateMessageFinder interface {
