@@ -22,7 +22,7 @@ type RoomMessageNotificationRequestedEvent struct {
 }
 
 func ToRoomMessageNotificationRequestedEvent(ev event.Event) (*RoomMessageNotificationRequestedEvent, error) {
-	e := &RoomMessageNotificationRequestedEvent{StandardEvent: event.NewStandardEventFrom(ev)}
+	e := &RoomMessageNotificationRequestedEvent{StandardEvent: event.LoadStandardEventFromEvent(ev)}
 	if len(ev.Payload()) > 0 {
 		if err := e.Unmarshal(ev.Payload()); err != nil {
 			return nil, err
@@ -32,13 +32,13 @@ func ToRoomMessageNotificationRequestedEvent(ev event.Event) (*RoomMessageNotifi
 }
 
 func NewRoomMessageNotificationRequestedEvent(
-	id event.ID,
 	messageID kernel.MessageID,
 	senderID kernel.UserID,
 	roomID kernel.RoomID,
 	recipientIDs []kernel.UserID,
 	content string,
 	sentAt time.Time,
+	generator event.IDGenerator,
 ) (*RoomMessageNotificationRequestedEvent, error) {
 	e := &RoomMessageNotificationRequestedEvent{
 		messageID:    messageID,
@@ -53,7 +53,7 @@ func NewRoomMessageNotificationRequestedEvent(
 		return nil, err
 	}
 
-	e.StandardEvent = event.NewStandardEvent(id, kernel.ID(messageID), time.Now().UTC(), TopicRoomMessageNotificationRequested, payload)
+	e.StandardEvent = event.NewStandardEvent(kernel.ID(messageID), TopicRoomMessageNotificationRequested, payload, generator)
 	return e, nil
 }
 

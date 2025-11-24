@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"time"
 )
 
 const TopicWelcomeEmailNotificationRequested event.Topic = "notification.welcome_email_notification.requested"
@@ -18,7 +17,7 @@ type WelcomeEmailRequestedNotificationEvent struct {
 }
 
 func ToWelcomeEmailNotificationRequestedEvent(ev event.Event) (*WelcomeEmailRequestedNotificationEvent, error) {
-	e := &WelcomeEmailRequestedNotificationEvent{StandardEvent: event.NewStandardEventFrom(ev)}
+	e := &WelcomeEmailRequestedNotificationEvent{StandardEvent: event.LoadStandardEventFromEvent(ev)}
 	if len(ev.Payload()) > 0 {
 		if err := e.Unmarshal(ev.Payload()); err != nil {
 			return nil, err
@@ -28,10 +27,10 @@ func ToWelcomeEmailNotificationRequestedEvent(ev event.Event) (*WelcomeEmailRequ
 }
 
 func NewWelcomeEmailNotificationRequestedEvent(
-	id event.ID,
 	userID kernel.UserID,
 	email kernel.Email,
 	number kernel.UserNumber,
+	generator event.IDGenerator,
 ) (*WelcomeEmailRequestedNotificationEvent, error) {
 	e := &WelcomeEmailRequestedNotificationEvent{
 		email:  email,
@@ -42,7 +41,7 @@ func NewWelcomeEmailNotificationRequestedEvent(
 		return nil, err
 	}
 
-	e.StandardEvent = event.NewStandardEvent(id, kernel.ID(userID), time.Now().UTC(), TopicWelcomeEmailNotificationRequested, payload)
+	e.StandardEvent = event.NewStandardEvent(kernel.ID(userID), TopicWelcomeEmailNotificationRequested, payload, generator)
 	return e, nil
 }
 

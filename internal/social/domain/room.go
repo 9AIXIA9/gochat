@@ -89,7 +89,7 @@ func CreateRoom(
 
 	r.members = append(r.members, ownerID)
 
-	ev, err := NewRoomCreatedEvent(eventIDGenerator.Generate(), r.id)
+	ev, err := NewRoomCreatedEvent(r.id, eventIDGenerator)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +119,7 @@ func (r *Room) AddMember(
 
 	r.members = append(r.members, userID)
 
-	ev, err := NewRoomJoinedEvent(generator.Generate(), userID, r.id)
+	ev, err := NewRoomJoinedEvent(userID, r.id, generator)
 	if err != nil {
 		return err
 	}
@@ -140,7 +140,7 @@ func (r *Room) DeleteMember(
 		if member == userID {
 			r.members = append(r.members[:i], r.members[i+1:]...)
 
-			ev, err := NewRoomLeftEvent(generator.Generate(), userID, r.id)
+			ev, err := NewRoomLeftEvent(userID, r.id, generator)
 			if err != nil {
 				return err
 			}

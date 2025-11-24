@@ -50,8 +50,8 @@ func CreatePrivateMessage(
 	}
 
 	ev, err := NewPrivateMessageCreatedEvent(
-		eventIDGenerator.Generate(),
 		message.id,
+		eventIDGenerator,
 	)
 	if err != nil {
 		return nil, err

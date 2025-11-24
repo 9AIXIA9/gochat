@@ -37,7 +37,7 @@ func NewUserSessionStartedUseCase(
 }
 
 func (uc *userCreatedUseCase) Execute(ctx context.Context, input *UserSessionStartedInput) (*kernel.NoOutput, error) {
-	ev, err := notificationDomain.NewUndeliveredMessagesNotificationRequestedEvent(uc.idGenerator.Generate(), input.UserID)
+	ev, err := notificationDomain.NewUndeliveredMessagesNotificationRequestedEvent(input.UserID, uc.idGenerator)
 	if err != nil {
 		return nil, err
 	}

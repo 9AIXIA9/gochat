@@ -3,7 +3,6 @@ package domain
 import (
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"time"
 )
 
 const TopicUndeliveredMessagesNotificationRequested event.Topic = "notification.undelivered_messages_notification.requested"
@@ -15,7 +14,7 @@ type UndeliveredMessagesNotificationRequestedEvent struct {
 }
 
 func ToUndeliveredMessagesNotificationRequestedEvent(ev event.Event) (*UndeliveredMessagesNotificationRequestedEvent, error) {
-	e := &UndeliveredMessagesNotificationRequestedEvent{StandardEvent: event.NewStandardEventFrom(ev)}
+	e := &UndeliveredMessagesNotificationRequestedEvent{StandardEvent: event.LoadStandardEventFromEvent(ev)}
 	if len(ev.Payload()) > 0 {
 		if err := e.Unmarshal(ev.Payload()); err != nil {
 			return nil, err
@@ -25,8 +24,8 @@ func ToUndeliveredMessagesNotificationRequestedEvent(ev event.Event) (*Undeliver
 }
 
 func NewUndeliveredMessagesNotificationRequestedEvent(
-	id event.ID,
 	userID kernel.UserID,
+	generator event.IDGenerator,
 ) (*UndeliveredMessagesNotificationRequestedEvent, error) {
 	e := &UndeliveredMessagesNotificationRequestedEvent{}
 	payload, err := e.Marshal()
@@ -34,7 +33,7 @@ func NewUndeliveredMessagesNotificationRequestedEvent(
 		return nil, err
 	}
 
-	e.StandardEvent = event.NewStandardEvent(id, kernel.ID(userID), time.Now().UTC(), TopicUndeliveredMessagesNotificationRequested, payload)
+	e.StandardEvent = event.NewStandardEvent(kernel.ID(userID), TopicUndeliveredMessagesNotificationRequested, payload, generator)
 	return e, nil
 }
 

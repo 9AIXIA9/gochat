@@ -20,7 +20,7 @@ type PrivateMessageNotificationRequestedEvent struct {
 }
 
 func ToPrivateMessageNotificationRequestedEvent(ev event.Event) (*PrivateMessageNotificationRequestedEvent, error) {
-	e := &PrivateMessageNotificationRequestedEvent{StandardEvent: event.NewStandardEventFrom(ev)}
+	e := &PrivateMessageNotificationRequestedEvent{StandardEvent: event.LoadStandardEventFromEvent(ev)}
 	if len(ev.Payload()) > 0 {
 		if err := e.Unmarshal(ev.Payload()); err != nil {
 			return nil, err
@@ -30,12 +30,12 @@ func ToPrivateMessageNotificationRequestedEvent(ev event.Event) (*PrivateMessage
 }
 
 func NewPrivateMessageNotificationRequestedEvent(
-	id event.ID,
 	messageID kernel.MessageID,
 	recipientID kernel.UserID,
 	senderID kernel.UserID,
 	content string,
 	sentAt time.Time,
+	generator event.IDGenerator,
 ) (*PrivateMessageNotificationRequestedEvent, error) {
 	e := &PrivateMessageNotificationRequestedEvent{
 		senderID:    senderID,
@@ -48,7 +48,12 @@ func NewPrivateMessageNotificationRequestedEvent(
 		return nil, err
 	}
 
-	e.StandardEvent = event.NewStandardEvent(id, kernel.ID(messageID), time.Now().UTC(), TopicPrivateMessageNotificationRequested, payload)
+	e.StandardEvent = event.NewStandardEvent(
+		kernel.ID(messageID),
+		TopicPrivateMessageNotificationRequested,
+		payload,
+		generator,
+	)
 	return e, nil
 }
 

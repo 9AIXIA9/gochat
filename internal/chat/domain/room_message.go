@@ -55,8 +55,8 @@ func CreateRoomMessage(
 	}
 
 	ev, err := NewRoomMessageCreatedEvent(
-		eventIDGenerator.Generate(),
 		message.id,
+		eventIDGenerator,
 	)
 	if err != nil {
 		return nil, err

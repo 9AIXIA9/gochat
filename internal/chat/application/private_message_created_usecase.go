@@ -54,12 +54,12 @@ func (uc *privateMessageCreatedUseCase) Execute(ctx context.Context, input *Priv
 	}
 
 	ev, err := notificationDomain.NewPrivateMessageNotificationRequestedEvent(
-		uc.eventIDGenerator.Generate(),
 		message.ID(),
 		message.RecipientID(),
 		message.SenderID(),
 		message.Content(),
 		message.SentAt(),
+		uc.eventIDGenerator,
 	)
 	if err != nil {
 		return nil, err

@@ -74,13 +74,13 @@ func (uc *roomMessageCreatedUseCase) Execute(ctx context.Context, input *RoomMes
 	}
 
 	ev, err := notificationDomain.NewRoomMessageNotificationRequestedEvent(
-		uc.eventIDGenerator.Generate(),
 		message.ID(),
 		message.SenderID(),
 		message.RoomID(),
 		recipients,
 		message.Content(),
 		message.SentAt(),
+		uc.eventIDGenerator,
 	)
 	if err != nil {
 		return nil, err

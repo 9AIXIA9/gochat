@@ -48,7 +48,7 @@ func (s *Server) ServeWS(w http.ResponseWriter, r *http.Request, userID kernel.U
 	s.manager.Register(userID, client)
 	client.Start()
 
-	ev, err := NewUserSessionStartedEvent(s.idGenerator.Generate(), userID)
+	ev, err := NewUserSessionStartedEvent(userID, s.idGenerator)
 	if err != nil {
 		zap.L().Error("failed to create UserSessionStartedEvent", zap.Error(err))
 	}
@@ -61,7 +61,7 @@ func (s *Server) ServeWS(w http.ResponseWriter, r *http.Request, userID kernel.U
 	<-ctxWithUserID.Done()
 	s.manager.Unregister(userID)
 
-	ev2, err := NewUserSessionEndedEvent(s.idGenerator.Generate(), userID)
+	ev2, err := NewUserSessionEndedEvent(userID, s.idGenerator)
 	if err != nil {
 		zap.L().Error("failed to create UserSessionEndedEvent", zap.Error(err))
 	}

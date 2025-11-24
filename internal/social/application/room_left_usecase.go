@@ -38,7 +38,7 @@ func NewRoomLeftUseCase(
 }
 
 func (uc *roomLeftUseCase) Execute(ctx context.Context, input *RoomLeftInput) (*kernel.NoOutput, error) {
-	chatEv, err := chatDomain.NewRoomLeftEvent(uc.idGenerator.Generate(), input.RoomID, input.UserID)
+	chatEv, err := chatDomain.NewRoomLeftEvent(input.RoomID, input.UserID, uc.idGenerator)
 	if err != nil {
 		return nil, err
 	}

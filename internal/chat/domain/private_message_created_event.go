@@ -3,7 +3,6 @@ package domain
 import (
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"time"
 )
 
 const TopicPrivateMessageCreated event.Topic = "chat.private_message.created"
@@ -15,7 +14,7 @@ type PrivateMessageCreatedEvent struct {
 }
 
 func ToPrivateMessageCreatedEvent(ev event.Event) (*PrivateMessageCreatedEvent, error) {
-	e := &PrivateMessageCreatedEvent{StandardEvent: event.NewStandardEventFrom(ev)}
+	e := &PrivateMessageCreatedEvent{StandardEvent: event.LoadStandardEventFromEvent(ev)}
 	if len(ev.Payload()) > 0 {
 		if err := e.Unmarshal(ev.Payload()); err != nil {
 			return nil, err
@@ -25,8 +24,8 @@ func ToPrivateMessageCreatedEvent(ev event.Event) (*PrivateMessageCreatedEvent, 
 }
 
 func NewPrivateMessageCreatedEvent(
-	id event.ID,
 	messageID kernel.MessageID,
+	generator event.IDGenerator,
 ) (*PrivateMessageCreatedEvent, error) {
 	e := &PrivateMessageCreatedEvent{}
 	payload, err := e.Marshal()
@@ -34,7 +33,12 @@ func NewPrivateMessageCreatedEvent(
 		return nil, err
 	}
 
-	e.StandardEvent = event.NewStandardEvent(id, kernel.ID(messageID), time.Now().UTC(), TopicPrivateMessageCreated, payload)
+	e.StandardEvent = event.NewStandardEvent(
+		kernel.ID(messageID),
+		TopicPrivateMessageCreated,
+		payload,
+		generator,
+	)
 	return e, nil
 }
 

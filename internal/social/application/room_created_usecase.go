@@ -46,7 +46,7 @@ func (uc *roomCreatedUseCase) Execute(ctx context.Context, input *RoomCreatedInp
 		return nil, err
 	}
 
-	chatEv, err := chatDomain.NewRoomCreatedEvent(uc.idGenerator.Generate(), room.ID(), room.Number(), room.OwnerID())
+	chatEv, err := chatDomain.NewRoomCreatedEvent(room.ID(), room.Number(), room.OwnerID(), uc.idGenerator)
 	if err != nil {
 		return nil, err
 	}

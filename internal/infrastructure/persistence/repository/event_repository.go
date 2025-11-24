@@ -117,7 +117,7 @@ func (repo *EventRepository) toEvents(models []*model.Event) []event.Event {
 	}
 	events := make([]event.Event, 0, len(models))
 	for _, m := range models {
-		events = append(events, event.NewStandardEvent(m.ID, m.AggregateID, m.CreatedAt, m.Topic, m.Payload))
+		events = append(events, event.LoadStandardEvent(m.ID, m.AggregateID, m.CreatedAt, m.Topic, m.Payload))
 	}
 	return events
 }

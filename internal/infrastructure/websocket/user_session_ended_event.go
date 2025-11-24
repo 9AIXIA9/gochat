@@ -3,7 +3,6 @@ package websocket
 import (
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"time"
 )
 
 const TopicUserSessionEnded event.Topic = "user_session.ended"
@@ -16,7 +15,7 @@ type UserSessionEndedEvent struct {
 
 // func ToUserSessionEndedEvent(ev event.Event) (*UserSessionEndedEvent, error) {
 func _(ev event.Event) (*UserSessionEndedEvent, error) {
-	e := &UserSessionEndedEvent{StandardEvent: event.NewStandardEventFrom(ev)}
+	e := &UserSessionEndedEvent{StandardEvent: event.LoadStandardEventFromEvent(ev)}
 	if len(ev.Payload()) > 0 {
 		if err := e.Unmarshal(ev.Payload()); err != nil {
 			return nil, err
@@ -26,8 +25,8 @@ func _(ev event.Event) (*UserSessionEndedEvent, error) {
 }
 
 func NewUserSessionEndedEvent(
-	id event.ID,
 	userID kernel.UserID,
+	generator event.IDGenerator,
 ) (*UserSessionEndedEvent, error) {
 	e := &UserSessionEndedEvent{}
 	payload, err := e.Marshal()
@@ -35,7 +34,7 @@ func NewUserSessionEndedEvent(
 		return nil, err
 	}
 
-	e.StandardEvent = event.NewStandardEvent(id, kernel.ID(userID), time.Now().UTC(), TopicUserSessionEnded, payload)
+	e.StandardEvent = event.NewStandardEvent(kernel.ID(userID), TopicUserSessionEnded, payload, generator)
 	return e, nil
 }
 

@@ -38,7 +38,11 @@ func NewRoomJoinedUseCase(
 }
 
 func (uc *roomJoinedUseCase) Execute(ctx context.Context, input *RoomJoinedInput) (*kernel.NoOutput, error) {
-	chatEv, err := chatDomain.NewRoomJoinedEvent(uc.idGenerator.Generate(), input.RoomID, input.UserID)
+	chatEv, err := chatDomain.NewRoomJoinedEvent(
+		input.RoomID,
+		input.UserID,
+		uc.idGenerator,
+	)
 	if err != nil {
 		return nil, err
 	}

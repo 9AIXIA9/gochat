@@ -55,7 +55,7 @@ func parseMessage(message *ckafka.Message) (event.Event, int) {
 			break
 		}
 	}
-	return event.NewStandardEvent(
+	return event.LoadStandardEvent(
 		id,
 		kernel.ID(message.Key),
 		message.Timestamp,
