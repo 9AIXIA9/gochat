@@ -28,7 +28,7 @@ func NewRoomRepository(db *gorm.DB, eventRepo event.Repository) *RoomRepository 
 
 func (repo *RoomRepository) Create(ctx context.Context, room *domain.Room) error {
 	return repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := repo.db.WithContext(ctx).Create(repo.toModelRoom(room)).Error; err != nil {
+		if err := repo.db.Create(repo.toModelRoom(room)).Error; err != nil {
 			return gormutils.TranslateError(err)
 		}
 

@@ -5,26 +5,45 @@ import (
 	"gochat/internal/authorization/domain"
 	"gochat/internal/authorization/infrastructure/persistence/model"
 	gormutils "gochat/internal/infrastructure/gorm"
+	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
+
+	"gorm.io/gorm"
 )
 
 var _ domain.UserRepository = (*UserRepository)(nil)
 
 type UserRepository struct {
-	unitOfWork *gormutils.UnitOfWork
+	db        *gorm.DB
+	eventRepo event.Repository
 }
 
-func NewUserRepository(unitOfWork *gormutils.UnitOfWork) *UserRepository {
-	return &UserRepository{unitOfWork: unitOfWork}
+func NewUserRepository(db *gorm.DB, eventRepo event.Repository) *UserRepository {
+	return &UserRepository{
+		db:        db,
+		eventRepo: eventRepo,
+	}
 }
 
 func (repo *UserRepository) Create(ctx context.Context, user *domain.User) error {
-	return gormutils.TranslateError(repo.unitOfWork.DB(ctx).WithContext(ctx).Create(repo.toModel(user)).Error)
+	return repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := repo.db.Create(repo.toModel(user)).Error; err != nil {
+			return gormutils.TranslateError(err)
+		}
+
+		//TODO 传递事务
+		txCtx := context.WithValue(ctx, gormutils.UnitOfWorkKey, tx)
+
+		if err := repo.eventRepo.CreateUnpublishedEvents(txCtx, user.GetEvents()); err != nil {
+			return gormutils.TranslateError(err)
+		}
+		return nil
+	})
 }
 
 func (repo *UserRepository) FindByNumber(ctx context.Context, number kernel.UserNumber) (*domain.User, error) {
 	var user model.User
-	if err := repo.unitOfWork.DB(ctx).WithContext(ctx).First(&user, "number = ?", number).Error; err != nil {
+	if err := repo.db.WithContext(ctx).First(&user, "number = ?", number).Error; err != nil {
 		return nil, gormutils.TranslateError(err)
 	}
 	return repo.toDomain(&user), nil
@@ -32,7 +51,7 @@ func (repo *UserRepository) FindByNumber(ctx context.Context, number kernel.User
 
 func (repo *UserRepository) FindByID(ctx context.Context, id kernel.UserID) (*domain.User, error) {
 	var user model.User
-	if err := repo.unitOfWork.DB(ctx).WithContext(ctx).First(&user, "id = ?", id).Error; err != nil {
+	if err := repo.db.WithContext(ctx).First(&user, "id = ?", id).Error; err != nil {
 		return nil, gormutils.TranslateError(err)
 	}
 	return repo.toDomain(&user), nil

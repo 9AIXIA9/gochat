@@ -27,9 +27,9 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	}
 	metrics := provideMetrics()
 	unitOfWork := provideUnitOfWork(db, metrics)
-	userRepository := provideAuthorizationUserRepository(unitOfWork)
 	eventRepository := provideEventRepository(unitOfWork)
-	signUpUseCase := provideSignUpUseCase(eventIDGenerator, userIDGenerator, userNumberGenerator, hasher, userRepository, eventRepository, unitOfWork)
+	userRepository := provideAuthorizationUserRepository(db, eventRepository)
+	signUpUseCase := provideSignUpUseCase(eventIDGenerator, userIDGenerator, userNumberGenerator, hasher, userRepository)
 	accessTokenManager := provideAccessTokenManager(appConfig)
 	refreshTokenGenerator := provideRefreshTokenGenerator(appConfig)
 	client, err := provideRedis(appConfig)

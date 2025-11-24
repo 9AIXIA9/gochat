@@ -95,8 +95,8 @@ func provideUnitOfWork(mysql *gorm.DB, metrics *prometheus.Metrics) *gormInfra.U
 func provideEventRepository(unitOfWork *gormInfra.UnitOfWork) *repository.EventRepository {
 	return repository.NewEventRepository(unitOfWork)
 }
-func provideAuthorizationUserRepository(unitOfWork *gormInfra.UnitOfWork) *authRepo.UserRepository {
-	return authRepo.NewUserRepository(unitOfWork)
+func provideAuthorizationUserRepository(db *gorm.DB, eventRepo event.Repository) *authRepo.UserRepository {
+	return authRepo.NewUserRepository(db, eventRepo)
 }
 func provideAuthorizationRefreshTokenRepository(redisClient *redis.Client) *authRepo.RefreshTokenRepository {
 	return authRepo.NewRefreshTokenRepository(redisClient, &authConverter.RefreshTokenConverter{})

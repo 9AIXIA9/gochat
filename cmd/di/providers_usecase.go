@@ -60,10 +60,8 @@ func provideSignUpUseCase(
 	numberGen authDomain.UserNumberGenerator,
 	encryptor authDomain.Encryptor,
 	userRepo authDomain.UserRepository,
-	eventRepo event.Repository,
-	unitOfWork kernel.UnitOfWork,
 ) authApp.SignUpUseCase {
-	return authApp.NewSignUpUseCase(eventIDGen, userIDGen, numberGen, encryptor, userRepo, eventRepo, unitOfWork)
+	return authApp.NewSignUpUseCase(eventIDGen, userIDGen, numberGen, encryptor, userRepo)
 }
 
 func provideLoginUseCase(
