@@ -23,9 +23,11 @@ const timeTolerance = 150 * time.Millisecond
 const (
 	fixedUserID    kernel.UserID            = "user-123"
 	fixedUserNum   kernel.UserNumber        = "10001"
-	fixedEventID   event.ID                 = "ev-999"
+	fixedEventID   event.ID                 = "event-999"
 	fixedEmail     kernel.Email             = "test@example.com"
 	fixedEncrypted domain.PasswordEncrypted = "encrypted-pass"
+	plainPassword                           = "plain-pass"
+	wrongPassword                           = "wrong-pass"
 )
 
 // CreateUser success scenario
@@ -107,8 +109,6 @@ func TestUser_Login_Success(t *testing.T) {
 	require.NoError(t, err)
 	_ = user.GetEvents()
 
-	const plainPassword = "plain-pass"
-
 	comparator := domainMocks.NewMockComparator(ctrl)
 	comparator.EXPECT().Compare(fixedEncrypted.String(), plainPassword).Return(nil)
 
@@ -146,15 +146,13 @@ func TestUser_Login_WrongPassword(t *testing.T) {
 	require.NoError(t, err)
 	_ = user.GetEvents()
 
-	const plainPassword = "wrong-pass"
-
 	comparator := domainMocks.NewMockComparator(ctrl)
-	comparator.EXPECT().Compare(fixedEncrypted.String(), plainPassword).Return(errors.New("password mismatch"))
+	comparator.EXPECT().Compare(fixedEncrypted.String(), wrongPassword).Return(errors.New("password mismatch"))
 
 	refreshGen := domainMocks.NewMockRefreshTokenGenerator(ctrl)
 	refreshGen.EXPECT().Generate().Times(0)
 
-	rt, err := user.Login(plainPassword, comparator, refreshGen)
+	rt, err := user.Login(wrongPassword, comparator, refreshGen)
 	require.Error(t, err)
 	assert.Nil(t, rt)
 	assert.Contains(t, err.Error(), "password mismatch")
@@ -183,8 +181,6 @@ func TestUser_Login_RefreshTokenGeneratorError(t *testing.T) {
 	)
 	require.NoError(t, err)
 	_ = user.GetEvents()
-
-	const plainPassword = "plain-pass"
 
 	comparator := domainMocks.NewMockComparator(ctrl)
 	comparator.EXPECT().Compare(fixedEncrypted.String(), plainPassword).Return(nil)
