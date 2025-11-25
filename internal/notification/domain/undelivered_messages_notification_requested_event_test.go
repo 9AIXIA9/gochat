@@ -44,3 +44,19 @@ func TestToUndeliveredMessagesNotificationRequestedEvent(t *testing.T) {
 	require.ErrorIs(t, err, myErrors.ErrWrongEventType)
 	require.Nil(t, converted2)
 }
+
+func TestUndeliveredMessagesNotificationRequestedEvent_MarshalUnmarshal(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	idGen := eventMocks.NewMockIDGenerator(ctrl)
+	idGen.EXPECT().Generate().Return(undeliveredEventID).Times(2)
+	ev, err := domain.NewUndeliveredMessagesNotificationRequestedEvent(undeliveredUserID, idGen)
+	require.NoError(t, err)
+	payload, err := ev.Marshal()
+	require.NoError(t, err)
+	require.Equal(t, 0, len(payload))
+	std := event.NewStandardEvent(kernel.ID(undeliveredUserID), domain.TopicUndeliveredMessagesNotificationRequested, payload, idGen)
+	converted, err := domain.ToUndeliveredMessagesNotificationRequestedEvent(std)
+	require.NoError(t, err)
+	require.Equal(t, ev.ID(), converted.ID())
+}

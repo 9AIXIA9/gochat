@@ -63,3 +63,32 @@ func TestToPrivateMessageNotificationRequestedEvent(t *testing.T) {
 	require.ErrorIs(t, err, myErrors.ErrWrongEventType)
 	require.Nil(t, converted2)
 }
+
+func TestPrivateMessageNotificationRequestedEvent_MarshalUnmarshal(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	idGen := eventMocks.NewMockIDGenerator(ctrl)
+	idGen.EXPECT().Generate().Return(pmEventID).Times(2)
+	sentAt := time.Now().UTC().Add(-time.Second)
+	ev, err := domain.NewPrivateMessageNotificationRequestedEvent(pmMessageID, pmRecipientID, pmSenderIDEv, "marshal-content", sentAt, idGen)
+	require.NoError(t, err)
+	payload, err := ev.Marshal()
+	require.NoError(t, err)
+	var decoded struct {
+		SenderID    kernel.UserID
+		RecipientID kernel.UserID
+		Content     string
+		SentAt      time.Time
+	}
+	require.NoError(t, json.Unmarshal(payload, &decoded))
+	require.Equal(t, pmSenderIDEv, decoded.SenderID)
+	require.Equal(t, pmRecipientID, decoded.RecipientID)
+	require.Equal(t, "marshal-content", decoded.Content)
+	// round trip
+	std := event.NewStandardEvent(kernel.ID(pmMessageID), domain.TopicPrivateMessageNotificationRequested, payload, idGen)
+	converted, err := domain.ToPrivateMessageNotificationRequestedEvent(std)
+	require.NoError(t, err)
+	require.Equal(t, ev.SenderID(), converted.SenderID())
+	require.Equal(t, ev.RecipientID(), converted.RecipientID())
+	require.Equal(t, ev.Content(), converted.Content())
+}

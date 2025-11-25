@@ -51,3 +51,24 @@ func TestToUserCreatedEvent(t *testing.T) {
 	require.ErrorIs(t, err, myErrors.ErrWrongEventType)
 	require.Nil(t, converted2)
 }
+
+func TestUserCreatedEvent_MarshalUnmarshal(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	idGen := eventMocks.NewMockIDGenerator(ctrl)
+	idGen.EXPECT().Generate().Return(fixedEventIDEv).Times(2)
+	// create event
+	ev, err := domain.NewUserCreatedEvent(fixedUserIDEv, idGen)
+	require.NoError(t, err)
+	payload, err := ev.Marshal()
+	require.NoError(t, err)
+	// empty payload expected
+	require.Equal(t, 0, len(payload))
+	// build standard event with same payload and convert
+	std := event.NewStandardEvent(kernel.ID(fixedUserIDEv), domain.TopicUserCreated, payload, idGen)
+	converted, err := domain.ToUserCreatedEvent(std)
+	require.NoError(t, err)
+	require.Equal(t, ev.ID(), converted.ID())
+	// unmarshal on empty should be no-op
+	require.Equal(t, kernel.ID(fixedUserIDEv), converted.AggregateID())
+}

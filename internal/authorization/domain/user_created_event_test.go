@@ -67,3 +67,19 @@ func TestToUserCreatedEvent(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, ev2)
 }
+
+func TestAuthorizationUserCreatedEvent_MarshalUnmarshal(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	idGenerator := eventMock.NewMockIDGenerator(ctrl)
+	idGenerator.EXPECT().Generate().Return(fixedEventIDEv).Times(2)
+	ev, err := domain.NewUserCreatedEvent(fixedUserIDEv, idGenerator)
+	require.NoError(t, err)
+	payload, err := ev.Marshal()
+	require.NoError(t, err)
+	require.Len(t, payload, 0)
+	std := event.NewStandardEvent(kernel.ID(fixedUserIDEv), domain.TopicUserCreated, payload, idGenerator)
+	converted, err := domain.ToUserCreatedEvent(std)
+	require.NoError(t, err)
+	require.Equal(t, ev.ID(), converted.ID())
+}

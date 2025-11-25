@@ -257,3 +257,26 @@ func TestRoom_DeleteMember(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, r3.GetEvents(), 1)
 }
+
+func TestRoom_LoadRoom(t *testing.T) {
+	createdAt := time.Now().Add(-1 * time.Hour).UTC()
+	members := []kernel.UserID{fixedOwnerID, fixedUserID2}
+
+	room := domain.LoadRoom(
+		fixedRoomID,
+		fixedOwnerID,
+		fixedRoomNumber,
+		fixedEncryptedPassword,
+		members,
+		10,
+		createdAt,
+	)
+	assert.Equal(t, fixedRoomID, room.ID())
+	assert.Equal(t, fixedRoomNumber, room.Number())
+	assert.Equal(t, fixedOwnerID, room.OwnerID())
+	assert.Equal(t, 2, room.MemberCount())
+	assert.Equal(t, 10, room.MaxMemberCount())
+	assert.Equal(t, createdAt, room.CreatedAt())
+	assert.Equal(t, fixedEncryptedPassword, room.PasswordEncrypted().String())
+	assert.ElementsMatch(t, members, room.Members())
+}

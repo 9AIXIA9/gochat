@@ -53,3 +53,21 @@ func TestToRoomLeftEvent(t *testing.T) {
 	require.ErrorIs(t, err, myErrors.ErrWrongEventType)
 	require.Nil(t, converted2)
 }
+
+func TestRoomLeftEvent_MarshalUnmarshal(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	idGen := eventMocks.NewMockIDGenerator(ctrl)
+	idGen.EXPECT().Generate().Return(fixedEventIDLeft).Times(2)
+	ev, err := domain.NewRoomLeftEvent(fixedUserIDLeft, fixedRoomIDLeft, idGen)
+	require.NoError(t, err)
+	payload, err := ev.Marshal()
+	require.NoError(t, err)
+	var decoded struct{ UserID kernel.UserID }
+	require.NoError(t, json.Unmarshal(payload, &decoded))
+	require.Equal(t, fixedUserIDLeft, decoded.UserID)
+	std := event.NewStandardEvent(kernel.ID(fixedRoomIDLeft), domain.TopicRoomLeft, payload, idGen)
+	converted, err := domain.ToRoomLeftEvent(std)
+	require.NoError(t, err)
+	require.Equal(t, ev.UserID(), converted.UserID())
+}

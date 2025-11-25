@@ -51,3 +51,19 @@ func TestToRoomCreatedEvent(t *testing.T) {
 	require.ErrorIs(t, err, myErrors.ErrWrongEventType)
 	require.Nil(t, converted2)
 }
+
+func TestRoomCreatedEvent_MarshalUnmarshal(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	idGen := eventMocks.NewMockIDGenerator(ctrl)
+	idGen.EXPECT().Generate().Return(fixedEventIDRC).Times(2)
+	ev, err := domain.NewRoomCreatedEvent(fixedRoomIDEv, idGen)
+	require.NoError(t, err)
+	payload, err := ev.Marshal()
+	require.NoError(t, err)
+	require.Equal(t, 0, len(payload))
+	std := event.NewStandardEvent(kernel.ID(fixedRoomIDEv), domain.TopicRoomCreated, payload, idGen)
+	converted, err := domain.ToRoomCreatedEvent(std)
+	require.NoError(t, err)
+	require.Equal(t, ev.ID(), converted.ID())
+}

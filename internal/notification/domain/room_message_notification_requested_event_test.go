@@ -67,3 +67,33 @@ func TestToRoomMessageNotificationRequestedEvent(t *testing.T) {
 	require.ErrorIs(t, err, myErrors.ErrWrongEventType)
 	require.Nil(t, converted2)
 }
+
+func TestRoomMessageNotificationRequestedEvent_MarshalUnmarshal(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	idGen := eventMocks.NewMockIDGenerator(ctrl)
+	idGen.EXPECT().Generate().Return(roomMsgEventID).Times(2)
+	recipients := []kernel.UserID{"user-a", "user-b"}
+	sentAt := time.Now().UTC().Add(-time.Second)
+	ev, err := domain.NewRoomMessageNotificationRequestedEvent(roomMsgID, roomMsgSender, roomIDEvent, recipients, "room-content", sentAt, idGen)
+	require.NoError(t, err)
+	payload, err := ev.Marshal()
+	require.NoError(t, err)
+	var decoded struct {
+		MessageID    kernel.MessageID
+		SenderID     kernel.UserID
+		RoomID       kernel.RoomID
+		RecipientIDs []kernel.UserID
+		Content      string
+		SentAt       time.Time
+	}
+	require.NoError(t, json.Unmarshal(payload, &decoded))
+	require.Equal(t, roomMsgSender, decoded.SenderID)
+	require.Equal(t, roomIDEvent, decoded.RoomID)
+	require.ElementsMatch(t, recipients, decoded.RecipientIDs)
+	require.Equal(t, "room-content", decoded.Content)
+	std := event.NewStandardEvent(kernel.ID(roomMsgID), domain.TopicRoomMessageNotificationRequested, payload, idGen)
+	converted, err := domain.ToRoomMessageNotificationRequestedEvent(std)
+	require.NoError(t, err)
+	require.ElementsMatch(t, ev.RecipientIDs(), converted.RecipientIDs())
+}

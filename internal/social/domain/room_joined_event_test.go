@@ -55,3 +55,23 @@ func TestToRoomJoinedEvent(t *testing.T) {
 	require.ErrorIs(t, err, myErrors.ErrWrongEventType)
 	require.Nil(t, converted2)
 }
+
+func TestRoomJoinedEvent_MarshalUnmarshal(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	idGen := eventMocks.NewMockIDGenerator(ctrl)
+	idGen.EXPECT().Generate().Return(fixedEventIDJoined).Times(2)
+	ev, err := domain.NewRoomJoinedEvent(fixedUserIDJoined, fixedRoomIDJoined, idGen)
+	require.NoError(t, err)
+	payload, err := ev.Marshal()
+	require.NoError(t, err)
+	// decode JSON and verify
+	var decoded struct{ UserID kernel.UserID }
+	require.NoError(t, json.Unmarshal(payload, &decoded))
+	require.Equal(t, fixedUserIDJoined, decoded.UserID)
+	// round trip via standard event
+	std := event.NewStandardEvent(kernel.ID(fixedRoomIDJoined), domain.TopicRoomJoined, payload, idGen)
+	converted, err := domain.ToRoomJoinedEvent(std)
+	require.NoError(t, err)
+	require.Equal(t, ev.UserID(), converted.UserID())
+}

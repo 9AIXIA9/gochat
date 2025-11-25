@@ -54,3 +54,19 @@ func TestChatUserCreatedEvent_ToUserCreatedEvent(t *testing.T) {
 	require.ErrorIs(t, err, errors.ErrWrongEventType)
 	require.Nil(t, parsed2)
 }
+
+func TestChatUserCreatedEvent_MarshalUnmarshal(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	idGen := eventMocks.NewMockIDGenerator(ctrl)
+	idGen.EXPECT().Generate().Return(fixedChatUserEventID).Times(2)
+	ev, err := domain.NewUserCreatedEvent(fixedChatUserEventUserID, fixedChatUserEventNumber, idGen)
+	require.NoError(t, err)
+	payload, err := ev.Marshal()
+	require.NoError(t, err)
+	require.NotEmpty(t, payload)
+	std := event.NewStandardEvent(kernel.ID(fixedChatUserEventUserID), domain.TopicUserCreated, payload, idGen)
+	converted, err := domain.ToUserCreatedEvent(std)
+	require.NoError(t, err)
+	require.Equal(t, ev.Number(), converted.Number())
+}

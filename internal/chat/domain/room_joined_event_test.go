@@ -53,3 +53,19 @@ func TestRoomJoinedEvent_ToRoomJoinedEvent(t *testing.T) {
 	require.ErrorIs(t, err, errors.ErrWrongEventType)
 	require.Nil(t, parsed2)
 }
+
+func TestChatRoomJoinedEvent_MarshalUnmarshal(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	idGen := eventMocks.NewMockIDGenerator(ctrl)
+	idGen.EXPECT().Generate().Return(fixedRoomJoinedEventID).Times(2)
+	ev, err := domain.NewRoomJoinedEvent(fixedRoomJoinedRoomID, fixedRoomJoinedUserID, idGen)
+	require.NoError(t, err)
+	payload, err := ev.Marshal()
+	require.NoError(t, err)
+	require.NotEmpty(t, payload)
+	std := event.NewStandardEvent(kernel.ID(fixedRoomJoinedRoomID), domain.TopicRoomJoined, payload, idGen)
+	converted, err := domain.ToRoomJoinedEvent(std)
+	require.NoError(t, err)
+	require.Equal(t, ev.UserID(), converted.UserID())
+}

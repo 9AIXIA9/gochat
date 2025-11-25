@@ -54,3 +54,25 @@ func TestToWelcomeEmailNotificationRequestedEvent(t *testing.T) {
 	require.ErrorIs(t, err, myErrors.ErrWrongEventType)
 	require.Nil(t, converted2)
 }
+
+func TestWelcomeEmailNotificationRequestedEvent_MarshalUnmarshal(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	idGen := eventMocks.NewMockIDGenerator(ctrl)
+	idGen.EXPECT().Generate().Return(welcomeEventID).Times(2)
+	ev, err := domain.NewWelcomeEmailNotificationRequestedEvent(welcomeUserID, welcomeEmail, welcomeNumber, idGen)
+	require.NoError(t, err)
+	payload, err := ev.Marshal()
+	require.NoError(t, err)
+	var decoded struct {
+		Email  kernel.Email
+		Number kernel.UserNumber
+	}
+	require.NoError(t, json.Unmarshal(payload, &decoded))
+	require.Equal(t, welcomeEmail, decoded.Email)
+	require.Equal(t, welcomeNumber, decoded.Number)
+	std := event.NewStandardEvent(kernel.ID(welcomeUserID), domain.TopicWelcomeEmailNotificationRequested, payload, idGen)
+	converted, err := domain.ToWelcomeEmailNotificationRequestedEvent(std)
+	require.NoError(t, err)
+	require.Equal(t, ev.Email(), converted.Email())
+}

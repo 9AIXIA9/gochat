@@ -50,3 +50,19 @@ func TestRoomMessageCreatedEvent_ToRoomMessageCreatedEvent(t *testing.T) {
 	require.ErrorIs(t, err, errors.ErrWrongEventType)
 	require.Nil(t, parsed2)
 }
+
+func TestChatRoomMessageCreatedEvent_MarshalUnmarshal(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	idGen := eventMocks.NewMockIDGenerator(ctrl)
+	idGen.EXPECT().Generate().Return(fixedRoomMsgCreatedEventID).Times(2)
+	ev, err := domain.NewRoomMessageCreatedEvent(fixedRoomMsgCreatedMessageID, idGen)
+	require.NoError(t, err)
+	payload, err := ev.Marshal()
+	require.NoError(t, err)
+	require.Equal(t, 0, len(payload))
+	std := event.NewStandardEvent(kernel.ID(fixedRoomMsgCreatedMessageID), domain.TopicRoomMessageCreated, payload, idGen)
+	converted, err := domain.ToRoomMessageCreatedEvent(std)
+	require.NoError(t, err)
+	require.Equal(t, ev.ID(), converted.ID())
+}

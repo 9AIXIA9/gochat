@@ -50,3 +50,19 @@ func TestPrivateMessageCreatedEvent_ToPrivateMessageCreatedEvent(t *testing.T) {
 	require.ErrorIs(t, err, errors.ErrWrongEventType)
 	require.Nil(t, parsed2)
 }
+
+func TestPrivateMessageCreatedEvent_MarshalUnmarshal(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	idGen := eventMocks.NewMockIDGenerator(ctrl)
+	idGen.EXPECT().Generate().Return(fixedPrivateMsgCreatedEventID).Times(2)
+	ev, err := domain.NewPrivateMessageCreatedEvent(fixedPrivateMsgCreatedMessageID, idGen)
+	require.NoError(t, err)
+	payload, err := ev.Marshal()
+	require.NoError(t, err)
+	require.Equal(t, 0, len(payload))
+	std := event.NewStandardEvent(kernel.ID(fixedPrivateMsgCreatedMessageID), domain.TopicPrivateMessageCreated, payload, idGen)
+	converted, err := domain.ToPrivateMessageCreatedEvent(std)
+	require.NoError(t, err)
+	require.Equal(t, ev.ID(), converted.ID())
+}

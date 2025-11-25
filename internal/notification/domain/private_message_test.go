@@ -27,6 +27,7 @@ func TestPrivateMessage_ReceiveAndDeliverAndRead(t *testing.T) {
 	sentAt := time.Now().UTC()
 	m := domain.ReceivePrivateMessage(pmID, pmSenderID, pmRecID, pmContent, sentAt)
 	require.NotNil(t, m)
+	assert.Equal(t, pmID, m.ID())
 	assert.Equal(t, domain.MessageStateUndelivered, m.State())
 	assert.Equal(t, pmContent, m.Content())
 	assert.Equal(t, pmSenderID, m.SenderID())

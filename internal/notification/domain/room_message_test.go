@@ -59,3 +59,21 @@ func TestRoomMessage_DeliverError(t *testing.T) {
 		assert.Equal(t, domain.MessageStateUndelivered, m.States()[r])
 	}
 }
+
+func TestRoomMessage_LoadRoomMessage(t *testing.T) {
+	recipients := []kernel.UserID{"user-x", "user-y"}
+	states := map[kernel.UserID]domain.MessageState{
+		"user-x": domain.MessageStateDelivered,
+		"user-y": domain.MessageStateUndelivered,
+	}
+	sentAt := time.Now().UTC()
+	m := domain.LoadRoomMessage(rmID, rmSenderID, rmRoomID, recipients, states, rmContent, sentAt)
+	require.NotNil(t, m)
+	assert.Equal(t, rmID, m.ID())
+	assert.Equal(t, rmSenderID, m.SenderID())
+	assert.Equal(t, rmRoomID, m.RoomID())
+	assert.Equal(t, recipients, m.RecipientIDs())
+	assert.Equal(t, states, m.States())
+	assert.Equal(t, rmContent, m.Content())
+	assert.Equal(t, sentAt, m.SentAt())
+}
