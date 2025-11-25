@@ -7,10 +7,11 @@ import (
 // 系统相关错误
 
 var (
-	ErrEmptyPointer  = errors.New("system: empty pointer")
-	ErrHasBeenClosed = errors.New("system: has been closed")
-	ErrDecode        = errors.New("system: decode error")
-	ErrChanIsFull    = errors.New("system: chan is full")
+	ErrEmptyPointer   = errors.New("system: empty pointer")
+	ErrHasBeenClosed  = errors.New("system: has been closed")
+	ErrDecode         = errors.New("system: decode error")
+	ErrChanIsFull     = errors.New("system: chan is full")
+	ErrWrongEventType = errors.New("system: wrong event type")
 )
 
 // 业务逻辑相关错误
