@@ -2,13 +2,10 @@
 name: Run Tests
 on:
   push:
-    branches:
-      - dev
+    branches: [ dev ]
   pull_request:
-    branches:
-      - dev
+    branches: [ dev ]
 
-# 添加明确的权限配置
 permissions:
   contents: read
 
@@ -18,24 +15,35 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: 设置 Go 环境
+      - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24.1'
+          go-version-file: 'go.mod'
+          check-latest: true
+          cache: true
 
-      - name: Go 缓存
-        uses: actions/cache@v3
+      - name: Go version
+        run: go version
+
+      - name: Tidy modules
+        run: go mod tidy
+
+      - name: Download deps
+        run: go mod download
+
+      - name: Prepare coverage directory
+        run: mkdir -p coverage
+
+      - name: Run tests with coverage
+        run: go test ./... -cover -coverprofile=coverage/coverage.out -count=1 -race
+
+      - name: Coverage summary
+        run: go tool cover -func=coverage/coverage.out | tee coverage/coverage.txt
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
         with:
+          name: coverage
           path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-
-      - name: 运行测试
-        run: go test -v -coverprofile=coverage.out ./...
-
-      - name: 生成测试覆盖率报告
-        run: go tool cover -func=coverage.out
-
+            coverage/coverage.out
+            coverage/coverage.txt
