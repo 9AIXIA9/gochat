@@ -2,6 +2,7 @@ package domain
 
 import (
 	"encoding/json"
+	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 )
@@ -16,6 +17,9 @@ type RoomLeftEvent struct {
 }
 
 func ToRoomLeftEvent(ev event.Event) (*RoomLeftEvent, error) {
+	if ev.Topic() != TopicRoomLeft {
+		return nil, myErrors.ErrWrongEventType
+	}
 	e := &RoomLeftEvent{StandardEvent: event.LoadStandardEventFromEvent(ev)}
 	if len(ev.Payload()) > 0 {
 		if err := e.Unmarshal(ev.Payload()); err != nil {

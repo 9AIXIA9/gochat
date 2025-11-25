@@ -1,6 +1,7 @@
 package domain
 
 import (
+	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 )
@@ -14,6 +15,10 @@ type PrivateMessageCreatedEvent struct {
 }
 
 func ToPrivateMessageCreatedEvent(ev event.Event) (*PrivateMessageCreatedEvent, error) {
+	if ev.Topic() != TopicPrivateMessageCreated {
+		return nil, myErrors.ErrWrongEventType
+	}
+
 	e := &PrivateMessageCreatedEvent{StandardEvent: event.LoadStandardEventFromEvent(ev)}
 	if len(ev.Payload()) > 0 {
 		if err := e.Unmarshal(ev.Payload()); err != nil {

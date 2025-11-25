@@ -1,3 +1,4 @@
+//go:generate mockgen -source=refresh_token_repository.go -destination=./mocks/mock_refresh_token_repository.go -package=mocks
 package domain
 
 import (

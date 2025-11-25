@@ -1,3 +1,4 @@
+//go:generate mockgen -source=private_message_repository.go -destination=./mocks/mock_private_message_repository.go -package=mocks
 package domain
 
 import (
