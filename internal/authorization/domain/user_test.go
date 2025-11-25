@@ -29,7 +29,7 @@ const (
 )
 
 // CreateUser success scenario
-func TestUser_CreateUser_Success(t *testing.T) {
+func TestCreateUser_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -72,7 +72,7 @@ func TestUser_CreateUser_Success(t *testing.T) {
 	assert.Equal(t, []byte(""), createdEv.Payload())
 }
 
-func TestUser_LoadUser_NoEvents(t *testing.T) {
+func TestLoadUser_NoEvents(t *testing.T) {
 	signed := time.Now().Add(-time.Hour).UTC()
 	user := domain.LoadUser(fixedUserID, fixedEmail, fixedUserNum, fixedEncrypted, signed)
 	assert.NotNil(t, user)
