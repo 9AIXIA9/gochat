@@ -48,7 +48,7 @@ func LoadRefreshToken(
 		token:        token,
 		expiredAt:    expiredAt,
 		refreshCount: refreshCount,
-		generated:    false,
+		generated:    true,
 	}
 }
 
@@ -85,7 +85,7 @@ func (t *RefreshTokenEntity) Refresh(
 	}
 	t.token = newToken
 	t.refreshCount++
-	t.expiredAt.Add(refreshExtendedDuration)
+	t.expiredAt = t.expiredAt.Add(refreshExtendedDuration)
 	t.generated = false
 	return nil
 }
