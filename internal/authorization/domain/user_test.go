@@ -28,7 +28,20 @@ const (
 	wrongPassword                           = "wrong-pass"
 )
 
-func TestCreateUser(t *testing.T) {
+func TestUser_LoadUser(t *testing.T) {
+	signedUpAt := time.Now().UTC().Add(-1 * time.Hour)
+	user := domain.LoadUser(fixedUserID, fixedEmail, fixedUserNum, fixedEncrypted, signedUpAt)
+
+	assert.Equal(t, fixedUserID, user.ID())
+	assert.Equal(t, fixedUserNum, user.Number())
+	assert.Equal(t, fixedEmail, user.Email())
+	assert.Equal(t, fixedEncrypted, user.PasswordEncrypted())
+	assert.Equal(t, signedUpAt, user.SignedUpAt())
+
+	assert.Empty(t, user.GetEvents()) // no events on load
+}
+
+func TestUser_CreateUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 

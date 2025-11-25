@@ -30,7 +30,7 @@ func load(fixedToken domain.RefreshToken, uid kernel.UserID, exp time.Time, coun
 	return domain.LoadRefreshToken(fixedToken, uid, exp, count)
 }
 
-func TestCreateRefreshToken(t *testing.T) {
+func TestRefreshTokenEntity_CreateRefreshToken(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -55,7 +55,7 @@ func TestCreateRefreshToken(t *testing.T) {
 	require.Nil(t, rt2)
 }
 
-func TestLoadRefreshToken(t *testing.T) {
+func TestRefreshTokenEntity_LoadRefreshToken(t *testing.T) {
 	exp := time.Now().Add(time.Hour)
 	rt := load(fixedToken, fixedUserIDRT, exp, fixedRefreshCount)
 	assert.Equal(t, fixedToken, rt.Token())
