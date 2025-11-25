@@ -29,7 +29,7 @@ const (
 )
 
 // CreateUser success scenario
-func TestCreateUser_Success(t *testing.T) {
+func TestCreateUserSuccess(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -72,7 +72,7 @@ func TestCreateUser_Success(t *testing.T) {
 	assert.Equal(t, []byte(""), createdEv.Payload())
 }
 
-func TestLoadUser_NoEvents(t *testing.T) {
+func TestLoadUserNoEvents(t *testing.T) {
 	signed := time.Now().Add(-time.Hour).UTC()
 	user := domain.LoadUser(fixedUserID, fixedEmail, fixedUserNum, fixedEncrypted, signed)
 	assert.NotNil(t, user)
@@ -84,7 +84,7 @@ func TestLoadUser_NoEvents(t *testing.T) {
 	assert.Empty(t, user.GetEvents())
 }
 
-func TestUser_Login_Success(t *testing.T) {
+func TestUserLoginSuccess(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -107,7 +107,7 @@ func TestUser_Login_Success(t *testing.T) {
 	assert.Empty(t, user.GetEvents())
 }
 
-func TestUser_Login_WrongPassword(t *testing.T) {
+func TestUserLoginWrongPassword(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -129,7 +129,7 @@ func TestUser_Login_WrongPassword(t *testing.T) {
 	assert.Empty(t, user.GetEvents())
 }
 
-func TestUser_Login_RefreshTokenGeneratorError(t *testing.T) {
+func TestUserLoginRefreshTokenGeneratorError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
