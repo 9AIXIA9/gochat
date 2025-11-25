@@ -2,6 +2,7 @@ package domain
 
 import (
 	"encoding/json"
+	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"time"
@@ -22,6 +23,9 @@ type RoomMessageNotificationRequestedEvent struct {
 }
 
 func ToRoomMessageNotificationRequestedEvent(ev event.Event) (*RoomMessageNotificationRequestedEvent, error) {
+	if ev.Topic() != TopicRoomMessageNotificationRequested {
+		return nil, myErrors.ErrWrongEventType
+	}
 	e := &RoomMessageNotificationRequestedEvent{StandardEvent: event.LoadStandardEventFromEvent(ev)}
 	if len(ev.Payload()) > 0 {
 		if err := e.Unmarshal(ev.Payload()); err != nil {

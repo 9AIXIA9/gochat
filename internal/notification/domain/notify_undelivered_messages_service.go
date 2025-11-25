@@ -9,6 +9,7 @@ func NotifyUndeliveredMessages(
 	privateMessageNotifier PrivateMessageNotifier,
 	roomMessageNotifier RoomMessageNotifier,
 ) error {
+
 	for _, message := range privateMessagesUndelivered {
 		if err := privateMessageNotifier.NotifyPrivateMessage(message); err != nil {
 			return err
