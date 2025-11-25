@@ -1,0 +1,55 @@
+package domain_test
+
+import (
+	"encoding/json"
+	"testing"
+
+	myErrors "gochat/internal/shared/errors"
+	"gochat/internal/shared/event"
+	eventMocks "gochat/internal/shared/event/mocks"
+	"gochat/internal/shared/kernel"
+	"gochat/internal/social/domain"
+
+	"github.com/stretchr/testify/require"
+	"go.uber.org/mock/gomock"
+)
+
+const (
+	fixedRoomIDLeft  kernel.RoomID = "social-room-left"
+	fixedUserIDLeft  kernel.UserID = "social-user-left"
+	fixedEventIDLeft event.ID      = "social-event-room-left"
+)
+
+func TestNewRoomLeftEvent(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	idGen := eventMocks.NewMockIDGenerator(ctrl)
+	idGen.EXPECT().Generate().Return(fixedEventIDLeft)
+
+	ev, err := domain.NewRoomLeftEvent(fixedUserIDLeft, fixedRoomIDLeft, idGen)
+	require.NoError(t, err)
+	require.NotNil(t, ev)
+	require.Equal(t, fixedEventIDLeft, ev.ID())
+	require.Equal(t, domain.TopicRoomLeft, ev.Topic())
+	require.Equal(t, kernel.ID(fixedRoomIDLeft), ev.AggregateID())
+	require.Equal(t, fixedUserIDLeft, ev.UserID())
+}
+
+func TestToRoomLeftEvent(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	idGen := eventMocks.NewMockIDGenerator(ctrl)
+	idGen.EXPECT().Generate().Return(fixedEventIDLeft).AnyTimes()
+
+	payload, _ := json.Marshal(struct{ UserID kernel.UserID }{UserID: fixedUserIDLeft})
+	std := event.NewStandardEvent(kernel.ID(fixedRoomIDLeft), domain.TopicRoomLeft, payload, idGen)
+	converted, err := domain.ToRoomLeftEvent(std)
+	require.NoError(t, err)
+	require.NotNil(t, converted)
+	require.Equal(t, fixedUserIDLeft, converted.UserID())
+
+	bad := event.NewStandardEvent(kernel.ID(fixedRoomIDLeft), "wrong.topic", payload, idGen)
+	converted2, err := domain.ToRoomLeftEvent(bad)
+	require.ErrorIs(t, err, myErrors.ErrWrongEventType)
+	require.Nil(t, converted2)
+}
