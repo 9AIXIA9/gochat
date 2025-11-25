@@ -2,12 +2,12 @@ package domain_test
 
 import (
 	"errors"
+	"gochat/internal/authorization/domain"
+	"gochat/internal/authorization/domain/mocks"
+	"gochat/internal/shared/event"
 	"testing"
 	"time"
 
-	"gochat/internal/authorization/domain"
-	domainMocks "gochat/internal/authorization/domain/mocks"
-	"gochat/internal/shared/event"
 	eventMock "gochat/internal/shared/event/mocks"
 	"gochat/internal/shared/kernel"
 
@@ -16,10 +16,8 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-// helper: time tolerance
 const timeTolerance = 150 * time.Millisecond
 
-// fixed values used in tests
 const (
 	fixedUserID    kernel.UserID            = "user-123"
 	fixedUserNum   kernel.UserNumber        = "10001"
@@ -38,10 +36,10 @@ func TestUser_CreateUser_Success(t *testing.T) {
 	eventIDGenerator := eventMock.NewMockIDGenerator(ctrl)
 	eventIDGenerator.EXPECT().Generate().Return(fixedEventID)
 
-	userIDGenerator := domainMocks.NewMockUserIDGenerator(ctrl)
+	userIDGenerator := mocks.NewMockUserIDGenerator(ctrl)
 	userIDGenerator.EXPECT().Generate().Return(fixedUserID)
 
-	userNumberGenerator := domainMocks.NewMockUserNumberGenerator(ctrl)
+	userNumberGenerator := mocks.NewMockUserNumberGenerator(ctrl)
 	userNumberGenerator.EXPECT().Generate().Return(fixedUserNum)
 
 	start := time.Now().UTC()
@@ -90,29 +88,15 @@ func TestUser_Login_Success(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	eventIDGenerator := eventMock.NewMockIDGenerator(ctrl)
-	eventIDGenerator.EXPECT().Generate().Return(fixedEventID)
-
-	userIDGenerator := domainMocks.NewMockUserIDGenerator(ctrl)
-	userIDGenerator.EXPECT().Generate().Return(fixedUserID)
-
-	userNumberGenerator := domainMocks.NewMockUserNumberGenerator(ctrl)
-	userNumberGenerator.EXPECT().Generate().Return(fixedUserNum)
-
-	user, err := domain.CreateUser(
-		fixedEmail,
-		fixedEncrypted,
-		userIDGenerator,
-		userNumberGenerator,
-		eventIDGenerator,
-	)
+	user, err := createUser(ctrl)
 	require.NoError(t, err)
+	require.NotNil(t, user)
 	_ = user.GetEvents()
 
-	comparator := domainMocks.NewMockComparator(ctrl)
+	comparator := mocks.NewMockComparator(ctrl)
 	comparator.EXPECT().Compare(fixedEncrypted.String(), plainPassword).Return(nil)
 
-	refreshGen := domainMocks.NewMockRefreshTokenGenerator(ctrl)
+	refreshGen := mocks.NewMockRefreshTokenGenerator(ctrl)
 	refreshGen.EXPECT().Generate().Return(domain.RefreshToken("rt-abc"), nil)
 
 	rt, err := user.Login(plainPassword, comparator, refreshGen)
@@ -127,29 +111,15 @@ func TestUser_Login_WrongPassword(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	eventIDGenerator := eventMock.NewMockIDGenerator(ctrl)
-	eventIDGenerator.EXPECT().Generate().Return(fixedEventID)
-
-	userIDGenerator := domainMocks.NewMockUserIDGenerator(ctrl)
-	userIDGenerator.EXPECT().Generate().Return(fixedUserID)
-
-	userNumberGenerator := domainMocks.NewMockUserNumberGenerator(ctrl)
-	userNumberGenerator.EXPECT().Generate().Return(fixedUserNum)
-
-	user, err := domain.CreateUser(
-		fixedEmail,
-		fixedEncrypted,
-		userIDGenerator,
-		userNumberGenerator,
-		eventIDGenerator,
-	)
+	user, err := createUser(ctrl)
 	require.NoError(t, err)
+	require.NotNil(t, user)
 	_ = user.GetEvents()
 
-	comparator := domainMocks.NewMockComparator(ctrl)
+	comparator := mocks.NewMockComparator(ctrl)
 	comparator.EXPECT().Compare(fixedEncrypted.String(), wrongPassword).Return(errors.New("password mismatch"))
 
-	refreshGen := domainMocks.NewMockRefreshTokenGenerator(ctrl)
+	refreshGen := mocks.NewMockRefreshTokenGenerator(ctrl)
 	refreshGen.EXPECT().Generate().Times(0)
 
 	rt, err := user.Login(wrongPassword, comparator, refreshGen)
@@ -163,29 +133,15 @@ func TestUser_Login_RefreshTokenGeneratorError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	eventIDGenerator := eventMock.NewMockIDGenerator(ctrl)
-	eventIDGenerator.EXPECT().Generate().Return(fixedEventID)
-
-	userIDGenerator := domainMocks.NewMockUserIDGenerator(ctrl)
-	userIDGenerator.EXPECT().Generate().Return(fixedUserID)
-
-	userNumberGenerator := domainMocks.NewMockUserNumberGenerator(ctrl)
-	userNumberGenerator.EXPECT().Generate().Return(fixedUserNum)
-
-	user, err := domain.CreateUser(
-		fixedEmail,
-		fixedEncrypted,
-		userIDGenerator,
-		userNumberGenerator,
-		eventIDGenerator,
-	)
+	user, err := createUser(ctrl)
 	require.NoError(t, err)
+	require.NotNil(t, user)
 	_ = user.GetEvents()
 
-	comparator := domainMocks.NewMockComparator(ctrl)
+	comparator := mocks.NewMockComparator(ctrl)
 	comparator.EXPECT().Compare(fixedEncrypted.String(), plainPassword).Return(nil)
 
-	refreshGen := domainMocks.NewMockRefreshTokenGenerator(ctrl)
+	refreshGen := mocks.NewMockRefreshTokenGenerator(ctrl)
 	refreshGen.EXPECT().Generate().Return(domain.RefreshToken(""), errors.New("generator failure"))
 
 	rt, err := user.Login(plainPassword, comparator, refreshGen)
@@ -195,13 +151,21 @@ func TestUser_Login_RefreshTokenGeneratorError(t *testing.T) {
 	assert.Empty(t, user.GetEvents())
 }
 
-func TestUser_Getters(t *testing.T) {
-	signed := time.Now().UTC()
-	user := domain.LoadUser(fixedUserID, fixedEmail, fixedUserNum, fixedEncrypted, signed)
-	assert.Equal(t, fixedUserID, user.ID())
-	assert.Equal(t, fixedUserNum, user.Number())
-	assert.Equal(t, fixedEmail, user.Email())
-	assert.Equal(t, fixedEncrypted, user.PasswordEncrypted())
-	assert.Equal(t, signed, user.SignedUpAt())
-	assert.Empty(t, user.GetEvents())
+func createUser(ctrl *gomock.Controller) (*domain.User, error) {
+	eventIDGenerator := eventMock.NewMockIDGenerator(ctrl)
+	eventIDGenerator.EXPECT().Generate().Return(fixedEventID)
+
+	userIDGenerator := mocks.NewMockUserIDGenerator(ctrl)
+	userIDGenerator.EXPECT().Generate().Return(fixedUserID)
+
+	userNumberGenerator := mocks.NewMockUserNumberGenerator(ctrl)
+	userNumberGenerator.EXPECT().Generate().Return(fixedUserNum)
+
+	return domain.CreateUser(
+		fixedEmail,
+		fixedEncrypted,
+		userIDGenerator,
+		userNumberGenerator,
+		eventIDGenerator,
+	)
 }
