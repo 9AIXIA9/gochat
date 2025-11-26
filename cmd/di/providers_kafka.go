@@ -34,14 +34,9 @@ type (
 
 var KafkaSet = wire.NewSet(
 	provideTopicsEnsured,
-	provideKafkaPublisher,
 	provideKafkaSubscriber,
 	provideKafkaTopicsSubscribed,
 )
-
-func provideKafkaPublisher(appConfig *config.App, eventRepo *repository.EventRepository, metrics *prometheus.Metrics) (*kafkaInfra.EventPublisher, error) {
-	return kafkaInfra.NewEventPublisher(appConfig.Kafka, eventRepo, metrics)
-}
 
 func provideKafkaSubscriber(appConfig *config.App, eventRepo *repository.EventRepository, metrics *prometheus.Metrics) (*kafkaInfra.EventSubscriber, error) {
 	return kafkaInfra.NewEventSubscriber(appConfig.Kafka, eventRepo, metrics)

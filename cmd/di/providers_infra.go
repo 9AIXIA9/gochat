@@ -1,6 +1,7 @@
 package di
 
 import (
+	"context"
 	"gochat/config"
 	authApp "gochat/internal/authorization/application"
 	authDomain "gochat/internal/authorization/domain"
@@ -12,6 +13,8 @@ import (
 	chatUUID "gochat/internal/chat/infrastructure/uuid"
 	"gochat/internal/infrastructure/bcrypt"
 	gormInfra "gochat/internal/infrastructure/gorm"
+	kafkautil "gochat/internal/infrastructure/kafka"
+	"gochat/internal/infrastructure/persistence/repository"
 	"gochat/internal/infrastructure/prometheus"
 	redisInfra "gochat/internal/infrastructure/redis"
 	"gochat/internal/infrastructure/uuid"
@@ -38,6 +41,7 @@ type emailServiceAvailable bool
 var InfraSet = wire.NewSet(
 	provideMysql,
 	provideRedis,
+	provideKafkaPublisher,
 	provideValidator,
 	provideMetrics,
 	// Generators & managers (concrete providers)
@@ -57,6 +61,7 @@ var InfraSet = wire.NewSet(
 	provideRoomMessageNotifier,
 	// Binds
 	wire.Bind(new(event.IDGenerator), new(*uuid.EventIDGenerator)),
+	wire.Bind(new(event.Publisher), new(*kafkautil.EventPublisher)),
 	// Authorization binds
 	wire.Bind(new(authDomain.UserIDGenerator), new(*authUUID.UserIDGenerator)),
 	wire.Bind(new(authDomain.UserNumberGenerator), new(*authSnowflake.UserNumberGenerator)),
@@ -132,4 +137,9 @@ func providePrivateMessageNotifier(manager *websocket.Manager) *notificationWebs
 }
 func provideRoomMessageNotifier(manager *websocket.Manager) *notificationWebsocket.RoomMessageNotifier {
 	return notificationWebsocket.NewRoomMessageNotifier(manager)
+}
+func provideKafkaPublisher(appConfig *config.App, eventRepo *repository.EventRepository, metrics *prometheus.Metrics) (*kafkautil.EventPublisher, error) {
+	return kafkautil.NewEventPublisher(appConfig.Kafka, metrics, func(id event.ID) error {
+		return eventRepo.MarkAsPublished(context.Background(), id)
+	})
 }

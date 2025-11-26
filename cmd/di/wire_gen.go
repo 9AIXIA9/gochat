@@ -81,7 +81,9 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	outboxConsumer := provideCanalOutboxConsumer(canal, eventPublisher, eventRepository, metrics)
+	unpublishedEventsCreatedUseCase := provideUnpublishedEventsCreatedCase(eventPublisher, eventRepository)
+	eventHandler := provideCanalBinlogReaderHandler(unpublishedEventsCreatedUseCase)
+	binlogReader := provideCanalBinlogReader(canal, eventHandler)
 	dialer, err := provideGomailDialer(appConfig)
 	if err != nil {
 		return nil, err
@@ -110,7 +112,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	undeliveredMessagesNotificationRequestedUseCase := provideNotificationUndeliveredMessagesNotificationRequestedUseCase(repositoryPrivateMessageRepository, repositoryRoomMessageRepository, privateMessageNotifier, roomMessageNotifier)
 	diKafkaTopicSubscribed := provideKafkaTopicsSubscribed(diKafkaTopicEnsured, eventSubscriber, diEmailServiceAvailable, userSessionStartedUseCase, userCreatedUseCase, applicationUserCreatedUseCase, roomCreatedUseCase, roomJoinedUseCase, roomLeftUseCase, userCreatedUseCase2, applicationRoomCreatedUseCase, applicationRoomJoinedUseCase, applicationRoomLeftUseCase, privateMessageCreatedUseCase, roomMessageCreatedUseCase, welcomeEmailNotificationRequestedUseCase, privateMessageNotificationRequestedUseCase, roomMessageNotificationRequestedUseCase, undeliveredMessagesNotificationRequestedUseCase)
 	diDatabaseMigrated := provideDatabaseMigrated(db)
-	dependencies, err := BuildDependencies(ginServer, eventPublisher, eventSubscriber, outboxConsumer, emailNotifier, diEmailServiceAvailable, diKafkaTopicEnsured, diKafkaTopicSubscribed, diDatabaseMigrated)
+	dependencies, err := BuildDependencies(ginServer, eventPublisher, eventSubscriber, binlogReader, emailNotifier, diEmailServiceAvailable, diKafkaTopicEnsured, diKafkaTopicSubscribed, diDatabaseMigrated)
 	if err != nil {
 		return nil, err
 	}
