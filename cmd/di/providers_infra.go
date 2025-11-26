@@ -1,6 +1,7 @@
 package di
 
 import (
+	"context"
 	"gochat/config"
 	authApp "gochat/internal/authorization/application"
 	authDomain "gochat/internal/authorization/domain"
@@ -138,5 +139,7 @@ func provideRoomMessageNotifier(manager *websocket.Manager) *notificationWebsock
 	return notificationWebsocket.NewRoomMessageNotifier(manager)
 }
 func provideKafkaPublisher(appConfig *config.App, eventRepo *repository.EventRepository, metrics *prometheus.Metrics) (*kafkautil.EventPublisher, error) {
-	return kafkautil.NewEventPublisher(appConfig.Kafka, eventRepo, metrics)
+	return kafkautil.NewEventPublisher(appConfig.Kafka, metrics, func(id event.ID) error {
+		return eventRepo.MarkAsPublished(context.Background(), id)
+	})
 }

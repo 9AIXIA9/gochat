@@ -9,8 +9,6 @@ import (
 	"github.com/go-mysql-org/go-mysql/canal"
 )
 
-//TODO 为什么一执行就是从头开始读，而不是从最新的位点开始读？
-
 const timeout = 5 * time.Second
 
 var _ canal.EventHandler = (*outboxHandler)(nil)

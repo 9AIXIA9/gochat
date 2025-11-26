@@ -1,7 +1,6 @@
 package kafka
 
 import (
-	"context"
 	"fmt"
 	myErrors "gochat/internal/shared/errors"
 	"sync"
@@ -19,8 +18,8 @@ var _ event.Publisher = (*EventPublisher)(nil)
 type EventPublisher struct {
 	publishResultChan chan ckafka.Event
 	producer          *ckafka.Producer
-	publishedMarker   event.PublishedMarker //TODO 感觉不该让publisher来使用 而是上层调用者来使用
 	metrics           *prometheus.Metrics
+	onDelivered       func(event.ID) error
 
 	wg     sync.WaitGroup
 	closed atomic.Bool
@@ -28,9 +27,13 @@ type EventPublisher struct {
 
 func NewEventPublisher(
 	config *Config,
-	publisher event.PublishedMarker,
 	metrics *prometheus.Metrics,
+	onDelivered func(event.ID) error,
 ) (*EventPublisher, error) {
+	if onDelivered == nil {
+		return nil, fmt.Errorf("%w: onDelivered is nil", myErrors.ErrEmptyPointer)
+	}
+
 	producer, err := ckafka.NewProducer(getProducerConfigMap(config))
 	if err != nil {
 		return nil, fmt.Errorf("create kafka producer failed: %w", err)
@@ -39,8 +42,8 @@ func NewEventPublisher(
 	return &EventPublisher{
 		publishResultChan: make(chan ckafka.Event, 512),
 		producer:          producer,
-		publishedMarker:   publisher,
 		metrics:           metrics,
+		onDelivered:       onDelivered,
 	}, nil
 }
 
@@ -75,12 +78,11 @@ func (p *EventPublisher) processPublishingResponse() {
 				continue
 			}
 
-			id := message.Opaque.(event.ID)
-			if err := p.publishedMarker.MarkAsPublished(context.Background(), id); err != nil {
+			if err := p.onDelivered(message.Opaque.(event.ID)); err != nil {
 				zap.L().Error(
-					"mark event published failed",
+					"kafka message delivered callback error",
+					zap.String("event_id", message.Opaque.(event.ID).String()),
 					zap.Error(err),
-					zap.String("event_id", id.String()),
 				)
 			} else if p.metrics != nil {
 				p.metrics.KafkaProduced.WithLabelValues(*message.TopicPartition.Topic, "success").Inc()
