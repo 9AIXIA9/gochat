@@ -16,7 +16,6 @@ func NewCanal(config *BinlogReaderConfig) (*canal.Canal, error) {
 	canalConfig.Dump.TableDB = config.TableDB
 	canalConfig.Dump.ExecutionPath = "" // 不使用 mysqldump 工具
 	canalConfig.Flavor = mysql.MySQLFlavor
-	canalConfig.IncludeTableRegex = []string{".*\\.unpublished_events"}
 	canalConfig.DiscardNoMetaRowEvent = true
 	canalConfig.Logger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelWarn,

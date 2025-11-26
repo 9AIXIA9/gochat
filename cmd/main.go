@@ -57,7 +57,7 @@ func main() {
 	if err := dependencies.KafkaEventSubscriber.Start(conf.Name); err != nil {
 		zap.L().Fatal("start kafka event subscriber failed", zap.Error(err))
 	}
-	dependencies.OutboxConsumer.Start()
+	dependencies.BinlogReader.Start()
 	dependencies.HttpServer.Start()
 
 	//优雅关机
@@ -77,7 +77,7 @@ func main() {
 	dependencies.EmailNotifier.Close()
 	dependencies.KafkaEventPublisher.Close()
 	dependencies.KafkaEventSubscriber.Close()
-	dependencies.OutboxConsumer.Close()
+	dependencies.BinlogReader.Close()
 
 	if closeOtel != nil {
 		if err := closeOtel(ctx); err != nil {
