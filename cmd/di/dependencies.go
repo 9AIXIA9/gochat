@@ -25,7 +25,6 @@ func BuildDependencies(
 	_ kafkaTopicEnsured,
 	_ kafkaTopicSubscribed,
 	_ databaseMigrated,
-	_ BinlogReaderHandlerEnsured,
 ) (*Dependencies, error) {
 	deps := &Dependencies{
 		HttpServer:           httpServer,

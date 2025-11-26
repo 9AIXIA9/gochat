@@ -14,14 +14,13 @@ type BinlogReader struct {
 
 func NewBinlogReader(
 	c *canal.Canal,
+	handler canal.EventHandler,
 ) *BinlogReader {
-	return &BinlogReader{
+	reader := &BinlogReader{
 		canal: c,
 	}
-}
-
-func (b *BinlogReader) SetHandler(handler canal.EventHandler) {
-	b.canal.SetEventHandler(handler)
+	reader.canal.SetEventHandler(handler)
+	return reader
 }
 
 func (b *BinlogReader) Start() {

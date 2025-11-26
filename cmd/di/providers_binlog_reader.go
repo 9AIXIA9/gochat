@@ -10,23 +10,20 @@ import (
 	"github.com/google/wire"
 )
 
-type BinlogReaderHandlerEnsured bool
-
 var BinlogSet = wire.NewSet(
 	provideCanal,
 	provideCanalBinlogReader,
-	provideCanalBinlogReaderHandlerEnsured,
+	provideCanalBinlogReaderHandler,
 )
 
 func provideCanal(appConfig *config.App) (*canal.Canal, error) {
 	return canalInfra.NewCanal(appConfig.BinlogReader)
 }
 
-func provideCanalBinlogReader(c *canal.Canal) *canalInfra.BinlogReader {
-	return canalInfra.NewBinlogReader(c)
+func provideCanalBinlogReader(c *canal.Canal, handler canal.EventHandler) *canalInfra.BinlogReader {
+	return canalInfra.NewBinlogReader(c, handler)
 }
 
-func provideCanalBinlogReaderHandlerEnsured(reader *canalInfra.BinlogReader, uc application.UnpublishedEventsCreatedUseCase) BinlogReaderHandlerEnsured {
-	reader.SetHandler(binlog.NewOutboxHandler(uc))
-	return true
+func provideCanalBinlogReaderHandler(uc application.UnpublishedEventsCreatedUseCase) canal.EventHandler {
+	return binlog.NewOutboxHandler(uc)
 }

@@ -2,7 +2,6 @@ package binlog
 
 import (
 	"context"
-	"fmt"
 	"gochat/internal/application"
 	"time"
 
@@ -30,8 +29,6 @@ func (h *outboxHandler) OnRow(e *canal.RowsEvent) error {
 	if e.Action != canal.InsertAction || e.Table == nil || e.Table.Name != "unpublished_events" {
 		return nil
 	}
-
-	fmt.Println("OutboxHandler: Detected new unpublished_events insertion", e.String())
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
