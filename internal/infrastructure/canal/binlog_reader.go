@@ -25,9 +25,14 @@ func (b *BinlogReader) SetHandler(handler canal.EventHandler) {
 }
 
 func (b *BinlogReader) Start() {
-	// start from latest master position
+	//从最新的主位置开始
 	utils.GoSafe(func() {
-		if err := b.canal.Run(); err != nil && !strings.Contains(err.Error(), "context canceled") {
+		pos, err := b.canal.GetMasterPos()
+		if err != nil {
+			zap.L().Error("get master binlog position failed", zap.Error(err))
+			return
+		}
+		if err := b.canal.RunFrom(pos); err != nil && !strings.Contains(err.Error(), "context canceled") {
 			zap.L().Error("binlog canal run failed", zap.Error(err))
 		}
 	})
