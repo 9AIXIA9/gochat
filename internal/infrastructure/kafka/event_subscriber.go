@@ -3,6 +3,8 @@ package kafka
 import (
 	"context"
 	"fmt"
+	"gochat/internal/shared/kernel"
+	"strconv"
 	"time"
 
 	"gochat/internal/infrastructure/prometheus"
@@ -112,7 +114,7 @@ func (s *EventSubscriber) Start(serviceName string) error {
 			switch m := ev.(type) {
 			case *ckafka.Message:
 				// Convert message to event
-				e, retry := parseMessage(m)
+				e, retry := s.parseMessage(m)
 
 				topic := e.Topic()
 				handler, exists := s.handlers[topic]
@@ -211,7 +213,7 @@ func (s *EventSubscriber) handleFailedEvent(ev event.Event, reason error, retry 
 		return
 	}
 
-	if err := s.producer.Produce(getMessage(ev, retry+1), nil); err != nil {
+	if err := s.producer.Produce(s.getMessage(ev, retry+1), nil); err != nil {
 		if err := s.deadLetterCreator.CreateDeadLetter(context.Background(), ev, reason); err != nil {
 			zap.L().Error(
 				"republish failed and save dead letter failed",
@@ -234,4 +236,59 @@ func (s *EventSubscriber) Close() {
 	if s.consumer != nil {
 		_ = s.consumer.Close()
 	}
+}
+
+func (s *EventSubscriber) getMessage(event event.Event, retry int) *ckafka.Message {
+	topic := event.Topic().String()
+	m := &ckafka.Message{
+		TopicPartition: ckafka.TopicPartition{Topic: &topic, Partition: ckafka.PartitionAny},
+		Value:          event.Payload(),
+		Timestamp:      event.OccurredAt(),
+		Key:            []byte(event.AggregateID().String()),
+		Headers: []ckafka.Header{
+			{
+				Key:   "event_id",
+				Value: []byte(event.ID()),
+			},
+			{
+				Key:   "retry",
+				Value: []byte(strconv.Itoa(retry)),
+			},
+		},
+	}
+	return m
+}
+
+func (s *EventSubscriber) parseMessage(message *ckafka.Message) (event.Event, int) {
+	var id event.ID
+	var retryTimes int
+	foundID, foundRetry := false, false
+
+	for _, header := range message.Headers {
+		if header.Key == "event_id" {
+			id = event.ID(header.Value)
+			foundID = true
+			continue
+		}
+		if header.Key == "retry" {
+			times, err := strconv.ParseInt(string(header.Value), 10, 0)
+			if err != nil {
+				retryTimes = 0
+			} else {
+				retryTimes = int(times)
+			}
+			foundRetry = true
+			continue
+		}
+		if foundID && foundRetry {
+			break
+		}
+	}
+	return event.LoadStandardEvent(
+		id,
+		kernel.ID(message.Key),
+		message.Timestamp,
+		event.Topic(*message.TopicPartition.Topic),
+		message.Value,
+	), retryTimes
 }
