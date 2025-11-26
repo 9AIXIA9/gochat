@@ -44,7 +44,7 @@ func NewEventPublisher(
 	}, nil
 }
 
-func (p *EventPublisher) publish(event event.Event) error {
+func (p *EventPublisher) Publish(event event.Event) error {
 	if event == nil {
 		return myErrors.ErrEmptyPointer
 	}
@@ -62,19 +62,6 @@ func (p *EventPublisher) publish(event event.Event) error {
 		return err
 	}
 	return nil
-}
-
-func (p *EventPublisher) Publish(events []event.Event) error {
-	if len(events) == 0 {
-		return nil
-	}
-	var firstErr error
-	for _, e := range events {
-		if err := p.publish(e); err != nil && firstErr == nil {
-			firstErr = err
-		}
-	}
-	return firstErr
 }
 
 func (p *EventPublisher) processPublishingResponse() {

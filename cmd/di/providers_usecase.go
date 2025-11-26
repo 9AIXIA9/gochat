@@ -52,6 +52,18 @@ var UseCaseKafkaSet = wire.NewSet(
 	provideNotificationUndeliveredMessagesNotificationRequestedUseCase,
 )
 
+var UseCaseBinlogReaderSet = wire.NewSet(
+	provideUnpublishedEventsCreatedCase,
+)
+
+// -------------------- UseCases (HTTP side) --------------------
+func provideUnpublishedEventsCreatedCase(
+	publisher event.Publisher,
+	eventRepo event.Repository,
+) rootapp.UnpublishedEventsCreatedUseCase {
+	return rootapp.NewUnpublishedEventsCreatedUseCase(publisher, eventRepo)
+}
+
 // -------------------- UseCases (HTTP side) --------------------
 func provideSignUpUseCase(
 	eventIDGen event.IDGenerator,

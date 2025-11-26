@@ -110,7 +110,8 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	undeliveredMessagesNotificationRequestedUseCase := provideNotificationUndeliveredMessagesNotificationRequestedUseCase(repositoryPrivateMessageRepository, repositoryRoomMessageRepository, privateMessageNotifier, roomMessageNotifier)
 	diKafkaTopicSubscribed := provideKafkaTopicsSubscribed(diKafkaTopicEnsured, eventSubscriber, diEmailServiceAvailable, userSessionStartedUseCase, userCreatedUseCase, applicationUserCreatedUseCase, roomCreatedUseCase, roomJoinedUseCase, roomLeftUseCase, userCreatedUseCase2, applicationRoomCreatedUseCase, applicationRoomJoinedUseCase, applicationRoomLeftUseCase, privateMessageCreatedUseCase, roomMessageCreatedUseCase, welcomeEmailNotificationRequestedUseCase, privateMessageNotificationRequestedUseCase, roomMessageNotificationRequestedUseCase, undeliveredMessagesNotificationRequestedUseCase)
 	diDatabaseMigrated := provideDatabaseMigrated(db)
-	binlogReaderHandlerEnsured := provideCanalBinlogReaderHandlerEnsured(binlogReader)
+	unpublishedEventsCreatedUseCase := provideUnpublishedEventsCreatedCase(eventPublisher, eventRepository)
+	binlogReaderHandlerEnsured := provideCanalBinlogReaderHandlerEnsured(binlogReader, unpublishedEventsCreatedUseCase)
 	dependencies, err := BuildDependencies(ginServer, eventPublisher, eventSubscriber, binlogReader, emailNotifier, diEmailServiceAvailable, diKafkaTopicEnsured, diKafkaTopicSubscribed, diDatabaseMigrated, binlogReaderHandlerEnsured)
 	if err != nil {
 		return nil, err

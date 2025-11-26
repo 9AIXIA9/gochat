@@ -2,6 +2,7 @@ package di
 
 import (
 	"gochat/config"
+	"gochat/internal/application"
 	"gochat/internal/delivery/binlog"
 	canalInfra "gochat/internal/infrastructure/canal"
 
@@ -25,7 +26,7 @@ func provideCanalBinlogReader(c *canal.Canal) *canalInfra.BinlogReader {
 	return canalInfra.NewBinlogReader(c)
 }
 
-func provideCanalBinlogReaderHandlerEnsured(reader *canalInfra.BinlogReader) BinlogReaderHandlerEnsured {
-	reader.SetHandler(binlog.NewOutboxHandler())
+func provideCanalBinlogReaderHandlerEnsured(reader *canalInfra.BinlogReader, uc application.UnpublishedEventsCreatedUseCase) BinlogReaderHandlerEnsured {
+	reader.SetHandler(binlog.NewOutboxHandler(uc))
 	return true
 }

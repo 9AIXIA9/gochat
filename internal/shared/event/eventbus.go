@@ -3,7 +3,7 @@ package event
 import "context"
 
 type Publisher interface {
-	Publish(event []Event) error
+	Publish(event Event) error
 }
 
 type Subscriber interface {
