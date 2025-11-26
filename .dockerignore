@@ -46,3 +46,19 @@ scripts/
 # Compose files (not needed in build context)
 docker-compose.yml
 .dockerignore
+
+# Tests & mocks (exclude from build context)
+**/*_test.go
+**/mocks/
+**/mock/**
+**/test/**
+coverage.out
+.coverage/**
+.cov/**
+
+# Go generate artifacts not needed in runtime (if any)
+**/*.gen.go
+**/*_mock.go
+
+# Local tools & dev helpers
+tools/

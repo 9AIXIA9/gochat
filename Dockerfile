@@ -22,10 +22,7 @@ RUN go mod download && \
 # 复制源码并构建
 COPY . .
 
-# 生成代码
-RUN go generate ./...
-
-# 构建静态链接的二进制文件
+# 直接构建二进制文件
 RUN GOOS=linux GOARCH=amd64 go build -tags musl -ldflags="-s -w" -o /app/server ./cmd;
 
 # 第二阶段：运行时
