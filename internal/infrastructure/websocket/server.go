@@ -27,7 +27,7 @@ func NewServer(
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	userID := utils.GetUserIDFromCtx(r.Context())
+	userID := utils.GetUserID(r.Context())
 
 	conn, err := s.upgrader.Upgrade(w, r, nil)
 	if err != nil {

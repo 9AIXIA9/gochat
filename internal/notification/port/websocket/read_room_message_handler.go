@@ -26,7 +26,7 @@ func NewReadRoomMessageHandler(
 
 		input := &application.ReadRoomMessageInput{
 			MessageID: reqData.MessageID,
-			UserID:    utils.GetUserIDFromCtx(ctx),
+			UserID:    utils.GetUserID(ctx),
 		}
 
 		if err := input.Validate(); err != nil {

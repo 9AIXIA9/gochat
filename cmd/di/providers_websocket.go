@@ -2,7 +2,8 @@ package di
 
 import (
 	"gochat/config"
-	websocketDelivery "gochat/internal/delivery/websocket"
+	websocketDelivery "gochat/internal/delivery/websocket/handler"
+	"gochat/internal/delivery/websocket/middleware"
 	"gochat/internal/infrastructure/websocket"
 	notificationApp "gochat/internal/notification/application"
 	notificationWebsocket "gochat/internal/notification/port/websocket"
@@ -31,6 +32,8 @@ func provideWebsocketRouter(
 	notificationReadRoomMessage notificationApp.ReadRoomMessageUseCase,
 ) *websocket.Router {
 	router := websocket.NewRouter(websocketDelivery.NewNotFoundHandler())
+
+	router.Use(middleware.NewLoggerMiddleware())
 
 	router.Handle(notificationWebsocket.ReadPrivateMessageTopic, notificationWebsocket.NewReadPrivateMessageHandler(notificationReadPrivateMessage))
 	router.Handle(notificationWebsocket.ReadRoomMessageTopic, notificationWebsocket.NewReadRoomMessageHandler(notificationReadRoomMessage))

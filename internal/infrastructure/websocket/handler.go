@@ -8,30 +8,25 @@ type Handler interface {
 	Handle(ctx context.Context, data []byte) ([]byte, error)
 }
 
+// Middleware wraps a next Handler and returns a new Handler.
+type Middleware func(next Handler) Handler
+
 type HandlerFunc func(ctx context.Context, data []byte) ([]byte, error)
 
 func (f HandlerFunc) Handle(ctx context.Context, data []byte) ([]byte, error) {
 	return f(ctx, data)
 }
 
-func chainHandlers(mainHandler Handler, middlewares []Handler) Handler {
+// chainHandlers wraps the mainHandler with provided middlewares (outermost first).
+func chainHandlers(mainHandler Handler, middlewares []Middleware) Handler {
 	if len(middlewares) == 0 {
 		return mainHandler
 	}
 
-	return HandlerFunc(func(ctx context.Context, msg []byte) ([]byte, error) {
-		var err error
-		currentMsg := msg
-
-		// 依次执行中间件
-		for _, middleware := range middlewares {
-			currentMsg, err = middleware.Handle(ctx, currentMsg)
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		// 最后执行主处理程序
-		return mainHandler.Handle(ctx, currentMsg)
-	})
+	// Apply in reverse so the first middleware becomes the outermost wrapper.
+	wrapped := mainHandler
+	for i := len(middlewares) - 1; i >= 0; i-- {
+		wrapped = middlewares[i](wrapped)
+	}
+	return wrapped
 }

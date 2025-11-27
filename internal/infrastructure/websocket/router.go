@@ -3,11 +3,14 @@ package websocket
 import (
 	"context"
 	"encoding/json"
+	"gochat/pkg/utils"
 )
 
-//TODO 添加middleware（日志，链路，指标等）
-
 type Topic string
+
+func (t Topic) String() string {
+	return string(t)
+}
 
 type Request struct {
 	Topic Topic           `json:"topic"`
@@ -21,24 +24,27 @@ type Response struct {
 
 type Router struct {
 	handlers    map[Topic]Handler
-	middlewares []Handler
+	middlewares []Middleware
 	notFound    Handler
 }
 
 func NewRouter(notFound Handler) *Router {
 	return &Router{
 		handlers:    make(map[Topic]Handler),
-		middlewares: make([]Handler, 0),
+		middlewares: make([]Middleware, 0),
 		notFound:    notFound,
 	}
 }
 
-func (r *Router) Use(middleware ...Handler) {
+func (r *Router) Use(middleware ...Middleware) {
 	r.middlewares = append(r.middlewares, middleware...)
 }
 
-func (r *Router) Handle(topic Topic, h Handler, middlewares ...Handler) {
-	r.handlers[topic] = chainHandlers(h, middlewares)
+func (r *Router) Handle(topic Topic, h Handler, middlewares ...Middleware) {
+	// Apply route-level middlewares first, then global middlewares
+	wrapped := chainHandlers(h, middlewares)
+	wrapped = chainHandlers(wrapped, r.middlewares)
+	r.handlers[topic] = wrapped
 }
 
 func (r *Router) Route(ctx context.Context, request *Request) *Response {
@@ -47,12 +53,14 @@ func (r *Router) Route(ctx context.Context, request *Request) *Response {
 		h = r.notFound
 	}
 
-	//TODO 异步处理
+	ctx = utils.SetWebsocketTopic(ctx, request.Topic.String())
+
+	// TODO: 如果需要，异步处理
 
 	resp, err := h.Handle(ctx, request.Data)
 	if err != nil {
-		data, err := json.Marshal(&MessageData{Message: err.Error()})
-		if err != nil {
+		data, mErr := json.Marshal(&MessageData{Message: err.Error()})
+		if mErr != nil {
 			return nil
 		}
 		resp = data

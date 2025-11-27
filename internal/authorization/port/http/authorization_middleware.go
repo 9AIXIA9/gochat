@@ -1,20 +1,18 @@
 package http
 
 import (
-	"context"
 	"errors"
 	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
 	ginutils "gochat/internal/infrastructure/gin"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/http"
+	"gochat/pkg/utils"
 
 	"github.com/gin-gonic/gin"
 
 	"strings"
 )
-
-const UserIDKey = "user_id"
 
 func NewAuthorizationMiddleware(useCase application.ParseAccessTokenUseCase) gin.HandlerFunc {
 	return func(ginContext *gin.Context) {
@@ -50,10 +48,9 @@ func NewAuthorizationMiddleware(useCase application.ParseAccessTokenUseCase) gin
 			}
 		} else {
 			// 写入到 gin.Context 供 gin handlers 使用
-			ginContext.Set(UserIDKey, output.UserID)
+			ginutils.SetUserID(ginContext, output.UserID)
 			// 同步写入到 request.Context，供标准 http.Handler 使用
-			rCtx := context.WithValue(ginContext.Request.Context(), UserIDKey, output.UserID)
-			ginContext.Request = ginContext.Request.WithContext(rCtx)
+			ginContext.Request = ginContext.Request.WithContext(utils.SetUserID(ginContext.Request.Context(), output.UserID))
 			ginContext.Next()
 		}
 	}
