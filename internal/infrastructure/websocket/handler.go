@@ -2,51 +2,36 @@ package websocket
 
 import (
 	"context"
-	"encoding/json"
 )
 
-//TODO 模仿 gin的路由模式 重构router，保证上下文信息
-
-type RequestTopic string
-
-func (t RequestTopic) String() string {
-	return string(t)
-}
-
-type Request struct {
-	RequestTopic RequestTopic    `json:"topic"`
-	Data         json.RawMessage `json:"data,omitempty"`
-}
-type ResponseTopic string
-
-type Response struct {
-	ResponseTopic ResponseTopic   `json:"topic"`
-	Data          json.RawMessage `json:"data,omitempty"`
-}
-
 type Handler interface {
-	Handle(ctx context.Context, request *Request) (*Response, error)
+	Handle(ctx context.Context, data []byte) ([]byte, error)
 }
 
-type HandlerFunc func(ctx context.Context, request *Request) (*Response, error)
+type HandlerFunc func(ctx context.Context, data []byte) ([]byte, error)
 
-func (f HandlerFunc) Handle(ctx context.Context, request *Request) (*Response, error) {
-	return f(ctx, request)
+func (f HandlerFunc) Handle(ctx context.Context, data []byte) ([]byte, error) {
+	return f(ctx, data)
 }
 
-type Middleware func(Handler) Handler
-
-func MiddlewareFunc(f func(ctx context.Context, req *Request, next Handler) (*Response, error)) Middleware {
-	return func(next Handler) Handler {
-		return HandlerFunc(func(ctx context.Context, req *Request) (*Response, error) {
-			return f(ctx, req, next)
-		})
+func chainHandlers(mainHandler Handler, middlewares []Handler) Handler {
+	if len(middlewares) == 0 {
+		return mainHandler
 	}
-}
 
-func Chain(h Handler, mws ...Middleware) Handler {
-	for i := len(mws) - 1; i >= 0; i-- {
-		h = mws[i](h)
-	}
-	return h
+	return HandlerFunc(func(ctx context.Context, msg []byte) ([]byte, error) {
+		var err error
+		currentMsg := msg
+
+		// 依次执行中间件
+		for _, middleware := range middlewares {
+			currentMsg, err = middleware.Handle(ctx, currentMsg)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		// 最后执行主处理程序
+		return mainHandler.Handle(ctx, currentMsg)
+	})
 }

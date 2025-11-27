@@ -44,7 +44,6 @@ func provideHttpRouter(
 	websocketServer *websocket.Server,
 	metrics *prometheus.Metrics,
 ) *gin.Engine {
-
 	// 初始化Gin路由器
 	router := gin.New()
 
@@ -54,6 +53,8 @@ func provideHttpRouter(
 		middleware.NewLoggerMiddleware(),             // 日志中间件
 		middleware.NewCORSMiddleware(appConfig.CORS), // CORS中间件
 	)
+
+	router.NoRoute(handler.NewNotFoundHandler()) // 404处理器
 
 	// 暴露Prometheus指标端点
 	router.Any("/metrics", gin.WrapH(metrics.Handler()))
@@ -106,7 +107,7 @@ func provideHttpRouter(
 	websocketGroup := baseGroup.Group("/ws")
 	websocketGroup.Use(authorizationMiddleware)
 	{
-		websocketGroup.GET("/", handler.NewWebsocketHandler(websocketServer))
+		websocketGroup.GET("/", gin.WrapH(websocketServer))
 	}
 
 	return router

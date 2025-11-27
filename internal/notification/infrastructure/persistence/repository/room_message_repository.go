@@ -27,18 +27,34 @@ func (repo *RoomMessageRepository) Create(ctx context.Context, message *domain.R
 func (repo *RoomMessageRepository) Update(ctx context.Context, message *domain.RoomMessage) error {
 	return repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		modelMessage := repo.toModel(message)
-		// 使用 Replace 来更新多对多关联的成员
-		// 删除不再存在的关联并添加新的关联
-		if err := tx.Model(&modelMessage).Association("States").Replace(modelMessage.States); err != nil {
+
+		// 先删除旧的关联，避免 GORM 将外键置为 NULL
+		if err := tx.Where("message_id = ?", modelMessage.ID).Delete(&model.RoomMessageState{}).Error; err != nil {
+			return gormutils.TranslateError(err)
+		}
+		if err := tx.Where("message_id = ?", modelMessage.ID).Delete(&model.RoomMessageRecipient{}).Error; err != nil {
 			return gormutils.TranslateError(err)
 		}
 
-		if err := tx.Model(&modelMessage).Association("Recipients").Replace(modelMessage.Recipients); err != nil {
-			return gormutils.TranslateError(err)
+		// 再插入新的关联
+		if len(modelMessage.States) > 0 {
+			if err := tx.Create(&modelMessage.States).Error; err != nil {
+				return gormutils.TranslateError(err)
+			}
+		}
+		if len(modelMessage.Recipients) > 0 {
+			if err := tx.Create(&modelMessage.Recipients).Error; err != nil {
+				return gormutils.TranslateError(err)
+			}
 		}
 
-		// 更新 RoomMessage 表本身的字段
-		if err := tx.Updates(modelMessage).Error; err != nil {
+		// 更新主记录字段（不触发全量 save，避免误操作关联）
+		if err := tx.Model(&model.RoomMessage{}).Where("id = ?", modelMessage.ID).Updates(map[string]interface{}{
+			"sender_id": modelMessage.SenderID,
+			"room_id":   modelMessage.RoomID,
+			"content":   modelMessage.Content,
+			"sent_at":   modelMessage.SentAt,
+		}).Error; err != nil {
 			return gormutils.TranslateError(err)
 		}
 

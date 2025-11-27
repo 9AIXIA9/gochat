@@ -81,7 +81,7 @@ func (m *RoomMessage) Deliver(
 }
 
 func (m *RoomMessage) Read(recipientID kernel.UserID) {
-	m.states[recipientID] = MessageStateDelivered
+	m.states[recipientID] = MessageStateRead
 }
 
 func (m *RoomMessage) ID() kernel.MessageID {

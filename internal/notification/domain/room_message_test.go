@@ -42,7 +42,7 @@ func TestReceiveRoomMessageAndDeliver(t *testing.T) {
 
 	// Mark last as read
 	m.Read("user-c")
-	assert.Equal(t, domain.MessageStateDelivered, m.States()["user-c"])
+	assert.Equal(t, domain.MessageStateRead, m.States()["user-c"])
 }
 
 func TestRoomMessage_DeliverError(t *testing.T) {

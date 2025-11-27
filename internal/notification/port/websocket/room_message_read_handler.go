@@ -9,18 +9,18 @@ import (
 	"gochat/pkg/utils"
 )
 
-const RoomMessageReadRequestTopic websocket.RequestTopic = "notification.room_message_read"
+const RoomMessageReadTopic websocket.Topic = "notification.room_message_read"
 
-type RoomMessageReadRequestData struct {
+type RoomMessageReadData struct {
 	MessageID kernel.MessageID `json:"message_id"`
 }
 
 func NewRoomMessageReadHandler(
 	uc application.RoomMessageReadUseCase,
 ) websocket.HandlerFunc {
-	return func(ctx context.Context, request *websocket.Request) (*websocket.Response, error) {
-		var reqData RoomMessageReadRequestData
-		if err := json.Unmarshal(request.Data, &reqData); err != nil {
+	return func(ctx context.Context, data []byte) ([]byte, error) {
+		var reqData RoomMessageReadData
+		if err := json.Unmarshal(data, &reqData); err != nil {
 			return nil, err
 		}
 

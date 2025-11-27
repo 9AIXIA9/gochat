@@ -18,6 +18,7 @@ const (
 	CodeMaxReached
 	CodeInvalidRoom
 	CodeOwnerCantLeave
+	CodeNotFound
 )
 
 func (c BusinessCode) ToHTTPCode() int {
@@ -40,6 +41,9 @@ func (c BusinessCode) ToHTTPCode() int {
 		return http.StatusBadRequest
 	case CodeOwnerCantLeave:
 		return http.StatusBadRequest
+	case CodeNotFound:
+		return http.StatusNotFound
+
 	default:
 		return http.StatusInternalServerError
 	}
@@ -63,6 +67,8 @@ func (c BusinessCode) String() string {
 		return "invalid room"
 	case CodeOwnerCantLeave:
 		return "owner cannot leave the room"
+	case CodeNotFound:
+		return "not found"
 	default:
 		return "unknown error"
 	}

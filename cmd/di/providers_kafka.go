@@ -3,18 +3,15 @@ package di
 import (
 	"context"
 	"gochat/config"
-	rootApp "gochat/internal/application"
 	authApp "gochat/internal/authorization/application"
 	authDomain "gochat/internal/authorization/domain"
 	authKafka "gochat/internal/authorization/port/kafka"
 	chatApp "gochat/internal/chat/application"
 	chatDomain "gochat/internal/chat/domain"
 	chatKafka "gochat/internal/chat/port/kafka"
-	"gochat/internal/delivery/kafka"
 	kafkaInfra "gochat/internal/infrastructure/kafka"
 	"gochat/internal/infrastructure/persistence/repository"
 	"gochat/internal/infrastructure/prometheus"
-	"gochat/internal/infrastructure/websocket"
 	notificationApp "gochat/internal/notification/application"
 	notificationDomain "gochat/internal/notification/domain"
 	notificationKafka "gochat/internal/notification/port/kafka"
@@ -46,8 +43,6 @@ func provideKafkaTopicsSubscribed(
 	ensured kafkaTopicEnsured,
 	subscriber *kafkaInfra.EventSubscriber,
 	emailAvailable emailServiceAvailable,
-	//websocket
-	userSessionStartedUseCase rootApp.UserSessionStartedUseCase,
 	// auth
 	authUserCreated authApp.UserCreatedUseCase,
 	// social
@@ -72,8 +67,6 @@ func provideKafkaTopicsSubscribed(
 		zap.L().Warn("Kafka topics are not ensured, skipping subscription")
 		return false
 	}
-	//websocket
-	subscriber.Subscribe(websocket.TopicUserSessionStarted, kafka.NewUserSessionStartedEventHandler(userSessionStartedUseCase))
 	// Authorization
 	subscriber.Subscribe(authDomain.TopicUserCreated, authKafka.NewUserCreatedEventHandler(authUserCreated))
 	// Social
@@ -106,8 +99,6 @@ func provideTopicsEnsured(appConfig *config.App) kafkaTopicEnsured {
 		context.Background(),
 		appConfig.Kafka,
 		[]event.Topic{
-			// websocket
-			websocket.TopicUserSessionStarted,
 			// authorization
 			authDomain.TopicUserCreated,
 			// social
