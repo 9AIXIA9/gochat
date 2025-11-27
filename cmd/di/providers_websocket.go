@@ -28,6 +28,7 @@ func provideWebsocketManager() *websocket.Manager {
 }
 
 func provideWebsocketRouter(
+	appConfig *config.App,
 	notificationReadPrivateMessage notificationApp.ReadPrivateMessageUseCase,
 	notificationReadRoomMessage notificationApp.ReadRoomMessageUseCase,
 ) *websocket.Router {
@@ -36,6 +37,7 @@ func provideWebsocketRouter(
 	router.Use(
 		middleware.NewLoggerMiddleware(),
 		middleware.NewRecoverMiddleware(),
+		middleware.NewTelemetryMiddleware(appConfig.Name),
 	)
 
 	router.NoRoute(websocketDelivery.NewNotFoundHandler())

@@ -64,7 +64,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	readPrivateMessageUseCase := provideNotificationReadPrivateMessageUseCase(repositoryPrivateMessageRepository)
 	repositoryRoomMessageRepository := provideNotificationRoomMessageRepository(db)
 	readRoomMessageUseCase := provideNotificationReadRoomMessageUseCase(repositoryRoomMessageRepository)
-	router := provideWebsocketRouter(readPrivateMessageUseCase, readRoomMessageUseCase)
+	router := provideWebsocketRouter(appConfig, readPrivateMessageUseCase, readRoomMessageUseCase)
 	server := provideWebsocketServer(upgrader, manager, router)
 	metrics := provideMetrics()
 	engine := provideHttpRouter(appConfig, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, createRoomUseCase, joinRoomUseCase, leaveRoomUseCase, validator, client, server, metrics)
