@@ -11,7 +11,7 @@ import (
 func NewNotFoundHandler() websocket.HandlerFunc {
 	return func(_ context.Context, data []byte) ([]byte, error) {
 		zap.L().Debug("websocket: not found handler invoked", zap.ByteString("data", data))
-		return json.Marshal(&websocket.MessageData{
+		return json.Marshal(&websocket.ErrorData{
 			Message: "topic is not found",
 		})
 	}

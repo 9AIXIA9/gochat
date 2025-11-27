@@ -1,5 +1,5 @@
 package websocket
 
-type MessageData struct {
-	Message string `json:"message"`
+type ErrorData struct {
+	Message string `json:"error_message"`
 }

@@ -8,8 +8,6 @@ import (
 	"go.uber.org/zap"
 )
 
-//TODO  router 使用 我的 统一response规范
-
 type Topic string
 
 func (t Topic) String() string {
@@ -64,7 +62,7 @@ func (r *Router) Route(ctx context.Context, request *Request) *Response {
 			h = r.notFound
 		} else {
 			zap.L().Debug("websocket: topic is not found", zap.String("topic", request.Topic.String()))
-			data, mErr := json.Marshal(&MessageData{Message: "topic is not found"})
+			data, mErr := json.Marshal(&ErrorData{Message: "topic is not found"})
 			if mErr != nil {
 				return nil
 			}
@@ -77,11 +75,9 @@ func (r *Router) Route(ctx context.Context, request *Request) *Response {
 
 	ctx = utils.SetWebsocketTopic(ctx, request.Topic.String())
 
-	// TODO: 如果需要，异步处理
-
 	resp, err := h.Handle(ctx, request.Data)
 	if err != nil {
-		data, mErr := json.Marshal(&MessageData{Message: err.Error()})
+		data, mErr := json.Marshal(&ErrorData{Message: err.Error()})
 		if mErr != nil {
 			return nil
 		}
