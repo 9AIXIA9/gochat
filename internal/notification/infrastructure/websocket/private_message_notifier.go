@@ -12,14 +12,14 @@ import (
 
 var _ domain.PrivateMessageNotifier = (*PrivateMessageNotifier)(nil)
 
-const NotifyPrivateMessageTopic websocket.ResponseTopic = "notification.notify_private_message"
+const NotifyPrivateMessageTopic websocket.Topic = "notification.notify_private_message"
 
 type NotifyPrivateMessageResponseData struct {
-	ID       kernel.MessageID
-	SenderID kernel.UserID
-	State    domain.MessageState
-	Content  string
-	SentAt   time.Time
+	ID       kernel.MessageID    `json:"id"`
+	SenderID kernel.UserID       `json:"sender_id"`
+	State    domain.MessageState `json:"state"`
+	Content  string              `json:"content"`
+	SentAt   time.Time           `json:"sent_at"`
 }
 
 type PrivateMessageNotifier struct {
@@ -44,15 +44,8 @@ func (n *PrivateMessageNotifier) NotifyPrivateMessage(message *domain.PrivateMes
 		return err
 	}
 
-	response := &websocket.Response{
-		ResponseTopic: NotifyPrivateMessageTopic,
-		Data:          data,
-	}
-
-	payload, err := json.Marshal(response)
-	if err != nil {
-		return err
-	}
-
-	return n.manager.SendTo(message.RecipientID(), payload)
+	return n.manager.SendTo(message.RecipientID(), &websocket.Response{
+		Topic: NotifyPrivateMessageTopic,
+		Data:  data,
+	})
 }

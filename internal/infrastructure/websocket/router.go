@@ -2,53 +2,89 @@ package websocket
 
 import (
 	"context"
-	"fmt"
+	"encoding/json"
+	"gochat/pkg/utils"
 
 	"go.uber.org/zap"
 )
 
-//TODO为处理器添加信息 链路和指标
+type Topic string
+
+func (t Topic) String() string {
+	return string(t)
+}
+
+type Request struct {
+	Topic Topic           `json:"topic"`
+	Data  json.RawMessage `json:"data,omitempty"`
+}
+
+type Response struct {
+	Topic Topic           `json:"topic"`
+	Data  json.RawMessage `json:"data,omitempty"`
+}
 
 type Router struct {
-	handlers    map[RequestTopic]Handler
+	handlers    map[Topic]Handler
 	middlewares []Middleware
 	notFound    Handler
 }
 
 func NewRouter() *Router {
 	return &Router{
-		handlers:    make(map[RequestTopic]Handler),
+		handlers:    make(map[Topic]Handler),
 		middlewares: make([]Middleware, 0),
-		notFound: HandlerFunc(func(ctx context.Context, req *Request) (*Response, error) {
-			return nil, fmt.Errorf("no handler for topic %s", req.RequestTopic)
-		}),
+		notFound:    nil,
 	}
 }
 
-func (r *Router) Use(mw ...Middleware) {
-	r.middlewares = append(r.middlewares, mw...)
+func (r *Router) Use(middleware ...Middleware) {
+	r.middlewares = append(r.middlewares, middleware...)
 }
 
-func (r *Router) Handle(topic RequestTopic, h Handler) {
-	if _, ok := r.handlers[topic]; ok {
-		zap.L().Warn("handler already registered for topic", zap.String("topic", string(topic)))
-		r.handlers[topic] = h
-		return
-	}
-	if len(r.middlewares) > 0 {
-		h = Chain(h, r.middlewares...)
-	}
-	r.handlers[topic] = h
+func (r *Router) NoRoute(h Handler, middlewares ...Middleware) {
+	wrapped := chainHandlers(h, middlewares)
+	wrapped = chainHandlers(wrapped, r.middlewares)
+	r.notFound = wrapped
 }
 
-func (r *Router) Route(ctx context.Context, req *Request) (*Response, error) {
-	h, ok := r.handlers[req.RequestTopic]
+func (r *Router) Handle(topic Topic, h Handler, middlewares ...Middleware) {
+	// Apply route-level middlewares first, then global middlewares
+	wrapped := chainHandlers(h, middlewares)
+	wrapped = chainHandlers(wrapped, r.middlewares)
+	r.handlers[topic] = wrapped
+}
+
+func (r *Router) Route(ctx context.Context, request *Request) *Response {
+	h, ok := r.handlers[request.Topic]
 	if !ok {
-		h = r.notFound
+		if r.notFound != nil {
+			h = r.notFound
+		} else {
+			zap.L().Debug("websocket: topic is not found", zap.String("topic", request.Topic.String()))
+			data, mErr := json.Marshal(&ErrorData{Message: "topic is not found"})
+			if mErr != nil {
+				return nil
+			}
+			return &Response{
+				Topic: request.Topic,
+				Data:  data,
+			}
+		}
 	}
-	resp, err := h.Handle(ctx, req)
+
+	ctx = utils.SetWebsocketTopic(ctx, request.Topic.String())
+
+	resp, err := h.Handle(ctx, request.Data)
 	if err != nil {
-		return nil, err
+		data, mErr := json.Marshal(&ErrorData{Message: err.Error()})
+		if mErr != nil {
+			return nil
+		}
+		resp = data
 	}
-	return resp, nil
+	return &Response{
+		Topic: request.Topic,
+		Data:  resp,
+	}
 }

@@ -6,8 +6,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const (
+	userIDKey = "user_id"
+)
+
+func SetUserID(ginContext *gin.Context, userID kernel.UserID) {
+	ginContext.Set(userIDKey, userID)
+}
+
 func GetUserID(ginContext *gin.Context) kernel.UserID {
-	idAny, ok := ginContext.Get("user_id")
+	idAny, ok := ginContext.Get(userIDKey)
 	if !ok {
 		return kernel.EmptyUserID
 	}

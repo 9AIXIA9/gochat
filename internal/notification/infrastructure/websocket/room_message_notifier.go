@@ -12,15 +12,15 @@ import (
 
 var _ domain.RoomMessageNotifier = (*RoomMessageNotifier)(nil)
 
-const NotifyRoomMessageTopic websocket.ResponseTopic = "notification.notify_room_message"
+const NotifyRoomMessageTopic websocket.Topic = "notification.notify_room_message"
 
 type NotifyRoomMessageResponseData struct {
-	ID       kernel.MessageID
-	SenderID kernel.UserID
-	RoomID   kernel.RoomID
-	States   map[kernel.UserID]domain.MessageState
-	Content  string
-	SentAt   time.Time
+	ID       kernel.MessageID                      `json:"id"`
+	SenderID kernel.UserID                         `json:"sender_id"`
+	RoomID   kernel.RoomID                         `json:"room_id"`
+	States   map[kernel.UserID]domain.MessageState `json:"states"`
+	Content  string                                `json:"content"`
+	SentAt   time.Time                             `json:"sent_at"`
 }
 
 type RoomMessageNotifier struct {
@@ -46,15 +46,9 @@ func (n *RoomMessageNotifier) NotifyRoomMessage(message *domain.RoomMessage, rec
 		return nil, err
 	}
 
-	response := &websocket.Response{
-		ResponseTopic: NotifyRoomMessageTopic,
-		Data:          data,
-	}
-
-	payload, err := json.Marshal(response)
-	if err != nil {
-		return nil, err
-	}
-
-	return n.manager.Broadcast(recipients, payload), nil
+	return n.manager.Broadcast(recipients, &websocket.Response{
+		Topic: NotifyRoomMessageTopic,
+		Data:  data,
+	},
+	), nil
 }

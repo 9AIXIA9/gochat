@@ -7,13 +7,12 @@ import (
 	ginutils "gochat/internal/infrastructure/gin"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/http"
+	"gochat/pkg/utils"
 
 	"github.com/gin-gonic/gin"
 
 	"strings"
 )
-
-const UserIDKey = "user_id"
 
 func NewAuthorizationMiddleware(useCase application.ParseAccessTokenUseCase) gin.HandlerFunc {
 	return func(ginContext *gin.Context) {
@@ -48,7 +47,10 @@ func NewAuthorizationMiddleware(useCase application.ParseAccessTokenUseCase) gin
 				return
 			}
 		} else {
-			ginContext.Set(UserIDKey, output.UserID)
+			// 写入到 gin.Context 供 gin handlers 使用
+			ginutils.SetUserID(ginContext, output.UserID)
+			// 同步写入到 request.Context，供标准 http.Handler 使用
+			ginContext.Request = ginContext.Request.WithContext(utils.SetUserID(ginContext.Request.Context(), output.UserID))
 			ginContext.Next()
 		}
 	}

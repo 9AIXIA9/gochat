@@ -2,51 +2,31 @@ package websocket
 
 import (
 	"context"
-	"encoding/json"
 )
 
-//TODO 模仿 gin的路由模式 重构router，保证上下文信息
-
-type RequestTopic string
-
-func (t RequestTopic) String() string {
-	return string(t)
-}
-
-type Request struct {
-	RequestTopic RequestTopic    `json:"topic"`
-	Data         json.RawMessage `json:"data,omitempty"`
-}
-type ResponseTopic string
-
-type Response struct {
-	ResponseTopic ResponseTopic   `json:"topic"`
-	Data          json.RawMessage `json:"data,omitempty"`
-}
-
 type Handler interface {
-	Handle(ctx context.Context, request *Request) (*Response, error)
+	Handle(ctx context.Context, data []byte) ([]byte, error)
 }
 
-type HandlerFunc func(ctx context.Context, request *Request) (*Response, error)
+// Middleware wraps a next Handler and returns a new Handler.
+type Middleware func(next Handler) Handler
 
-func (f HandlerFunc) Handle(ctx context.Context, request *Request) (*Response, error) {
-	return f(ctx, request)
+type HandlerFunc func(ctx context.Context, data []byte) ([]byte, error)
+
+func (f HandlerFunc) Handle(ctx context.Context, data []byte) ([]byte, error) {
+	return f(ctx, data)
 }
 
-type Middleware func(Handler) Handler
-
-func MiddlewareFunc(f func(ctx context.Context, req *Request, next Handler) (*Response, error)) Middleware {
-	return func(next Handler) Handler {
-		return HandlerFunc(func(ctx context.Context, req *Request) (*Response, error) {
-			return f(ctx, req, next)
-		})
+// chainHandlers wraps the mainHandler with provided middlewares (outermost first).
+func chainHandlers(mainHandler Handler, middlewares []Middleware) Handler {
+	if len(middlewares) == 0 {
+		return mainHandler
 	}
-}
 
-func Chain(h Handler, mws ...Middleware) Handler {
-	for i := len(mws) - 1; i >= 0; i-- {
-		h = mws[i](h)
+	// Apply in reverse so the first middleware becomes the outermost wrapper.
+	wrapped := mainHandler
+	for i := len(middlewares) - 1; i >= 0; i-- {
+		wrapped = middlewares[i](wrapped)
 	}
-	return h
+	return wrapped
 }

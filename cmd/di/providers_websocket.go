@@ -2,13 +2,11 @@ package di
 
 import (
 	"gochat/config"
-	websocketDelivery "gochat/internal/delivery/websocket"
-	"gochat/internal/infrastructure/persistence/repository"
-	"gochat/internal/infrastructure/prometheus"
+	websocketDelivery "gochat/internal/delivery/websocket/handler"
+	"gochat/internal/delivery/websocket/middleware"
 	"gochat/internal/infrastructure/websocket"
 	notificationApp "gochat/internal/notification/application"
 	notificationWebsocket "gochat/internal/notification/port/websocket"
-	"gochat/internal/shared/event"
 
 	"github.com/google/wire"
 	gorillaWebsocket "github.com/gorilla/websocket"
@@ -25,29 +23,31 @@ func provideWebsocketUpgrader(appConfig *config.App) *gorillaWebsocket.Upgrader 
 	return websocket.NewUpgrader(appConfig.CORS.AllowOrigins)
 }
 
-func provideWebsocketManager(upgrader *gorillaWebsocket.Upgrader, metrics *prometheus.Metrics) *websocket.Manager {
-	m := websocket.NewManager(upgrader)
-	m.SetMetrics(metrics)
-	return m
+func provideWebsocketManager() *websocket.Manager {
+	return websocket.NewManager()
 }
 
 func provideWebsocketRouter(
 	appConfig *config.App,
-	notificationPrivateMessageRead notificationApp.PrivateMessageReadUseCase,
-	notificationRoomMessageRead notificationApp.RoomMessageReadUseCase,
+	notificationReadPrivateMessage notificationApp.ReadPrivateMessageUseCase,
+	notificationReadRoomMessage notificationApp.ReadRoomMessageUseCase,
 ) *websocket.Router {
 	router := websocket.NewRouter()
 
-	if appConfig.Telemetry != nil && appConfig.Telemetry.Enabled && appConfig.Telemetry.TraceEnabled {
-		router.Use(websocketDelivery.NewTelemetryMiddleware(appConfig.Name))
-	}
+	router.Use(
+		middleware.NewLoggerMiddleware(),
+		middleware.NewRecoverMiddleware(),
+		middleware.NewTelemetryMiddleware(appConfig.Name),
+	)
 
-	router.Handle(notificationWebsocket.PrivateMessageReadRequestTopic, notificationWebsocket.NewPrivateMessageReadHandler(notificationPrivateMessageRead))
-	router.Handle(notificationWebsocket.RoomMessageReadRequestTopic, notificationWebsocket.NewRoomMessageReadHandler(notificationRoomMessageRead))
+	router.NoRoute(websocketDelivery.NewNotFoundHandler())
+
+	router.Handle(notificationWebsocket.ReadPrivateMessageTopic, notificationWebsocket.NewReadPrivateMessageHandler(notificationReadPrivateMessage))
+	router.Handle(notificationWebsocket.ReadRoomMessageTopic, notificationWebsocket.NewReadRoomMessageHandler(notificationReadRoomMessage))
 
 	return router
 }
 
-func provideWebsocketServer(manager *websocket.Manager, router *websocket.Router, eventRepo *repository.EventRepository, eventIDGen event.IDGenerator) *websocket.Server {
-	return websocket.NewServer(manager, router, eventRepo, eventIDGen)
+func provideWebsocketServer(upgrader *gorillaWebsocket.Upgrader, manager *websocket.Manager, router *websocket.Router) *websocket.Server {
+	return websocket.NewServer(upgrader, manager, router)
 }

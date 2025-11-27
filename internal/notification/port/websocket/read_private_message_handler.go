@@ -8,22 +8,22 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-const PrivateMessageReadRequestTopic websocket.RequestTopic = "notification.private_message_read"
+const ReadPrivateMessageTopic websocket.Topic = "notification.read_private_message"
 
-type PrivateMessageReadRequestData struct {
+type ReadPrivateMessageData struct {
 	MessageID kernel.MessageID `json:"message_id"`
 }
 
-func NewPrivateMessageReadHandler(
-	uc application.PrivateMessageReadUseCase,
+func NewReadPrivateMessageHandler(
+	uc application.ReadPrivateMessageUseCase,
 ) websocket.HandlerFunc {
-	return func(ctx context.Context, request *websocket.Request) (*websocket.Response, error) {
-		var reqData PrivateMessageReadRequestData
-		if err := json.Unmarshal(request.Data, &reqData); err != nil {
+	return func(ctx context.Context, data []byte) ([]byte, error) {
+		var reqData ReadPrivateMessageData
+		if err := json.Unmarshal(data, &reqData); err != nil {
 			return nil, err
 		}
 
-		input := &application.PrivateMessageReadInput{
+		input := &application.ReadPrivateMessageInput{
 			MessageID: reqData.MessageID,
 		}
 
