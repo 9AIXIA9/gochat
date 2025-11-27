@@ -1,0 +1,25 @@
+#!/bin/sh
+set -eu
+
+echo "[pre-commit] go generate ./..."
+if ! command -v go >/dev/null 2>&1; then
+  echo "Error: Go toolchain not found in PATH. Install Go and retry." >&2
+  exit 1
+fi
+
+# Run code generation for all packages
+GO111MODULE=on go generate ./...
+
+# Auto-stage any changes produced by generation
+if ! git diff --quiet || ! git diff --cached --quiet; then
+  echo "[pre-commit] Staging changes produced by generation (git add -A)"
+  git add -A
+  echo "[pre-commit] Staged changes:"
+  git diff --cached --name-status || true
+fi
+
+# Run unit tests for all packages
+echo "[pre-commit] go test ./..."
+GO111MODULE=on go test ./...
+
+echo "[pre-commit] OK"

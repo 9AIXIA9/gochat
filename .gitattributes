@@ -1,0 +1,10 @@
+# Ensure hook scripts keep LF endings so Git Bash can run them on Windows
+.githooks/* text eol=lf
+
+# Shell scripts (if any) should also be LF
+*.sh text eol=lf
+
+# Normalize Go project files to LF to avoid conversion warnings
+*.go text eol=lf
+go.mod text eol=lf
+go.sum text eol=lf

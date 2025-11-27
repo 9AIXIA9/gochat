@@ -21,6 +21,8 @@ help:
 	@echo   make restart      - Restart services using build cache
 	@echo   make logs         - Tail app logs
 	@echo   make ps           - Show service status
+	@echo   make hooks        - Install Git hooks
+	@echo   make precommit    - Run pre-commit hook manually
 
 .PHONY: up
 up: ## Build (no cache) and up -d
@@ -56,3 +58,12 @@ ps:
 .PHONY: restart
 restart: ## Restart using build cache (no --no-cache)
 	$(DC) up -d --build
+
+.PHONY: hooks
+hooks: ## Configure Git to use the versioned hooks in .githooks
+	@git config core.hooksPath .githooks
+	@echo Hooks installed to .githooks
+
+.PHONY: precommit
+precommit: ## Run pre-commit hook logic locally
+	@sh .githooks/pre-commit
