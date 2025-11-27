@@ -4,7 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"gochat/pkg/utils"
+
+	"go.uber.org/zap"
 )
+
+//TODO  router 使用 我的 统一response规范
 
 type Topic string
 
@@ -28,16 +32,22 @@ type Router struct {
 	notFound    Handler
 }
 
-func NewRouter(notFound Handler) *Router {
+func NewRouter() *Router {
 	return &Router{
 		handlers:    make(map[Topic]Handler),
 		middlewares: make([]Middleware, 0),
-		notFound:    notFound,
+		notFound:    nil,
 	}
 }
 
 func (r *Router) Use(middleware ...Middleware) {
 	r.middlewares = append(r.middlewares, middleware...)
+}
+
+func (r *Router) NoRoute(h Handler, middlewares ...Middleware) {
+	wrapped := chainHandlers(h, middlewares)
+	wrapped = chainHandlers(wrapped, r.middlewares)
+	r.notFound = wrapped
 }
 
 func (r *Router) Handle(topic Topic, h Handler, middlewares ...Middleware) {
@@ -50,7 +60,19 @@ func (r *Router) Handle(topic Topic, h Handler, middlewares ...Middleware) {
 func (r *Router) Route(ctx context.Context, request *Request) *Response {
 	h, ok := r.handlers[request.Topic]
 	if !ok {
-		h = r.notFound
+		if r.notFound != nil {
+			h = r.notFound
+		} else {
+			zap.L().Debug("websocket: topic is not found", zap.String("topic", request.Topic.String()))
+			data, mErr := json.Marshal(&MessageData{Message: "topic is not found"})
+			if mErr != nil {
+				return nil
+			}
+			return &Response{
+				Topic: request.Topic,
+				Data:  data,
+			}
+		}
 	}
 
 	ctx = utils.SetWebsocketTopic(ctx, request.Topic.String())

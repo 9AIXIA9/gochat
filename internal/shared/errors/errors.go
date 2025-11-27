@@ -7,6 +7,7 @@ import (
 // 系统相关错误
 
 var (
+	ErrInternalError  = errors.New("system: internal server error")
 	ErrEmptyPointer   = errors.New("system: empty pointer")
 	ErrHasBeenClosed  = errors.New("system: has been closed")
 	ErrDecode         = errors.New("system: decode error")

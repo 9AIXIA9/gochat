@@ -31,9 +31,14 @@ func provideWebsocketRouter(
 	notificationReadPrivateMessage notificationApp.ReadPrivateMessageUseCase,
 	notificationReadRoomMessage notificationApp.ReadRoomMessageUseCase,
 ) *websocket.Router {
-	router := websocket.NewRouter(websocketDelivery.NewNotFoundHandler())
+	router := websocket.NewRouter()
 
-	router.Use(middleware.NewLoggerMiddleware())
+	router.Use(
+		middleware.NewLoggerMiddleware(),
+		middleware.NewRecoverMiddleware(),
+	)
+
+	router.NoRoute(websocketDelivery.NewNotFoundHandler())
 
 	router.Handle(notificationWebsocket.ReadPrivateMessageTopic, notificationWebsocket.NewReadPrivateMessageHandler(notificationReadPrivateMessage))
 	router.Handle(notificationWebsocket.ReadRoomMessageTopic, notificationWebsocket.NewReadRoomMessageHandler(notificationReadRoomMessage))

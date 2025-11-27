@@ -1,5 +1,7 @@
 package http
 
+//TODO 包名不正确，应该就是标准响应格式
+
 type ApiResponse struct {
 	Code    BusinessCode `json:"code"`
 	Message string       `json:"message"`
