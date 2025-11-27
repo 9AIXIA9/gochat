@@ -8,24 +8,22 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-//TODO 改为行为而不是事件
+const ReadPrivateMessageTopic websocket.Topic = "notification.read_private_message"
 
-const PrivateMessageReadTopic websocket.Topic = "notification.private_message_read"
-
-type PrivateMessageReadData struct {
+type ReadPrivateMessageData struct {
 	MessageID kernel.MessageID `json:"message_id"`
 }
 
-func NewPrivateMessageReadHandler(
-	uc application.PrivateMessageReadUseCase,
+func NewReadPrivateMessageHandler(
+	uc application.ReadPrivateMessageUseCase,
 ) websocket.HandlerFunc {
 	return func(ctx context.Context, data []byte) ([]byte, error) {
-		var reqData PrivateMessageReadData
+		var reqData ReadPrivateMessageData
 		if err := json.Unmarshal(data, &reqData); err != nil {
 			return nil, err
 		}
 
-		input := &application.PrivateMessageReadInput{
+		input := &application.ReadPrivateMessageInput{
 			MessageID: reqData.MessageID,
 		}
 

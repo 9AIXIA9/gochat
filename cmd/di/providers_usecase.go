@@ -30,8 +30,8 @@ var UseCaseHTTPSet = wire.NewSet(
 
 var UseCaseWebsocketSet = wire.NewSet(
 	provideWebsocketUserSessionStartedUseCase,
-	provideNotificationPrivateMessageReadUseCase,
-	provideNotificationRoomMessageReadUseCase,
+	provideNotificationReadPrivateMessageUseCase,
+	provideNotificationReadRoomMessageUseCase,
 )
 
 var UseCaseKafkaSet = wire.NewSet(
@@ -141,11 +141,11 @@ func provideWebsocketUserSessionStartedUseCase(
 ) rootapp.UserSessionStartedUseCase {
 	return rootapp.NewUserSessionStartedUseCase(eventIDGen, eventRepo)
 }
-func provideNotificationPrivateMessageReadUseCase(messageRepo notificationDomain.PrivateMessageRepository) notificationApp.PrivateMessageReadUseCase {
-	return notificationApp.NewPrivateMessageReadUseCase(messageRepo, messageRepo)
+func provideNotificationReadPrivateMessageUseCase(messageRepo notificationDomain.PrivateMessageRepository) notificationApp.ReadPrivateMessageUseCase {
+	return notificationApp.NewReadPrivateMessageUseCase(messageRepo, messageRepo)
 }
-func provideNotificationRoomMessageReadUseCase(messageRepo notificationDomain.RoomMessageRepository) notificationApp.RoomMessageReadUseCase {
-	return notificationApp.NewRoomMessageReadUseCase(messageRepo, messageRepo)
+func provideNotificationReadRoomMessageUseCase(messageRepo notificationDomain.RoomMessageRepository) notificationApp.ReadRoomMessageUseCase {
+	return notificationApp.NewReadRoomMessageUseCase(messageRepo, messageRepo)
 }
 
 // -------------------- Event UseCases (Kafka consumer side) --------------------

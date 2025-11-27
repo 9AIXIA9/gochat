@@ -7,35 +7,35 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-type PrivateMessageReadUseCase kernel.UseCase[*PrivateMessageReadInput, *kernel.NoOutput]
+type ReadPrivateMessageUseCase kernel.UseCase[*ReadPrivateMessageInput, *kernel.NoOutput]
 
-type PrivateMessageReadInput struct {
+type ReadPrivateMessageInput struct {
 	MessageID kernel.MessageID
 }
 
-func (r *PrivateMessageReadInput) Validate() error {
+func (r *ReadPrivateMessageInput) Validate() error {
 	if len(r.MessageID) == 0 {
 		return myErrors.ErrEmptyInput
 	}
 	return nil
 }
 
-type privateMessageReadUseCase struct {
+type readPrivateMessageUseCase struct {
 	messageFinder  domain.PrivateMessageFinderByID
 	messageUpdater domain.PrivateMessageUpdater
 }
 
-func NewPrivateMessageReadUseCase(
+func NewReadPrivateMessageUseCase(
 	messageFinder domain.PrivateMessageFinderByID,
 	messageUpdater domain.PrivateMessageUpdater,
-) PrivateMessageReadUseCase {
-	return &privateMessageReadUseCase{
+) ReadPrivateMessageUseCase {
+	return &readPrivateMessageUseCase{
 		messageFinder:  messageFinder,
 		messageUpdater: messageUpdater,
 	}
 }
 
-func (uc *privateMessageReadUseCase) Execute(ctx context.Context, input *PrivateMessageReadInput) (*kernel.NoOutput, error) {
+func (uc *readPrivateMessageUseCase) Execute(ctx context.Context, input *ReadPrivateMessageInput) (*kernel.NoOutput, error) {
 	message, err := uc.messageFinder.FindByID(ctx, input.MessageID)
 	if err != nil {
 		return nil, err

@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 )
 
+//TODO 添加middleware（日志，链路，指标等）
+
 type Topic string
 
 type Request struct {

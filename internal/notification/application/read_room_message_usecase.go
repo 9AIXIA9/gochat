@@ -7,36 +7,36 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-type RoomMessageReadUseCase kernel.UseCase[*RoomMessageReadInput, *kernel.NoOutput]
+type ReadRoomMessageUseCase kernel.UseCase[*ReadRoomMessageInput, *kernel.NoOutput]
 
-type RoomMessageReadInput struct {
+type ReadRoomMessageInput struct {
 	MessageID kernel.MessageID
 	UserID    kernel.UserID
 }
 
-func (r *RoomMessageReadInput) Validate() error {
+func (r *ReadRoomMessageInput) Validate() error {
 	if len(r.UserID) == 0 || len(r.MessageID) == 0 {
 		return myErrors.ErrEmptyInput
 	}
 	return nil
 }
 
-type roomMessageReadUseCase struct {
+type readRoomMessageUseCase struct {
 	messageFinder  domain.RoomMessageFinderByID
 	messageUpdater domain.RoomMessageUpdater
 }
 
-func NewRoomMessageReadUseCase(
+func NewReadRoomMessageUseCase(
 	messageFinder domain.RoomMessageFinderByID,
 	messageUpdater domain.RoomMessageUpdater,
-) RoomMessageReadUseCase {
-	return &roomMessageReadUseCase{
+) ReadRoomMessageUseCase {
+	return &readRoomMessageUseCase{
 		messageFinder:  messageFinder,
 		messageUpdater: messageUpdater,
 	}
 }
 
-func (uc *roomMessageReadUseCase) Execute(ctx context.Context, input *RoomMessageReadInput) (*kernel.NoOutput, error) {
+func (uc *readRoomMessageUseCase) Execute(ctx context.Context, input *ReadRoomMessageInput) (*kernel.NoOutput, error) {
 	message, err := uc.messageFinder.FindRoomMessage(ctx, input.MessageID)
 	if err != nil {
 		return nil, err
