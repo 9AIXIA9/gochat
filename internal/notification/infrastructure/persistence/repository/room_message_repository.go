@@ -129,6 +129,7 @@ func (repo *RoomMessageRepository) FindsByState(ctx context.Context, userID kern
 		Where("notification_room_message_states.user_id = ? AND notification_room_message_states.state = ?", userID, state).
 		Preload("Recipients").
 		Preload("States").
+		Limit(maxLimit).
 		Find(&modelMessages).Error
 	if err != nil {
 		return nil, gormutils.TranslateError(err)
