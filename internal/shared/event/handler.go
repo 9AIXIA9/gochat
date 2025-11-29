@@ -2,14 +2,6 @@ package event
 
 import "context"
 
-type Publisher interface {
-	Publish(event Event) error
-}
-
-type Subscriber interface {
-	Subscribe(topic Topic, handler Handler)
-}
-
 type Handler interface {
 	Handle(ctx context.Context, e Event) error
 }

@@ -5,44 +5,43 @@ import (
 	"gochat/config"
 	authApp "gochat/internal/authorization/application"
 	authDomain "gochat/internal/authorization/domain"
-	authKafka "gochat/internal/authorization/port/kafka"
+	authEvent "gochat/internal/authorization/port/event"
 	chatApp "gochat/internal/chat/application"
 	chatDomain "gochat/internal/chat/domain"
-	chatKafka "gochat/internal/chat/port/kafka"
+	chatEvent "gochat/internal/chat/port/event"
+	"gochat/internal/delivery/kafka/middleware"
 	kafkaInfra "gochat/internal/infrastructure/kafka"
-	"gochat/internal/infrastructure/persistence/repository"
-	"gochat/internal/infrastructure/prometheus"
 	notificationApp "gochat/internal/notification/application"
 	notificationDomain "gochat/internal/notification/domain"
-	notificationKafka "gochat/internal/notification/port/kafka"
+	notificationEvent "gochat/internal/notification/port/event"
 	"gochat/internal/shared/event"
 	socialApp "gochat/internal/social/application"
 	socialDomain "gochat/internal/social/domain"
-	socialKafka "gochat/internal/social/port/kafka"
+	socialEvent "gochat/internal/social/port/event"
 
 	"github.com/google/wire"
 	"go.uber.org/zap"
 )
 
 type (
-	kafkaTopicEnsured    bool
-	kafkaTopicSubscribed bool
+	kafkaTopicEnsured bool
 )
 
 var KafkaSet = wire.NewSet(
 	provideTopicsEnsured,
-	provideKafkaSubscriber,
-	provideKafkaTopicsSubscribed,
+	provideKafkaRouter,
+	provideKafkaConsumer,
 )
 
-func provideKafkaSubscriber(appConfig *config.App, eventRepo *repository.EventRepository, metrics *prometheus.Metrics) (*kafkaInfra.EventSubscriber, error) {
-	return kafkaInfra.NewEventSubscriber(appConfig.Kafka, eventRepo, metrics)
+func provideKafkaConsumer(appConfig *config.App, router *kafkaInfra.Router) (*kafkaInfra.Consumer, error) {
+	return kafkaInfra.NewConsumer(appConfig.Kafka, router)
 }
 
-func provideKafkaTopicsSubscribed(
+// TODO 各上下文 分开订阅 添加中间件
+func provideKafkaRouter(
 	ensured kafkaTopicEnsured,
-	subscriber *kafkaInfra.EventSubscriber,
 	emailAvailable emailServiceAvailable,
+	appConfig *config.App,
 	// auth
 	authUserCreated authApp.UserCreatedUseCase,
 	// social
@@ -62,36 +61,45 @@ func provideKafkaTopicsSubscribed(
 	notificationPrivateMessageNotificationRequested notificationApp.PrivateMessageNotificationRequestedUseCase,
 	notificationRoomMessageNotificationRequested notificationApp.RoomMessageNotificationRequestedUseCase,
 	notificationUndeliveredMessagesRequested notificationApp.UndeliveredMessagesNotificationRequestedUseCase,
-) kafkaTopicSubscribed {
+) *kafkaInfra.Router {
 	if !ensured {
-		zap.L().Warn("Kafka topics are not ensured, skipping subscription")
-		return false
+		zap.L().Warn("Kafka topics are not ensured")
 	}
+
+	router := kafkaInfra.NewRouter()
+
+	//TODO 可添加更多中间件 重试，死信，限流等
+	router.Use(
+		middleware.NewLoggerMiddleware(),
+		middleware.NewRecoverMiddleware(),
+		middleware.NewTelemetryMiddleware(appConfig.Name),
+	)
+
 	// Authorization
-	subscriber.Subscribe(authDomain.TopicUserCreated, authKafka.NewUserCreatedEventHandler(authUserCreated))
+	router.Handle(authDomain.TopicUserCreated, kafkaInfra.WrapEventHandler(authEvent.NewUserCreatedEventHandler(authUserCreated)))
 	// Social
-	subscriber.Subscribe(socialDomain.TopicUserCreated, socialKafka.NewUserCreatedEventHandler(socialUserCreated))
-	subscriber.Subscribe(socialDomain.TopicRoomCreated, socialKafka.NewRoomCreatedEventHandler(socialRoomCreated))
-	subscriber.Subscribe(socialDomain.TopicRoomJoined, socialKafka.NewRoomJoinedEventHandler(socialRoomJoined))
-	subscriber.Subscribe(socialDomain.TopicRoomLeft, socialKafka.NewRoomLeftEventHandler(socialRoomLeft))
+	router.Handle(socialDomain.TopicUserCreated, kafkaInfra.WrapEventHandler(socialEvent.NewUserCreatedEventHandler(socialUserCreated)))
+	router.Handle(socialDomain.TopicRoomCreated, kafkaInfra.WrapEventHandler(socialEvent.NewRoomCreatedEventHandler(socialRoomCreated)))
+	router.Handle(socialDomain.TopicRoomJoined, kafkaInfra.WrapEventHandler(socialEvent.NewRoomJoinedEventHandler(socialRoomJoined)))
+	router.Handle(socialDomain.TopicRoomLeft, kafkaInfra.WrapEventHandler(socialEvent.NewRoomLeftEventHandler(socialRoomLeft)))
 	// Chat
-	subscriber.Subscribe(chatDomain.TopicUserCreated, chatKafka.NewUserCreatedEventHandler(chatUserCreated))
-	subscriber.Subscribe(chatDomain.TopicRoomCreated, chatKafka.NewRoomCreatedEventHandler(chatRoomCreated))
-	subscriber.Subscribe(chatDomain.TopicRoomJoined, chatKafka.NewRoomJoinedEventHandler(chatRoomJoined))
-	subscriber.Subscribe(chatDomain.TopicRoomLeft, chatKafka.NewRoomLeftEventHandler(chatRoomLeft))
-	subscriber.Subscribe(chatDomain.TopicPrivateMessageCreated, chatKafka.NewPrivateMessageCreatedEventHandler(chatPrivateMessageCreated))
-	subscriber.Subscribe(chatDomain.TopicRoomMessageCreated, chatKafka.NewRoomMessageCreatedEventHandler(chatRoomMessageCreated))
+	router.Handle(chatDomain.TopicUserCreated, kafkaInfra.WrapEventHandler(chatEvent.NewUserCreatedEventHandler(chatUserCreated)))
+	router.Handle(chatDomain.TopicRoomCreated, kafkaInfra.WrapEventHandler(chatEvent.NewRoomCreatedEventHandler(chatRoomCreated)))
+	router.Handle(chatDomain.TopicRoomJoined, kafkaInfra.WrapEventHandler(chatEvent.NewRoomJoinedEventHandler(chatRoomJoined)))
+	router.Handle(chatDomain.TopicRoomLeft, kafkaInfra.WrapEventHandler(chatEvent.NewRoomLeftEventHandler(chatRoomLeft)))
+	router.Handle(chatDomain.TopicPrivateMessageCreated, kafkaInfra.WrapEventHandler(chatEvent.NewPrivateMessageCreatedEventHandler(chatPrivateMessageCreated)))
+	router.Handle(chatDomain.TopicRoomMessageCreated, kafkaInfra.WrapEventHandler(chatEvent.NewRoomMessageCreatedEventHandler(chatRoomMessageCreated)))
 	// Notification
 	if emailAvailable {
 		zap.L().Info("Subscribing to WelcomeEmailNotificationRequested topic as email dialer is connected")
-		subscriber.Subscribe(notificationDomain.TopicWelcomeEmailNotificationRequested, notificationKafka.NewWelcomeEmailNotificationRequestedEventHandler(notificationWelcomeEmailNotificationRequested))
+		router.Handle(notificationDomain.TopicWelcomeEmailNotificationRequested, kafkaInfra.WrapEventHandler(notificationEvent.NewWelcomeEmailNotificationRequestedEventHandler(notificationWelcomeEmailNotificationRequested)))
 	} else {
 		zap.L().Info("Skipping subscription to WelcomeEmailNotificationRequested topic as email dialer is not connected")
 	}
-	subscriber.Subscribe(notificationDomain.TopicPrivateMessageNotificationRequested, notificationKafka.NewPrivateMessageNotificationRequestedEventHandler(notificationPrivateMessageNotificationRequested))
-	subscriber.Subscribe(notificationDomain.TopicRoomMessageNotificationRequested, notificationKafka.NewRoomMessageNotificationRequestedEventHandler(notificationRoomMessageNotificationRequested))
-	subscriber.Subscribe(notificationDomain.TopicUndeliveredMessagesNotificationRequested, notificationKafka.NewUndeliveredMessagesNotificationRequestedEventHandler(notificationUndeliveredMessagesRequested))
-	return true
+	router.Handle(notificationDomain.TopicPrivateMessageNotificationRequested, kafkaInfra.WrapEventHandler(notificationEvent.NewPrivateMessageNotificationRequestedEventHandler(notificationPrivateMessageNotificationRequested)))
+	router.Handle(notificationDomain.TopicRoomMessageNotificationRequested, kafkaInfra.WrapEventHandler(notificationEvent.NewRoomMessageNotificationRequestedEventHandler(notificationRoomMessageNotificationRequested)))
+	router.Handle(notificationDomain.TopicUndeliveredMessagesNotificationRequested, kafkaInfra.WrapEventHandler(notificationEvent.NewUndeliveredMessagesNotificationRequestedEventHandler(notificationUndeliveredMessagesRequested)))
+	return router
 }
 
 func provideTopicsEnsured(appConfig *config.App) kafkaTopicEnsured {

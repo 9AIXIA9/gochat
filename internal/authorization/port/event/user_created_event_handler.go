@@ -1,9 +1,9 @@
-package kafka
+package event
 
 import (
 	"context"
-	"gochat/internal/chat/application"
-	"gochat/internal/chat/domain"
+	"gochat/internal/authorization/application"
+	"gochat/internal/authorization/domain"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 )
@@ -16,8 +16,7 @@ func NewUserCreatedEventHandler(uc application.UserCreatedUseCase) event.Handler
 		}
 
 		input := application.UserCreatedInput{
-			UserID:     kernel.UserID(ev.AggregateID()),
-			UserNumber: ev.Number(),
+			UserID: kernel.UserID(ev.AggregateID()),
 		}
 
 		if err := input.Validate(); err != nil {
