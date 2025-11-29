@@ -1,0 +1,129 @@
+package kafka
+
+import (
+	"context"
+	"fmt"
+	myErrors "gochat/internal/shared/errors"
+	"gochat/pkg/utils"
+	"time"
+
+	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
+	"go.uber.org/zap"
+)
+
+const (
+	pollTimeout = 500 * time.Millisecond
+)
+
+type ErrorHandlerFunc func(ctx context.Context, err error, message *ckafka.Message)
+
+type Consumer struct {
+	consumer    *ckafka.Consumer
+	router      *Router
+	handleError ErrorHandlerFunc
+
+	ctx    context.Context
+	cancel context.CancelFunc
+
+	running bool
+}
+
+func NewConsumer(config *Config, router *Router) (*Consumer, error) {
+	consumer, err := ckafka.NewConsumer(getConsumerConfigMap(config))
+	if err != nil {
+		return nil, fmt.Errorf("create event consumer failed: %w", err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	return &Consumer{
+		consumer:    consumer,
+		router:      router,
+		handleError: nil,
+		ctx:         ctx,
+		cancel:      cancel,
+		running:     false,
+	}, nil
+}
+
+func (c *Consumer) Start() error {
+	if c.running {
+		return nil
+	}
+	topics := c.router.Topics()
+	if len(topics) == 0 {
+		return fmt.Errorf("event consumer router topics is empty %w", myErrors.ErrEmptyInput)
+	}
+
+	if err := c.consumer.SubscribeTopics(topics, nil); err != nil {
+		return fmt.Errorf("subscribe topics failed: %w", err)
+	}
+
+	c.running = true
+
+	utils.GoSafe(c.processMessage)
+
+	return nil
+}
+
+func (c *Consumer) processMessage() {
+	for c.running {
+		// Handle ctx cancellation
+		select {
+		case <-c.ctx.Done():
+			c.running = false
+			return
+		default:
+		}
+
+		ev := c.consumer.Poll(int(pollTimeout.Milliseconds()))
+		if ev == nil {
+			continue
+		}
+
+		switch m := ev.(type) {
+		case *ckafka.Message:
+			if err := c.router.Route(c.ctx, m); err != nil {
+				// 提交偏移量，防止该消息反复重投造成堵塞
+				if _, cErr := c.consumer.CommitMessage(m); cErr != nil {
+					zap.L().Warn(
+						"event consumer commit message offset failed",
+						zap.String("topic", *m.TopicPartition.Topic),
+						zap.Int32("partition", m.TopicPartition.Partition),
+						zap.Int64("offset", int64(m.TopicPartition.Offset)),
+						zap.Error(cErr),
+					)
+				}
+
+				//处理错误
+				if c.handleError != nil {
+					c.handleError(c.ctx, err, m)
+				} else {
+					zap.L().Error(
+						"event consumer handle message failed",
+						zap.String("topic", *m.TopicPartition.Topic),
+						zap.Int32("partition", m.TopicPartition.Partition),
+						zap.Int64("offset", int64(m.TopicPartition.Offset)),
+						zap.Error(err),
+					)
+				}
+			}
+		case ckafka.Error:
+			// Consumer-level error
+			zap.L().Error("event consumer error", zap.Error(m))
+		default:
+			// ignore other events
+		}
+	}
+}
+
+func (c *Consumer) SetErrorHandler(h ErrorHandlerFunc) {
+	c.handleError = h
+}
+
+func (c *Consumer) Close() {
+	c.running = false
+	c.cancel()
+	if c.consumer != nil {
+		_ = c.consumer.Close()
+	}
+}

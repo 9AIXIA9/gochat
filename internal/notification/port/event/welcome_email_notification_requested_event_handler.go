@@ -1,4 +1,4 @@
-package kafka
+package event
 
 import (
 	"context"
@@ -8,15 +8,17 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-func NewUndeliveredMessagesNotificationRequestedEventHandler(uc application.UndeliveredMessagesNotificationRequestedUseCase) event.HandlerFunc {
+func NewWelcomeEmailNotificationRequestedEventHandler(uc application.WelcomeEmailNotificationRequestedUseCase) event.HandlerFunc {
 	return func(ctx context.Context, e event.Event) error {
-		ev, err := domain.ToUndeliveredMessagesNotificationRequestedEvent(e)
+		ev, err := domain.ToWelcomeEmailNotificationRequestedEvent(e)
 		if err != nil {
 			return err
 		}
 
-		input := application.UndeliveredMessagesNotificationRequestedInput{
-			UserID: kernel.UserID(ev.AggregateID()),
+		input := application.WelcomeEmailNotificationRequestedInput{
+			UserID:     kernel.UserID(ev.AggregateID()),
+			UserNumber: ev.Number(),
+			Email:      ev.Email(),
 		}
 
 		if err := input.Validate(); err != nil {

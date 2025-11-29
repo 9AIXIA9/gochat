@@ -54,7 +54,7 @@ func main() {
 	//启动各个组件
 	dependencies.EmailNotifier.Start()
 	dependencies.KafkaEventPublisher.Start()
-	if err := dependencies.KafkaEventSubscriber.Start(conf.Name); err != nil {
+	if err := dependencies.KafkaConsumer.Start(); err != nil {
 		zap.L().Fatal("start kafka event subscriber failed", zap.Error(err))
 	}
 	dependencies.BinlogReader.Start()
@@ -76,7 +76,7 @@ func main() {
 
 	dependencies.EmailNotifier.Close()
 	dependencies.KafkaEventPublisher.Close()
-	dependencies.KafkaEventSubscriber.Close()
+	dependencies.KafkaConsumer.Close()
 	dependencies.BinlogReader.Close()
 
 	if closeOtel != nil {

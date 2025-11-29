@@ -73,24 +73,12 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	eventSubscriber, err := provideKafkaSubscriber(appConfig, eventRepository, metrics)
-	if err != nil {
-		return nil, err
-	}
-	canal, err := provideCanal(appConfig)
-	if err != nil {
-		return nil, err
-	}
-	unpublishedEventsCreatedUseCase := provideUnpublishedEventsCreatedCase(eventPublisher, eventRepository)
-	eventHandler := provideCanalBinlogReaderHandler(unpublishedEventsCreatedUseCase)
-	binlogReader := provideCanalBinlogReader(canal, eventHandler)
+	diKafkaTopicEnsured := provideTopicsEnsured(appConfig)
 	dialer, err := provideGomailDialer(appConfig)
 	if err != nil {
 		return nil, err
 	}
-	emailNotifier := provideEmailNotifier(appConfig, dialer)
 	diEmailServiceAvailable := provideEmailAvailable(dialer)
-	diKafkaTopicEnsured := provideTopicsEnsured(appConfig)
 	userCreatedUseCase := provideAuthUserCreatedUseCase(eventIDGenerator, eventRepository, userRepository)
 	userRepository2 := provideSocialUserRepository(db)
 	applicationUserCreatedUseCase := provideSocialUserCreatedUseCase(userRepository2)
@@ -103,15 +91,27 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	applicationRoomLeftUseCase := provideChatRoomLeftUseCase(roomRepository)
 	privateMessageCreatedUseCase := provideChatPrivateMessageCreatedUseCase(eventIDGenerator, eventRepository, privateMessageRepository)
 	roomMessageCreatedUseCase := provideChatRoomMessageCreatedUseCase(eventIDGenerator, eventRepository, roomRepository, roomMessageRepository)
+	emailNotifier := provideEmailNotifier(appConfig, dialer)
 	welcomeEmailNotificationRequestedUseCase := provideNotificationWelcomeEmailNotificationRequestedUseCase(emailNotifier)
 	privateMessageNotifier := providePrivateMessageNotifier(manager)
 	privateMessageNotificationRequestedUseCase := provideNotificationPrivateMessageNotificationRequestedUseCase(repositoryPrivateMessageRepository, privateMessageNotifier)
 	roomMessageNotifier := provideRoomMessageNotifier(manager)
 	roomMessageNotificationRequestedUseCase := provideNotificationRoomMessageNotificationRequestedUseCase(repositoryRoomMessageRepository, roomMessageNotifier)
 	undeliveredMessagesNotificationRequestedUseCase := provideNotificationUndeliveredMessagesNotificationRequestedUseCase(repositoryPrivateMessageRepository, repositoryRoomMessageRepository, privateMessageNotifier, roomMessageNotifier)
-	diKafkaTopicSubscribed := provideKafkaTopicsSubscribed(diKafkaTopicEnsured, eventSubscriber, diEmailServiceAvailable, userCreatedUseCase, applicationUserCreatedUseCase, roomCreatedUseCase, roomJoinedUseCase, roomLeftUseCase, userCreatedUseCase2, applicationRoomCreatedUseCase, applicationRoomJoinedUseCase, applicationRoomLeftUseCase, privateMessageCreatedUseCase, roomMessageCreatedUseCase, welcomeEmailNotificationRequestedUseCase, privateMessageNotificationRequestedUseCase, roomMessageNotificationRequestedUseCase, undeliveredMessagesNotificationRequestedUseCase)
+	kafkaRouter := provideKafkaRouter(diKafkaTopicEnsured, diEmailServiceAvailable, userCreatedUseCase, applicationUserCreatedUseCase, roomCreatedUseCase, roomJoinedUseCase, roomLeftUseCase, userCreatedUseCase2, applicationRoomCreatedUseCase, applicationRoomJoinedUseCase, applicationRoomLeftUseCase, privateMessageCreatedUseCase, roomMessageCreatedUseCase, welcomeEmailNotificationRequestedUseCase, privateMessageNotificationRequestedUseCase, roomMessageNotificationRequestedUseCase, undeliveredMessagesNotificationRequestedUseCase)
+	consumer, err := provideKafkaConsumer(appConfig, kafkaRouter)
+	if err != nil {
+		return nil, err
+	}
+	canal, err := provideCanal(appConfig)
+	if err != nil {
+		return nil, err
+	}
+	unpublishedEventsCreatedUseCase := provideUnpublishedEventsCreatedCase(eventPublisher, eventRepository)
+	eventHandler := provideCanalBinlogReaderHandler(unpublishedEventsCreatedUseCase)
+	binlogReader := provideCanalBinlogReader(canal, eventHandler)
 	diDatabaseMigrated := provideDatabaseMigrated(db)
-	dependencies, err := BuildDependencies(ginServer, eventPublisher, eventSubscriber, binlogReader, emailNotifier, diEmailServiceAvailable, diKafkaTopicEnsured, diKafkaTopicSubscribed, diDatabaseMigrated)
+	dependencies, err := BuildDependencies(ginServer, eventPublisher, consumer, binlogReader, emailNotifier, diEmailServiceAvailable, diKafkaTopicEnsured, diDatabaseMigrated)
 	if err != nil {
 		return nil, err
 	}

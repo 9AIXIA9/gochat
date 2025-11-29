@@ -1,4 +1,4 @@
-package kafka
+package event
 
 import (
 	"context"
@@ -8,14 +8,14 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-func NewRoomMessageCreatedEventHandler(uc application.RoomMessageCreatedUseCase) event.HandlerFunc {
+func NewPrivateMessageCreatedEventHandler(uc application.PrivateMessageCreatedUseCase) event.HandlerFunc {
 	return func(ctx context.Context, e event.Event) error {
-		ev, err := domain.ToRoomMessageCreatedEvent(e)
+		ev, err := domain.ToPrivateMessageCreatedEvent(e)
 		if err != nil {
 			return err
 		}
 
-		input := application.RoomMessageCreatedInput{
+		input := application.PrivateMessageCreatedInput{
 			MessageID: kernel.MessageID(ev.AggregateID()),
 		}
 

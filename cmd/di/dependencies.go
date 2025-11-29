@@ -8,30 +8,29 @@ import (
 )
 
 type Dependencies struct {
-	HttpServer           *ginutils.Server
-	KafkaEventPublisher  *kafkautil.EventPublisher
-	KafkaEventSubscriber *kafkautil.EventSubscriber
-	BinlogReader         *canalUtil.BinlogReader
-	EmailNotifier        *gomailUtil.EmailNotifier
+	HttpServer          *ginutils.Server
+	KafkaEventPublisher *kafkautil.EventPublisher
+	KafkaConsumer       *kafkautil.Consumer
+	BinlogReader        *canalUtil.BinlogReader
+	EmailNotifier       *gomailUtil.EmailNotifier
 }
 
 func BuildDependencies(
 	httpServer *ginutils.Server,
 	kafkaPublisher *kafkautil.EventPublisher,
-	kafkaSubscriber *kafkautil.EventSubscriber,
+	kafkaConsumer *kafkautil.Consumer,
 	binlogReader *canalUtil.BinlogReader,
 	emailNotifier *gomailUtil.EmailNotifier,
 	_ emailServiceAvailable,
 	_ kafkaTopicEnsured,
-	_ kafkaTopicSubscribed,
 	_ databaseMigrated,
 ) (*Dependencies, error) {
 	deps := &Dependencies{
-		HttpServer:           httpServer,
-		KafkaEventPublisher:  kafkaPublisher,
-		KafkaEventSubscriber: kafkaSubscriber,
-		BinlogReader:         binlogReader,
-		EmailNotifier:        emailNotifier,
+		HttpServer:          httpServer,
+		KafkaEventPublisher: kafkaPublisher,
+		KafkaConsumer:       kafkaConsumer,
+		BinlogReader:        binlogReader,
+		EmailNotifier:       emailNotifier,
 	}
 	return deps, nil
 }

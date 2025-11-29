@@ -1,4 +1,4 @@
-package kafka
+package event
 
 import (
 	"context"
@@ -8,15 +8,15 @@ import (
 	"gochat/internal/social/domain"
 )
 
-func NewUserCreatedEventHandler(uc application.UserCreatedUseCase) event.HandlerFunc {
+func NewRoomCreatedEventHandler(uc application.RoomCreatedUseCase) event.HandlerFunc {
 	return func(ctx context.Context, e event.Event) error {
-		ev, err := domain.ToUserCreatedEvent(e)
+		ev, err := domain.ToRoomCreatedEvent(e)
 		if err != nil {
 			return err
 		}
 
-		input := application.UserCreatedInput{
-			UserID: kernel.UserID(ev.AggregateID()),
+		input := application.RoomCreatedInput{
+			RoomID: kernel.RoomID(ev.AggregateID()),
 		}
 
 		if err := input.Validate(); err != nil {
