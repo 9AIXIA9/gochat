@@ -2,6 +2,7 @@ package di
 
 import (
 	"gochat/config"
+	"gochat/internal/application"
 	websocketDelivery "gochat/internal/delivery/websocket/handler"
 	"gochat/internal/delivery/websocket/middleware"
 	"gochat/internal/infrastructure/websocket"
@@ -48,6 +49,11 @@ func provideWebsocketRouter(
 	return router
 }
 
-func provideWebsocketServer(upgrader *gorillaWebsocket.Upgrader, manager *websocket.Manager, router *websocket.Router) *websocket.Server {
-	return websocket.NewServer(upgrader, manager, router)
+func provideWebsocketServer(
+	upgrader *gorillaWebsocket.Upgrader,
+	manager *websocket.Manager,
+	router *websocket.Router,
+	userSessionStartedUseCase application.UserSessionStartedUseCase,
+) *websocket.Server {
+	return websocket.NewServer(upgrader, manager, router, userSessionStartedUseCase)
 }
