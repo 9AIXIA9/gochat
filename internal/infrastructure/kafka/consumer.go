@@ -15,12 +15,15 @@ const (
 	pollTimeout = 500 * time.Millisecond
 )
 
+type ErrorHandler interface {
+	Handle(ctx context.Context, err error, message *ckafka.Message)
+}
 type ErrorHandlerFunc func(ctx context.Context, err error, message *ckafka.Message)
 
 type Consumer struct {
-	consumer    *ckafka.Consumer
-	router      *Router
-	handleError ErrorHandlerFunc
+	consumer     *ckafka.Consumer
+	router       *Router
+	errorHandler ErrorHandler
 
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -36,12 +39,12 @@ func NewConsumer(config *Config, router *Router) (*Consumer, error) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	return &Consumer{
-		consumer:    consumer,
-		router:      router,
-		handleError: nil,
-		ctx:         ctx,
-		cancel:      cancel,
-		running:     false,
+		consumer:     consumer,
+		router:       router,
+		errorHandler: nil,
+		ctx:          ctx,
+		cancel:       cancel,
+		running:      false,
 	}, nil
 }
 
@@ -87,8 +90,8 @@ func (c *Consumer) processMessage() {
 			err := c.router.Route(c.ctx, m)
 			if err != nil {
 				// Log / handle the processing error
-				if c.handleError != nil {
-					c.handleError(c.ctx, err, m)
+				if c.errorHandler != nil {
+					c.errorHandler.Handle(c.ctx, err, m)
 				} else {
 					zap.L().Error(
 						"kafka consumer handle message failed",
@@ -108,8 +111,8 @@ func (c *Consumer) processMessage() {
 	}
 }
 
-func (c *Consumer) SetErrorHandler(h ErrorHandlerFunc) {
-	c.handleError = h
+func (c *Consumer) SetErrorHandler(h ErrorHandler) {
+	c.errorHandler = h
 }
 
 func (c *Consumer) Close() {

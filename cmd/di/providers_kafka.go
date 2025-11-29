@@ -2,6 +2,7 @@ package di
 
 import (
 	"context"
+	"fmt"
 	"gochat/config"
 	authApp "gochat/internal/authorization/application"
 	authDomain "gochat/internal/authorization/domain"
@@ -33,8 +34,22 @@ var KafkaSet = wire.NewSet(
 	provideKafkaConsumer,
 )
 
-func provideKafkaConsumer(appConfig *config.App, router *kafkaInfra.Router) (*kafkaInfra.Consumer, error) {
-	return kafkaInfra.NewConsumer(appConfig.Kafka, router)
+func provideKafkaConsumer(
+	appConfig *config.App,
+	router *kafkaInfra.Router,
+	creator event.DeadLetterCreator,
+) (*kafkaInfra.Consumer, error) {
+	consumer, err := kafkaInfra.NewConsumer(appConfig.Kafka, router)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create Kafka consumer: %w", err)
+	}
+	handler, err := kafkaInfra.NewErrorHandlerWithDeadLetterAndRetry(appConfig.Kafka, creator)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create Kafka error handler: %w", err)
+	}
+
+	consumer.SetErrorHandler(handler)
+	return consumer, nil
 }
 
 // TODO 各上下文 分开订阅 添加中间件
@@ -68,7 +83,7 @@ func provideKafkaRouter(
 
 	router := kafkaInfra.NewRouter()
 
-	//TODO 可添加更多中间件 重试，死信，限流等
+	//TODO 可添加更多中间件 限流等
 	router.Use(
 		middleware.NewLoggerMiddleware(),
 		middleware.NewRecoverMiddleware(),
