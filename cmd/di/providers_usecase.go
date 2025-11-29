@@ -8,10 +8,10 @@ import (
 	chatDomain "gochat/internal/chat/domain"
 	notificationApp "gochat/internal/notification/application"
 	notificationDomain "gochat/internal/notification/domain"
+	roomshipApp "gochat/internal/roomship/application"
+	roomshipDomain "gochat/internal/roomship/domain"
+	RoomshipPersistence "gochat/internal/roomship/infrastructure/persistence/repository"
 	"gochat/internal/shared/event"
-	socialApp "gochat/internal/social/application"
-	socialDomain "gochat/internal/social/domain"
-	socialPersistence "gochat/internal/social/infrastructure/persistence/repository"
 
 	"github.com/google/wire"
 )
@@ -36,10 +36,10 @@ var UseCaseWebsocketSet = wire.NewSet(
 
 var UseCaseKafkaSet = wire.NewSet(
 	provideAuthUserCreatedUseCase,
-	provideSocialUserCreatedUseCase,
-	provideSocialRoomCreatedUseCase,
-	provideSocialRoomJoinedUseCase,
-	provideSocialRoomLeftUseCase,
+	provideRoomshipUserCreatedUseCase,
+	provideRoomshipRoomCreatedUseCase,
+	provideRoomshipRoomJoinedUseCase,
+	provideRoomshipRoomLeftUseCase,
 	provideChatUserCreatedUseCase,
 	provideChatRoomCreatedUseCase,
 	provideChatRoomJoinedUseCase,
@@ -113,25 +113,25 @@ func provideSendRoomMessageUseCase(
 }
 func provideCreateRoomUseCase(
 	eventIDGen event.IDGenerator,
-	roomIDGen socialDomain.RoomIDGenerator,
-	numberGen socialDomain.RoomNumberGenerator,
-	encryptor socialDomain.Encryptor,
-	roomRepo socialDomain.RoomRepository,
-) socialApp.CreateRoomUseCase {
-	return socialApp.NewCreateRoomUseCase(eventIDGen, roomIDGen, numberGen, encryptor, roomRepo)
+	roomIDGen roomshipDomain.RoomIDGenerator,
+	numberGen roomshipDomain.RoomNumberGenerator,
+	encryptor roomshipDomain.Encryptor,
+	roomRepo roomshipDomain.RoomRepository,
+) roomshipApp.CreateRoomUseCase {
+	return roomshipApp.NewCreateRoomUseCase(eventIDGen, roomIDGen, numberGen, encryptor, roomRepo)
 }
 func provideJoinRoomUseCase(
 	eventIDGen event.IDGenerator,
-	comparator socialDomain.Comparator,
-	roomRepo socialDomain.RoomRepository,
-) socialApp.JoinRoomUseCase {
-	return socialApp.NewJoinRoomUseCase(eventIDGen, roomRepo, comparator, roomRepo)
+	comparator roomshipDomain.Comparator,
+	roomRepo roomshipDomain.RoomRepository,
+) roomshipApp.JoinRoomUseCase {
+	return roomshipApp.NewJoinRoomUseCase(eventIDGen, roomRepo, comparator, roomRepo)
 }
 func provideLeaveRoomUseCase(
 	eventIDGen event.IDGenerator,
-	roomRepo socialDomain.RoomRepository,
-) socialApp.LeaveRoomUseCase {
-	return socialApp.NewLeaveRoomUseCase(eventIDGen, roomRepo, roomRepo)
+	roomRepo roomshipDomain.RoomRepository,
+) roomshipApp.LeaveRoomUseCase {
+	return roomshipApp.NewLeaveRoomUseCase(eventIDGen, roomRepo, roomRepo)
 }
 
 // -------------------- Event UseCases (websocket side) --------------------
@@ -157,27 +157,27 @@ func provideAuthUserCreatedUseCase(
 ) authApp.UserCreatedUseCase {
 	return authApp.NewUserCreatedUseCase(eventIDGen, eventRepo, userRepo)
 }
-func provideSocialUserCreatedUseCase(userRepo *socialPersistence.UserRepository) socialApp.UserCreatedUseCase {
-	return socialApp.NewUserCreatedUseCase(userRepo)
+func provideRoomshipUserCreatedUseCase(userRepo *RoomshipPersistence.UserRepository) roomshipApp.UserCreatedUseCase {
+	return roomshipApp.NewUserCreatedUseCase(userRepo)
 }
-func provideSocialRoomCreatedUseCase(
+func provideRoomshipRoomCreatedUseCase(
 	eventIDGen event.IDGenerator,
-	roomRepo socialDomain.RoomRepository,
+	roomRepo roomshipDomain.RoomRepository,
 	eventRepo event.Repository,
-) socialApp.RoomCreatedUseCase {
-	return socialApp.NewRoomCreatedUseCase(eventIDGen, eventRepo, roomRepo)
+) roomshipApp.RoomCreatedUseCase {
+	return roomshipApp.NewRoomCreatedUseCase(eventIDGen, eventRepo, roomRepo)
 }
-func provideSocialRoomJoinedUseCase(
-	eventIDGen event.IDGenerator,
-	eventRepo event.Repository,
-) socialApp.RoomJoinedUseCase {
-	return socialApp.NewRoomJoinedUseCase(eventIDGen, eventRepo)
-}
-func provideSocialRoomLeftUseCase(
+func provideRoomshipRoomJoinedUseCase(
 	eventIDGen event.IDGenerator,
 	eventRepo event.Repository,
-) socialApp.RoomLeftUseCase {
-	return socialApp.NewRoomLeftUseCase(eventIDGen, eventRepo)
+) roomshipApp.RoomJoinedUseCase {
+	return roomshipApp.NewRoomJoinedUseCase(eventIDGen, eventRepo)
+}
+func provideRoomshipRoomLeftUseCase(
+	eventIDGen event.IDGenerator,
+	eventRepo event.Repository,
+) roomshipApp.RoomLeftUseCase {
+	return roomshipApp.NewRoomLeftUseCase(eventIDGen, eventRepo)
 }
 func provideChatUserCreatedUseCase(userRepo chatDomain.UserRepository) chatApp.UserCreatedUseCase {
 	return chatApp.NewUserCreatedUseCase(userRepo)

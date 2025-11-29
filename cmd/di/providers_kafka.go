@@ -15,10 +15,10 @@ import (
 	notificationApp "gochat/internal/notification/application"
 	notificationDomain "gochat/internal/notification/domain"
 	notificationEvent "gochat/internal/notification/port/event"
+	roomshipApp "gochat/internal/roomship/application"
+	roomshipDomain "gochat/internal/roomship/domain"
+	roomshipEvent "gochat/internal/roomship/port/event"
 	"gochat/internal/shared/event"
-	socialApp "gochat/internal/social/application"
-	socialDomain "gochat/internal/social/domain"
-	socialEvent "gochat/internal/social/port/event"
 
 	"github.com/google/wire"
 	"go.uber.org/zap"
@@ -59,11 +59,11 @@ func provideKafkaRouter(
 	appConfig *config.App,
 	// auth
 	authUserCreated authApp.UserCreatedUseCase,
-	// social
-	socialUserCreated socialApp.UserCreatedUseCase,
-	socialRoomCreated socialApp.RoomCreatedUseCase,
-	socialRoomJoined socialApp.RoomJoinedUseCase,
-	socialRoomLeft socialApp.RoomLeftUseCase,
+	// roomship
+	RoomshipUserCreated roomshipApp.UserCreatedUseCase,
+	RoomshipRoomCreated roomshipApp.RoomCreatedUseCase,
+	RoomshipRoomJoined roomshipApp.RoomJoinedUseCase,
+	RoomshipRoomLeft roomshipApp.RoomLeftUseCase,
 	// chat
 	chatUserCreated chatApp.UserCreatedUseCase,
 	chatRoomCreated chatApp.RoomCreatedUseCase,
@@ -92,11 +92,11 @@ func provideKafkaRouter(
 
 	// Authorization
 	router.Handle(authDomain.TopicUserCreated, kafkaInfra.WrapEventHandler(authEvent.NewUserCreatedEventHandler(authUserCreated)))
-	// Social
-	router.Handle(socialDomain.TopicUserCreated, kafkaInfra.WrapEventHandler(socialEvent.NewUserCreatedEventHandler(socialUserCreated)))
-	router.Handle(socialDomain.TopicRoomCreated, kafkaInfra.WrapEventHandler(socialEvent.NewRoomCreatedEventHandler(socialRoomCreated)))
-	router.Handle(socialDomain.TopicRoomJoined, kafkaInfra.WrapEventHandler(socialEvent.NewRoomJoinedEventHandler(socialRoomJoined)))
-	router.Handle(socialDomain.TopicRoomLeft, kafkaInfra.WrapEventHandler(socialEvent.NewRoomLeftEventHandler(socialRoomLeft)))
+	// Roomship
+	router.Handle(roomshipDomain.TopicUserCreated, kafkaInfra.WrapEventHandler(roomshipEvent.NewUserCreatedEventHandler(RoomshipUserCreated)))
+	router.Handle(roomshipDomain.TopicRoomCreated, kafkaInfra.WrapEventHandler(roomshipEvent.NewRoomCreatedEventHandler(RoomshipRoomCreated)))
+	router.Handle(roomshipDomain.TopicRoomJoined, kafkaInfra.WrapEventHandler(roomshipEvent.NewRoomJoinedEventHandler(RoomshipRoomJoined)))
+	router.Handle(roomshipDomain.TopicRoomLeft, kafkaInfra.WrapEventHandler(roomshipEvent.NewRoomLeftEventHandler(RoomshipRoomLeft)))
 	// Chat
 	router.Handle(chatDomain.TopicUserCreated, kafkaInfra.WrapEventHandler(chatEvent.NewUserCreatedEventHandler(chatUserCreated)))
 	router.Handle(chatDomain.TopicRoomCreated, kafkaInfra.WrapEventHandler(chatEvent.NewRoomCreatedEventHandler(chatRoomCreated)))
@@ -124,11 +124,11 @@ func provideTopicsEnsured(appConfig *config.App) kafkaTopicEnsured {
 		[]event.Topic{
 			// authorization
 			authDomain.TopicUserCreated,
-			// social
-			socialDomain.TopicUserCreated,
-			socialDomain.TopicRoomCreated,
-			socialDomain.TopicRoomJoined,
-			socialDomain.TopicRoomLeft,
+			// roomship
+			roomshipDomain.TopicUserCreated,
+			roomshipDomain.TopicRoomCreated,
+			roomshipDomain.TopicRoomJoined,
+			roomshipDomain.TopicRoomLeft,
 			// chat
 			chatDomain.TopicUserCreated,
 			chatDomain.TopicRoomCreated,
