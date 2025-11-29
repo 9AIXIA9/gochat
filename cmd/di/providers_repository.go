@@ -45,6 +45,8 @@ var RepoSet = wire.NewSet(
 	wire.Bind(new(notificationDomain.PrivateMessageRepository), new(*notificationRepo.PrivateMessageRepository)),
 	wire.Bind(new(notificationDomain.RoomMessageRepository), new(*notificationRepo.RoomMessageRepository)),
 
+	wire.Bind(new(event.DeadLetterCreator), new(*repository.EventRepository)),
+
 	provideDatabaseMigrated,
 	provideEventRepository,
 	provideAuthorizationUserRepository,
