@@ -98,7 +98,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	roomMessageNotifier := provideRoomMessageNotifier(manager)
 	roomMessageNotificationRequestedUseCase := provideNotificationRoomMessageNotificationRequestedUseCase(repositoryRoomMessageRepository, roomMessageNotifier)
 	undeliveredMessagesNotificationRequestedUseCase := provideNotificationUndeliveredMessagesNotificationRequestedUseCase(repositoryPrivateMessageRepository, repositoryRoomMessageRepository, privateMessageNotifier, roomMessageNotifier)
-	kafkaRouter := provideKafkaRouter(diKafkaTopicEnsured, diEmailServiceAvailable, userCreatedUseCase, applicationUserCreatedUseCase, roomCreatedUseCase, roomJoinedUseCase, roomLeftUseCase, userCreatedUseCase2, applicationRoomCreatedUseCase, applicationRoomJoinedUseCase, applicationRoomLeftUseCase, privateMessageCreatedUseCase, roomMessageCreatedUseCase, welcomeEmailNotificationRequestedUseCase, privateMessageNotificationRequestedUseCase, roomMessageNotificationRequestedUseCase, undeliveredMessagesNotificationRequestedUseCase)
+	kafkaRouter := provideKafkaRouter(diKafkaTopicEnsured, diEmailServiceAvailable, appConfig, userCreatedUseCase, applicationUserCreatedUseCase, roomCreatedUseCase, roomJoinedUseCase, roomLeftUseCase, userCreatedUseCase2, applicationRoomCreatedUseCase, applicationRoomJoinedUseCase, applicationRoomLeftUseCase, privateMessageCreatedUseCase, roomMessageCreatedUseCase, welcomeEmailNotificationRequestedUseCase, privateMessageNotificationRequestedUseCase, roomMessageNotificationRequestedUseCase, undeliveredMessagesNotificationRequestedUseCase)
 	consumer, err := provideKafkaConsumer(appConfig, kafkaRouter)
 	if err != nil {
 		return nil, err

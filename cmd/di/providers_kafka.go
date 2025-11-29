@@ -9,6 +9,7 @@ import (
 	chatApp "gochat/internal/chat/application"
 	chatDomain "gochat/internal/chat/domain"
 	chatEvent "gochat/internal/chat/port/event"
+	"gochat/internal/delivery/kafka/middleware"
 	kafkaInfra "gochat/internal/infrastructure/kafka"
 	notificationApp "gochat/internal/notification/application"
 	notificationDomain "gochat/internal/notification/domain"
@@ -40,6 +41,7 @@ func provideKafkaConsumer(appConfig *config.App, router *kafkaInfra.Router) (*ka
 func provideKafkaRouter(
 	ensured kafkaTopicEnsured,
 	emailAvailable emailServiceAvailable,
+	appConfig *config.App,
 	// auth
 	authUserCreated authApp.UserCreatedUseCase,
 	// social
@@ -60,11 +62,19 @@ func provideKafkaRouter(
 	notificationRoomMessageNotificationRequested notificationApp.RoomMessageNotificationRequestedUseCase,
 	notificationUndeliveredMessagesRequested notificationApp.UndeliveredMessagesNotificationRequestedUseCase,
 ) *kafkaInfra.Router {
-	router := kafkaInfra.NewRouter()
-
 	if !ensured {
 		zap.L().Warn("Kafka topics are not ensured")
 	}
+
+	router := kafkaInfra.NewRouter()
+
+	//TODO 可添加更多中间件 重试，死信，限流等
+	router.Use(
+		middleware.NewLoggerMiddleware(),
+		middleware.NewRecoverMiddleware(),
+		middleware.NewTelemetryMiddleware(appConfig.Name),
+	)
+
 	// Authorization
 	router.Handle(authDomain.TopicUserCreated, kafkaInfra.WrapEventHandler(authEvent.NewUserCreatedEventHandler(authUserCreated)))
 	// Social
