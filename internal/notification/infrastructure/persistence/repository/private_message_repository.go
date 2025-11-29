@@ -10,6 +10,10 @@ import (
 	"gorm.io/gorm"
 )
 
+//TODO 查询功能仍有 bug 待完善
+
+const maxLimit = 10
+
 var _ domain.PrivateMessageRepository = (*PrivateMessageRepository)(nil)
 
 type PrivateMessageRepository struct {
@@ -51,7 +55,11 @@ func (repo *PrivateMessageRepository) FindByID(ctx context.Context, messageID ke
 
 func (repo *PrivateMessageRepository) FindsByState(ctx context.Context, userID kernel.UserID, state domain.MessageState) ([]*domain.PrivateMessage, error) {
 	var modelMessages []*model.PrivateMessage
-	if err := repo.db.WithContext(ctx).Where("recipient_id = ? AND state = ?", userID, state).Find(&modelMessages).Error; err != nil {
+	if err := repo.db.WithContext(ctx).
+		Where("recipient_id = ? AND state = ?", userID, state).
+		Find(&modelMessages).
+		Limit(maxLimit).
+		Error; err != nil {
 		return nil, gormutils.TranslateError(err)
 	}
 	return repo.toDomains(modelMessages), nil
