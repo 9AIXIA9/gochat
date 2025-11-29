@@ -5,6 +5,8 @@ import (
 	"sync"
 
 	"gochat/internal/shared/kernel"
+
+	"go.uber.org/zap"
 )
 
 type Manager struct {
@@ -19,28 +21,62 @@ func NewManager() *Manager {
 }
 
 func (m *Manager) Register(id kernel.UserID, c *Client) {
+	// Close outside of the lock to avoid holding the mutex while closing.
+	var toClose *Client
+
 	m.mu.Lock()
-	defer m.mu.Unlock()
-	// 如果已存在旧连接，先关掉
 	if old, ok := m.clients[id]; ok {
-		old.Close()
+		toClose = old
 	}
 	m.clients[id] = c
+	m.mu.Unlock()
+
+	if toClose != nil {
+		toClose.Close()
+	}
 }
 
 func (m *Manager) Unregister(id kernel.UserID) {
 	m.mu.Lock()
-	defer m.mu.Unlock()
-	if c, ok := m.clients[id]; ok {
-		c.Close()
+	c, ok := m.clients[id]
+	if ok {
 		delete(m.clients, id)
 	}
+	m.mu.Unlock()
+
+	if ok {
+		zap.L().Debug(
+			"websocket manager: unregistered client",
+			zap.String("userID", id.String()),
+		)
+		c.Close()
+	}
+}
+
+// UnregisterClient removes a client by pointer and returns its user ID if found.
+func (m *Manager) UnregisterClient(target *Client) (id kernel.UserID, found bool) {
+	m.mu.Lock()
+	for uid, c := range m.clients {
+		if c == target {
+			delete(m.clients, uid)
+			id = uid
+			found = true
+			break
+		}
+	}
+	m.mu.Unlock()
+
+	if found {
+		zap.L().Debug("websocket manager: unregistered client by pointer", zap.String("userID", id.String()))
+	}
+	return
 }
 
 func (m *Manager) SendTo(id kernel.UserID, resp *Response) error {
 	m.mu.RLock()
-	defer m.mu.RUnlock()
-	if c, ok := m.clients[id]; ok {
+	c, ok := m.clients[id]
+	m.mu.RUnlock()
+	if ok {
 		if err := c.SendResponse(resp); err != nil {
 			return err
 		}
@@ -52,7 +88,6 @@ func (m *Manager) SendTo(id kernel.UserID, resp *Response) error {
 func (m *Manager) Broadcast(ids []kernel.UserID, resp *Response) []kernel.UserID {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	n := 0
 
 	idsSuccess := make([]kernel.UserID, 0, len(ids))
 	for _, id := range ids {
@@ -61,7 +96,6 @@ func (m *Manager) Broadcast(ids []kernel.UserID, resp *Response) []kernel.UserID
 				continue
 			}
 			idsSuccess = append(idsSuccess, id)
-			n++
 		}
 	}
 

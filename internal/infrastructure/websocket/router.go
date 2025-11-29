@@ -8,6 +8,8 @@ import (
 	"go.uber.org/zap"
 )
 
+//TODO 添加适配器来添加一些行为 比如validate
+
 type Topic string
 
 func (t Topic) String() string {

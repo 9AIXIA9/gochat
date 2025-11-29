@@ -3,6 +3,7 @@ package websocket
 import (
 	"context"
 	"errors"
+	"sync"
 	"time"
 
 	myErrors "gochat/internal/shared/errors"
@@ -24,7 +25,9 @@ type Client struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
-	sendChan chan []byte
+	sendChan  chan []byte
+	onClose   func()
+	closeOnce sync.Once
 }
 
 func NewClient(ctx context.Context, conn *websocket.Conn, router *Router) *Client {
@@ -38,17 +41,27 @@ func NewClient(ctx context.Context, conn *websocket.Conn, router *Router) *Clien
 	}
 }
 
+// WithOnClose sets a callback to be invoked exactly once when the client is closed.
+func (c *Client) WithOnClose(fn func()) *Client {
+	c.onClose = fn
+	return c
+}
+
 func (c *Client) Start() {
 	go c.writePump()
 	go c.readPump()
 }
 
 func (c *Client) Close() {
-	c.cancel()
-	if err := c.conn.Close(); err != nil {
-		zap.L().Debug("websocket client close connection failed", zap.Error(err))
-		return
-	}
+	c.closeOnce.Do(func() {
+		c.cancel()
+		if err := c.conn.Close(); err != nil {
+			zap.L().Debug("websocket client close connection failed", zap.Error(err))
+		}
+		if c.onClose != nil {
+			c.onClose()
+		}
+	})
 }
 
 func (c *Client) SendResponse(resp *Response) error {

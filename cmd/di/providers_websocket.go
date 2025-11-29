@@ -2,6 +2,9 @@ package di
 
 import (
 	"gochat/config"
+	"gochat/internal/application"
+	chatApp "gochat/internal/chat/application"
+	chatWebsocket "gochat/internal/chat/port/websocket"
 	websocketDelivery "gochat/internal/delivery/websocket/handler"
 	"gochat/internal/delivery/websocket/middleware"
 	"gochat/internal/infrastructure/websocket"
@@ -29,6 +32,8 @@ func provideWebsocketManager() *websocket.Manager {
 
 func provideWebsocketRouter(
 	appConfig *config.App,
+	chatSendPrivateMessage chatApp.SendPrivateMessageUseCase,
+	chatSendRoomMessage chatApp.SendRoomMessageUseCase,
 	notificationReadPrivateMessage notificationApp.ReadPrivateMessageUseCase,
 	notificationReadRoomMessage notificationApp.ReadRoomMessageUseCase,
 ) *websocket.Router {
@@ -42,12 +47,24 @@ func provideWebsocketRouter(
 
 	router.NoRoute(websocketDelivery.NewNotFoundHandler())
 
-	router.Handle(notificationWebsocket.ReadPrivateMessageTopic, notificationWebsocket.NewReadPrivateMessageHandler(notificationReadPrivateMessage))
-	router.Handle(notificationWebsocket.ReadRoomMessageTopic, notificationWebsocket.NewReadRoomMessageHandler(notificationReadRoomMessage))
+	{
+		router.Handle(chatWebsocket.SendPrivateMessageTopic, chatWebsocket.NewSendPrivateMessageHandler(chatSendPrivateMessage))
+		router.Handle(chatWebsocket.SendRoomMessageTopic, chatWebsocket.NewSendRoomMessageHandler(chatSendRoomMessage))
+	}
+
+	{
+		router.Handle(notificationWebsocket.ReadPrivateMessageTopic, notificationWebsocket.NewReadPrivateMessageHandler(notificationReadPrivateMessage))
+		router.Handle(notificationWebsocket.ReadRoomMessageTopic, notificationWebsocket.NewReadRoomMessageHandler(notificationReadRoomMessage))
+	}
 
 	return router
 }
 
-func provideWebsocketServer(upgrader *gorillaWebsocket.Upgrader, manager *websocket.Manager, router *websocket.Router) *websocket.Server {
-	return websocket.NewServer(upgrader, manager, router)
+func provideWebsocketServer(
+	upgrader *gorillaWebsocket.Upgrader,
+	manager *websocket.Manager,
+	router *websocket.Router,
+	userSessionStartedUseCase application.UserSessionStartedUseCase,
+) *websocket.Server {
+	return websocket.NewServer(upgrader, manager, router, userSessionStartedUseCase)
 }
