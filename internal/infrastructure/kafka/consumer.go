@@ -31,7 +31,7 @@ type Consumer struct {
 func NewConsumer(config *Config, router *Router) (*Consumer, error) {
 	consumer, err := ckafka.NewConsumer(getConsumerConfigMap(config))
 	if err != nil {
-		return nil, fmt.Errorf("create event consumer failed: %w", err)
+		return nil, fmt.Errorf("create kafka consumer failed: %w", err)
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -51,7 +51,7 @@ func (c *Consumer) Start() error {
 	}
 	topics := c.router.Topics()
 	if len(topics) == 0 {
-		return fmt.Errorf("event consumer router topics is empty %w", myErrors.ErrEmptyInput)
+		return fmt.Errorf("kafka consumer router topics is empty %w", myErrors.ErrEmptyInput)
 	}
 
 	if err := c.consumer.SubscribeTopics(topics, nil); err != nil {
@@ -59,6 +59,7 @@ func (c *Consumer) Start() error {
 	}
 
 	c.running = true
+	zap.L().Info("kafka consumer started", zap.Strings("topics", topics), zap.Bool("auto_commit", true))
 
 	utils.GoSafe(c.processMessage)
 
@@ -82,24 +83,15 @@ func (c *Consumer) processMessage() {
 
 		switch m := ev.(type) {
 		case *ckafka.Message:
-			if err := c.router.Route(c.ctx, m); err != nil {
-				// 提交偏移量，防止该消息反复重投造成堵塞
-				if _, cErr := c.consumer.CommitMessage(m); cErr != nil {
-					zap.L().Warn(
-						"event consumer commit message offset failed",
-						zap.String("topic", *m.TopicPartition.Topic),
-						zap.Int32("partition", m.TopicPartition.Partition),
-						zap.Int64("offset", int64(m.TopicPartition.Offset)),
-						zap.Error(cErr),
-					)
-				}
-
-				//处理错误
+			// Route the message
+			err := c.router.Route(c.ctx, m)
+			if err != nil {
+				// Log / handle the processing error
 				if c.handleError != nil {
 					c.handleError(c.ctx, err, m)
 				} else {
 					zap.L().Error(
-						"event consumer handle message failed",
+						"kafka consumer handle message failed",
 						zap.String("topic", *m.TopicPartition.Topic),
 						zap.Int32("partition", m.TopicPartition.Partition),
 						zap.Int64("offset", int64(m.TopicPartition.Offset)),
@@ -109,7 +101,7 @@ func (c *Consumer) processMessage() {
 			}
 		case ckafka.Error:
 			// Consumer-level error
-			zap.L().Error("event consumer error", zap.Error(m))
+			zap.L().Error("kafka consumer error", zap.Error(m))
 		default:
 			// ignore other events
 		}
