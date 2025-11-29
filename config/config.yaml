@@ -44,6 +44,7 @@ Mysql:
   Username: ${DB_USERNAME}
   Password: ${DB_PASSWORD}
   Database: ${DB_NAME}
+  SlowThresholdMillis: 200
 
 Redis:
   User: ${REDIS_USER}
