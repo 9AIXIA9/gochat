@@ -12,7 +12,6 @@ type Config struct {
 	GroupID          string `mapstructure:"GroupID"`
 	Acks             string `mapstructure:"Acks"`
 	AutoOffsetReset  string `mapstructure:"AutoOffsetReset"`
-	EnableAutoCommit *bool  `mapstructure:"EnableAutoCommit"`
 }
 
 func (c *Config) Validate() error {
@@ -31,9 +30,6 @@ func (c *Config) Validate() error {
 	if c.AutoOffsetReset == "" {
 		return fmt.Errorf("%w: Config.AutoOffsetReset is empty", myErrors.ErrEmptyInput)
 	}
-	if c.EnableAutoCommit == nil {
-		return fmt.Errorf("%w: Config.EnableAutoCommit is nil", myErrors.ErrEmptyInput)
-	}
 	return nil
 }
 
@@ -48,7 +44,7 @@ func getConsumerConfigMap(c *Config) *ckafka.ConfigMap {
 		"bootstrap.servers":  c.BootstrapServers,
 		"group.id":           c.GroupID,
 		"auto.offset.reset":  c.AutoOffsetReset,
-		"enable.auto.commit": *c.EnableAutoCommit,
+		"enable.auto.commit": true,
 	}
 }
 

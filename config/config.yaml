@@ -80,7 +80,6 @@ Kafka:
   Acks: ${KAFKA_ACKS}
   GroupID: ${KAFKA_GROUP_ID}
   AutoOffsetReset: ${KAFKA_AUTO_OFFSET_RESET}
-  EnableAutoCommit: ${KAFKA_ENABLE_AUTO_COMMIT}
 
 Telemetry:
   TelemetryEnabled: ${TELEMETRY_ENABLED}
