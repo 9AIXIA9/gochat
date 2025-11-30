@@ -27,3 +27,9 @@ type MessageID ID
 func (i MessageID) String() string {
 	return string(i)
 }
+
+type OperationID ID
+
+func (i OperationID) String() string {
+	return string(i)
+}
