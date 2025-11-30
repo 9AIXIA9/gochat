@@ -8,16 +8,19 @@ import (
 	chatDomain "gochat/internal/chat/domain"
 	chatModel "gochat/internal/chat/infrastructure/persistence/model"
 	chatRepo "gochat/internal/chat/infrastructure/persistence/repository"
+	friendshipDomain "gochat/internal/friendship/domain"
+	friendshipModel "gochat/internal/friendship/infrastructure/persistence/model"
+	friendshipRepo "gochat/internal/friendship/infrastructure/persistence/repository"
 	gormInfra "gochat/internal/infrastructure/gorm"
 	"gochat/internal/infrastructure/persistence/model"
 	"gochat/internal/infrastructure/persistence/repository"
 	notificationDomain "gochat/internal/notification/domain"
 	notificationModel "gochat/internal/notification/infrastructure/persistence/model"
 	notificationRepo "gochat/internal/notification/infrastructure/persistence/repository"
+	roomshipDomain "gochat/internal/roomship/domain"
+	roomshipModel "gochat/internal/roomship/infrastructure/persistence/model"
+	roomshipRepo "gochat/internal/roomship/infrastructure/persistence/repository"
 	"gochat/internal/shared/event"
-	socialDomain "gochat/internal/social/domain"
-	socialModel "gochat/internal/social/infrastructure/persistence/model"
-	socialRepo "gochat/internal/social/infrastructure/persistence/repository"
 
 	"github.com/google/wire"
 	"github.com/redis/go-redis/v9"
@@ -34,8 +37,8 @@ var RepoSet = wire.NewSet(
 	wire.Bind(new(authDomain.UserRepository), new(*authRepo.UserRepository)),
 	wire.Bind(new(authDomain.RefreshTokenRepository), new(*authRepo.RefreshTokenRepository)),
 
-	wire.Bind(new(socialDomain.UserRepository), new(*socialRepo.UserRepository)),
-	wire.Bind(new(socialDomain.RoomRepository), new(*socialRepo.RoomRepository)),
+	wire.Bind(new(roomshipDomain.UserRepository), new(*roomshipRepo.UserRepository)),
+	wire.Bind(new(roomshipDomain.RoomRepository), new(*roomshipRepo.RoomRepository)),
 
 	wire.Bind(new(chatDomain.UserRepository), new(*chatRepo.UserRepository)),
 	wire.Bind(new(chatDomain.RoomRepository), new(*chatRepo.RoomRepository)),
@@ -44,6 +47,8 @@ var RepoSet = wire.NewSet(
 
 	wire.Bind(new(notificationDomain.PrivateMessageRepository), new(*notificationRepo.PrivateMessageRepository)),
 	wire.Bind(new(notificationDomain.RoomMessageRepository), new(*notificationRepo.RoomMessageRepository)),
+
+	wire.Bind(new(friendshipDomain.UserRepository), new(*friendshipRepo.UserRepository)),
 
 	wire.Bind(new(event.DeadLetterCreator), new(*repository.EventRepository)),
 
@@ -55,10 +60,11 @@ var RepoSet = wire.NewSet(
 	provideChatRoomRepository,
 	provideChatPrivateMessageRepository,
 	provideChatRoomMessageRepository,
-	provideSocialUserRepository,
-	provideSocialRoomRepository,
+	provideRoomshipUserRepository,
+	provideRoomshipRoomRepository,
 	provideNotificationPrivateMessageRepository,
 	provideNotificationRoomMessageRepository,
+	provideFriendshipUserRepository,
 )
 
 func provideDatabaseMigrated(mysql *gorm.DB) databaseMigrated {
@@ -73,8 +79,9 @@ func provideDatabaseMigrated(mysql *gorm.DB) databaseMigrated {
 		&chatModel.Room{},
 		&chatModel.PrivateMessage{},
 		&chatModel.RoomMessage{},
-		&socialModel.User{},
-		&socialModel.Room{},
+		&roomshipModel.User{},
+		&roomshipModel.Room{},
+		&friendshipModel.User{},
 		&model.Event{},
 		&model.DeadLetter{},
 	); err != nil {
@@ -105,15 +112,18 @@ func provideChatPrivateMessageRepository(db *gorm.DB, eventRepo event.Repository
 func provideChatRoomMessageRepository(db *gorm.DB, eventRepo event.Repository) *chatRepo.RoomMessageRepository {
 	return chatRepo.NewRoomMessageRepository(db, eventRepo)
 }
-func provideSocialUserRepository(db *gorm.DB) *socialRepo.UserRepository {
-	return socialRepo.NewUserRepository(db)
+func provideRoomshipUserRepository(db *gorm.DB) *roomshipRepo.UserRepository {
+	return roomshipRepo.NewUserRepository(db)
 }
-func provideSocialRoomRepository(db *gorm.DB, eventRepo event.Repository) *socialRepo.RoomRepository {
-	return socialRepo.NewRoomRepository(db, eventRepo)
+func provideRoomshipRoomRepository(db *gorm.DB, eventRepo event.Repository) *roomshipRepo.RoomRepository {
+	return roomshipRepo.NewRoomRepository(db, eventRepo)
 }
 func provideNotificationPrivateMessageRepository(db *gorm.DB) *notificationRepo.PrivateMessageRepository {
 	return notificationRepo.NewPrivateMessageRepository(db)
 }
 func provideNotificationRoomMessageRepository(db *gorm.DB) *notificationRepo.RoomMessageRepository {
 	return notificationRepo.NewRoomMessageRepository(db)
+}
+func provideFriendshipUserRepository(db *gorm.DB) *friendshipRepo.UserRepository {
+	return friendshipRepo.NewUserRepository(db)
 }

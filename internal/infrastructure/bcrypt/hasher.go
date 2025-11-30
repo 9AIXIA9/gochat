@@ -4,16 +4,16 @@ import (
 	"errors"
 	"fmt"
 	authorizationApplication "gochat/internal/authorization/domain"
+	roomshipApplication "gochat/internal/roomship/domain"
 	myErrors "gochat/internal/shared/errors"
-	socialApplication "gochat/internal/social/domain"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 var _ authorizationApplication.Comparator = (*Hasher)(nil)
 var _ authorizationApplication.Encryptor = (*Hasher)(nil)
-var _ socialApplication.Comparator = (*Hasher)(nil)
-var _ socialApplication.Encryptor = (*Hasher)(nil)
+var _ roomshipApplication.Comparator = (*Hasher)(nil)
+var _ roomshipApplication.Encryptor = (*Hasher)(nil)
 
 type Hasher struct {
 	cost int

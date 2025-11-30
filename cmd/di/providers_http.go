@@ -4,7 +4,7 @@ import (
 	"fmt"
 	authApp "gochat/internal/authorization/application"
 	chatApp "gochat/internal/chat/application"
-	socialApp "gochat/internal/social/application"
+	roomshipApp "gochat/internal/roomship/application"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -20,7 +20,7 @@ import (
 	"gochat/internal/infrastructure/prometheus"
 	"gochat/internal/infrastructure/validator"
 	"gochat/internal/infrastructure/websocket"
-	socialHTTP "gochat/internal/social/port/http"
+	roomshipHTTP "gochat/internal/roomship/port/http"
 )
 
 var HTTPSet = wire.NewSet(
@@ -36,9 +36,9 @@ func provideHttpRouter(
 	parseAccessToken authApp.ParseAccessTokenUseCase,
 	sendPrivateMessage chatApp.SendPrivateMessageUseCase,
 	sendRoomMessage chatApp.SendRoomMessageUseCase,
-	createRoom socialApp.CreateRoomUseCase,
-	joinRoom socialApp.JoinRoomUseCase,
-	leaveRoom socialApp.LeaveRoomUseCase,
+	createRoom roomshipApp.CreateRoomUseCase,
+	joinRoom roomshipApp.JoinRoomUseCase,
+	leaveRoom roomshipApp.LeaveRoomUseCase,
 	validator *validator.Validator,
 	redisClient *redis.Client,
 	websocketServer *websocket.Server,
@@ -94,13 +94,13 @@ func provideHttpRouter(
 		chatGroup.POST("/room", chatHTTP.NewSendRoomMessageHandler(sendRoomMessage, validator))
 	}
 
-	// 社交功能路由
-	socialGroup := baseGroup.Group("/social")
-	socialGroup.Use(authorizationMiddleware)
+	// 房间功能路由
+	roomshipGroup := baseGroup.Group("/roomship")
+	roomshipGroup.Use(authorizationMiddleware)
 	{
-		socialGroup.POST("/room", socialHTTP.NewCreateRoomHandler(createRoom, validator))
-		socialGroup.POST("/room/member", socialHTTP.NewJoinRoomHandler(joinRoom, validator))
-		socialGroup.DELETE("/room/member", socialHTTP.NewLeaveRoomHandler(leaveRoom, validator))
+		roomshipGroup.POST("/room", roomshipHTTP.NewCreateRoomHandler(createRoom, validator))
+		roomshipGroup.POST("/room/member", roomshipHTTP.NewJoinRoomHandler(joinRoom, validator))
+		roomshipGroup.DELETE("/room/member", roomshipHTTP.NewLeaveRoomHandler(leaveRoom, validator))
 	}
 
 	// WebSocket路由
