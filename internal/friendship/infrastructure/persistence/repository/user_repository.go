@@ -38,5 +38,6 @@ func (repo *UserRepository) FindByNumber(ctx context.Context, number kernel.User
 		return nil, gormutils.TranslateError(err)
 	}
 
-	return domain.LoadUser(user.ID, user.Number), nil
+	//TODO 暂时不加载好友和请求
+	return domain.LoadUser(user.ID, user.Number, make([]kernel.UserID, 0), make([]*domain.FriendRequest, 0)), nil
 }
