@@ -6,6 +6,8 @@ import (
 	authDomain "gochat/internal/authorization/domain"
 	chatApp "gochat/internal/chat/application"
 	chatDomain "gochat/internal/chat/domain"
+	friendshipApp "gochat/internal/friendship/application"
+	friendshipDomain "gochat/internal/friendship/domain"
 	notificationApp "gochat/internal/notification/application"
 	notificationDomain "gochat/internal/notification/domain"
 	roomshipApp "gochat/internal/roomship/application"
@@ -50,6 +52,7 @@ var UseCaseKafkaSet = wire.NewSet(
 	provideNotificationRoomMessageNotificationRequestedUseCase,
 	provideNotificationPrivateMessageNotificationRequestedUseCase,
 	provideNotificationUndeliveredMessagesNotificationRequestedUseCase,
+	provideFriendshipUserCreatedUseCase,
 )
 
 var UseCaseBinlogReaderSet = wire.NewSet(
@@ -230,4 +233,9 @@ func provideNotificationUndeliveredMessagesNotificationRequestedUseCase(
 	roomMessageNotifier notificationDomain.RoomMessageNotifier,
 ) notificationApp.UndeliveredMessagesNotificationRequestedUseCase {
 	return notificationApp.NewUndeliveredMessagesNotificationRequestedUseCase(privateMessageRepo, privateMessageRepo, privateMessageNotifier, roomMessageRepo, roomMessageRepo, roomMessageNotifier)
+}
+func provideFriendshipUserCreatedUseCase(
+	userRepo friendshipDomain.UserRepository,
+) friendshipApp.UserCreatedUseCase {
+	return friendshipApp.NewUserCreatedUseCase(userRepo)
 }

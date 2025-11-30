@@ -8,6 +8,9 @@ import (
 	chatDomain "gochat/internal/chat/domain"
 	chatModel "gochat/internal/chat/infrastructure/persistence/model"
 	chatRepo "gochat/internal/chat/infrastructure/persistence/repository"
+	friendshipDomain "gochat/internal/friendship/domain"
+	friendshipModel "gochat/internal/friendship/infrastructure/persistence/model"
+	friendshipRepo "gochat/internal/friendship/infrastructure/persistence/repository"
 	gormInfra "gochat/internal/infrastructure/gorm"
 	"gochat/internal/infrastructure/persistence/model"
 	"gochat/internal/infrastructure/persistence/repository"
@@ -45,6 +48,8 @@ var RepoSet = wire.NewSet(
 	wire.Bind(new(notificationDomain.PrivateMessageRepository), new(*notificationRepo.PrivateMessageRepository)),
 	wire.Bind(new(notificationDomain.RoomMessageRepository), new(*notificationRepo.RoomMessageRepository)),
 
+	wire.Bind(new(friendshipDomain.UserRepository), new(*friendshipRepo.UserRepository)),
+
 	wire.Bind(new(event.DeadLetterCreator), new(*repository.EventRepository)),
 
 	provideDatabaseMigrated,
@@ -59,6 +64,7 @@ var RepoSet = wire.NewSet(
 	provideRoomshipRoomRepository,
 	provideNotificationPrivateMessageRepository,
 	provideNotificationRoomMessageRepository,
+	provideFriendshipUserRepository,
 )
 
 func provideDatabaseMigrated(mysql *gorm.DB) databaseMigrated {
@@ -75,6 +81,7 @@ func provideDatabaseMigrated(mysql *gorm.DB) databaseMigrated {
 		&chatModel.RoomMessage{},
 		&roomshipModel.User{},
 		&roomshipModel.Room{},
+		&friendshipModel.User{},
 		&model.Event{},
 		&model.DeadLetter{},
 	); err != nil {
@@ -116,4 +123,7 @@ func provideNotificationPrivateMessageRepository(db *gorm.DB) *notificationRepo.
 }
 func provideNotificationRoomMessageRepository(db *gorm.DB) *notificationRepo.RoomMessageRepository {
 	return notificationRepo.NewRoomMessageRepository(db)
+}
+func provideFriendshipUserRepository(db *gorm.DB) *friendshipRepo.UserRepository {
+	return friendshipRepo.NewUserRepository(db)
 }
