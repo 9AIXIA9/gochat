@@ -3,25 +3,30 @@ package gorm
 import (
 	"fmt"
 
-	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
-func AutoMigrate(db *gorm.DB, models ...interface{ TableName() string }) error {
-	for _, model := range models {
-		if n := model.TableName(); n == "" {
-			return fmt.Errorf("model has empty table name")
-		} else {
-			if db.Migrator().HasTable(n) {
-				zap.L().Info("table already exists, skipping migration", zap.String("table", n))
-				return nil
-			}
+type Table interface {
+	TableName() string
+}
+
+func AutoMigrate(db *gorm.DB, models ...Table) error {
+	if len(models) == 0 {
+		return nil
+	}
+	tables := make([]interface{}, 0, len(models))
+
+	for i, model := range models {
+		if model == nil {
+			return fmt.Errorf("model at index %d is nil", i)
 		}
+
+		if n := model.TableName(); n == "" {
+			return fmt.Errorf("model at index %d (%T) has empty table name", i, model)
+		}
+
+		tables = append(tables, model)
 	}
 
-	var tables []interface{}
-	for _, m := range models {
-		tables = append(tables, m)
-	}
 	return db.AutoMigrate(tables...)
 }
