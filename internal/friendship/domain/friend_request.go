@@ -13,7 +13,7 @@ func (s FriendRequestState) String() string {
 
 const (
 	StatePending FriendRequestState = "pending"
-	StateAgree   FriendRequestState = "agree"
+	StateAgreed  FriendRequestState = "agreed"
 	StateRefused FriendRequestState = "refused"
 )
 
@@ -58,6 +58,13 @@ func CreateFriendRequest(
 		state:   StatePending,
 		sentAt:  time.Now().UTC(),
 	}
+}
+
+func (r *FriendRequest) Agreed() {
+	r.state = StateAgreed
+}
+func (r *FriendRequest) Refused() {
+	r.state = StateRefused
 }
 
 func (r *FriendRequest) ID() kernel.OperationID {

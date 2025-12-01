@@ -13,6 +13,7 @@ import (
 )
 
 const (
+	fixedUserID                          kernel.UserID      = "user-123"
 	fixedRequestID                       kernel.OperationID = "friend-request-456"
 	fixedFriendshipFriendReceivedEventID event.ID           = "ev-friendship-created-1"
 )

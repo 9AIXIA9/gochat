@@ -98,12 +98,11 @@ func (u *User) AgreeFriendRequest(
 ) error {
 	for i, request := range u.requests {
 		if request.ID() == id && request.state == StatePending {
-			u.requests[i].state = StateAgree
+			u.requests[i].Agreed()
 			u.friendIDs = append(u.friendIDs, request.From())
 
-			ev, err := NewFriendshipCreatedEvent(
-				u.id,
-				request.from,
+			ev, err := NewFriendRequestAgreedEvent(
+				request.id,
 				idGenerator,
 			)
 			if err != nil {
@@ -120,14 +119,26 @@ func (u *User) AgreeFriendRequest(
 
 func (u *User) RefuseFriendRequest(
 	id kernel.OperationID,
-) {
+	idGenerator event.IDGenerator,
+) error {
 	for i, request := range u.requests {
 		if request.ID() == id && request.state == StatePending {
-			//TODO 不要手动修改 使用方法
-			u.requests[i].state = StateRefused
+			u.requests[i].Refused()
+
+			ev, err := NewFriendRequestRefusedEvent(
+				request.id,
+				idGenerator,
+			)
+			if err != nil {
+				return err
+			}
+
+			u.eventManager.RecordEvent(ev)
+
 			break
 		}
 	}
+	return nil
 }
 
 func (u *User) IsFriend(id kernel.UserID) bool {

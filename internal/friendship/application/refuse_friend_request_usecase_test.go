@@ -5,6 +5,7 @@ import (
 	"gochat/internal/friendship/domain"
 	"gochat/internal/friendship/domain/mocks"
 	myErrors "gochat/internal/shared/errors"
+	eventMocks "gochat/internal/shared/event/mocks"
 	"gochat/internal/shared/kernel"
 	"testing"
 
@@ -49,10 +50,13 @@ func TestNewRefuseFriendRequestUseCase_Success(t *testing.T) {
 
 	saver := mocks.NewMockUserSaver(ctrl)
 	saver.EXPECT().Save(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	idGenerator := eventMocks.NewMockIDGenerator(ctrl)
+	idGenerator.EXPECT().Generate().Return(fixedEventID).AnyTimes()
 
 	useCase, err := application.NewRefuseFriendRequestUseCase(
 		finder,
 		saver,
+		idGenerator,
 	)
 
 	require.NoError(t, err)
@@ -64,7 +68,7 @@ func TestNewRefuseFriendRequestUseCase_EmptyPointer(t *testing.T) {
 	defer ctrl.Finish()
 
 	useCase, err := application.NewRefuseFriendRequestUseCase(
-		nil, nil,
+		nil, nil, nil,
 	)
 
 	require.ErrorIs(t, err, myErrors.ErrEmptyPointer)
@@ -77,10 +81,12 @@ func TestRefuseFriendRequestUseCase_Execute_Success(t *testing.T) {
 
 	finder := mocks.NewMockUserFinderByID(ctrl)
 	saver := mocks.NewMockUserSaver(ctrl)
+	idGenerator := eventMocks.NewMockIDGenerator(ctrl)
 
 	useCase, err := application.NewRefuseFriendRequestUseCase(
 		finder,
 		saver,
+		idGenerator,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, useCase)

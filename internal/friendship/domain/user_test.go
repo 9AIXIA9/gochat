@@ -314,7 +314,7 @@ func TestUser_AgreeFriendRequest_Success(t *testing.T) {
 	)
 
 	mockEventIDGenerator := eventMocks.NewMockIDGenerator(ctrl)
-	mockEventIDGenerator.EXPECT().Generate().Return(fixedEventID)
+	mockEventIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(1)
 
 	err := mockToUser.AgreeFriendRequest(fixedFriendRequestID, mockEventIDGenerator)
 	require.NoError(t, err)
@@ -325,7 +325,7 @@ func TestUser_AgreeFriendRequest_Success(t *testing.T) {
 	for _, request := range mockToUser.Requests() {
 		if request.ID() == fixedFriendRequestID {
 			found = true
-			require.Equal(t, domain.StateAgree, request.State())
+			require.Equal(t, domain.StateAgreed, request.State())
 			break
 		}
 	}
@@ -334,10 +334,10 @@ func TestUser_AgreeFriendRequest_Success(t *testing.T) {
 	evs := mockToUser.GetEvents()
 	assert.Len(t, evs, 1)
 
-	createdEv := evs[0]
-	assert.Equal(t, fixedEventID, createdEv.ID())
-	assert.Equal(t, domain.TopicFriendshipCreated, createdEv.Topic())
-	assert.Equal(t, kernel.ID(mockToUser.ID()), createdEv.AggregateID())
+	agreedEv := evs[0]
+	assert.Equal(t, fixedEventID, agreedEv.ID())
+	assert.Equal(t, domain.TopicFriendRequestAgreed, agreedEv.Topic())
+	assert.Equal(t, kernel.ID(fixedFriendRequestID), agreedEv.AggregateID())
 }
 
 func TestUser_AgreeFriendRequest_NotFound(t *testing.T) {
@@ -392,7 +392,11 @@ func TestUser_RefuseFriendRequest_Success(t *testing.T) {
 		},
 	)
 
-	mockToUser.RefuseFriendRequest(fixedFriendRequestID)
+	mockEventIDGenerator := eventMocks.NewMockIDGenerator(ctrl)
+	mockEventIDGenerator.EXPECT().Generate().Return(fixedEventID)
+
+	err := mockToUser.RefuseFriendRequest(fixedFriendRequestID, mockEventIDGenerator)
+	require.NoError(t, err)
 
 	assert.NotContains(t, mockToUser.FriendIDs(), fixedFromUserID)
 
@@ -407,7 +411,12 @@ func TestUser_RefuseFriendRequest_Success(t *testing.T) {
 	require.Truef(t, found, "expected friend request %s to exist", fixedFriendRequestID)
 
 	evs := mockToUser.GetEvents()
-	assert.Len(t, evs, 0)
+	assert.Len(t, evs, 1)
+
+	refusedEv := evs[0]
+	assert.Equal(t, fixedEventID, refusedEv.ID())
+	assert.Equal(t, domain.TopicFriendRequestRefused, refusedEv.Topic())
+	assert.Equal(t, kernel.ID(fixedFriendRequestID), refusedEv.AggregateID())
 }
 
 func TestUser_RefuseFriendRequest_NotFound(t *testing.T) {
@@ -430,7 +439,11 @@ func TestUser_RefuseFriendRequest_NotFound(t *testing.T) {
 		},
 	)
 
-	mockToUser.RefuseFriendRequest(fixedFriendRequestID)
+	mockEventIDGenerator := eventMocks.NewMockIDGenerator(ctrl)
+	mockEventIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(0)
+
+	err := mockToUser.RefuseFriendRequest(fixedFriendRequestID, mockEventIDGenerator)
+	require.NoError(t, err)
 
 	assert.NotContains(t, mockToUser.FriendIDs(), fixedFromUserID)
 

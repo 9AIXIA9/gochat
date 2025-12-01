@@ -165,10 +165,12 @@ func provideAgreeFriendRequestUseCase(
 }
 func provideRefuseFriendRequestUseCase(
 	userRepo friendshipDomain.UserRepository,
+	idGenerator event.IDGenerator,
 ) (friendshipApp.RefuseFriendRequestUseCase, error) {
 	return friendshipApp.NewRefuseFriendRequestUseCase(
 		userRepo,
 		userRepo,
+		idGenerator,
 	)
 }
 func provideListFriendRequestsUseCase(

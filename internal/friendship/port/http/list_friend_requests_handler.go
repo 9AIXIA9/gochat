@@ -34,7 +34,7 @@ func (r *ListFriendRequestsRequest) Bind(ginContext *gin.Context) error {
 }
 
 type ListFriendRequestsResponseData struct {
-	Requests []*dto.FriendRequest `json:"requests"`
+	Requests []*dto.FriendRequest `json:"requests,omitempty"`
 }
 
 func NewListFriendRequestsHandler(useCase application.ListFriendRequestsUseCase, validator *validator.Validator) gin.HandlerFunc {

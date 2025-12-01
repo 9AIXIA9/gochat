@@ -64,7 +64,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	refuseFriendRequestUseCase, err := provideRefuseFriendRequestUseCase(userRepository2)
+	refuseFriendRequestUseCase, err := provideRefuseFriendRequestUseCase(userRepository2, eventIDGenerator)
 	if err != nil {
 		return nil, err
 	}

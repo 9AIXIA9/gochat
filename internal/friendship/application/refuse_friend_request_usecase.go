@@ -4,6 +4,7 @@ import (
 	"context"
 	"gochat/internal/friendship/domain"
 	myErrors "gochat/internal/shared/errors"
+	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"gochat/pkg/utils"
 )
@@ -24,21 +25,24 @@ func (r *RefuseFriendRequestInput) Validate() error {
 }
 
 type refuseFriendRequestUseCase struct {
-	finder domain.UserFinderByID
-	saver  domain.UserSaver
+	finder      domain.UserFinderByID
+	saver       domain.UserSaver
+	idGenerator event.IDGenerator
 }
 
 func NewRefuseFriendRequestUseCase(
 	finder domain.UserFinderByID,
 	saver domain.UserSaver,
+	idGenerator event.IDGenerator,
 ) (RefuseFriendRequestUseCase, error) {
-	if err := utils.CheckInterfaces(finder, saver); err != nil {
+	if err := utils.CheckInterfaces(finder, saver, idGenerator); err != nil {
 		return nil, err
 	}
 
 	return &refuseFriendRequestUseCase{
-		finder: finder,
-		saver:  saver,
+		finder:      finder,
+		saver:       saver,
+		idGenerator: idGenerator,
 	}, nil
 }
 
@@ -48,7 +52,9 @@ func (uc *refuseFriendRequestUseCase) Execute(ctx context.Context, input *Refuse
 		return nil, err
 	}
 
-	user.RefuseFriendRequest(input.RequestID)
+	if err := user.RefuseFriendRequest(input.RequestID, uc.idGenerator); err != nil {
+		return nil, err
+	}
 
 	if err := uc.saver.Save(ctx, user); err != nil {
 		return nil, err
