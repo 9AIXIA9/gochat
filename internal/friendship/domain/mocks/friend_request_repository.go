@@ -42,6 +42,26 @@ func (m *MockFriendRequestRepository) EXPECT() *MockFriendRequestRepositoryMockR
 	return m.recorder
 }
 
+// FindsByUserID mocks base method.
+func (m *MockFriendRequestRepository) FindsByUserID(ctx context.Context, userID kernel.UserID, limit int, baseID ...kernel.OperationID) ([]*domain.FriendRequest, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, userID, limit}
+	for _, a := range baseID {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "FindsByUserID", varargs...)
+	ret0, _ := ret[0].([]*domain.FriendRequest)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindsByUserID indicates an expected call of FindsByUserID.
+func (mr *MockFriendRequestRepositoryMockRecorder) FindsByUserID(ctx, userID, limit any, baseID ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, userID, limit}, baseID...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByUserID", reflect.TypeOf((*MockFriendRequestRepository)(nil).FindsByUserID), varargs...)
+}
+
 // MockFriendRequestsFinderByUserID is a mock of FriendRequestsFinderByUserID interface.
 type MockFriendRequestsFinderByUserID struct {
 	ctrl     *gomock.Controller
@@ -67,16 +87,21 @@ func (m *MockFriendRequestsFinderByUserID) EXPECT() *MockFriendRequestsFinderByU
 }
 
 // FindsByUserID mocks base method.
-func (m *MockFriendRequestsFinderByUserID) FindsByUserID(ctx context.Context, userID kernel.UserID, baseID kernel.OperationID, limit int) ([]*domain.FriendRequest, error) {
+func (m *MockFriendRequestsFinderByUserID) FindsByUserID(ctx context.Context, userID kernel.UserID, limit int, baseID ...kernel.OperationID) ([]*domain.FriendRequest, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindsByUserID", ctx, userID, baseID, limit)
+	varargs := []any{ctx, userID, limit}
+	for _, a := range baseID {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "FindsByUserID", varargs...)
 	ret0, _ := ret[0].([]*domain.FriendRequest)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindsByUserID indicates an expected call of FindsByUserID.
-func (mr *MockFriendRequestsFinderByUserIDMockRecorder) FindsByUserID(ctx, userID, baseID, limit any) *gomock.Call {
+func (mr *MockFriendRequestsFinderByUserIDMockRecorder) FindsByUserID(ctx, userID, limit any, baseID ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByUserID", reflect.TypeOf((*MockFriendRequestsFinderByUserID)(nil).FindsByUserID), ctx, userID, baseID, limit)
+	varargs := append([]any{ctx, userID, limit}, baseID...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByUserID", reflect.TypeOf((*MockFriendRequestsFinderByUserID)(nil).FindsByUserID), varargs...)
 }

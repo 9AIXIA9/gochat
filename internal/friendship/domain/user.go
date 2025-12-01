@@ -123,6 +123,7 @@ func (u *User) RefuseFriendRequest(
 ) {
 	for i, request := range u.requests {
 		if request.ID() == id && request.state == StatePending {
+			//TODO 不要手动修改 使用方法
 			u.requests[i].state = StateRefused
 			break
 		}

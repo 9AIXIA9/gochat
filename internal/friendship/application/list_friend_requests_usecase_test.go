@@ -119,7 +119,7 @@ func TestListFriendRequestsUseCase_Execute_Success(t *testing.T) {
 		)
 	}
 
-	finder.EXPECT().FindsByUserID(gomock.Any(), fixedFromID, fixedBaseID, fixedLimit).Return(requests, nil)
+	finder.EXPECT().FindsByUserID(gomock.Any(), fixedFromID, fixedLimit, fixedBaseID).Return(requests, nil)
 
 	output, err := useCase.Execute(nil, &application.ListFriendRequestsInput{
 		UserID: fixedFromID,
@@ -130,9 +130,9 @@ func TestListFriendRequestsUseCase_Execute_Success(t *testing.T) {
 	require.NotNil(t, output)
 
 	require.Len(t, output.Requests, 3)
-	assert.Equal(t, kernel.OperationID("mock-request-id-1"), output.Requests[0].ID())
-	assert.Equal(t, kernel.OperationID("mock-request-id-2"), output.Requests[1].ID())
-	assert.Equal(t, kernel.OperationID("mock-request-id-3"), output.Requests[2].ID())
+	for i, request := range requests {
+		assert.Equal(t, kernel.OperationID(fmt.Sprintf("mock-request-id-%d", i+1)), request.ID())
+	}
 
 	requests = make([]*domain.FriendRequest, 10)
 	for i := 0; i < 10; i++ {
@@ -146,7 +146,7 @@ func TestListFriendRequestsUseCase_Execute_Success(t *testing.T) {
 		)
 	}
 
-	finder.EXPECT().FindsByUserID(gomock.Any(), fixedFromID, fixedBaseID, 10).Return(requests, nil)
+	finder.EXPECT().FindsByUserID(gomock.Any(), fixedFromID, 10, fixedBaseID).Return(requests, nil)
 
 	output, err = useCase.Execute(nil, &application.ListFriendRequestsInput{
 		UserID: fixedFromID,
@@ -157,8 +157,35 @@ func TestListFriendRequestsUseCase_Execute_Success(t *testing.T) {
 	require.NotNil(t, output)
 
 	require.Len(t, output.Requests, 10)
-	assert.Equal(t, kernel.OperationID("mock-request-id-1"), output.Requests[0].ID())
-	assert.Equal(t, kernel.OperationID("mock-request-id-2"), output.Requests[1].ID())
-	assert.Equal(t, kernel.OperationID("mock-request-id-3"), output.Requests[2].ID())
+	for i, request := range requests {
+		assert.Equal(t, kernel.OperationID(fmt.Sprintf("mock-request-id-%d", i+1)), request.ID())
+	}
 
+	// 模拟太大的limit
+	requests = make([]*domain.FriendRequest, 100)
+	for i := 0; i < 100; i++ {
+		requests[i] = domain.LoadFriendRequest(
+			kernel.OperationID(fmt.Sprintf("mock-request-id-%d", i+1)),
+			fixedFromID,
+			fixedToID,
+			fmt.Sprintf("Hello %d", i+1),
+			domain.StatePending,
+			time.Now().UTC(),
+		)
+	}
+
+	finder.EXPECT().FindsByUserID(gomock.Any(), fixedFromID, 100, fixedBaseID).Return(requests, nil)
+
+	output, err = useCase.Execute(nil, &application.ListFriendRequestsInput{
+		UserID: fixedFromID,
+		BaseID: fixedBaseID,
+		Limit:  1000,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, output)
+
+	require.Len(t, output.Requests, 100)
+	for i, request := range requests {
+		assert.Equal(t, kernel.OperationID(fmt.Sprintf("mock-request-id-%d", i+1)), request.ID())
+	}
 }

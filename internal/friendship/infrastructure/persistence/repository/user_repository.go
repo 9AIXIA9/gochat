@@ -5,6 +5,7 @@ import (
 	"gochat/internal/friendship/domain"
 	"gochat/internal/friendship/infrastructure/persistence/model"
 	gormutils "gochat/internal/infrastructure/gorm"
+	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 
 	"gorm.io/gorm"
@@ -14,11 +15,15 @@ import (
 var _ domain.UserRepository = (*UserRepository)(nil)
 
 type UserRepository struct {
-	db *gorm.DB
+	db        *gorm.DB
+	eventRepo event.Repository
 }
 
-func NewUserRepository(db *gorm.DB) *UserRepository {
-	return &UserRepository{db: db}
+func NewUserRepository(db *gorm.DB, eventRepo event.Repository) *UserRepository {
+	return &UserRepository{
+		db:        db,
+		eventRepo: eventRepo,
+	}
 }
 
 func (repo *UserRepository) Create(ctx context.Context, user *domain.User) error {
@@ -31,13 +36,64 @@ func (repo *UserRepository) Create(ctx context.Context, user *domain.User) error
 	}).Error)
 }
 
-func (repo *UserRepository) FindByNumber(ctx context.Context, number kernel.UserNumber) (*domain.User, error) {
-	var user model.User
-	err := repo.db.WithContext(ctx).First(&user, "number = ?", number).Error
-	if err != nil {
-		return nil, gormutils.TranslateError(err)
+func (repo *UserRepository) Save(ctx context.Context, user *domain.User) error {
+	events := user.GetEvents()
+	if len(events) == 0 {
+		return nil
 	}
 
-	//TODO 暂时不加载好友和请求
-	return domain.LoadUser(user.ID, user.Number, make([]kernel.UserID, 0), make([]*domain.FriendRequest, 0)), nil
+	return repo.handleUserEvents(ctx, events)
+}
+
+func (repo *UserRepository) handleUserEvents(ctx context.Context, evs []event.Event) error {
+	//TODO handle different event topics
+	return nil
+}
+
+func (repo *UserRepository) FindByID(ctx context.Context, id kernel.UserID) (*domain.User, error) {
+	var user model.User
+	if err := repo.db.WithContext(ctx).Model(user).
+		Preload("FriendshipsAsUser1").
+		Preload("FriendshipsAsUser2").
+		Preload("FriendRequestsReceived").
+		First(&user, "id = ?", id).Error; err != nil {
+		return nil, gormutils.TranslateError(err)
+	}
+	return repo.toDomain(&user), nil
+}
+
+func (repo *UserRepository) FindByNumber(ctx context.Context, number kernel.UserNumber) (*domain.User, error) {
+	var user model.User
+	if err := repo.db.WithContext(ctx).Model(user).
+		Preload("FriendshipsAsUser1").
+		Preload("FriendshipsAsUser2").
+		Preload("FriendRequestsReceived").
+		First(&user, "number = ?", number).Error; err != nil {
+		return nil, gormutils.TranslateError(err)
+	}
+	return repo.toDomain(&user), nil
+}
+
+func (repo *UserRepository) toDomain(user *model.User) *domain.User {
+	friendIDs := make([]kernel.UserID, 0, len(user.FriendshipsAsUser1)+len(user.FriendshipsAsUser2))
+	for _, f := range user.FriendshipsAsUser1 {
+		friendIDs = append(friendIDs, f.User2ID)
+	}
+	for _, f := range user.FriendshipsAsUser2 {
+		friendIDs = append(friendIDs, f.User1ID)
+	}
+
+	requests := make([]*domain.FriendRequest, 0, len(user.FriendRequestsReceived))
+	for _, r := range user.FriendRequestsReceived {
+		requests = append(requests, domain.LoadFriendRequest(
+			r.ID,
+			r.From,
+			r.To,
+			r.Content,
+			r.State,
+			r.SentAt,
+		))
+	}
+
+	return domain.LoadUser(user.ID, user.Number, friendIDs, requests)
 }

@@ -7,8 +7,10 @@ import (
 )
 
 type UserRepository interface {
-	UserFinderByNumber
 	UserCreator
+	UserSaver
+	UserFinderByID
+	UserFinderByNumber
 }
 
 type UserCreator interface {

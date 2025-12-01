@@ -54,6 +54,25 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	createRoomUseCase := provideCreateRoomUseCase(eventIDGenerator, roomIDGenerator, roomNumberGenerator, hasher, repositoryRoomRepository)
 	joinRoomUseCase := provideJoinRoomUseCase(eventIDGenerator, hasher, repositoryRoomRepository)
 	leaveRoomUseCase := provideLeaveRoomUseCase(eventIDGenerator, repositoryRoomRepository)
+	userRepository2 := provideFriendshipUserRepository(db, eventRepository)
+	operationIDGenerator := provideFriendshipOperationIDGenerator()
+	sendFriendRequestUseCase, err := provideSendFriendRequestUseCase(userRepository2, eventIDGenerator, operationIDGenerator)
+	if err != nil {
+		return nil, err
+	}
+	agreeFriendRequestUseCase, err := provideAgreeFriendRequestUseCase(userRepository2, eventIDGenerator)
+	if err != nil {
+		return nil, err
+	}
+	refuseFriendRequestUseCase, err := provideRefuseFriendRequestUseCase(userRepository2)
+	if err != nil {
+		return nil, err
+	}
+	friendRequestRepository := provideFriendshipFriendRequestRepository(db)
+	listFriendRequestsUseCase, err := provideListFriendRequestsUseCase(friendRequestRepository)
+	if err != nil {
+		return nil, err
+	}
 	validator, err := provideValidator()
 	if err != nil {
 		return nil, err
@@ -68,7 +87,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	userSessionStartedUseCase := provideWebsocketUserSessionStartedUseCase(eventIDGenerator, eventRepository)
 	server := provideWebsocketServer(upgrader, manager, router, userSessionStartedUseCase)
 	metrics := provideMetrics()
-	engine := provideHttpRouter(appConfig, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, createRoomUseCase, joinRoomUseCase, leaveRoomUseCase, validator, client, server, metrics)
+	engine := provideHttpRouter(appConfig, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, createRoomUseCase, joinRoomUseCase, leaveRoomUseCase, sendFriendRequestUseCase, agreeFriendRequestUseCase, refuseFriendRequestUseCase, listFriendRequestsUseCase, validator, client, server, metrics)
 	ginServer := provideHttpServer(appConfig, engine)
 	eventPublisher, err := provideKafkaPublisher(appConfig, eventRepository, metrics)
 	if err != nil {
@@ -81,8 +100,8 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	}
 	diEmailServiceAvailable := provideEmailAvailable(dialer)
 	userCreatedUseCase := provideAuthUserCreatedUseCase(eventIDGenerator, eventRepository, userRepository)
-	userRepository2 := provideRoomshipUserRepository(db)
-	applicationUserCreatedUseCase := provideRoomshipUserCreatedUseCase(userRepository2)
+	userRepository3 := provideRoomshipUserRepository(db)
+	applicationUserCreatedUseCase := provideRoomshipUserCreatedUseCase(userRepository3)
 	roomCreatedUseCase := provideRoomshipRoomCreatedUseCase(eventIDGenerator, repositoryRoomRepository, eventRepository)
 	roomJoinedUseCase := provideRoomshipRoomJoinedUseCase(eventIDGenerator, eventRepository)
 	roomLeftUseCase := provideRoomshipRoomLeftUseCase(eventIDGenerator, eventRepository)
@@ -99,8 +118,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	roomMessageNotifier := provideRoomMessageNotifier(manager)
 	roomMessageNotificationRequestedUseCase := provideNotificationRoomMessageNotificationRequestedUseCase(repositoryRoomMessageRepository, roomMessageNotifier)
 	undeliveredMessagesNotificationRequestedUseCase := provideNotificationUndeliveredMessagesNotificationRequestedUseCase(repositoryPrivateMessageRepository, repositoryRoomMessageRepository, privateMessageNotifier, roomMessageNotifier)
-	userRepository3 := provideFriendshipUserRepository(db)
-	userCreatedUseCase3, err := provideFriendshipUserCreatedUseCase(userRepository3)
+	userCreatedUseCase3, err := provideFriendshipUserCreatedUseCase(userRepository2)
 	if err != nil {
 		return nil, err
 	}

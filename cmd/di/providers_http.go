@@ -4,6 +4,7 @@ import (
 	"fmt"
 	authApp "gochat/internal/authorization/application"
 	chatApp "gochat/internal/chat/application"
+	friendshipApp "gochat/internal/friendship/application"
 	roomshipApp "gochat/internal/roomship/application"
 	"net/http"
 
@@ -16,6 +17,7 @@ import (
 	chatHTTP "gochat/internal/chat/port/http"
 	"gochat/internal/delivery/http/handler"
 	"gochat/internal/delivery/http/middleware"
+	friendshipHTTP "gochat/internal/friendship/port/http"
 	ginInfra "gochat/internal/infrastructure/gin"
 	"gochat/internal/infrastructure/prometheus"
 	"gochat/internal/infrastructure/validator"
@@ -39,6 +41,10 @@ func provideHttpRouter(
 	createRoom roomshipApp.CreateRoomUseCase,
 	joinRoom roomshipApp.JoinRoomUseCase,
 	leaveRoom roomshipApp.LeaveRoomUseCase,
+	sendFriendRequest friendshipApp.SendFriendRequestUseCase,
+	agreeFriendRequest friendshipApp.AgreeFriendRequestUseCase,
+	refuseFriendRequest friendshipApp.RefuseFriendRequestUseCase,
+	listFriendRequests friendshipApp.ListFriendRequestsUseCase,
 	validator *validator.Validator,
 	redisClient *redis.Client,
 	websocketServer *websocket.Server,
@@ -101,6 +107,16 @@ func provideHttpRouter(
 		roomshipGroup.POST("/room", roomshipHTTP.NewCreateRoomHandler(createRoom, validator))
 		roomshipGroup.POST("/room/member", roomshipHTTP.NewJoinRoomHandler(joinRoom, validator))
 		roomshipGroup.DELETE("/room/member", roomshipHTTP.NewLeaveRoomHandler(leaveRoom, validator))
+	}
+
+	// 好友功能路由
+	friendshipGroup := baseGroup.Group("/friend_requests")
+	friendshipGroup.Use(authorizationMiddleware)
+	{
+		friendshipGroup.POST("/", friendshipHTTP.NewSendFriendRequestHandler(sendFriendRequest, validator))
+		friendshipGroup.GET("/", friendshipHTTP.NewListFriendRequestsHandler(listFriendRequests, validator))
+		friendshipGroup.PUT("/:request_id/agree", friendshipHTTP.NewAgreeFriendRequestHandler(agreeFriendRequest, validator))
+		friendshipGroup.PUT("/:request_id/refuse", friendshipHTTP.NewRefuseFriendRequestHandler(refuseFriendRequest, validator))
 	}
 
 	// WebSocket路由

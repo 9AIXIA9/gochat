@@ -7,8 +7,9 @@ import (
 )
 
 type FriendRequestRepository interface {
+	FriendRequestsFinderByUserID
 }
 
 type FriendRequestsFinderByUserID interface {
-	FindsByUserID(ctx context.Context, userID kernel.UserID, baseID kernel.OperationID, limit int) ([]*FriendRequest, error)
+	FindsByUserID(ctx context.Context, userID kernel.UserID, limit int, baseID ...kernel.OperationID) ([]*FriendRequest, error)
 }

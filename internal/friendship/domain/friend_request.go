@@ -7,6 +7,10 @@ import (
 
 type FriendRequestState string
 
+func (s FriendRequestState) String() string {
+	return string(s)
+}
+
 const (
 	StatePending FriendRequestState = "pending"
 	StateAgree   FriendRequestState = "agree"

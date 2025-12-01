@@ -28,6 +28,10 @@ var UseCaseHTTPSet = wire.NewSet(
 	provideCreateRoomUseCase,
 	provideJoinRoomUseCase,
 	provideLeaveRoomUseCase,
+	provideListFriendRequestsUseCase,
+	provideRefuseFriendRequestUseCase,
+	provideAgreeFriendRequestUseCase,
+	provideSendFriendRequestUseCase,
 )
 
 var UseCaseWebsocketSet = wire.NewSet(
@@ -135,6 +139,44 @@ func provideLeaveRoomUseCase(
 	roomRepo roomshipDomain.RoomRepository,
 ) roomshipApp.LeaveRoomUseCase {
 	return roomshipApp.NewLeaveRoomUseCase(eventIDGen, roomRepo, roomRepo)
+}
+func provideSendFriendRequestUseCase(
+	userRepo friendshipDomain.UserRepository,
+	eventIDGenerator event.IDGenerator,
+	operationIDGenerator friendshipDomain.OperationIDGenerator,
+) (friendshipApp.SendFriendRequestUseCase, error) {
+	return friendshipApp.NewSendFriendRequestUseCase(
+		userRepo,
+		userRepo,
+		userRepo,
+		eventIDGenerator,
+		operationIDGenerator,
+	)
+}
+func provideAgreeFriendRequestUseCase(
+	userRepo friendshipDomain.UserRepository,
+	idGenerator event.IDGenerator,
+) (friendshipApp.AgreeFriendRequestUseCase, error) {
+	return friendshipApp.NewAgreeFriendRequestUseCase(
+		userRepo,
+		userRepo,
+		idGenerator,
+	)
+}
+func provideRefuseFriendRequestUseCase(
+	userRepo friendshipDomain.UserRepository,
+) (friendshipApp.RefuseFriendRequestUseCase, error) {
+	return friendshipApp.NewRefuseFriendRequestUseCase(
+		userRepo,
+		userRepo,
+	)
+}
+func provideListFriendRequestsUseCase(
+	friendRequestRepo friendshipDomain.FriendRequestRepository,
+) (friendshipApp.ListFriendRequestsUseCase, error) {
+	return friendshipApp.NewListFriendRequestsUseCase(
+		friendRequestRepo,
+	)
 }
 
 // -------------------- Event UseCases (websocket side) --------------------

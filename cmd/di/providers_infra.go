@@ -11,6 +11,8 @@ import (
 	authUUID "gochat/internal/authorization/infrastructure/uuid"
 	chatDomain "gochat/internal/chat/domain"
 	chatUUID "gochat/internal/chat/infrastructure/uuid"
+	friendshipDomain "gochat/internal/friendship/domain"
+	friendshipUUID "gochat/internal/friendship/infrastructure/uuid"
 	"gochat/internal/infrastructure/bcrypt"
 	gormInfra "gochat/internal/infrastructure/gorm"
 	kafkautil "gochat/internal/infrastructure/kafka"
@@ -52,6 +54,7 @@ var InfraSet = wire.NewSet(
 	provideMessageIDGenerator,
 	provideRoomshipRoomIDGenerator,
 	provideRoomshipRoomNumberGenerator,
+	provideFriendshipOperationIDGenerator,
 	provideAccessTokenManager,
 	provideRefreshTokenGenerator,
 	provideGomailDialer,
@@ -77,6 +80,8 @@ var InfraSet = wire.NewSet(
 	wire.Bind(new(roomshipDomain.RoomNumberGenerator), new(*roomshipSnowflake.RoomNumberGenerator)),
 	wire.Bind(new(roomshipDomain.Encryptor), new(*bcrypt.Hasher)),
 	wire.Bind(new(roomshipDomain.Comparator), new(*bcrypt.Hasher)),
+	// Friendship generator
+	wire.Bind(new(friendshipDomain.OperationIDGenerator), new(*friendshipUUID.OperationIDGenerator)),
 	// Notification binds
 	wire.Bind(new(notificationApp.WelcomeEmailNotifier), new(*gomailInfra.EmailNotifier)),
 	wire.Bind(new(notificationDomain.PrivateMessageNotifier), new(*notificationWebsocket.PrivateMessageNotifier)),
@@ -112,6 +117,9 @@ func provideRoomshipRoomIDGenerator() *roomshipUUID.RoomIDGenerator {
 }
 func provideRoomshipRoomNumberGenerator(appConfig *config.App) (*roomshipSnowflake.RoomNumberGenerator, error) {
 	return roomshipSnowflake.NewRoomNumberGenerator(appConfig.MachineNode)
+}
+func provideFriendshipOperationIDGenerator() *friendshipUUID.OperationIDGenerator {
+	return friendshipUUID.NewOperationIDGenerator()
 }
 func provideAccessTokenManager(appConfig *config.App) *jwt.AccessTokenManager {
 	return jwt.NewAccessTokenManager(appConfig.AccessToken)

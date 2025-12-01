@@ -56,6 +56,21 @@ func (mr *MockUserRepositoryMockRecorder) Create(ctx, user any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUserRepository)(nil).Create), ctx, user)
 }
 
+// FindByID mocks base method.
+func (m *MockUserRepository) FindByID(ctx context.Context, id kernel.UserID) (*domain.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindByID", ctx, id)
+	ret0, _ := ret[0].(*domain.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindByID indicates an expected call of FindByID.
+func (mr *MockUserRepositoryMockRecorder) FindByID(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockUserRepository)(nil).FindByID), ctx, id)
+}
+
 // FindByNumber mocks base method.
 func (m *MockUserRepository) FindByNumber(ctx context.Context, number kernel.UserNumber) (*domain.User, error) {
 	m.ctrl.T.Helper()
@@ -69,6 +84,20 @@ func (m *MockUserRepository) FindByNumber(ctx context.Context, number kernel.Use
 func (mr *MockUserRepositoryMockRecorder) FindByNumber(ctx, number any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByNumber", reflect.TypeOf((*MockUserRepository)(nil).FindByNumber), ctx, number)
+}
+
+// Save mocks base method.
+func (m *MockUserRepository) Save(ctx context.Context, user *domain.User) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Save", ctx, user)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Save indicates an expected call of Save.
+func (mr *MockUserRepositoryMockRecorder) Save(ctx, user any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockUserRepository)(nil).Save), ctx, user)
 }
 
 // MockUserCreator is a mock of UserCreator interface.
