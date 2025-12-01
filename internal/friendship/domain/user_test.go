@@ -25,7 +25,7 @@ const (
 	userTimeTolerance                       = 150 * time.Millisecond
 )
 
-func TestUser_CreateUser(t *testing.T) {
+func TestCreateUser(t *testing.T) {
 	user := domain.CreateUser(fixedFromUserID, fixedFromUserNumber)
 	require.NotNil(t, user)
 	assert.Equal(t, fixedFromUserID, user.ID())

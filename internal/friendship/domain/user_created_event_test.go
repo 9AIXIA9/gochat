@@ -18,7 +18,7 @@ const (
 	fixedFriendshipUserEventNumber kernel.UserNumber = "70001"
 )
 
-func TestFriendshipUserCreatedEvent_NewUserCreatedEvent(t *testing.T) {
+func TestNewUserCreatedEvent(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -36,7 +36,7 @@ func TestFriendshipUserCreatedEvent_NewUserCreatedEvent(t *testing.T) {
 	require.NotEmpty(t, ev.Payload())
 }
 
-func TestFriendshipUserCreatedEvent_ToUserCreatedEvent(t *testing.T) {
+func TestToUserCreatedEvent(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 

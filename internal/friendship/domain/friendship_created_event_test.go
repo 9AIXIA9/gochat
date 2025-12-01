@@ -18,7 +18,7 @@ const (
 	fixedFriendshipFriendshipCreatedEventID event.ID      = "ev-friendship-created-1"
 )
 
-func TestFriendshipFriendshipCreatedEvent_NewFriendshipCreatedEvent(t *testing.T) {
+func TestNewFriendshipCreatedEvent(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -39,7 +39,7 @@ func TestFriendshipFriendshipCreatedEvent_NewFriendshipCreatedEvent(t *testing.T
 	require.NotEmpty(t, ev.Payload())
 }
 
-func TestFriendshipFriendshipCreatedEvent_ToFriendshipCreatedEvent(t *testing.T) {
+func TestToFriendshipCreatedEvent(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
