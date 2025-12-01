@@ -11,6 +11,7 @@ package mocks
 
 import (
 	context "context"
+	domain "gochat/internal/friendship/domain"
 	kernel "gochat/internal/shared/kernel"
 	reflect "reflect"
 
@@ -41,56 +42,41 @@ func (m *MockFriendRequestRepository) EXPECT() *MockFriendRequestRepositoryMockR
 	return m.recorder
 }
 
-// Exist mocks base method.
-func (m *MockFriendRequestRepository) Exist(ctx context.Context, from, to kernel.UserID) (bool, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Exist", ctx, from, to)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Exist indicates an expected call of Exist.
-func (mr *MockFriendRequestRepositoryMockRecorder) Exist(ctx, from, to any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exist", reflect.TypeOf((*MockFriendRequestRepository)(nil).Exist), ctx, from, to)
-}
-
-// MockFriendRequestExister is a mock of FriendRequestExister interface.
-type MockFriendRequestExister struct {
+// MockFriendRequestsFinderByUserID is a mock of FriendRequestsFinderByUserID interface.
+type MockFriendRequestsFinderByUserID struct {
 	ctrl     *gomock.Controller
-	recorder *MockFriendRequestExisterMockRecorder
+	recorder *MockFriendRequestsFinderByUserIDMockRecorder
 	isgomock struct{}
 }
 
-// MockFriendRequestExisterMockRecorder is the mock recorder for MockFriendRequestExister.
-type MockFriendRequestExisterMockRecorder struct {
-	mock *MockFriendRequestExister
+// MockFriendRequestsFinderByUserIDMockRecorder is the mock recorder for MockFriendRequestsFinderByUserID.
+type MockFriendRequestsFinderByUserIDMockRecorder struct {
+	mock *MockFriendRequestsFinderByUserID
 }
 
-// NewMockFriendRequestExister creates a new mock instance.
-func NewMockFriendRequestExister(ctrl *gomock.Controller) *MockFriendRequestExister {
-	mock := &MockFriendRequestExister{ctrl: ctrl}
-	mock.recorder = &MockFriendRequestExisterMockRecorder{mock}
+// NewMockFriendRequestsFinderByUserID creates a new mock instance.
+func NewMockFriendRequestsFinderByUserID(ctrl *gomock.Controller) *MockFriendRequestsFinderByUserID {
+	mock := &MockFriendRequestsFinderByUserID{ctrl: ctrl}
+	mock.recorder = &MockFriendRequestsFinderByUserIDMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockFriendRequestExister) EXPECT() *MockFriendRequestExisterMockRecorder {
+func (m *MockFriendRequestsFinderByUserID) EXPECT() *MockFriendRequestsFinderByUserIDMockRecorder {
 	return m.recorder
 }
 
-// Exist mocks base method.
-func (m *MockFriendRequestExister) Exist(ctx context.Context, from, to kernel.UserID) (bool, error) {
+// FindsByUserID mocks base method.
+func (m *MockFriendRequestsFinderByUserID) FindsByUserID(ctx context.Context, userID kernel.UserID, baseID kernel.OperationID, limit int) ([]*domain.FriendRequest, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Exist", ctx, from, to)
-	ret0, _ := ret[0].(bool)
+	ret := m.ctrl.Call(m, "FindsByUserID", ctx, userID, baseID, limit)
+	ret0, _ := ret[0].([]*domain.FriendRequest)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Exist indicates an expected call of Exist.
-func (mr *MockFriendRequestExisterMockRecorder) Exist(ctx, from, to any) *gomock.Call {
+// FindsByUserID indicates an expected call of FindsByUserID.
+func (mr *MockFriendRequestsFinderByUserIDMockRecorder) FindsByUserID(ctx, userID, baseID, limit any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exist", reflect.TypeOf((*MockFriendRequestExister)(nil).Exist), ctx, from, to)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByUserID", reflect.TypeOf((*MockFriendRequestsFinderByUserID)(nil).FindsByUserID), ctx, userID, baseID, limit)
 }

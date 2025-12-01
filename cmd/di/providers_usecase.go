@@ -236,6 +236,6 @@ func provideNotificationUndeliveredMessagesNotificationRequestedUseCase(
 }
 func provideFriendshipUserCreatedUseCase(
 	userRepo friendshipDomain.UserRepository,
-) friendshipApp.UserCreatedUseCase {
+) (friendshipApp.UserCreatedUseCase, error) {
 	return friendshipApp.NewUserCreatedUseCase(userRepo)
 }

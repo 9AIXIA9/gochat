@@ -12,6 +12,8 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+//TODO 重构一些函数的命名
+
 const (
 	fixedRequestID                       kernel.OperationID = "friend-request-456"
 	fixedFriendshipFriendReceivedEventID event.ID           = "ev-friendship-created-1"
