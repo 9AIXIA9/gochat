@@ -12,42 +12,38 @@ import (
 type SendFriendRequestUseCase kernel.UseCase[*SendFriendRequestInput, *kernel.NoOutput]
 
 type SendFriendRequestInput struct {
-	FromID   kernel.UserID
-	ToNumber kernel.UserNumber
-	Content  string
+	FromID  kernel.UserID
+	ToID    kernel.UserID
+	Content string
 }
 
 func (r *SendFriendRequestInput) Validate() error {
-	if len(r.FromID) == 0 {
+	if len(r.FromID) == 0 || len(r.ToID) == 0 {
 		return myErrors.ErrEmptyInput
-	}
-
-	if err := r.ToNumber.Validate(); err != nil {
-		return err
 	}
 
 	return nil
 }
 
 type sendFriendRequestUseCase struct {
-	finderByID           domain.UserFinderByID
-	finderByNumber       domain.UserFinderByNumber
-	saver                domain.UserSaver
-	eventIDGenerator     event.IDGenerator
-	operationIDGenerator domain.OperationIDGenerator
+	friendshipExisterByUserID    domain.FriendshipExisterByUserID
+	friendRequestExisterByUserID domain.FriendRequestExisterByUserIDAndState
+	friendRequestCreator         domain.FriendRequestCreator
+	eventIDGenerator             event.IDGenerator
+	operationIDGenerator         domain.OperationIDGenerator
 }
 
 func NewSendFriendRequestUseCase(
-	finderByID domain.UserFinderByID,
-	finderByNumber domain.UserFinderByNumber,
-	saver domain.UserSaver,
+	friendshipExisterByUserID domain.FriendshipExisterByUserID,
+	friendRequestExisterByUserID domain.FriendRequestExisterByUserIDAndState,
+	friendRequestCreator domain.FriendRequestCreator,
 	eventIDGenerator event.IDGenerator,
 	operationIDGenerator domain.OperationIDGenerator,
 ) (SendFriendRequestUseCase, error) {
 	if err := utils.CheckInterfaces(
-		finderByID,
-		finderByNumber,
-		saver,
+		friendshipExisterByUserID,
+		friendRequestExisterByUserID,
+		friendRequestCreator,
 		eventIDGenerator,
 		operationIDGenerator,
 	); err != nil {
@@ -55,40 +51,40 @@ func NewSendFriendRequestUseCase(
 	}
 
 	return &sendFriendRequestUseCase{
-		finderByID:           finderByID,
-		finderByNumber:       finderByNumber,
-		saver:                saver,
-		eventIDGenerator:     eventIDGenerator,
-		operationIDGenerator: operationIDGenerator,
+		friendshipExisterByUserID:    friendshipExisterByUserID,
+		friendRequestExisterByUserID: friendRequestExisterByUserID,
+		friendRequestCreator:         friendRequestCreator,
+		eventIDGenerator:             eventIDGenerator,
+		operationIDGenerator:         operationIDGenerator,
 	}, nil
 }
 
 func (uc *sendFriendRequestUseCase) Execute(ctx context.Context, input *SendFriendRequestInput) (*kernel.NoOutput, error) {
 	//TODO 事务处理
-	fromUser, err := uc.finderByID.FindByID(ctx, input.FromID)
+	exist, err := uc.friendshipExisterByUserID.ExistByUserID(ctx, input.FromID, input.ToID)
 	if err != nil {
 		return nil, err
 	}
 
-	toUser, err := uc.finderByNumber.FindByNumber(ctx, input.ToNumber)
+	if exist {
+		return nil, domain.ErrAlreadyBeenFriends
+	}
+
+	exist, err = uc.friendRequestExisterByUserID.ExistByUserIDAndState(ctx, input.FromID, input.ToID, domain.StatePending)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := fromUser.SendFriendRequest(toUser.ID(), input.Content, uc.operationIDGenerator)
+	if exist {
+		return nil, domain.ErrFriendRequestExists
+	}
+
+	req, err := domain.CreateFriendRequest(input.FromID, input.ToID, input.Content, uc.operationIDGenerator, uc.eventIDGenerator)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := toUser.ReceiveFriendRequest(req, uc.eventIDGenerator); err != nil {
-		return nil, err
-	}
-
-	if err := uc.saver.Save(ctx, fromUser); err != nil {
-		return nil, err
-	}
-
-	if err := uc.saver.Save(ctx, toUser); err != nil {
+	if err := uc.friendRequestCreator.Create(ctx, req); err != nil {
 		return nil, err
 	}
 

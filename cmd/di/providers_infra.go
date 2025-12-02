@@ -55,6 +55,7 @@ var InfraSet = wire.NewSet(
 	provideRoomshipRoomIDGenerator,
 	provideRoomshipRoomNumberGenerator,
 	provideFriendshipOperationIDGenerator,
+	provideFriendshipFriendshipIDGenerator,
 	provideAccessTokenManager,
 	provideRefreshTokenGenerator,
 	provideGomailDialer,
@@ -82,6 +83,7 @@ var InfraSet = wire.NewSet(
 	wire.Bind(new(roomshipDomain.Comparator), new(*bcrypt.Hasher)),
 	// Friendship generator
 	wire.Bind(new(friendshipDomain.OperationIDGenerator), new(*friendshipUUID.OperationIDGenerator)),
+	wire.Bind(new(friendshipDomain.FriendshipIDGenerator), new(*friendshipUUID.FriendshipIDGenerator)),
 	// Notification binds
 	wire.Bind(new(notificationApp.WelcomeEmailNotifier), new(*gomailInfra.EmailNotifier)),
 	wire.Bind(new(notificationDomain.PrivateMessageNotifier), new(*notificationWebsocket.PrivateMessageNotifier)),
@@ -120,6 +122,9 @@ func provideRoomshipRoomNumberGenerator(appConfig *config.App) (*roomshipSnowfla
 }
 func provideFriendshipOperationIDGenerator() *friendshipUUID.OperationIDGenerator {
 	return friendshipUUID.NewOperationIDGenerator()
+}
+func provideFriendshipFriendshipIDGenerator() *friendshipUUID.FriendshipIDGenerator {
+	return friendshipUUID.NewFriendshipIDGenerator()
 }
 func provideAccessTokenManager(appConfig *config.App) *jwt.AccessTokenManager {
 	return jwt.NewAccessTokenManager(appConfig.AccessToken)

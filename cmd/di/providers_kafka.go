@@ -81,6 +81,9 @@ func provideKafkaRouter(
 	notificationUndeliveredMessagesRequested notificationApp.UndeliveredMessagesNotificationRequestedUseCase,
 	// friendship
 	friendshipUserCreated friendshipApp.UserCreatedUseCase,
+	friendshipFriendRequestAgreed friendshipApp.FriendRequestAgreedUseCase,
+	friendshipFriendRequestCreated friendshipApp.FriendRequestCreatedUseCase,
+	friendshipFriendshipCreated friendshipApp.FriendshipCreatedUseCase,
 ) *kafkaInfra.Router {
 	if !ensured {
 		zap.L().Warn("Kafka topics are not ensured")
@@ -133,6 +136,9 @@ func provideKafkaRouter(
 	// Friendship
 	{
 		router.Handle(friendshipDomain.TopicUserCreated, kafkaInfra.WrapEventHandler(friendshipEvent.NewUserCreatedEventHandler(friendshipUserCreated)))
+		router.Handle(friendshipDomain.TopicFriendRequestAgreed, kafkaInfra.WrapEventHandler(friendshipEvent.NewFriendRequestAgreedEventHandler(friendshipFriendRequestAgreed)))
+		router.Handle(friendshipDomain.TopicFriendRequestCreated, kafkaInfra.WrapEventHandler(friendshipEvent.NewFriendRequestCreatedEventHandler(friendshipFriendRequestCreated)))
+		router.Handle(friendshipDomain.TopicFriendshipCreated, kafkaInfra.WrapEventHandler(friendshipEvent.NewFriendshipCreatedEventHandler(friendshipFriendshipCreated)))
 	}
 
 	return router
@@ -164,6 +170,9 @@ func provideTopicsEnsured(appConfig *config.App) kafkaTopicEnsured {
 			notificationDomain.TopicUndeliveredMessagesNotificationRequested,
 			// friendship
 			friendshipDomain.TopicUserCreated,
+			friendshipDomain.TopicFriendRequestCreated,
+			friendshipDomain.TopicFriendRequestAgreed,
+			friendshipDomain.TopicFriendshipCreated,
 		},
 		1,
 		1,

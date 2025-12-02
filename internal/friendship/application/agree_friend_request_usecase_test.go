@@ -5,35 +5,34 @@ import (
 	"gochat/internal/friendship/domain"
 	"gochat/internal/friendship/domain/mocks"
 	myErrors "gochat/internal/shared/errors"
-	eventMocks "gochat/internal/shared/event/mocks"
-	"gochat/internal/shared/kernel"
+	eventMock "gochat/internal/shared/event/mocks"
 	"testing"
+	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
 
-func TestAgreeFriendRequestInput_Validate_Success(t *testing.T) {
+func TestAgreeFriendRequestInput_Validate(t *testing.T) {
 	input := &application.AgreeFriendRequestInput{
-		UserID:    fixedFromID,
+		UserID:    fixedUserID,
 		RequestID: fixedOperationID,
 	}
 
 	err := input.Validate()
 	require.NoError(t, err)
-}
 
-func TestAgreeFriendRequestInput_Validate_EmptyInput(t *testing.T) {
 	inputWithEmptyUserID := &application.AgreeFriendRequestInput{
 		UserID:    "",
 		RequestID: fixedOperationID,
 	}
 
-	err := inputWithEmptyUserID.Validate()
+	err = inputWithEmptyUserID.Validate()
 	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
 
 	inputWithEmptyRequestID := &application.AgreeFriendRequestInput{
-		UserID:    fixedFromID,
+		UserID:    fixedUserID,
 		RequestID: "",
 	}
 
@@ -41,68 +40,101 @@ func TestAgreeFriendRequestInput_Validate_EmptyInput(t *testing.T) {
 	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
 }
 
-func TestNewAgreeFriendRequestUseCase_Success(t *testing.T) {
+func TestNewAgreeFriendRequestUseCase(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	finder := mocks.NewMockUserFinderByID(ctrl)
-	finder.EXPECT().FindByID(gomock.Any(), fixedFromID).Return(nil, nil).AnyTimes()
-
-	saver := mocks.NewMockUserSaver(ctrl)
-	saver.EXPECT().Save(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
-
-	idGenerator := eventMocks.NewMockIDGenerator(ctrl)
-	idGenerator.EXPECT().Generate().Return(fixedEventID).AnyTimes()
+	mockFriendRequestFinderByRequestID := mocks.NewMockFriendRequestFinderByID(ctrl)
+	mockFriendRequestUpdater := mocks.NewMockFriendRequestUpdater(ctrl)
+	mockIDGenerator := eventMock.NewMockIDGenerator(ctrl)
 
 	useCase, err := application.NewAgreeFriendRequestUseCase(
-		finder,
-		saver,
-		idGenerator,
+		mockFriendRequestFinderByRequestID, mockFriendRequestUpdater, mockIDGenerator,
 	)
 
 	require.NoError(t, err)
 	require.NotNil(t, useCase)
-}
 
-func TestNewAgreeFriendRequestUseCase_EmptyPointer(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	useCase, err := application.NewAgreeFriendRequestUseCase(
+	useCaseWithNil, err := application.NewAgreeFriendRequestUseCase(
 		nil, nil, nil,
 	)
 
 	require.ErrorIs(t, err, myErrors.ErrEmptyPointer)
-	require.Nil(t, useCase)
+	require.Nil(t, useCaseWithNil)
 }
 
-func TestAgreeFriendRequestUseCase_Execute_Success(t *testing.T) {
+func TestAgreeFriendRequestUseCase_Execute(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	finder := mocks.NewMockUserFinderByID(ctrl)
-	saver := mocks.NewMockUserSaver(ctrl)
-	idGenerator := eventMocks.NewMockIDGenerator(ctrl)
+	mockFriendRequestFinderByRequestID := mocks.NewMockFriendRequestFinderByID(ctrl)
+	mockFriendRequestUpdater := mocks.NewMockFriendRequestUpdater(ctrl)
+	mockIDGenerator := eventMock.NewMockIDGenerator(ctrl)
 
 	useCase, err := application.NewAgreeFriendRequestUseCase(
-		finder,
-		saver,
-		idGenerator,
+		mockFriendRequestFinderByRequestID,
+		mockFriendRequestUpdater,
+		mockIDGenerator,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, useCase)
 
-	fromUser := domain.LoadUser(fixedFromID, fixedFromNumber, make([]kernel.UserID, 0), make([]*domain.FriendRequest, 0))
+	// 正常情况
+	mockRequest := domain.LoadFriendRequest(
+		fixedOperationID,
+		fixedToID,
+		fixedUserID,
+		fixedContent,
+		domain.StatePending,
+		time.Now().UTC(),
+	)
 
 	gomock.InOrder(
-		finder.EXPECT().FindByID(gomock.Any(), fixedFromID).Return(fromUser, nil),
-		idGenerator.EXPECT().Generate().Return(fixedEventID).AnyTimes(),
-		saver.EXPECT().Save(gomock.Any(), fromUser).Return(nil),
+		mockFriendRequestFinderByRequestID.EXPECT().FindByID(nil, fixedOperationID).Return(mockRequest, nil),
+		mockIDGenerator.EXPECT().Generate().Return(fixedEventID),
+		mockFriendRequestUpdater.EXPECT().Update(nil, gomock.Any()).Return(nil),
 	)
 
 	_, err = useCase.Execute(nil, &application.AgreeFriendRequestInput{
-		UserID:    fixedFromID,
+		UserID:    fixedUserID,
 		RequestID: fixedOperationID,
 	})
 	require.NoError(t, err)
+	assert.Equal(t, domain.StateAgreed, mockRequest.State())
+
+	// 请求不属于用户
+	mockRequestWithAnotherUser := domain.LoadFriendRequest(
+		fixedOperationID,
+		fixedToID,
+		"another-user-id",
+		fixedContent,
+		domain.StatePending,
+		time.Now().UTC(),
+	)
+
+	mockFriendRequestFinderByRequestID.EXPECT().FindByID(nil, fixedOperationID).Return(mockRequestWithAnotherUser, nil)
+
+	_, err = useCase.Execute(nil, &application.AgreeFriendRequestInput{
+		UserID:    fixedUserID,
+		RequestID: fixedOperationID,
+	})
+	require.ErrorIs(t, err, domain.ErrFriendRequestNotForUser)
+
+	// 请求已被处理
+	mockRequestWithHandledState := domain.LoadFriendRequest(
+		fixedOperationID,
+		fixedToID,
+		fixedUserID,
+		fixedContent,
+		domain.StateAgreed,
+		time.Now().UTC(),
+	)
+
+	mockFriendRequestFinderByRequestID.EXPECT().FindByID(nil, fixedOperationID).Return(mockRequestWithHandledState, nil)
+
+	_, err = useCase.Execute(nil, &application.AgreeFriendRequestInput{
+		UserID:    fixedUserID,
+		RequestID: fixedOperationID,
+	})
+	require.ErrorIs(t, err, domain.ErrFriendRequestHasBeenHandled)
 }

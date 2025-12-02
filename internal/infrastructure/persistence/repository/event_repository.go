@@ -32,7 +32,13 @@ func (repo *EventRepository) CreateUnpublishedEvents(ctx context.Context, evs []
 	if len(evs) == 0 {
 		return nil
 	}
-	if err := gormutils.TranslateError(repo.getTx(ctx).WithContext(ctx).Create(repo.toModels(evs)).Error); err != nil {
+
+	tx := gormutils.GetTransaction(ctx)
+	if tx == nil {
+		tx = repo.db
+	}
+
+	if err := gormutils.TranslateError(tx.WithContext(ctx).Create(repo.toModels(evs)).Error); err != nil {
 		return err
 	}
 	return nil
@@ -66,18 +72,6 @@ func (repo *EventRepository) toModel(e event.Event) *model.Event {
 		Payload:     e.Payload(),
 		CreatedAt:   e.OccurredAt(),
 	}
-}
-
-func (repo *EventRepository) getTx(ctx context.Context) *gorm.DB {
-	if ctx == nil {
-		return repo.db
-	}
-	txInCtx := ctx.Value("transaction")
-	tx, ok := txInCtx.(*gorm.DB)
-	if !ok {
-		return repo.db
-	}
-	return tx
 }
 
 func (repo *EventRepository) toModels(evs []event.Event) []*model.Event {

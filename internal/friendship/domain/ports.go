@@ -3,6 +3,10 @@ package domain
 
 import "gochat/internal/shared/kernel"
 
+type FriendshipIDGenerator interface {
+	Generate() FriendshipID
+}
+
 type OperationIDGenerator interface {
 	Generate() kernel.OperationID
 }

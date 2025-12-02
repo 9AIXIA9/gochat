@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 const defaultLimit = 20
@@ -57,6 +58,7 @@ func NewListFriendRequestsHandler(useCase application.ListFriendRequestsUseCase,
 			switch err.(type) {
 			//TODO handle specific errors
 			default:
+				zap.L().Error("SendFriendRequestHandler error", zap.Error(err))
 				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
 			}
 		},

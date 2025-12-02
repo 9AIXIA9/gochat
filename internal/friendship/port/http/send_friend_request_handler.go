@@ -9,12 +9,13 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 type SendFriendRequestRequest struct {
-	FromID   kernel.UserID     `json:"-" validate:"required"`
-	ToNumber kernel.UserNumber `json:"to_number" validate:"required"`
-	Content  string            `json:"content" validate:"required,max=100"`
+	FromID  kernel.UserID `json:"-" validate:"required"`
+	ToID    kernel.UserID `json:"to_id" validate:"required"`
+	Content string        `json:"content" validate:"required,max=100"`
 }
 
 func (r *SendFriendRequestRequest) Bind(ginContext *gin.Context) error {
@@ -29,9 +30,9 @@ func NewSendFriendRequestHandler(useCase application.SendFriendRequestUseCase, v
 		validator,
 		func(request *SendFriendRequestRequest) *application.SendFriendRequestInput {
 			return &application.SendFriendRequestInput{
-				FromID:   request.FromID,
-				ToNumber: request.ToNumber,
-				Content:  request.Content,
+				FromID:  request.FromID,
+				ToID:    request.ToID,
+				Content: request.Content,
 			}
 		},
 		func(ginContext *gin.Context, _ *kernel.NoOutput) {
@@ -41,6 +42,7 @@ func NewSendFriendRequestHandler(useCase application.SendFriendRequestUseCase, v
 			switch err.(type) {
 			//TODO handle specific errors
 			default:
+				zap.L().Error("SendFriendRequestHandler error", zap.Error(err))
 				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
 			}
 		},

@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"time"
 )
@@ -17,6 +18,8 @@ const (
 	StateRefused FriendRequestState = "refused"
 )
 
+const maxContentLength = 100
+
 type FriendRequest struct {
 	id      kernel.OperationID
 	from    kernel.UserID
@@ -24,6 +27,8 @@ type FriendRequest struct {
 	content string
 	state   FriendRequestState
 	sentAt  time.Time //UTC
+
+	eventManager *event.Manager
 }
 
 func LoadFriendRequest(
@@ -35,12 +40,13 @@ func LoadFriendRequest(
 	sentAt time.Time,
 ) *FriendRequest {
 	return &FriendRequest{
-		id:      id,
-		from:    from,
-		to:      to,
-		content: content,
-		state:   state,
-		sentAt:  sentAt,
+		id:           id,
+		from:         from,
+		to:           to,
+		content:      content,
+		state:        state,
+		sentAt:       sentAt,
+		eventManager: event.NewEventManager(),
 	}
 }
 
@@ -48,23 +54,61 @@ func CreateFriendRequest(
 	from kernel.UserID,
 	to kernel.UserID,
 	content string,
-	idGenerator OperationIDGenerator,
-) *FriendRequest {
-	return &FriendRequest{
-		id:      idGenerator.Generate(),
-		from:    from,
-		to:      to,
-		content: content,
-		state:   StatePending,
-		sentAt:  time.Now().UTC(),
+	operationIDGenerator OperationIDGenerator,
+	idGenerator event.IDGenerator,
+) (*FriendRequest, error) {
+	if from == to {
+		return nil, ErrAddYourselfAsFriend
 	}
+
+	if len(content) > maxContentLength {
+		return nil, ErrFriendRequestContentTooLong
+	}
+
+	req := &FriendRequest{
+		id:           operationIDGenerator.Generate(),
+		from:         from,
+		to:           to,
+		content:      content,
+		state:        StatePending,
+		sentAt:       time.Now().UTC(),
+		eventManager: event.NewEventManager(),
+	}
+
+	ev, err := NewFriendRequestCreatedEvent(req.id, idGenerator)
+	if err != nil {
+		return nil, err
+	}
+
+	req.eventManager.RecordEvent(ev)
+	return req, nil
 }
 
-func (r *FriendRequest) Agreed() {
+func (r *FriendRequest) Agree(
+	idGenerator event.IDGenerator,
+) error {
+	if r.state != StatePending {
+		return ErrFriendRequestHasBeenHandled
+	}
+
 	r.state = StateAgreed
+
+	ev, err := NewFriendRequestAgreedEvent(r.id, idGenerator)
+	if err != nil {
+		return err
+	}
+
+	r.eventManager.RecordEvent(ev)
+	return nil
 }
-func (r *FriendRequest) Refused() {
+
+func (r *FriendRequest) Refuse() error {
+	if r.state != StatePending {
+		return ErrFriendRequestHasBeenHandled
+	}
+
 	r.state = StateRefused
+	return nil
 }
 
 func (r *FriendRequest) ID() kernel.OperationID {
@@ -89,4 +133,8 @@ func (r *FriendRequest) SentAt() time.Time {
 
 func (r *FriendRequest) State() FriendRequestState {
 	return r.state
+}
+
+func (r *FriendRequest) GetEvents() []event.Event {
+	return r.eventManager.GetEvents()
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"gochat/internal/friendship/domain"
 	myErrors "gochat/internal/shared/errors"
-	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"gochat/pkg/utils"
 )
@@ -25,38 +24,40 @@ func (r *RefuseFriendRequestInput) Validate() error {
 }
 
 type refuseFriendRequestUseCase struct {
-	finder      domain.UserFinderByID
-	saver       domain.UserSaver
-	idGenerator event.IDGenerator
+	friendRequestFinderByRequestID domain.FriendRequestFinderByID
+	friendRequestUpdater           domain.FriendRequestUpdater
 }
 
 func NewRefuseFriendRequestUseCase(
-	finder domain.UserFinderByID,
-	saver domain.UserSaver,
-	idGenerator event.IDGenerator,
+	friendRequestFinderByRequestID domain.FriendRequestFinderByID,
+	friendRequestUpdater domain.FriendRequestUpdater,
 ) (RefuseFriendRequestUseCase, error) {
-	if err := utils.CheckInterfaces(finder, saver, idGenerator); err != nil {
+	if err := utils.CheckInterfaces(
+		friendRequestFinderByRequestID, friendRequestUpdater,
+	); err != nil {
 		return nil, err
 	}
-
 	return &refuseFriendRequestUseCase{
-		finder:      finder,
-		saver:       saver,
-		idGenerator: idGenerator,
+		friendRequestFinderByRequestID: friendRequestFinderByRequestID,
+		friendRequestUpdater:           friendRequestUpdater,
 	}, nil
 }
 
 func (uc *refuseFriendRequestUseCase) Execute(ctx context.Context, input *RefuseFriendRequestInput) (*kernel.NoOutput, error) {
-	user, err := uc.finder.FindByID(ctx, input.UserID)
+	req, err := uc.friendRequestFinderByRequestID.FindByID(ctx, input.RequestID)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := user.RefuseFriendRequest(input.RequestID, uc.idGenerator); err != nil {
+	if req.To() != input.UserID {
+		return nil, domain.ErrFriendRequestNotForUser
+	}
+
+	if err := req.Refuse(); err != nil {
 		return nil, err
 	}
 
-	if err := uc.saver.Save(ctx, user); err != nil {
+	if err := uc.friendRequestUpdater.Update(ctx, req); err != nil {
 		return nil, err
 	}
 

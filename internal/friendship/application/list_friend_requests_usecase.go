@@ -57,15 +57,7 @@ func (uc *listFriendRequestsUseCase) Execute(ctx context.Context, input *ListFri
 		limit = maxLimit
 	}
 
-	var requests []*domain.FriendRequest
-	var err error
-
-	if len(input.BaseID) == 0 {
-		requests, err = uc.finder.FindsByUserID(ctx, input.UserID, limit)
-	} else {
-		requests, err = uc.finder.FindsByUserID(ctx, input.UserID, limit, input.BaseID)
-	}
-
+	requests, err := uc.finder.FindsByUserID(ctx, input.UserID, limit, input.BaseID)
 	if err != nil {
 		return nil, err
 	}

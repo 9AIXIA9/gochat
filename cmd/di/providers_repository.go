@@ -50,6 +50,7 @@ var RepoSet = wire.NewSet(
 
 	wire.Bind(new(friendshipDomain.UserRepository), new(*friendshipRepo.UserRepository)),
 	wire.Bind(new(friendshipDomain.FriendRequestRepository), new(*friendshipRepo.FriendRequestRepository)),
+	wire.Bind(new(friendshipDomain.FriendshipRepository), new(*friendshipRepo.FriendshipRepository)),
 
 	wire.Bind(new(event.DeadLetterCreator), new(*repository.EventRepository)),
 
@@ -67,6 +68,7 @@ var RepoSet = wire.NewSet(
 	provideNotificationRoomMessageRepository,
 	provideFriendshipUserRepository,
 	provideFriendshipFriendRequestRepository,
+	provideFriendshipFriendshipRepository,
 )
 
 func provideDatabaseMigrated(mysql *gorm.DB) databaseMigrated {
@@ -128,9 +130,12 @@ func provideNotificationPrivateMessageRepository(db *gorm.DB) *notificationRepo.
 func provideNotificationRoomMessageRepository(db *gorm.DB) *notificationRepo.RoomMessageRepository {
 	return notificationRepo.NewRoomMessageRepository(db)
 }
-func provideFriendshipUserRepository(db *gorm.DB, eventRepo event.Repository) *friendshipRepo.UserRepository {
-	return friendshipRepo.NewUserRepository(db, eventRepo)
+func provideFriendshipUserRepository(db *gorm.DB) *friendshipRepo.UserRepository {
+	return friendshipRepo.NewUserRepository(db)
 }
-func provideFriendshipFriendRequestRepository(db *gorm.DB) *friendshipRepo.FriendRequestRepository {
-	return friendshipRepo.NewFriendRequestRepository(db)
+func provideFriendshipFriendRequestRepository(db *gorm.DB, eventRepo event.Repository) *friendshipRepo.FriendRequestRepository {
+	return friendshipRepo.NewFriendRequestRepository(db, eventRepo)
+}
+func provideFriendshipFriendshipRepository(db *gorm.DB, eventRepo event.Repository) *friendshipRepo.FriendshipRepository {
+	return friendshipRepo.NewFriendshipRepository(db, eventRepo)
 }

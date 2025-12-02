@@ -57,6 +57,9 @@ var UseCaseKafkaSet = wire.NewSet(
 	provideNotificationPrivateMessageNotificationRequestedUseCase,
 	provideNotificationUndeliveredMessagesNotificationRequestedUseCase,
 	provideFriendshipUserCreatedUseCase,
+	provideFriendshipFriendshipCreatedUseCase,
+	provideFriendshipFriendRequestCreatedUseCase,
+	provideFriendshipFriendRequestAgreedUseCase,
 )
 
 var UseCaseBinlogReaderSet = wire.NewSet(
@@ -141,36 +144,35 @@ func provideLeaveRoomUseCase(
 	return roomshipApp.NewLeaveRoomUseCase(eventIDGen, roomRepo, roomRepo)
 }
 func provideSendFriendRequestUseCase(
-	userRepo friendshipDomain.UserRepository,
+	friendshipRepo friendshipDomain.FriendshipRepository,
+	requestRepo friendshipDomain.FriendRequestRepository,
 	eventIDGenerator event.IDGenerator,
 	operationIDGenerator friendshipDomain.OperationIDGenerator,
 ) (friendshipApp.SendFriendRequestUseCase, error) {
 	return friendshipApp.NewSendFriendRequestUseCase(
-		userRepo,
-		userRepo,
-		userRepo,
+		friendshipRepo,
+		requestRepo,
+		requestRepo,
 		eventIDGenerator,
 		operationIDGenerator,
 	)
 }
 func provideAgreeFriendRequestUseCase(
-	userRepo friendshipDomain.UserRepository,
+	requestRepo friendshipDomain.FriendRequestRepository,
 	idGenerator event.IDGenerator,
 ) (friendshipApp.AgreeFriendRequestUseCase, error) {
 	return friendshipApp.NewAgreeFriendRequestUseCase(
-		userRepo,
-		userRepo,
+		requestRepo,
+		requestRepo,
 		idGenerator,
 	)
 }
 func provideRefuseFriendRequestUseCase(
-	userRepo friendshipDomain.UserRepository,
-	idGenerator event.IDGenerator,
+	requestRepo friendshipDomain.FriendRequestRepository,
 ) (friendshipApp.RefuseFriendRequestUseCase, error) {
 	return friendshipApp.NewRefuseFriendRequestUseCase(
-		userRepo,
-		userRepo,
-		idGenerator,
+		requestRepo,
+		requestRepo,
 	)
 }
 func provideListFriendRequestsUseCase(
@@ -282,4 +284,22 @@ func provideFriendshipUserCreatedUseCase(
 	userRepo friendshipDomain.UserRepository,
 ) (friendshipApp.UserCreatedUseCase, error) {
 	return friendshipApp.NewUserCreatedUseCase(userRepo)
+}
+func provideFriendshipFriendRequestAgreedUseCase(
+	requestRepo friendshipDomain.FriendRequestRepository,
+	friendshipRepo friendshipDomain.FriendshipRepository,
+	friendshipIDGen friendshipDomain.FriendshipIDGenerator,
+	eventIDGen event.IDGenerator,
+) (friendshipApp.FriendRequestAgreedUseCase, error) {
+	return friendshipApp.NewFriendRequestAgreedUseCase(requestRepo, friendshipRepo, friendshipIDGen, eventIDGen)
+}
+func provideFriendshipFriendRequestCreatedUseCase(
+	eventIDGen event.IDGenerator,
+) (friendshipApp.FriendRequestCreatedUseCase, error) {
+	return friendshipApp.NewFriendRequestCreatedUseCase(eventIDGen)
+}
+func provideFriendshipFriendshipCreatedUseCase(
+	eventIDGen event.IDGenerator,
+) (friendshipApp.FriendshipCreatedUseCase, error) {
+	return friendshipApp.NewFriendshipCreatedUseCase(eventIDGen)
 }

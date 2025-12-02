@@ -15,14 +15,9 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-const (
-	fixedBaseID kernel.OperationID = "base-111"
-	fixedLimit                     = 3
-)
-
-func TestListFriendRequestsInput_Validate_Success(t *testing.T) {
+func TestListFriendRequestsInput_Validate(t *testing.T) {
 	input := &application.ListFriendRequestsInput{
-		UserID: fixedFromID,
+		UserID: fixedUserID,
 		BaseID: fixedBaseID,
 		Limit:  fixedLimit,
 	}
@@ -31,7 +26,7 @@ func TestListFriendRequestsInput_Validate_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	inputWithNoBaseID := &application.ListFriendRequestsInput{
-		UserID: fixedFromID,
+		UserID: fixedUserID,
 		BaseID: "",
 		Limit:  fixedLimit,
 	}
@@ -40,7 +35,7 @@ func TestListFriendRequestsInput_Validate_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	inputWithNoLimit := &application.ListFriendRequestsInput{
-		UserID: fixedFromID,
+		UserID: fixedUserID,
 		BaseID: fixedBaseID,
 		Limit:  0,
 	}
@@ -48,28 +43,35 @@ func TestListFriendRequestsInput_Validate_Success(t *testing.T) {
 	err = inputWithNoLimit.Validate()
 	require.NoError(t, err)
 
+	inputWithNegativeLimit := &application.ListFriendRequestsInput{
+		UserID: fixedUserID,
+		BaseID: fixedBaseID,
+		Limit:  -10,
+	}
+
+	err = inputWithNegativeLimit.Validate()
+	require.NoError(t, err)
+
 	inputWithNoBaseIDAndLimit := &application.ListFriendRequestsInput{
-		UserID: fixedFromID,
+		UserID: fixedUserID,
 		BaseID: "",
 		Limit:  0,
 	}
 
 	err = inputWithNoBaseIDAndLimit.Validate()
 	require.NoError(t, err)
-}
 
-func TestListFriendRequestsInput_Validate_EmptyInput(t *testing.T) {
 	inputWithEmptyUserID := &application.ListFriendRequestsInput{
 		UserID: "",
 		BaseID: fixedBaseID,
 		Limit:  fixedLimit,
 	}
 
-	err := inputWithEmptyUserID.Validate()
+	err = inputWithEmptyUserID.Validate()
 	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
 }
 
-func TestNewListFriendRequestsUseCase_Success(t *testing.T) {
+func TestNewListFriendRequestsUseCase(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -81,21 +83,16 @@ func TestNewListFriendRequestsUseCase_Success(t *testing.T) {
 
 	require.NoError(t, err)
 	require.NotNil(t, useCase)
-}
 
-func TestNewListFriendRequestsUseCase_EmptyPointer(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	useCase, err := application.NewListFriendRequestsUseCase(
+	useCaseWithNil, err := application.NewListFriendRequestsUseCase(
 		nil,
 	)
 
 	require.ErrorIs(t, err, myErrors.ErrEmptyPointer)
-	require.Nil(t, useCase)
+	require.Nil(t, useCaseWithNil)
 }
 
-func TestListFriendRequestsUseCase_Execute_Success(t *testing.T) {
+func TestListFriendRequestsUseCase_Execute(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -111,7 +108,7 @@ func TestListFriendRequestsUseCase_Execute_Success(t *testing.T) {
 	for i := 0; i < fixedLimit; i++ {
 		requests[i] = domain.LoadFriendRequest(
 			kernel.OperationID(fmt.Sprintf("mock-request-id-%d", i+1)),
-			fixedFromID,
+			fixedUserID,
 			fixedToID,
 			fmt.Sprintf("Hello %d", i+1),
 			domain.StatePending,
@@ -119,10 +116,10 @@ func TestListFriendRequestsUseCase_Execute_Success(t *testing.T) {
 		)
 	}
 
-	finder.EXPECT().FindsByUserID(gomock.Any(), fixedFromID, fixedLimit, fixedBaseID).Return(requests, nil)
+	finder.EXPECT().FindsByUserID(gomock.Any(), fixedUserID, fixedLimit, fixedBaseID).Return(requests, nil)
 
 	output, err := useCase.Execute(nil, &application.ListFriendRequestsInput{
-		UserID: fixedFromID,
+		UserID: fixedUserID,
 		BaseID: fixedBaseID,
 		Limit:  fixedLimit,
 	})
@@ -138,7 +135,7 @@ func TestListFriendRequestsUseCase_Execute_Success(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		requests[i] = domain.LoadFriendRequest(
 			kernel.OperationID(fmt.Sprintf("mock-request-id-%d", i+1)),
-			fixedFromID,
+			fixedUserID,
 			fixedToID,
 			fmt.Sprintf("Hello %d", i+1),
 			domain.StatePending,
@@ -146,12 +143,28 @@ func TestListFriendRequestsUseCase_Execute_Success(t *testing.T) {
 		)
 	}
 
-	finder.EXPECT().FindsByUserID(gomock.Any(), fixedFromID, 10, fixedBaseID).Return(requests, nil)
+	finder.EXPECT().FindsByUserID(gomock.Any(), fixedUserID, 10, fixedBaseID).Return(requests, nil)
 
 	output, err = useCase.Execute(nil, &application.ListFriendRequestsInput{
-		UserID: fixedFromID,
+		UserID: fixedUserID,
 		BaseID: fixedBaseID,
 		Limit:  0,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, output)
+
+	require.Len(t, output.Requests, 10)
+	for i, request := range requests {
+		assert.Equal(t, kernel.OperationID(fmt.Sprintf("mock-request-id-%d", i+1)), request.ID())
+	}
+
+	//模拟负数limit
+	finder.EXPECT().FindsByUserID(gomock.Any(), fixedUserID, 10, fixedBaseID).Return(requests, nil)
+
+	output, err = useCase.Execute(nil, &application.ListFriendRequestsInput{
+		UserID: fixedUserID,
+		BaseID: fixedBaseID,
+		Limit:  -100,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, output)
@@ -166,7 +179,7 @@ func TestListFriendRequestsUseCase_Execute_Success(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		requests[i] = domain.LoadFriendRequest(
 			kernel.OperationID(fmt.Sprintf("mock-request-id-%d", i+1)),
-			fixedFromID,
+			fixedUserID,
 			fixedToID,
 			fmt.Sprintf("Hello %d", i+1),
 			domain.StatePending,
@@ -174,10 +187,10 @@ func TestListFriendRequestsUseCase_Execute_Success(t *testing.T) {
 		)
 	}
 
-	finder.EXPECT().FindsByUserID(gomock.Any(), fixedFromID, 100, fixedBaseID).Return(requests, nil)
+	finder.EXPECT().FindsByUserID(gomock.Any(), fixedUserID, 100, fixedBaseID).Return(requests, nil)
 
 	output, err = useCase.Execute(nil, &application.ListFriendRequestsInput{
-		UserID: fixedFromID,
+		UserID: fixedUserID,
 		BaseID: fixedBaseID,
 		Limit:  1000,
 	})

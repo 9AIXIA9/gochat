@@ -25,39 +25,43 @@ func (r *AgreeFriendRequestInput) Validate() error {
 }
 
 type agreeFriendRequestUseCase struct {
-	finder      domain.UserFinderByID
-	saver       domain.UserSaver
-	idGenerator event.IDGenerator
+	friendRequestFinderByRequestID domain.FriendRequestFinderByID
+	friendRequestUpdater           domain.FriendRequestUpdater
+	idGenerator                    event.IDGenerator
 }
 
 func NewAgreeFriendRequestUseCase(
-	finder domain.UserFinderByID,
-	saver domain.UserSaver,
+	friendRequestFinderByRequestID domain.FriendRequestFinderByID,
+	friendRequestUpdater domain.FriendRequestUpdater,
 	idGenerator event.IDGenerator,
 ) (AgreeFriendRequestUseCase, error) {
 	if err := utils.CheckInterfaces(
-		finder, saver, idGenerator,
+		friendRequestFinderByRequestID, friendRequestUpdater, idGenerator,
 	); err != nil {
 		return nil, err
 	}
 	return &agreeFriendRequestUseCase{
-		finder:      finder,
-		saver:       saver,
-		idGenerator: idGenerator,
+		friendRequestFinderByRequestID: friendRequestFinderByRequestID,
+		friendRequestUpdater:           friendRequestUpdater,
+		idGenerator:                    idGenerator,
 	}, nil
 }
 
 func (uc *agreeFriendRequestUseCase) Execute(ctx context.Context, input *AgreeFriendRequestInput) (*kernel.NoOutput, error) {
-	user, err := uc.finder.FindByID(ctx, input.UserID)
+	req, err := uc.friendRequestFinderByRequestID.FindByID(ctx, input.RequestID)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := user.AgreeFriendRequest(input.RequestID, uc.idGenerator); err != nil {
+	if req.To() != input.UserID {
+		return nil, domain.ErrFriendRequestNotForUser
+	}
+
+	if err := req.Agree(uc.idGenerator); err != nil {
 		return nil, err
 	}
 
-	if err := uc.saver.Save(ctx, user); err != nil {
+	if err := uc.friendRequestUpdater.Update(ctx, req); err != nil {
 		return nil, err
 	}
 

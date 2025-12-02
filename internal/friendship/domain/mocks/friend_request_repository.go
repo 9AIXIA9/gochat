@@ -42,6 +42,50 @@ func (m *MockFriendRequestRepository) EXPECT() *MockFriendRequestRepositoryMockR
 	return m.recorder
 }
 
+// Create mocks base method.
+func (m *MockFriendRequestRepository) Create(ctx context.Context, friendRequest *domain.FriendRequest) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", ctx, friendRequest)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockFriendRequestRepositoryMockRecorder) Create(ctx, friendRequest any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockFriendRequestRepository)(nil).Create), ctx, friendRequest)
+}
+
+// ExistByUserIDAndState mocks base method.
+func (m *MockFriendRequestRepository) ExistByUserIDAndState(ctx context.Context, userID1, userID2 kernel.UserID, state domain.FriendRequestState) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ExistByUserIDAndState", ctx, userID1, userID2, state)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ExistByUserIDAndState indicates an expected call of ExistByUserIDAndState.
+func (mr *MockFriendRequestRepositoryMockRecorder) ExistByUserIDAndState(ctx, userID1, userID2, state any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExistByUserIDAndState", reflect.TypeOf((*MockFriendRequestRepository)(nil).ExistByUserIDAndState), ctx, userID1, userID2, state)
+}
+
+// FindByID mocks base method.
+func (m *MockFriendRequestRepository) FindByID(ctx context.Context, requestID kernel.OperationID) (*domain.FriendRequest, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindByID", ctx, requestID)
+	ret0, _ := ret[0].(*domain.FriendRequest)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindByID indicates an expected call of FindByID.
+func (mr *MockFriendRequestRepositoryMockRecorder) FindByID(ctx, requestID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockFriendRequestRepository)(nil).FindByID), ctx, requestID)
+}
+
 // FindsByUserID mocks base method.
 func (m *MockFriendRequestRepository) FindsByUserID(ctx context.Context, userID kernel.UserID, limit int, baseID ...kernel.OperationID) ([]*domain.FriendRequest, error) {
 	m.ctrl.T.Helper()
@@ -60,6 +104,135 @@ func (mr *MockFriendRequestRepositoryMockRecorder) FindsByUserID(ctx, userID, li
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, userID, limit}, baseID...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByUserID", reflect.TypeOf((*MockFriendRequestRepository)(nil).FindsByUserID), varargs...)
+}
+
+// Update mocks base method.
+func (m *MockFriendRequestRepository) Update(ctx context.Context, friendRequest *domain.FriendRequest) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", ctx, friendRequest)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockFriendRequestRepositoryMockRecorder) Update(ctx, friendRequest any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockFriendRequestRepository)(nil).Update), ctx, friendRequest)
+}
+
+// MockFriendRequestCreator is a mock of FriendRequestCreator interface.
+type MockFriendRequestCreator struct {
+	ctrl     *gomock.Controller
+	recorder *MockFriendRequestCreatorMockRecorder
+	isgomock struct{}
+}
+
+// MockFriendRequestCreatorMockRecorder is the mock recorder for MockFriendRequestCreator.
+type MockFriendRequestCreatorMockRecorder struct {
+	mock *MockFriendRequestCreator
+}
+
+// NewMockFriendRequestCreator creates a new mock instance.
+func NewMockFriendRequestCreator(ctrl *gomock.Controller) *MockFriendRequestCreator {
+	mock := &MockFriendRequestCreator{ctrl: ctrl}
+	mock.recorder = &MockFriendRequestCreatorMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockFriendRequestCreator) EXPECT() *MockFriendRequestCreatorMockRecorder {
+	return m.recorder
+}
+
+// Create mocks base method.
+func (m *MockFriendRequestCreator) Create(ctx context.Context, friendRequest *domain.FriendRequest) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", ctx, friendRequest)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockFriendRequestCreatorMockRecorder) Create(ctx, friendRequest any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockFriendRequestCreator)(nil).Create), ctx, friendRequest)
+}
+
+// MockFriendRequestUpdater is a mock of FriendRequestUpdater interface.
+type MockFriendRequestUpdater struct {
+	ctrl     *gomock.Controller
+	recorder *MockFriendRequestUpdaterMockRecorder
+	isgomock struct{}
+}
+
+// MockFriendRequestUpdaterMockRecorder is the mock recorder for MockFriendRequestUpdater.
+type MockFriendRequestUpdaterMockRecorder struct {
+	mock *MockFriendRequestUpdater
+}
+
+// NewMockFriendRequestUpdater creates a new mock instance.
+func NewMockFriendRequestUpdater(ctrl *gomock.Controller) *MockFriendRequestUpdater {
+	mock := &MockFriendRequestUpdater{ctrl: ctrl}
+	mock.recorder = &MockFriendRequestUpdaterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockFriendRequestUpdater) EXPECT() *MockFriendRequestUpdaterMockRecorder {
+	return m.recorder
+}
+
+// Update mocks base method.
+func (m *MockFriendRequestUpdater) Update(ctx context.Context, friendRequest *domain.FriendRequest) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", ctx, friendRequest)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockFriendRequestUpdaterMockRecorder) Update(ctx, friendRequest any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockFriendRequestUpdater)(nil).Update), ctx, friendRequest)
+}
+
+// MockFriendRequestFinderByID is a mock of FriendRequestFinderByID interface.
+type MockFriendRequestFinderByID struct {
+	ctrl     *gomock.Controller
+	recorder *MockFriendRequestFinderByIDMockRecorder
+	isgomock struct{}
+}
+
+// MockFriendRequestFinderByIDMockRecorder is the mock recorder for MockFriendRequestFinderByID.
+type MockFriendRequestFinderByIDMockRecorder struct {
+	mock *MockFriendRequestFinderByID
+}
+
+// NewMockFriendRequestFinderByID creates a new mock instance.
+func NewMockFriendRequestFinderByID(ctrl *gomock.Controller) *MockFriendRequestFinderByID {
+	mock := &MockFriendRequestFinderByID{ctrl: ctrl}
+	mock.recorder = &MockFriendRequestFinderByIDMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockFriendRequestFinderByID) EXPECT() *MockFriendRequestFinderByIDMockRecorder {
+	return m.recorder
+}
+
+// FindByID mocks base method.
+func (m *MockFriendRequestFinderByID) FindByID(ctx context.Context, requestID kernel.OperationID) (*domain.FriendRequest, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindByID", ctx, requestID)
+	ret0, _ := ret[0].(*domain.FriendRequest)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindByID indicates an expected call of FindByID.
+func (mr *MockFriendRequestFinderByIDMockRecorder) FindByID(ctx, requestID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockFriendRequestFinderByID)(nil).FindByID), ctx, requestID)
 }
 
 // MockFriendRequestsFinderByUserID is a mock of FriendRequestsFinderByUserID interface.
@@ -104,4 +277,43 @@ func (mr *MockFriendRequestsFinderByUserIDMockRecorder) FindsByUserID(ctx, userI
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, userID, limit}, baseID...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByUserID", reflect.TypeOf((*MockFriendRequestsFinderByUserID)(nil).FindsByUserID), varargs...)
+}
+
+// MockFriendRequestExisterByUserIDAndState is a mock of FriendRequestExisterByUserIDAndState interface.
+type MockFriendRequestExisterByUserIDAndState struct {
+	ctrl     *gomock.Controller
+	recorder *MockFriendRequestExisterByUserIDAndStateMockRecorder
+	isgomock struct{}
+}
+
+// MockFriendRequestExisterByUserIDAndStateMockRecorder is the mock recorder for MockFriendRequestExisterByUserIDAndState.
+type MockFriendRequestExisterByUserIDAndStateMockRecorder struct {
+	mock *MockFriendRequestExisterByUserIDAndState
+}
+
+// NewMockFriendRequestExisterByUserIDAndState creates a new mock instance.
+func NewMockFriendRequestExisterByUserIDAndState(ctrl *gomock.Controller) *MockFriendRequestExisterByUserIDAndState {
+	mock := &MockFriendRequestExisterByUserIDAndState{ctrl: ctrl}
+	mock.recorder = &MockFriendRequestExisterByUserIDAndStateMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockFriendRequestExisterByUserIDAndState) EXPECT() *MockFriendRequestExisterByUserIDAndStateMockRecorder {
+	return m.recorder
+}
+
+// ExistByUserIDAndState mocks base method.
+func (m *MockFriendRequestExisterByUserIDAndState) ExistByUserIDAndState(ctx context.Context, userID1, userID2 kernel.UserID, state domain.FriendRequestState) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ExistByUserIDAndState", ctx, userID1, userID2, state)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ExistByUserIDAndState indicates an expected call of ExistByUserIDAndState.
+func (mr *MockFriendRequestExisterByUserIDAndStateMockRecorder) ExistByUserIDAndState(ctx, userID1, userID2, state any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExistByUserIDAndState", reflect.TypeOf((*MockFriendRequestExisterByUserIDAndState)(nil).ExistByUserIDAndState), ctx, userID1, userID2, state)
 }

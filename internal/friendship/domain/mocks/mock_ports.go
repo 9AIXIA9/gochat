@@ -10,11 +10,50 @@
 package mocks
 
 import (
+	domain "gochat/internal/friendship/domain"
 	kernel "gochat/internal/shared/kernel"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
 )
+
+// MockFriendshipIDGenerator is a mock of FriendshipIDGenerator interface.
+type MockFriendshipIDGenerator struct {
+	ctrl     *gomock.Controller
+	recorder *MockFriendshipIDGeneratorMockRecorder
+	isgomock struct{}
+}
+
+// MockFriendshipIDGeneratorMockRecorder is the mock recorder for MockFriendshipIDGenerator.
+type MockFriendshipIDGeneratorMockRecorder struct {
+	mock *MockFriendshipIDGenerator
+}
+
+// NewMockFriendshipIDGenerator creates a new mock instance.
+func NewMockFriendshipIDGenerator(ctrl *gomock.Controller) *MockFriendshipIDGenerator {
+	mock := &MockFriendshipIDGenerator{ctrl: ctrl}
+	mock.recorder = &MockFriendshipIDGeneratorMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockFriendshipIDGenerator) EXPECT() *MockFriendshipIDGeneratorMockRecorder {
+	return m.recorder
+}
+
+// Generate mocks base method.
+func (m *MockFriendshipIDGenerator) Generate() domain.FriendshipID {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Generate")
+	ret0, _ := ret[0].(domain.FriendshipID)
+	return ret0
+}
+
+// Generate indicates an expected call of Generate.
+func (mr *MockFriendshipIDGeneratorMockRecorder) Generate() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generate", reflect.TypeOf((*MockFriendshipIDGenerator)(nil).Generate))
+}
 
 // MockOperationIDGenerator is a mock of OperationIDGenerator interface.
 type MockOperationIDGenerator struct {

@@ -8,15 +8,15 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-func NewUserCreatedEventHandler(uc application.UserCreatedUseCase) event.HandlerFunc {
+func NewFriendRequestCreatedEventHandler(uc application.FriendRequestCreatedUseCase) event.HandlerFunc {
 	return func(ctx context.Context, e event.Event) error {
-		ev, err := domain.ToUserCreatedEvent(e)
+		ev, err := domain.ToFriendRequestCreatedEvent(e)
 		if err != nil {
 			return err
 		}
 
-		input := application.UserCreatedInput{
-			UserID: kernel.UserID(ev.AggregateID()),
+		input := application.FriendRequestCreatedInput{
+			RequestID: kernel.OperationID(ev.AggregateID()),
 		}
 
 		if err := input.Validate(); err != nil {
