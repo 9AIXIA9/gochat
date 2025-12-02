@@ -60,7 +60,6 @@ func NewSendFriendRequestUseCase(
 }
 
 func (uc *sendFriendRequestUseCase) Execute(ctx context.Context, input *SendFriendRequestInput) (*kernel.NoOutput, error) {
-	//TODO 事务处理
 	exist, err := uc.friendshipExisterByUserID.ExistByUserID(ctx, input.FromID, input.ToID)
 	if err != nil {
 		return nil, err

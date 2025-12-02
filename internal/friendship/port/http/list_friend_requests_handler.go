@@ -1,10 +1,12 @@
 package http
 
 import (
+	"errors"
 	"gochat/internal/friendship/application"
 	"gochat/internal/friendship/dto"
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/infrastructure/validator"
+	myErrors "gochat/internal/shared/errors"
 	sharedHttp "gochat/internal/shared/http"
 	"gochat/internal/shared/kernel"
 	"time"
@@ -55,8 +57,9 @@ func NewListFriendRequestsHandler(useCase application.ListFriendRequestsUseCase,
 			}))
 		},
 		func(ginContext *gin.Context, err error) {
-			switch err.(type) {
-			//TODO handle specific errors
+			switch {
+			case errors.Is(err, myErrors.ErrEmptyInput):
+				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty"))
 			default:
 				zap.L().Error("SendFriendRequestHandler error", zap.Error(err))
 				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
