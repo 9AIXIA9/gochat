@@ -13,7 +13,6 @@ var _ event.SpecificEvent = (*RoomCreatedEvent)(nil)
 
 type RoomCreatedEvent struct {
 	ownerID kernel.UserID
-	number  kernel.RoomNumber
 	*event.StandardEvent
 }
 
@@ -32,13 +31,11 @@ func ToRoomCreatedEvent(ev event.Event) (*RoomCreatedEvent, error) {
 
 func NewRoomCreatedEvent(
 	roomID kernel.RoomID,
-	number kernel.RoomNumber,
 	ownerID kernel.UserID,
 	generator event.IDGenerator,
 ) (*RoomCreatedEvent, error) {
 	e := &RoomCreatedEvent{
 		ownerID: ownerID,
-		number:  number,
 	}
 	payload, err := e.Marshal()
 	if err != nil {
@@ -52,30 +49,22 @@ func NewRoomCreatedEvent(
 func (e *RoomCreatedEvent) Marshal() ([]byte, error) {
 	type Alias struct {
 		OwnerID kernel.UserID
-		Number  kernel.RoomNumber
 	}
 	return json.Marshal(&Alias{
 		OwnerID: e.ownerID,
-		Number:  e.number,
 	})
 }
 
 func (e *RoomCreatedEvent) Unmarshal(data []byte) error {
 	type Alias struct {
 		OwnerID kernel.UserID
-		Number  kernel.RoomNumber
 	}
 	var tmp Alias
 	if err := json.Unmarshal(data, &tmp); err != nil {
 		return err
 	}
-	e.number = tmp.Number
 	e.ownerID = tmp.OwnerID
 	return nil
-}
-
-func (e *RoomCreatedEvent) Number() kernel.RoomNumber {
-	return e.number
 }
 
 func (e *RoomCreatedEvent) OwnerID() kernel.UserID {

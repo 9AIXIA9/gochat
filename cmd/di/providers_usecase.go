@@ -110,10 +110,9 @@ func provideParseAccessTokenUseCase(accessTokenParser authApp.AccessTokenParser)
 func provideSendPrivateMessageUseCase(
 	messageIDGen kernel.MessageIDGenerator,
 	eventIDGen event.IDGenerator,
-	userRepo chatDomain.UserRepository,
 	messageRepo chatDomain.PrivateMessageRepository,
 ) chatApp.SendPrivateMessageUseCase {
-	return chatApp.NewSendPrivateMessageUseCase(messageIDGen, eventIDGen, userRepo, messageRepo)
+	return chatApp.NewSendPrivateMessageUseCase(messageIDGen, eventIDGen, messageRepo)
 }
 func provideSendRoomMessageUseCase(
 	messageIDGen kernel.MessageIDGenerator,

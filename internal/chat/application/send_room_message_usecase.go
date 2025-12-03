@@ -13,16 +13,16 @@ var _ SendRoomMessageUseCase = (*sendRoomMessageUseCase)(nil)
 type SendRoomMessageUseCase kernel.UseCase[*SendRoomMessageInput, *kernel.NoOutput]
 
 type SendRoomMessageInput struct {
-	SenderID   kernel.UserID
-	RoomNumber kernel.RoomNumber
-	Content    string
+	SenderID kernel.UserID
+	RoomID   kernel.RoomID
+	Content  string
 }
 
 func (i *SendRoomMessageInput) Validate() error {
 	if len(i.Content) == 0 {
 		return myErrors.ErrEmptyInput
 	}
-	if len(i.SenderID) == 0 || len(i.RoomNumber) == 0 {
+	if len(i.SenderID) == 0 || len(i.RoomID) == 0 {
 		return myErrors.ErrEmptyInput
 	}
 	return nil
@@ -31,14 +31,14 @@ func (i *SendRoomMessageInput) Validate() error {
 type sendRoomMessageUseCase struct {
 	messageIDGenerator kernel.MessageIDGenerator
 	eventIDGenerator   event.IDGenerator
-	roomFinder         domain.RoomFinderByNumber
+	roomFinder         domain.RoomFinderByID
 	messageCreator     domain.RoomMessageCreator
 }
 
 func NewSendRoomMessageUseCase(
 	messageIDGenerator kernel.MessageIDGenerator,
 	eventIDGenerator event.IDGenerator,
-	roomFinder domain.RoomFinderByNumber,
+	roomFinder domain.RoomFinderByID,
 	messageCreator domain.RoomMessageCreator,
 ) SendRoomMessageUseCase {
 	return &sendRoomMessageUseCase{
@@ -50,7 +50,7 @@ func NewSendRoomMessageUseCase(
 }
 
 func (uc *sendRoomMessageUseCase) Execute(ctx context.Context, input *SendRoomMessageInput) (*kernel.NoOutput, error) {
-	room, err := uc.roomFinder.FindByNumber(ctx, input.RoomNumber)
+	room, err := uc.roomFinder.FindByID(ctx, input.RoomID)
 	if err != nil {
 		return nil, err
 	}

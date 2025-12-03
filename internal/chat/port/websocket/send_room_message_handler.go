@@ -12,8 +12,8 @@ import (
 const SendRoomMessageTopic websocket.Topic = "chat.send_room_message"
 
 type SendRoomMessageData struct {
-	RoomNumber kernel.RoomNumber `json:"room_number" validate:"required"`
-	Content    string            `json:"content" validate:"required,max=1000"`
+	RoomID  kernel.RoomID `json:"room_id" validate:"required"`
+	Content string        `json:"content" validate:"required,max=1000"`
 }
 
 func NewSendRoomMessageHandler(
@@ -26,9 +26,9 @@ func NewSendRoomMessageHandler(
 		}
 
 		input := &application.SendRoomMessageInput{
-			SenderID:   utils.GetUserID(ctx),
-			RoomNumber: reqData.RoomNumber,
-			Content:    reqData.Content,
+			SenderID: utils.GetUserID(ctx),
+			RoomID:   reqData.RoomID,
+			Content:  reqData.Content,
 		}
 
 		if err := input.Validate(); err != nil {

@@ -15,9 +15,9 @@ import (
 )
 
 type SendPrivateMessageRequest struct {
-	SenderID        kernel.UserID     `json:"-" validate:"required"`
-	RecipientNumber kernel.UserNumber `json:"recipient_number" validate:"required"`
-	Content         string            `json:"content" validate:"required,max=1000"`
+	SenderID    kernel.UserID `json:"-" validate:"required"`
+	RecipientID kernel.UserID `json:"recipient_id" validate:"required"`
+	Content     string        `json:"content" validate:"required,max=1000"`
 }
 
 func (r *SendPrivateMessageRequest) Bind(ginContext *gin.Context) error {
@@ -32,9 +32,9 @@ func NewSendPrivateMessageHandler(useCase application.SendPrivateMessageUseCase,
 		validator,
 		func(request *SendPrivateMessageRequest) *application.SendPrivateMessageInput {
 			return &application.SendPrivateMessageInput{
-				SenderID:        request.SenderID,
-				RecipientNumber: request.RecipientNumber,
-				Content:         request.Content,
+				SenderID:    request.SenderID,
+				RecipientID: request.RecipientID,
+				Content:     request.Content,
 			}
 		},
 		func(ginContext *gin.Context, _ *kernel.NoOutput) {

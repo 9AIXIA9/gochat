@@ -61,7 +61,6 @@ func (uc *userCreatedUseCase) Execute(ctx context.Context, input *UserCreatedInp
 
 	chatEv, err := chatDomain.NewUserCreatedEvent(
 		user.ID(),
-		user.Number(),
 		uc.idGenerator,
 	)
 	if err != nil {

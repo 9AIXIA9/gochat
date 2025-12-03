@@ -10,9 +10,8 @@ import (
 type RoomCreatedUseCase kernel.UseCase[*RoomCreatedInput, *kernel.NoOutput]
 
 type RoomCreatedInput struct {
-	OwnerID    kernel.UserID
-	RoomID     kernel.RoomID
-	RoomNumber kernel.RoomNumber
+	OwnerID kernel.UserID
+	RoomID  kernel.RoomID
 }
 
 func (r *RoomCreatedInput) Validate() error {
@@ -20,9 +19,6 @@ func (r *RoomCreatedInput) Validate() error {
 		return myErrors.ErrEmptyInput
 	}
 
-	if err := r.RoomNumber.Validate(); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -39,7 +35,7 @@ func NewRoomCreatedUseCase(
 }
 
 func (uc *roomCreatedUseCase) Execute(ctx context.Context, input *RoomCreatedInput) (*kernel.NoOutput, error) {
-	room := domain.CreateRoom(input.RoomID, input.RoomNumber, input.OwnerID)
+	room := domain.CreateRoom(input.RoomID, input.OwnerID)
 
 	if err := uc.roomCreator.Create(ctx, room); err != nil {
 		return nil, err

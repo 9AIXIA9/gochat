@@ -10,17 +10,12 @@ import (
 type UserCreatedUseCase kernel.UseCase[*UserCreatedInput, *kernel.NoOutput]
 
 type UserCreatedInput struct {
-	UserID     kernel.UserID
-	UserNumber kernel.UserNumber
+	UserID kernel.UserID
 }
 
 func (r *UserCreatedInput) Validate() error {
 	if len(r.UserID) == 0 {
 		return myErrors.ErrEmptyInput
-	}
-
-	if err := r.UserNumber.Validate(); err != nil {
-		return err
 	}
 
 	return nil
@@ -39,7 +34,7 @@ func NewUserCreatedUseCase(
 }
 
 func (uc *userCreatedUseCase) Execute(ctx context.Context, input *UserCreatedInput) (*kernel.NoOutput, error) {
-	user := domain.CreateUser(input.UserID, input.UserNumber)
+	user := domain.CreateUser(input.UserID)
 
 	return nil, uc.userCreator.Create(ctx, user)
 }

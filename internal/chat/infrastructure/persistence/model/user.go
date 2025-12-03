@@ -5,8 +5,7 @@ import (
 )
 
 type User struct {
-	ID     kernel.UserID     `gorm:"primaryKey;type:char(36)"`
-	Number kernel.UserNumber `gorm:"type:varchar(20);uniqueIndex;not null"`
+	ID kernel.UserID `gorm:"primaryKey;type:char(36)"`
 
 	// 用户 <-> 房间 多对多
 	Rooms []*Room `gorm:"many2many:gochat.chat_room_members;foreignKey:ID;joinForeignKey:UserID;references:ID;joinReferences:RoomID"`

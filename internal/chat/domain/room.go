@@ -5,32 +5,27 @@ import (
 )
 
 type Room struct {
-	id     kernel.RoomID
-	number kernel.RoomNumber
+	id kernel.RoomID
 
 	members []kernel.UserID
 }
 
 func CreateRoom(
 	id kernel.RoomID,
-	number kernel.RoomNumber,
 	ownerID kernel.UserID,
 ) *Room {
 	return &Room{
 		id:      id,
-		number:  number,
 		members: []kernel.UserID{ownerID},
 	}
 }
 
 func LoadRoom(
 	id kernel.RoomID,
-	number kernel.RoomNumber,
 	members []kernel.UserID,
 ) *Room {
 	return &Room{
 		id:      id,
-		number:  number,
 		members: members,
 	}
 }
@@ -57,10 +52,6 @@ func (r *Room) DeleteMember(
 
 func (r *Room) ID() kernel.RoomID {
 	return r.id
-}
-
-func (r *Room) Number() kernel.RoomNumber {
-	return r.number
 }
 
 func (r *Room) Members() []kernel.UserID {

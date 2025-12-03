@@ -36,7 +36,7 @@ func LoadPrivateMessage(
 }
 
 func CreatePrivateMessage(
-	recipient *User,
+	recipientID kernel.UserID,
 	senderID kernel.UserID,
 	content string,
 	messageIDGenerator kernel.MessageIDGenerator,
@@ -45,7 +45,7 @@ func CreatePrivateMessage(
 	message := &PrivateMessage{
 		id:           messageIDGenerator.Generate(),
 		senderID:     senderID,
-		recipientID:  recipient.id,
+		recipientID:  recipientID,
 		content:      content,
 		sentAt:       time.Now().UTC(),
 		eventManager: event.NewEventManager(),
