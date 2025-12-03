@@ -47,6 +47,8 @@ func NewSendPrivateMessageUseCase(
 }
 
 func (uc *sendPrivateMessageUseCase) Execute(ctx context.Context, input *SendPrivateMessageInput) (*kernel.NoOutput, error) {
+	// todo 校验用户是否存在
+
 	message, err := domain.CreatePrivateMessage(
 		input.RecipientID,
 		input.SenderID,

@@ -4,6 +4,8 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
+//TODO  设计不够准确
+
 type Room struct {
 	id kernel.RoomID
 

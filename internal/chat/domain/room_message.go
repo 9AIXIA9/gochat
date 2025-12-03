@@ -1,13 +1,10 @@
 package domain
 
 import (
-	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"time"
 )
-
-//TODO 重设计 多聚合根关系由服务层进行协调 领域层只负责单一聚合根的业务逻辑
 
 type RoomMessage struct {
 	id       kernel.MessageID
@@ -44,7 +41,7 @@ func CreateRoomMessage(
 	eventIDGenerator event.IDGenerator,
 ) (*RoomMessage, error) {
 	if !room.IsMember(senderID) {
-		return nil, myErrors.ErrNotBelongTo
+		return nil, ErrNotBelongToRoom
 	}
 
 	message := &RoomMessage{
