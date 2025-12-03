@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"encoding/json"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
@@ -12,8 +11,6 @@ const TopicFriendshipCreated event.Topic = "friendship.friendship.created"
 var _ event.SpecificEvent = (*FriendshipCreatedEvent)(nil)
 
 type FriendshipCreatedEvent struct {
-	userID1 kernel.UserID
-	userID2 kernel.UserID
 	*event.StandardEvent
 }
 
@@ -32,14 +29,9 @@ func ToFriendshipCreatedEvent(ev event.Event) (*FriendshipCreatedEvent, error) {
 
 func NewFriendshipCreatedEvent(
 	id FriendshipID,
-	userID1 kernel.UserID,
-	userID2 kernel.UserID,
 	generator event.IDGenerator,
 ) (*FriendshipCreatedEvent, error) {
-	e := &FriendshipCreatedEvent{
-		userID1: userID1,
-		userID2: userID2,
-	}
+	e := &FriendshipCreatedEvent{}
 	payload, err := e.Marshal()
 	if err != nil {
 		return nil, err
@@ -50,35 +42,9 @@ func NewFriendshipCreatedEvent(
 }
 
 func (e *FriendshipCreatedEvent) Marshal() ([]byte, error) {
-	type Alias struct {
-		UserID1 kernel.UserID
-		UserID2 kernel.UserID
-	}
-	return json.Marshal(Alias{
-		UserID1: e.userID1,
-		UserID2: e.userID2,
-	})
+	return []byte(""), nil
 }
 
-func (e *FriendshipCreatedEvent) Unmarshal(data []byte) error {
-	type Alias struct {
-		UserID1 kernel.UserID
-		UserID2 kernel.UserID
-	}
-	var tmp Alias
-	if err := json.Unmarshal(data, &tmp); err != nil {
-		return err
-	}
-	e.userID1 = tmp.UserID1
-	e.userID2 = tmp.UserID2
-
+func (e *FriendshipCreatedEvent) Unmarshal([]byte) error {
 	return nil
-}
-
-func (e *FriendshipCreatedEvent) UserID1() kernel.UserID {
-	return e.userID1
-}
-
-func (e *FriendshipCreatedEvent) UserID2() kernel.UserID {
-	return e.userID2
 }

@@ -128,11 +128,11 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	friendRequestCreatedUseCase, err := provideFriendshipFriendRequestCreatedUseCase(eventIDGenerator)
+	friendRequestCreatedUseCase, err := provideFriendshipFriendRequestCreatedUseCase(friendRequestRepository, eventRepository, eventIDGenerator)
 	if err != nil {
 		return nil, err
 	}
-	friendshipCreatedUseCase, err := provideFriendshipFriendshipCreatedUseCase(eventIDGenerator)
+	friendshipCreatedUseCase, err := provideFriendshipFriendshipCreatedUseCase(friendshipRepository, eventRepository, eventIDGenerator)
 	if err != nil {
 		return nil, err
 	}

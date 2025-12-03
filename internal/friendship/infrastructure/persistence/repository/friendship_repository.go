@@ -38,6 +38,14 @@ func (repo *FriendshipRepository) Create(ctx context.Context, friendship *domain
 	})
 }
 
+func (repo *FriendshipRepository) FindByID(ctx context.Context, friendshipID domain.FriendshipID) (*domain.Friendship, error) {
+	var friendship model.Friendship
+	if err := repo.db.WithContext(ctx).First(&friendship, "id = ?", friendshipID).Error; err != nil {
+		return nil, gormutils.TranslateError(err)
+	}
+	return repo.toDomain(&friendship), nil
+}
+
 func (repo *FriendshipRepository) ExistByUserID(ctx context.Context, userID1, userID2 kernel.UserID) (bool, error) {
 	var count int64
 	err := repo.db.WithContext(ctx).Model(&model.Friendship{}).
@@ -56,4 +64,7 @@ func (repo *FriendshipRepository) toModel(friendship *domain.Friendship) *model.
 		UserID2:   friendship.UserID2(),
 		CreatedAt: friendship.CreatedAt(),
 	}
+}
+func (repo *FriendshipRepository) toDomain(friendship *model.Friendship) *domain.Friendship {
+	return domain.LoadFriendship(friendship.ID, friendship.UserID1, friendship.UserID2, friendship.CreatedAt)
 }

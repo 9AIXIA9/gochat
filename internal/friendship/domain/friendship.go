@@ -14,7 +14,17 @@ type Friendship struct {
 	userID2   kernel.UserID
 	createdAt time.Time
 
-	manager event.Manager
+	manager *event.Manager
+}
+
+func LoadFriendship(id FriendshipID, userID1, userID2 kernel.UserID, createdAt time.Time) *Friendship {
+	return &Friendship{
+		id:        id,
+		userID1:   userID1,
+		userID2:   userID2,
+		createdAt: createdAt,
+		manager:   event.NewEventManager(),
+	}
 }
 
 func CreateFriendship(
@@ -31,9 +41,10 @@ func CreateFriendship(
 		userID1:   userID1,
 		userID2:   userID2,
 		createdAt: time.Now().UTC(),
+		manager:   event.NewEventManager(),
 	}
 
-	ev, err := NewFriendshipCreatedEvent(friendship.id, userID1, userID2, idGenerator)
+	ev, err := NewFriendshipCreatedEvent(friendship.id, idGenerator)
 	if err != nil {
 		return nil, err
 	}

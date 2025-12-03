@@ -71,6 +71,21 @@ func (mr *MockFriendshipRepositoryMockRecorder) ExistByUserID(ctx, userID1, user
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExistByUserID", reflect.TypeOf((*MockFriendshipRepository)(nil).ExistByUserID), ctx, userID1, userID2)
 }
 
+// FindByID mocks base method.
+func (m *MockFriendshipRepository) FindByID(ctx context.Context, friendshipID domain.FriendshipID) (*domain.Friendship, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindByID", ctx, friendshipID)
+	ret0, _ := ret[0].(*domain.Friendship)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindByID indicates an expected call of FindByID.
+func (mr *MockFriendshipRepositoryMockRecorder) FindByID(ctx, friendshipID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockFriendshipRepository)(nil).FindByID), ctx, friendshipID)
+}
+
 // MockFriendshipCreator is a mock of FriendshipCreator interface.
 type MockFriendshipCreator struct {
 	ctrl     *gomock.Controller
@@ -107,6 +122,45 @@ func (m *MockFriendshipCreator) Create(ctx context.Context, friendship *domain.F
 func (mr *MockFriendshipCreatorMockRecorder) Create(ctx, friendship any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockFriendshipCreator)(nil).Create), ctx, friendship)
+}
+
+// MockFriendshipFinderByID is a mock of FriendshipFinderByID interface.
+type MockFriendshipFinderByID struct {
+	ctrl     *gomock.Controller
+	recorder *MockFriendshipFinderByIDMockRecorder
+	isgomock struct{}
+}
+
+// MockFriendshipFinderByIDMockRecorder is the mock recorder for MockFriendshipFinderByID.
+type MockFriendshipFinderByIDMockRecorder struct {
+	mock *MockFriendshipFinderByID
+}
+
+// NewMockFriendshipFinderByID creates a new mock instance.
+func NewMockFriendshipFinderByID(ctrl *gomock.Controller) *MockFriendshipFinderByID {
+	mock := &MockFriendshipFinderByID{ctrl: ctrl}
+	mock.recorder = &MockFriendshipFinderByIDMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockFriendshipFinderByID) EXPECT() *MockFriendshipFinderByIDMockRecorder {
+	return m.recorder
+}
+
+// FindByID mocks base method.
+func (m *MockFriendshipFinderByID) FindByID(ctx context.Context, friendshipID domain.FriendshipID) (*domain.Friendship, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindByID", ctx, friendshipID)
+	ret0, _ := ret[0].(*domain.Friendship)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindByID indicates an expected call of FindByID.
+func (mr *MockFriendshipFinderByIDMockRecorder) FindByID(ctx, friendshipID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockFriendshipFinderByID)(nil).FindByID), ctx, friendshipID)
 }
 
 // MockFriendshipExisterByUserID is a mock of FriendshipExisterByUserID interface.

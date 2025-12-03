@@ -81,7 +81,7 @@ func TestFriendRequestAgreedUseCase_Execute(t *testing.T) {
 	//正常情况
 	gomock.InOrder(
 		friendRequestFinderByID.EXPECT().FindByID(nil, fixedOperationID).Return(mockRequest, nil),
-		friendshipIDGenerator.EXPECT().Generate().Return(fixedFriendID),
+		friendshipIDGenerator.EXPECT().Generate().Return(fixedFriendshipID),
 		idGenerator.EXPECT().Generate().Return(fixedEventID),
 		creator.EXPECT().Create(nil, gomock.Any()).Return(nil),
 	)

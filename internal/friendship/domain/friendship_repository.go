@@ -8,11 +8,16 @@ import (
 
 type FriendshipRepository interface {
 	FriendshipCreator
+	FriendshipFinderByID
 	FriendshipExisterByUserID
 }
 
 type FriendshipCreator interface {
 	Create(ctx context.Context, friendship *Friendship) error
+}
+
+type FriendshipFinderByID interface {
+	FindByID(ctx context.Context, friendshipID FriendshipID) (*Friendship, error)
 }
 
 type FriendshipExisterByUserID interface {

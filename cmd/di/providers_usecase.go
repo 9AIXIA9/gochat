@@ -294,12 +294,16 @@ func provideFriendshipFriendRequestAgreedUseCase(
 	return friendshipApp.NewFriendRequestAgreedUseCase(requestRepo, friendshipRepo, friendshipIDGen, eventIDGen)
 }
 func provideFriendshipFriendRequestCreatedUseCase(
+	friendRequestRepo friendshipDomain.FriendRequestRepository,
+	eventRepo event.Repository,
 	eventIDGen event.IDGenerator,
 ) (friendshipApp.FriendRequestCreatedUseCase, error) {
-	return friendshipApp.NewFriendRequestCreatedUseCase(eventIDGen)
+	return friendshipApp.NewFriendRequestCreatedUseCase(friendRequestRepo, eventRepo, eventIDGen)
 }
 func provideFriendshipFriendshipCreatedUseCase(
+	friendshipRepo friendshipDomain.FriendshipRepository,
+	eventRepo event.Repository,
 	eventIDGen event.IDGenerator,
 ) (friendshipApp.FriendshipCreatedUseCase, error) {
-	return friendshipApp.NewFriendshipCreatedUseCase(eventIDGen)
+	return friendshipApp.NewFriendshipCreatedUseCase(friendshipRepo, eventRepo, eventIDGen)
 }

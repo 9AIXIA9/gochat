@@ -5,7 +5,6 @@ import (
 	"gochat/internal/friendship/application"
 	"gochat/internal/friendship/domain"
 	"gochat/internal/shared/event"
-	"gochat/internal/shared/kernel"
 )
 
 func NewFriendshipCreatedEventHandler(uc application.FriendshipCreatedUseCase) event.HandlerFunc {
@@ -16,9 +15,7 @@ func NewFriendshipCreatedEventHandler(uc application.FriendshipCreatedUseCase) e
 		}
 
 		input := application.FriendshipCreatedInput{
-			RequestID: kernel.OperationID(ev.AggregateID()),
-			UserID1:   ev.UserID1(),
-			UserID2:   ev.UserID2(),
+			FriendshipID: domain.FriendshipID(ev.AggregateID()),
 		}
 
 		if err := input.Validate(); err != nil {

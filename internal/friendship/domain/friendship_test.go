@@ -12,6 +12,21 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+func TestLoadFriendship(t *testing.T) {
+	start := time.Now().UTC()
+	friendship := domain.LoadFriendship(
+		fixedFriendshipID,
+		fixedUserID,
+		fixedToUserID,
+		start,
+	)
+	require.NotNil(t, friendship)
+	assert.Equal(t, fixedFriendshipID, friendship.ID())
+	assert.Equal(t, fixedUserID, friendship.UserID1())
+	assert.Equal(t, fixedToUserID, friendship.UserID2())
+	assert.Equal(t, start, friendship.CreatedAt())
+}
+
 func TestCreateFriendship(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
