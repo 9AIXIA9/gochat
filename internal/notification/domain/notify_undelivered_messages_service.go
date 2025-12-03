@@ -11,14 +11,14 @@ func NotifyUndeliveredMessages(
 ) error {
 
 	for _, message := range privateMessagesUndelivered {
-		if err := privateMessageNotifier.NotifyPrivateMessage(message); err != nil {
+		if err := privateMessageNotifier.Notify(message); err != nil {
 			return err
 		}
 		message.state = MessageStateDelivered
 	}
 
 	for _, message := range roomMessagesUndelivered {
-		if ids, err := roomMessageNotifier.NotifyRoomMessage(message, []kernel.UserID{userID}); err != nil || len(ids) == 0 {
+		if ids, err := roomMessageNotifier.Notify(message, []kernel.UserID{userID}); err != nil || len(ids) == 0 {
 			return err // ids == 0 -> nil
 		}
 		message.states[userID] = MessageStateDelivered

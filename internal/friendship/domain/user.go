@@ -5,34 +5,17 @@ import (
 )
 
 type User struct {
-	id     kernel.UserID
-	number kernel.UserNumber
-}
-
-func LoadUser(
-	id kernel.UserID,
-	number kernel.UserNumber,
-) *User {
-	return &User{
-		id:     id,
-		number: number,
-	}
+	id kernel.UserID
 }
 
 func CreateUser(
 	id kernel.UserID,
-	number kernel.UserNumber,
 ) *User {
 	return &User{
-		id:     id,
-		number: number,
+		id: id,
 	}
 }
 
 func (u *User) ID() kernel.UserID {
 	return u.id
-}
-
-func (u *User) Number() kernel.UserNumber {
-	return u.number
 }

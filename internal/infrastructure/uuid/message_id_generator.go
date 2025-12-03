@@ -1,13 +1,12 @@
 package uuid
 
 import (
-	"gochat/internal/chat/domain"
 	"gochat/internal/shared/kernel"
 
 	"github.com/google/uuid"
 )
 
-var _ domain.MessageIDGenerator = (*MessageIDGenerator)(nil)
+var _ kernel.MessageIDGenerator = (*MessageIDGenerator)(nil)
 
 type MessageIDGenerator struct{}
 

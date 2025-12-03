@@ -45,10 +45,13 @@ var RepoSet = wire.NewSet(
 	wire.Bind(new(chatDomain.PrivateMessageRepository), new(*chatRepo.PrivateMessageRepository)),
 	wire.Bind(new(chatDomain.RoomMessageRepository), new(*chatRepo.RoomMessageRepository)),
 
+	wire.Bind(new(notificationDomain.SystemMessageRepository), new(*notificationRepo.SystemMessageRepository)),
 	wire.Bind(new(notificationDomain.PrivateMessageRepository), new(*notificationRepo.PrivateMessageRepository)),
 	wire.Bind(new(notificationDomain.RoomMessageRepository), new(*notificationRepo.RoomMessageRepository)),
 
 	wire.Bind(new(friendshipDomain.UserRepository), new(*friendshipRepo.UserRepository)),
+	wire.Bind(new(friendshipDomain.FriendRequestRepository), new(*friendshipRepo.FriendRequestRepository)),
+	wire.Bind(new(friendshipDomain.FriendshipRepository), new(*friendshipRepo.FriendshipRepository)),
 
 	wire.Bind(new(event.DeadLetterCreator), new(*repository.EventRepository)),
 
@@ -62,15 +65,19 @@ var RepoSet = wire.NewSet(
 	provideChatRoomMessageRepository,
 	provideRoomshipUserRepository,
 	provideRoomshipRoomRepository,
+	provideNotificationSystemMessageRepository,
 	provideNotificationPrivateMessageRepository,
 	provideNotificationRoomMessageRepository,
 	provideFriendshipUserRepository,
+	provideFriendshipFriendRequestRepository,
+	provideFriendshipFriendshipRepository,
 )
 
 func provideDatabaseMigrated(mysql *gorm.DB) databaseMigrated {
 	if err := gormInfra.AutoMigrate(
 		mysql,
 		&authModel.User{},
+		&notificationModel.SystemMessage{},
 		&notificationModel.PrivateMessage{},
 		&notificationModel.RoomMessage{},
 		&notificationModel.RoomMessageRecipient{},
@@ -82,6 +89,8 @@ func provideDatabaseMigrated(mysql *gorm.DB) databaseMigrated {
 		&roomshipModel.User{},
 		&roomshipModel.Room{},
 		&friendshipModel.User{},
+		&friendshipModel.Friendship{},
+		&friendshipModel.FriendRequest{},
 		&model.Event{},
 		&model.DeadLetter{},
 	); err != nil {
@@ -118,6 +127,9 @@ func provideRoomshipUserRepository(db *gorm.DB) *roomshipRepo.UserRepository {
 func provideRoomshipRoomRepository(db *gorm.DB, eventRepo event.Repository) *roomshipRepo.RoomRepository {
 	return roomshipRepo.NewRoomRepository(db, eventRepo)
 }
+func provideNotificationSystemMessageRepository(db *gorm.DB) *notificationRepo.SystemMessageRepository {
+	return notificationRepo.NewSystemMessageRepository(db)
+}
 func provideNotificationPrivateMessageRepository(db *gorm.DB) *notificationRepo.PrivateMessageRepository {
 	return notificationRepo.NewPrivateMessageRepository(db)
 }
@@ -126,4 +138,10 @@ func provideNotificationRoomMessageRepository(db *gorm.DB) *notificationRepo.Roo
 }
 func provideFriendshipUserRepository(db *gorm.DB) *friendshipRepo.UserRepository {
 	return friendshipRepo.NewUserRepository(db)
+}
+func provideFriendshipFriendRequestRepository(db *gorm.DB, eventRepo event.Repository) *friendshipRepo.FriendRequestRepository {
+	return friendshipRepo.NewFriendRequestRepository(db, eventRepo)
+}
+func provideFriendshipFriendshipRepository(db *gorm.DB, eventRepo event.Repository) *friendshipRepo.FriendshipRepository {
+	return friendshipRepo.NewFriendshipRepository(db, eventRepo)
 }

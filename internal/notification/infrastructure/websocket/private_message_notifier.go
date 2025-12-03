@@ -28,7 +28,7 @@ func NewPrivateMessageNotifier(manager *websocket.Manager) *PrivateMessageNotifi
 	return &PrivateMessageNotifier{manager: manager}
 }
 
-func (n *PrivateMessageNotifier) NotifyPrivateMessage(message *domain.PrivateMessage) error {
+func (n *PrivateMessageNotifier) Notify(message *domain.PrivateMessage) error {
 	responseData := &NotifyPrivateMessageResponseData{
 		ID:       message.ID(),
 		SenderID: message.SenderID(),

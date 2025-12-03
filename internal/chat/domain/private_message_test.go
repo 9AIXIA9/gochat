@@ -2,10 +2,10 @@ package domain_test
 
 import (
 	"gochat/internal/chat/domain"
-	"gochat/internal/chat/domain/mocks"
 	"gochat/internal/shared/event"
 	eventMocks "gochat/internal/shared/event/mocks"
 	"gochat/internal/shared/kernel"
+	kernelmocks "gochat/internal/shared/kernel/mocks"
 	"testing"
 	"time"
 
@@ -29,7 +29,7 @@ func TestPrivateMessage_CreatePrivateMessage(t *testing.T) {
 
 	recipient := domain.CreateUser(fixedPrivateRecipient, "50001")
 
-	msgIDGen := mocks.NewMockMessageIDGenerator(ctrl)
+	msgIDGen := kernelmocks.NewMockMessageIDGenerator(ctrl)
 	msgIDGen.EXPECT().Generate().Return(fixedPrivateMessageID)
 
 	evIDGen := eventMocks.NewMockIDGenerator(ctrl)

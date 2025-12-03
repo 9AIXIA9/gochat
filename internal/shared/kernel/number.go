@@ -12,6 +12,9 @@ func (n Number) String() string {
 }
 
 func (n Number) Validate() error {
+	if len(n) == 0 {
+		return errors.ErrEmptyInput
+	}
 	for _, digit := range n {
 		if digit < '0' || digit > '9' {
 			return errors.ErrInvalidNumber

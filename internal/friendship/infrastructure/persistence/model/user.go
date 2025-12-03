@@ -5,8 +5,7 @@ import (
 )
 
 type User struct {
-	ID     kernel.UserID     `gorm:"primaryKey;type:char(36)"`
-	Number kernel.UserNumber `gorm:"type:varchar(20);uniqueIndex;not null"`
+	ID kernel.UserID `gorm:"primaryKey;type:char(36)"`
 }
 
 func (*User) TableName() string {

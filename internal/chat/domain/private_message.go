@@ -39,7 +39,7 @@ func CreatePrivateMessage(
 	recipient *User,
 	senderID kernel.UserID,
 	content string,
-	messageIDGenerator MessageIDGenerator,
+	messageIDGenerator kernel.MessageIDGenerator,
 	eventIDGenerator event.IDGenerator,
 ) (*PrivateMessage, error) {
 	message := &PrivateMessage{

@@ -12,7 +12,6 @@ package mocks
 import (
 	context "context"
 	domain "gochat/internal/friendship/domain"
-	kernel "gochat/internal/shared/kernel"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
@@ -56,21 +55,6 @@ func (mr *MockUserRepositoryMockRecorder) Create(ctx, user any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUserRepository)(nil).Create), ctx, user)
 }
 
-// FindByNumber mocks base method.
-func (m *MockUserRepository) FindByNumber(ctx context.Context, number kernel.UserNumber) (*domain.User, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindByNumber", ctx, number)
-	ret0, _ := ret[0].(*domain.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FindByNumber indicates an expected call of FindByNumber.
-func (mr *MockUserRepositoryMockRecorder) FindByNumber(ctx, number any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByNumber", reflect.TypeOf((*MockUserRepository)(nil).FindByNumber), ctx, number)
-}
-
 // MockUserCreator is a mock of UserCreator interface.
 type MockUserCreator struct {
 	ctrl     *gomock.Controller
@@ -107,43 +91,4 @@ func (m *MockUserCreator) Create(ctx context.Context, user *domain.User) error {
 func (mr *MockUserCreatorMockRecorder) Create(ctx, user any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUserCreator)(nil).Create), ctx, user)
-}
-
-// MockUserFinderByNumber is a mock of UserFinderByNumber interface.
-type MockUserFinderByNumber struct {
-	ctrl     *gomock.Controller
-	recorder *MockUserFinderByNumberMockRecorder
-	isgomock struct{}
-}
-
-// MockUserFinderByNumberMockRecorder is the mock recorder for MockUserFinderByNumber.
-type MockUserFinderByNumberMockRecorder struct {
-	mock *MockUserFinderByNumber
-}
-
-// NewMockUserFinderByNumber creates a new mock instance.
-func NewMockUserFinderByNumber(ctrl *gomock.Controller) *MockUserFinderByNumber {
-	mock := &MockUserFinderByNumber{ctrl: ctrl}
-	mock.recorder = &MockUserFinderByNumberMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockUserFinderByNumber) EXPECT() *MockUserFinderByNumberMockRecorder {
-	return m.recorder
-}
-
-// FindByNumber mocks base method.
-func (m *MockUserFinderByNumber) FindByNumber(ctx context.Context, number kernel.UserNumber) (*domain.User, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindByNumber", ctx, number)
-	ret0, _ := ret[0].(*domain.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FindByNumber indicates an expected call of FindByNumber.
-func (mr *MockUserFinderByNumberMockRecorder) FindByNumber(ctx, number any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByNumber", reflect.TypeOf((*MockUserFinderByNumber)(nil).FindByNumber), ctx, number)
 }

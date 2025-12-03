@@ -40,7 +40,7 @@ func CreateRoomMessage(
 	room *Room,
 	senderID kernel.UserID,
 	content string,
-	messageIDGenerator MessageIDGenerator,
+	messageIDGenerator kernel.MessageIDGenerator,
 	eventIDGenerator event.IDGenerator,
 ) (*RoomMessage, error) {
 	if !room.IsMember(senderID) {

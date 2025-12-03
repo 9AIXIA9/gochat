@@ -52,7 +52,7 @@ func ReceivePrivateMessage(
 func (m *PrivateMessage) Deliver(
 	notifier PrivateMessageNotifier,
 ) error {
-	if err := notifier.NotifyPrivateMessage(m); err != nil {
+	if err := notifier.Notify(m); err != nil {
 		return err
 	}
 

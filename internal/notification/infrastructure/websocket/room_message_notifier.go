@@ -29,7 +29,7 @@ func NewRoomMessageNotifier(manager *websocket.Manager) *RoomMessageNotifier {
 	return &RoomMessageNotifier{manager: manager}
 }
 
-func (n *RoomMessageNotifier) NotifyRoomMessage(message *domain.RoomMessage, recipients []kernel.UserID) ([]kernel.UserID, error) {
+func (n *RoomMessageNotifier) Notify(message *domain.RoomMessage, recipients []kernel.UserID) ([]kernel.UserID, error) {
 	responseData := &NotifyRoomMessageResponseData{
 		ID:       message.ID(),
 		SenderID: message.SenderID(),

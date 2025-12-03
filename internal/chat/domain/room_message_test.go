@@ -2,11 +2,11 @@ package domain_test
 
 import (
 	"gochat/internal/chat/domain"
-	"gochat/internal/chat/domain/mocks"
 	"gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	eventMocks "gochat/internal/shared/event/mocks"
 	"gochat/internal/shared/kernel"
+	kernelmocks "gochat/internal/shared/kernel/mocks"
 	"testing"
 	"time"
 
@@ -29,7 +29,7 @@ func TestRoomMessage_CreateRoomMessage_Success(t *testing.T) {
 
 	room := domain.CreateRoom("room-x", "60001", fixedRoomMessageSenderID) // sender is owner -> member
 
-	msgIDGen := mocks.NewMockMessageIDGenerator(ctrl)
+	msgIDGen := kernelmocks.NewMockMessageIDGenerator(ctrl)
 	msgIDGen.EXPECT().Generate().Return(fixedRoomMessageID)
 
 	evIDGen := eventMocks.NewMockIDGenerator(ctrl)
@@ -62,7 +62,7 @@ func TestRoomMessage_CreateRoomMessage_NotMember(t *testing.T) {
 
 	room := domain.CreateRoom("room-y", "60002", "room-owner") // sender not a member
 
-	msgIDGen := mocks.NewMockMessageIDGenerator(ctrl)
+	msgIDGen := kernelmocks.NewMockMessageIDGenerator(ctrl)
 	// Expect no Generate call
 	msgIDGen.EXPECT().Generate().Times(0)
 	evIDGen := eventMocks.NewMockIDGenerator(ctrl)

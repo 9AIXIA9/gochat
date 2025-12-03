@@ -49,7 +49,7 @@ func (uc *userCreatedUseCase) Execute(ctx context.Context, input *UserCreatedInp
 		return nil, err
 	}
 
-	friendshipEv, err := friendshipDomain.NewUserCreatedEvent(user.ID(), user.Number(), uc.idGenerator)
+	friendshipEv, err := friendshipDomain.NewUserCreatedEvent(user.ID(), uc.idGenerator)
 	if err != nil {
 		return nil, err
 	}
