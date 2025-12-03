@@ -2,7 +2,6 @@ package snowflake
 
 import (
 	"gochat/internal/roomship/domain"
-	"gochat/internal/shared/kernel"
 
 	"github.com/bwmarrin/snowflake"
 )
@@ -22,6 +21,6 @@ func NewRoomNumberGenerator(machineNode int64) (*RoomNumberGenerator, error) {
 	return &RoomNumberGenerator{node: node}, nil
 }
 
-func (g *RoomNumberGenerator) Generate() kernel.RoomNumber {
-	return kernel.RoomNumber(g.node.Generate().String())
+func (g *RoomNumberGenerator) Generate() domain.RoomNumber {
+	return domain.RoomNumber(g.node.Generate().String())
 }

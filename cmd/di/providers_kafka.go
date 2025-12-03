@@ -64,9 +64,6 @@ func provideKafkaRouter(
 	authUserCreated authApp.UserCreatedUseCase,
 	// roomship
 	RoomshipUserCreated roomshipApp.UserCreatedUseCase,
-	RoomshipRoomCreated roomshipApp.RoomCreatedUseCase,
-	RoomshipRoomJoined roomshipApp.RoomJoinedUseCase,
-	RoomshipRoomLeft roomshipApp.RoomLeftUseCase,
 	// chat
 	chatUserCreated chatApp.UserCreatedUseCase,
 	chatRoomCreated chatApp.RoomCreatedUseCase,
@@ -108,9 +105,6 @@ func provideKafkaRouter(
 	// Roomship
 	{
 		router.Handle(roomshipDomain.TopicUserCreated, kafkaInfra.WrapEventHandler(roomshipEvent.NewUserCreatedEventHandler(RoomshipUserCreated)))
-		router.Handle(roomshipDomain.TopicRoomCreated, kafkaInfra.WrapEventHandler(roomshipEvent.NewRoomCreatedEventHandler(RoomshipRoomCreated)))
-		router.Handle(roomshipDomain.TopicRoomJoined, kafkaInfra.WrapEventHandler(roomshipEvent.NewRoomJoinedEventHandler(RoomshipRoomJoined)))
-		router.Handle(roomshipDomain.TopicRoomLeft, kafkaInfra.WrapEventHandler(roomshipEvent.NewRoomLeftEventHandler(RoomshipRoomLeft)))
 	}
 
 	// Chat
@@ -157,9 +151,6 @@ func provideTopicsEnsured(appConfig *config.App) kafkaTopicEnsured {
 			authDomain.TopicUserCreated,
 			// roomship
 			roomshipDomain.TopicUserCreated,
-			roomshipDomain.TopicRoomCreated,
-			roomshipDomain.TopicRoomJoined,
-			roomshipDomain.TopicRoomLeft,
 			// chat
 			chatDomain.TopicUserCreated,
 			chatDomain.TopicRoomCreated,

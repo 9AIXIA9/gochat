@@ -5,7 +5,6 @@ import (
 	authApp "gochat/internal/authorization/application"
 	chatApp "gochat/internal/chat/application"
 	friendshipApp "gochat/internal/friendship/application"
-	roomshipApp "gochat/internal/roomship/application"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -22,7 +21,6 @@ import (
 	"gochat/internal/infrastructure/prometheus"
 	"gochat/internal/infrastructure/validator"
 	"gochat/internal/infrastructure/websocket"
-	roomshipHTTP "gochat/internal/roomship/port/http"
 )
 
 var HTTPSet = wire.NewSet(
@@ -38,9 +36,6 @@ func provideHttpRouter(
 	parseAccessToken authApp.ParseAccessTokenUseCase,
 	sendPrivateMessage chatApp.SendPrivateMessageUseCase,
 	sendRoomMessage chatApp.SendRoomMessageUseCase,
-	createRoom roomshipApp.CreateRoomUseCase,
-	joinRoom roomshipApp.JoinRoomUseCase,
-	leaveRoom roomshipApp.LeaveRoomUseCase,
 	sendFriendRequest friendshipApp.SendFriendRequestUseCase,
 	agreeFriendRequest friendshipApp.AgreeFriendRequestUseCase,
 	refuseFriendRequest friendshipApp.RefuseFriendRequestUseCase,
@@ -104,9 +99,6 @@ func provideHttpRouter(
 	roomshipGroup := baseGroup.Group("/roomship")
 	roomshipGroup.Use(authorizationMiddleware)
 	{
-		roomshipGroup.POST("/room", roomshipHTTP.NewCreateRoomHandler(createRoom, validator))
-		roomshipGroup.POST("/room/member", roomshipHTTP.NewJoinRoomHandler(joinRoom, validator))
-		roomshipGroup.DELETE("/room/member", roomshipHTTP.NewLeaveRoomHandler(leaveRoom, validator))
 	}
 
 	// 好友功能路由
