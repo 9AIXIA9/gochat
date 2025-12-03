@@ -76,6 +76,8 @@ func provideKafkaRouter(
 	chatRoomMessageCreated chatApp.RoomMessageCreatedUseCase,
 	// notification
 	notificationWelcomeEmailNotificationRequested notificationApp.WelcomeEmailNotificationRequestedUseCase,
+	notificationFriendRequestCreatedNotificationRequested notificationApp.FriendRequestCreatedNotificationRequestedUseCase,
+	notificationFriendshipCreatedNotificationRequested notificationApp.FriendshipCreatedNotificationRequestedUseCase,
 	notificationPrivateMessageNotificationRequested notificationApp.PrivateMessageNotificationRequestedUseCase,
 	notificationRoomMessageNotificationRequested notificationApp.RoomMessageNotificationRequestedUseCase,
 	notificationUndeliveredMessagesRequested notificationApp.UndeliveredMessagesNotificationRequestedUseCase,
@@ -128,6 +130,8 @@ func provideKafkaRouter(
 		} else {
 			zap.L().Info("Skipping subscription to WelcomeEmailNotificationRequested topic as email dialer is not connected")
 		}
+		router.Handle(notificationDomain.TopicFriendshipCreatedNotificationRequested, kafkaInfra.WrapEventHandler(notificationEvent.NewFriendshipCreatedNotificationRequestedEventHandler(notificationFriendshipCreatedNotificationRequested)))
+		router.Handle(notificationDomain.TopicFriendRequestCreatedNotificationRequested, kafkaInfra.WrapEventHandler(notificationEvent.NewFriendRequestCreatedNotificationRequestedEventHandler(notificationFriendRequestCreatedNotificationRequested)))
 		router.Handle(notificationDomain.TopicPrivateMessageNotificationRequested, kafkaInfra.WrapEventHandler(notificationEvent.NewPrivateMessageNotificationRequestedEventHandler(notificationPrivateMessageNotificationRequested)))
 		router.Handle(notificationDomain.TopicRoomMessageNotificationRequested, kafkaInfra.WrapEventHandler(notificationEvent.NewRoomMessageNotificationRequestedEventHandler(notificationRoomMessageNotificationRequested)))
 		router.Handle(notificationDomain.TopicUndeliveredMessagesNotificationRequested, kafkaInfra.WrapEventHandler(notificationEvent.NewUndeliveredMessagesNotificationRequestedEventHandler(notificationUndeliveredMessagesRequested)))
@@ -165,6 +169,8 @@ func provideTopicsEnsured(appConfig *config.App) kafkaTopicEnsured {
 			chatDomain.TopicRoomMessageCreated,
 			// notification
 			notificationDomain.TopicWelcomeEmailNotificationRequested,
+			notificationDomain.TopicFriendshipCreatedNotificationRequested,
+			notificationDomain.TopicFriendRequestCreatedNotificationRequested,
 			notificationDomain.TopicPrivateMessageNotificationRequested,
 			notificationDomain.TopicRoomMessageNotificationRequested,
 			notificationDomain.TopicUndeliveredMessagesNotificationRequested,

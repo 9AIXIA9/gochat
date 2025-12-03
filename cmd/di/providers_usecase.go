@@ -14,6 +14,7 @@ import (
 	roomshipDomain "gochat/internal/roomship/domain"
 	RoomshipPersistence "gochat/internal/roomship/infrastructure/persistence/repository"
 	"gochat/internal/shared/event"
+	"gochat/internal/shared/kernel"
 
 	"github.com/google/wire"
 )
@@ -54,6 +55,8 @@ var UseCaseKafkaSet = wire.NewSet(
 	provideChatPrivateMessageCreatedUseCase,
 	provideNotificationWelcomeEmailNotificationRequestedUseCase,
 	provideNotificationRoomMessageNotificationRequestedUseCase,
+	provideNotificationFriendRequestCreatedNotificationRequestedUseCase,
+	provideNotificationFriendshipCreatedNotificationRequestedUseCase,
 	provideNotificationPrivateMessageNotificationRequestedUseCase,
 	provideNotificationUndeliveredMessagesNotificationRequestedUseCase,
 	provideFriendshipUserCreatedUseCase,
@@ -74,7 +77,6 @@ func provideUnpublishedEventsCreatedCase(
 	return rootapp.NewUnpublishedEventsCreatedUseCase(publisher, eventRepo)
 }
 
-// -------------------- UseCases (HTTP side) --------------------
 func provideSignUpUseCase(
 	eventIDGen event.IDGenerator,
 	userIDGen authDomain.UserIDGenerator,
@@ -106,7 +108,7 @@ func provideParseAccessTokenUseCase(accessTokenParser authApp.AccessTokenParser)
 	return authApp.NewParseAccessTokenUseCase(accessTokenParser)
 }
 func provideSendPrivateMessageUseCase(
-	messageIDGen chatDomain.MessageIDGenerator,
+	messageIDGen kernel.MessageIDGenerator,
 	eventIDGen event.IDGenerator,
 	userRepo chatDomain.UserRepository,
 	messageRepo chatDomain.PrivateMessageRepository,
@@ -114,7 +116,7 @@ func provideSendPrivateMessageUseCase(
 	return chatApp.NewSendPrivateMessageUseCase(messageIDGen, eventIDGen, userRepo, messageRepo)
 }
 func provideSendRoomMessageUseCase(
-	messageIDGen chatDomain.MessageIDGenerator,
+	messageIDGen kernel.MessageIDGenerator,
 	eventIDGen event.IDGenerator,
 	roomRepo chatDomain.RoomRepository,
 	messageRepo chatDomain.RoomMessageRepository,
@@ -265,6 +267,20 @@ func provideNotificationPrivateMessageNotificationRequestedUseCase(
 	messageNotifier notificationDomain.PrivateMessageNotifier,
 ) notificationApp.PrivateMessageNotificationRequestedUseCase {
 	return notificationApp.NewPrivateMessageNotificationRequestedUseCase(messageRepo, messageNotifier)
+}
+func provideNotificationFriendRequestCreatedNotificationRequestedUseCase(
+	idGenerator kernel.MessageIDGenerator,
+	messageRepo notificationDomain.SystemMessageRepository,
+	messageNotifier notificationDomain.SystemMessageNotifier,
+) (notificationApp.FriendRequestCreatedNotificationRequestedUseCase, error) {
+	return notificationApp.NewFriendRequestCreatedNotificationRequestedUseCase(idGenerator, messageRepo, messageNotifier)
+}
+func provideNotificationFriendshipCreatedNotificationRequestedUseCase(
+	idGenerator kernel.MessageIDGenerator,
+	messageRepo notificationDomain.SystemMessageRepository,
+	messageNotifier notificationDomain.SystemMessageNotifier,
+) (notificationApp.FriendshipCreatedNotificationRequestedUseCase, error) {
+	return notificationApp.NewFriendshipCreatedNotificationRequestedUseCase(idGenerator, messageRepo, messageNotifier)
 }
 func provideNotificationRoomMessageNotificationRequestedUseCase(
 	messageRepo notificationDomain.RoomMessageRepository,

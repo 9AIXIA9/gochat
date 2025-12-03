@@ -5,8 +5,20 @@ import (
 	"time"
 )
 
+const (
+	TopicFriendshipCreated    SystemMessageTopic = "friendship_created"
+	TopicFriendRequestCreated SystemMessageTopic = "friend_request_created"
+)
+
+type SystemMessageTopic string
+
+func (t SystemMessageTopic) String() string {
+	return string(t)
+}
+
 type SystemMessage struct {
 	id          kernel.MessageID
+	topic       SystemMessageTopic
 	recipientID kernel.UserID
 	state       MessageState
 	content     []byte
@@ -15,6 +27,7 @@ type SystemMessage struct {
 
 func LoadSystemMessage(
 	id kernel.MessageID,
+	topic SystemMessageTopic,
 	recipientID kernel.UserID,
 	state MessageState,
 	content []byte,
@@ -22,6 +35,7 @@ func LoadSystemMessage(
 ) *SystemMessage {
 	return &SystemMessage{
 		id:          id,
+		topic:       topic,
 		recipientID: recipientID,
 		state:       state,
 		content:     content,
@@ -30,9 +44,10 @@ func LoadSystemMessage(
 }
 
 func CreateSystemMessage(
+	topic SystemMessageTopic,
 	recipientID kernel.UserID,
 	content []byte,
-	idGenerator MessageIDGenerator,
+	idGenerator kernel.MessageIDGenerator,
 	notifier SystemMessageNotifier,
 ) (*SystemMessage, error) {
 	if len(content) == 0 {
@@ -41,6 +56,7 @@ func CreateSystemMessage(
 
 	message := &SystemMessage{
 		id:          idGenerator.Generate(),
+		topic:       topic,
 		recipientID: recipientID,
 		state:       MessageStateUndelivered,
 		content:     content,
@@ -60,17 +76,22 @@ func (m *SystemMessage) Deliver(
 		return ErrNotUndelivered
 	}
 
+	m.state = MessageStateDelivered
+
 	if err := notifier.Notify(m); err != nil {
+		m.state = MessageStateUndelivered
 		return err
 	}
-
-	m.state = MessageStateDelivered
 
 	return nil
 }
 
 func (m *SystemMessage) ID() kernel.MessageID {
 	return m.id
+}
+
+func (m *SystemMessage) Topic() SystemMessageTopic {
+	return m.topic
 }
 
 func (m *SystemMessage) RecipientID() kernel.UserID {

@@ -29,14 +29,14 @@ func (i *SendRoomMessageInput) Validate() error {
 }
 
 type sendRoomMessageUseCase struct {
-	messageIDGenerator domain.MessageIDGenerator
+	messageIDGenerator kernel.MessageIDGenerator
 	eventIDGenerator   event.IDGenerator
 	roomFinder         domain.RoomFinderByNumber
 	messageCreator     domain.RoomMessageCreator
 }
 
 func NewSendRoomMessageUseCase(
-	messageIDGenerator domain.MessageIDGenerator,
+	messageIDGenerator kernel.MessageIDGenerator,
 	eventIDGenerator event.IDGenerator,
 	roomFinder domain.RoomFinderByNumber,
 	messageCreator domain.RoomMessageCreator,

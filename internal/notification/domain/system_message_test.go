@@ -4,6 +4,7 @@ import (
 	"errors"
 	"gochat/internal/notification/domain"
 	"gochat/internal/notification/domain/mocks"
+	kernelmocks "gochat/internal/shared/kernel/mocks"
 	"testing"
 	"time"
 
@@ -16,6 +17,7 @@ func TestLoadSystemMessage(t *testing.T) {
 	start := time.Now()
 	message := domain.LoadSystemMessage(
 		fixedMessageID,
+		domain.TopicFriendRequestCreated,
 		fixedRecipientID,
 		domain.MessageStateUndelivered,
 		[]byte(fixedContent),
@@ -23,6 +25,7 @@ func TestLoadSystemMessage(t *testing.T) {
 	)
 	require.NotNil(t, message)
 
+	assert.Equal(t, domain.TopicFriendRequestCreated, message.Topic())
 	assert.Equal(t, fixedMessageID, message.ID())
 	assert.Equal(t, fixedRecipientID, message.RecipientID())
 	assert.Equal(t, domain.MessageStateUndelivered, message.State())
@@ -35,7 +38,7 @@ func TestCreateSystemMessage(t *testing.T) {
 	defer ctrl.Finish()
 
 	start := time.Now()
-	mockIDGenerator := mocks.NewMockMessageIDGenerator(ctrl)
+	mockIDGenerator := kernelmocks.NewMockMessageIDGenerator(ctrl)
 	mockNotifier := mocks.NewMockSystemMessageNotifier(ctrl)
 
 	//正常情况
@@ -47,6 +50,7 @@ func TestCreateSystemMessage(t *testing.T) {
 	mockNotifier.EXPECT().Notify(gomock.Any()).Return(nil)
 
 	message, err := domain.CreateSystemMessage(
+		domain.TopicFriendRequestCreated,
 		fixedRecipientID,
 		[]byte(fixedContent),
 		mockIDGenerator,
@@ -55,6 +59,7 @@ func TestCreateSystemMessage(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, message)
 
+	assert.Equal(t, domain.TopicFriendRequestCreated, message.Topic())
 	assert.Equal(t, fixedMessageID, message.ID())
 	assert.Equal(t, fixedRecipientID, message.RecipientID())
 	assert.Equal(t, domain.MessageStateDelivered, message.State())
@@ -73,6 +78,7 @@ func TestCreateSystemMessage(t *testing.T) {
 		Times(1)
 
 	messageWithFailedNotification, err := domain.CreateSystemMessage(
+		domain.TopicFriendRequestCreated,
 		fixedRecipientID,
 		[]byte(fixedContent),
 		mockIDGenerator,
@@ -84,6 +90,7 @@ func TestCreateSystemMessage(t *testing.T) {
 
 	//内容为空
 	messageWithEmptyContent, err := domain.CreateSystemMessage(
+		domain.TopicFriendRequestCreated,
 		fixedRecipientID,
 		[]byte(""),
 		mockIDGenerator,
@@ -102,6 +109,7 @@ func TestSystemMessage_Deliver(t *testing.T) {
 	//正常情况
 	message := domain.LoadSystemMessage(
 		fixedMessageID,
+		domain.TopicFriendRequestCreated,
 		fixedRecipientID,
 		domain.MessageStateUndelivered,
 		[]byte(fixedContent),

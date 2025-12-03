@@ -16,7 +16,3 @@ type PrivateMessageNotifier interface {
 type RoomMessageNotifier interface {
 	Notify(message *RoomMessage, recipients []kernel.UserID) ([]kernel.UserID, error)
 }
-
-type MessageIDGenerator interface {
-	Generate() kernel.MessageID
-}

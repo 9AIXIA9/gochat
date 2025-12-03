@@ -29,13 +29,13 @@ func (r *FriendRequestCreatedNotificationRequestedInput) Validate() error {
 }
 
 type friendRequestCreatedNotificationRequestedUseCase struct {
-	idGenerator     domain.MessageIDGenerator
+	idGenerator     kernel.MessageIDGenerator
 	messageCreator  domain.SystemMessageCreator
 	messageNotifier domain.SystemMessageNotifier
 }
 
 func NewFriendRequestCreatedNotificationRequestedUseCase(
-	idGenerator domain.MessageIDGenerator,
+	idGenerator kernel.MessageIDGenerator,
 	messageCreator domain.SystemMessageCreator,
 	messageNotifier domain.SystemMessageNotifier,
 ) (FriendRequestCreatedNotificationRequestedUseCase, error) {
@@ -55,7 +55,7 @@ func (uc *friendRequestCreatedNotificationRequestedUseCase) Execute(ctx context.
 		return nil, err
 	}
 
-	message, err := domain.CreateSystemMessage(input.To, content, uc.idGenerator, uc.messageNotifier)
+	message, err := domain.CreateSystemMessage(domain.TopicFriendRequestCreated, input.To, content, uc.idGenerator, uc.messageNotifier)
 	if err != nil {
 		return nil, err
 	}

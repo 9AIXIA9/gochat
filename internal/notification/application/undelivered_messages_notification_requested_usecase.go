@@ -7,6 +7,8 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
+//TODO 添加系统消息通知未送达处理逻辑
+
 type UndeliveredMessagesNotificationRequestedUseCase kernel.UseCase[*UndeliveredMessagesNotificationRequestedInput, *kernel.NoOutput]
 
 type UndeliveredMessagesNotificationRequestedInput struct {

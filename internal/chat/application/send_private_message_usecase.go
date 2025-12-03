@@ -29,14 +29,14 @@ func (i *SendPrivateMessageInput) Validate() error {
 }
 
 type sendPrivateMessageUseCase struct {
-	messageIDGenerator domain.MessageIDGenerator
+	messageIDGenerator kernel.MessageIDGenerator
 	eventIDGenerator   event.IDGenerator
 	userFinderByNumber domain.UserFinderByNumber
 	messageCreator     domain.PrivateMessageCreator
 }
 
 func NewSendPrivateMessageUseCase(
-	messageIDGenerator domain.MessageIDGenerator,
+	messageIDGenerator kernel.MessageIDGenerator,
 	eventIDGenerator event.IDGenerator,
 	userFinderByNumber domain.UserFinderByNumber,
 	messageCreator domain.PrivateMessageCreator,

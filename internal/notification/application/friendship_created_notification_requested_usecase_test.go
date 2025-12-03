@@ -5,6 +5,7 @@ import (
 	"gochat/internal/notification/application"
 	"gochat/internal/notification/domain/mocks"
 	myErrors "gochat/internal/shared/errors"
+	kernelmocks "gochat/internal/shared/kernel/mocks"
 	"testing"
 	"time"
 
@@ -45,7 +46,7 @@ func TestNewFriendshipCreatedNotificationRequestedUseCase(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockIDGenerator := mocks.NewMockMessageIDGenerator(ctrl)
+	mockIDGenerator := kernelmocks.NewMockMessageIDGenerator(ctrl)
 	mockCreator := mocks.NewMockSystemMessageCreator(ctrl)
 	mockNotifier := mocks.NewMockSystemMessageNotifier(ctrl)
 
@@ -68,7 +69,7 @@ func TestFriendshipCreatedNotificationRequestedUseCase_Execute(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockIDGenerator := mocks.NewMockMessageIDGenerator(ctrl)
+	mockIDGenerator := kernelmocks.NewMockMessageIDGenerator(ctrl)
 	mockCreator := mocks.NewMockSystemMessageCreator(ctrl)
 	mockNotifier := mocks.NewMockSystemMessageNotifier(ctrl)
 
