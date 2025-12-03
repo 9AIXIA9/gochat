@@ -35,8 +35,10 @@ func (repo *SystemMessageRepository) Update(ctx context.Context, message *domain
 }
 
 func (repo *SystemMessageRepository) Updates(ctx context.Context, messages []*domain.SystemMessage) error {
-	if err := repo.db.WithContext(ctx).Updates(repo.toModels(messages)).Error; err != nil {
-		return gormutils.TranslateError(err)
+	for _, message := range messages {
+		if err := repo.db.WithContext(ctx).Updates(repo.toModel(message)).Error; err != nil {
+			return gormutils.TranslateError(err)
+		}
 	}
 	return nil
 }

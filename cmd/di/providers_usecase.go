@@ -289,12 +289,24 @@ func provideNotificationRoomMessageNotificationRequestedUseCase(
 	return notificationApp.NewRoomMessageNotificationRequestedUseCase(messageNotifier, messageRepo)
 }
 func provideNotificationUndeliveredMessagesNotificationRequestedUseCase(
+	systemMessageRepo notificationDomain.SystemMessageRepository,
+	systemMessageNotifier notificationDomain.SystemMessageNotifier,
 	privateMessageRepo notificationDomain.PrivateMessageRepository,
-	roomMessageRepo notificationDomain.RoomMessageRepository,
 	privateMessageNotifier notificationDomain.PrivateMessageNotifier,
+	roomMessageRepo notificationDomain.RoomMessageRepository,
 	roomMessageNotifier notificationDomain.RoomMessageNotifier,
 ) notificationApp.UndeliveredMessagesNotificationRequestedUseCase {
-	return notificationApp.NewUndeliveredMessagesNotificationRequestedUseCase(privateMessageRepo, privateMessageRepo, privateMessageNotifier, roomMessageRepo, roomMessageRepo, roomMessageNotifier)
+	return notificationApp.NewUndeliveredMessagesNotificationRequestedUseCase(
+		systemMessageRepo,
+		systemMessageRepo,
+		systemMessageNotifier,
+		privateMessageRepo,
+		privateMessageRepo,
+		privateMessageNotifier,
+		roomMessageRepo,
+		roomMessageRepo,
+		roomMessageNotifier,
+	)
 }
 func provideFriendshipUserCreatedUseCase(
 	userRepo friendshipDomain.UserRepository,

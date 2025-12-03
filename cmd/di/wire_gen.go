@@ -127,7 +127,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	privateMessageNotificationRequestedUseCase := provideNotificationPrivateMessageNotificationRequestedUseCase(repositoryPrivateMessageRepository, privateMessageNotifier)
 	roomMessageNotifier := provideRoomMessageNotifier(manager)
 	roomMessageNotificationRequestedUseCase := provideNotificationRoomMessageNotificationRequestedUseCase(repositoryRoomMessageRepository, roomMessageNotifier)
-	undeliveredMessagesNotificationRequestedUseCase := provideNotificationUndeliveredMessagesNotificationRequestedUseCase(repositoryPrivateMessageRepository, repositoryRoomMessageRepository, privateMessageNotifier, roomMessageNotifier)
+	undeliveredMessagesNotificationRequestedUseCase := provideNotificationUndeliveredMessagesNotificationRequestedUseCase(systemMessageRepository, systemMessageNotifier, repositoryPrivateMessageRepository, privateMessageNotifier, repositoryRoomMessageRepository, roomMessageNotifier)
 	userRepository3 := provideFriendshipUserRepository(db)
 	userCreatedUseCase3, err := provideFriendshipUserCreatedUseCase(userRepository3)
 	if err != nil {
