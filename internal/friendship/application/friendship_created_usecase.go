@@ -53,12 +53,22 @@ func (uc *friendshipCreatedUseCase) Execute(ctx context.Context, input *Friendsh
 		return nil, err
 	}
 
-	ev1, err := notificationDomain.NewFriendshipCreatedNotificationRequestedEvent(friendship.UserID1(), friendship.UserID2(), uc.idGenerator)
+	ev1, err := notificationDomain.NewFriendshipCreatedNotificationRequestedEvent(
+		friendship.UserID1(),
+		friendship.UserID2(),
+		friendship.CreatedAt(),
+		uc.idGenerator,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	ev2, err := notificationDomain.NewFriendshipCreatedNotificationRequestedEvent(friendship.UserID2(), friendship.UserID1(), uc.idGenerator)
+	ev2, err := notificationDomain.NewFriendshipCreatedNotificationRequestedEvent(
+		friendship.UserID2(),
+		friendship.UserID1(),
+		friendship.CreatedAt(),
+		uc.idGenerator,
+	)
 	if err != nil {
 		return nil, err
 	}

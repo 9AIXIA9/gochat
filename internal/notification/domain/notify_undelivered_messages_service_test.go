@@ -26,8 +26,8 @@ func TestNotifyUndeliveredMessages_Success(t *testing.T) {
 
 	pmNotifier := mocks.NewMockPrivateMessageNotifier(ctrl)
 	rmNotifier := mocks.NewMockRoomMessageNotifier(ctrl)
-	pmNotifier.EXPECT().NotifyPrivateMessage(pm).Return(nil)
-	rmNotifier.EXPECT().NotifyRoomMessage(rm, []kernel.UserID{userIDNotify}).Return([]kernel.UserID{userIDNotify}, nil)
+	pmNotifier.EXPECT().Notify(pm).Return(nil)
+	rmNotifier.EXPECT().Notify(rm, []kernel.UserID{userIDNotify}).Return([]kernel.UserID{userIDNotify}, nil)
 
 	err := domain.NotifyUndeliveredMessages(userIDNotify, []*domain.PrivateMessage{pm}, []*domain.RoomMessage{rm}, pmNotifier, rmNotifier)
 	require.NoError(t, err)
@@ -41,7 +41,7 @@ func TestNotifyUndeliveredMessages_PrivateMessageError(t *testing.T) {
 	pm := domain.ReceivePrivateMessage("pm-1", "sender-1", userIDNotify, "hi", time.Now().UTC())
 	pmNotifier := mocks.NewMockPrivateMessageNotifier(ctrl)
 	rmNotifier := mocks.NewMockRoomMessageNotifier(ctrl)
-	pmNotifier.EXPECT().NotifyPrivateMessage(pm).Return(assert.AnError)
+	pmNotifier.EXPECT().Notify(pm).Return(assert.AnError)
 	err := domain.NotifyUndeliveredMessages(userIDNotify, []*domain.PrivateMessage{pm}, nil, pmNotifier, rmNotifier)
 	require.Error(t, err)
 	assert.Equal(t, domain.MessageStateUndelivered, pm.State())
@@ -53,7 +53,7 @@ func TestNotifyUndeliveredMessages_RoomMessageError(t *testing.T) {
 	rm := domain.ReceiveRoomMessage("rm-1", "sender-1", "room-1", []kernel.UserID{userIDNotify}, "hi room", time.Now().UTC())
 	pmNotifier := mocks.NewMockPrivateMessageNotifier(ctrl)
 	rmNotifier := mocks.NewMockRoomMessageNotifier(ctrl)
-	rmNotifier.EXPECT().NotifyRoomMessage(rm, []kernel.UserID{userIDNotify}).Return(nil, assert.AnError)
+	rmNotifier.EXPECT().Notify(rm, []kernel.UserID{userIDNotify}).Return(nil, assert.AnError)
 	err := domain.NotifyUndeliveredMessages(userIDNotify, nil, []*domain.RoomMessage{rm}, pmNotifier, rmNotifier)
 	require.Error(t, err)
 	assert.Equal(t, domain.MessageStateUndelivered, rm.States()[userIDNotify])

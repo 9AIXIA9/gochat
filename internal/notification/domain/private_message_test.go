@@ -35,7 +35,7 @@ func TestPrivateMessage_ReceiveAndDeliverAndRead(t *testing.T) {
 	assert.WithinDuration(t, sentAt, m.SentAt(), 200*time.Millisecond)
 
 	notifier := mocks.NewMockPrivateMessageNotifier(ctrl)
-	notifier.EXPECT().NotifyPrivateMessage(m).Return(nil)
+	notifier.EXPECT().Notify(m).Return(nil)
 	err := m.Deliver(notifier)
 	require.NoError(t, err)
 	assert.Equal(t, domain.MessageStateDelivered, m.State())
@@ -51,7 +51,7 @@ func TestPrivateMessage_DeliverError(t *testing.T) {
 
 	m := domain.ReceivePrivateMessage(pmID, pmSenderID, pmRecID, pmContent, time.Now().UTC())
 	notifier := mocks.NewMockPrivateMessageNotifier(ctrl)
-	notifier.EXPECT().NotifyPrivateMessage(m).Return(assert.AnError)
+	notifier.EXPECT().Notify(m).Return(assert.AnError)
 	err := m.Deliver(notifier)
 	require.Error(t, err)
 	assert.Equal(t, domain.MessageStateUndelivered, m.State())

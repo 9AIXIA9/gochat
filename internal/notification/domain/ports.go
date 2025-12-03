@@ -5,10 +5,18 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
+type SystemMessageNotifier interface {
+	Notify(message *SystemMessage) error
+}
+
 type PrivateMessageNotifier interface {
-	NotifyPrivateMessage(message *PrivateMessage) error
+	Notify(message *PrivateMessage) error
 }
 
 type RoomMessageNotifier interface {
-	NotifyRoomMessage(message *RoomMessage, recipients []kernel.UserID) ([]kernel.UserID, error)
+	Notify(message *RoomMessage, recipients []kernel.UserID) ([]kernel.UserID, error)
+}
+
+type MessageIDGenerator interface {
+	Generate() kernel.MessageID
 }

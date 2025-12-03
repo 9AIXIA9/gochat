@@ -33,7 +33,7 @@ func TestReceiveRoomMessageAndDeliver(t *testing.T) {
 	notifier := mocks.NewMockRoomMessageNotifier(ctrl)
 	// Only deliver to undelivered recipients; we simulate delivering two of them
 	undelivered := append([]kernel.UserID{}, recipients...)
-	notifier.EXPECT().NotifyRoomMessage(m, undelivered).Return([]kernel.UserID{"user-a", "user-b"}, nil)
+	notifier.EXPECT().Notify(m, undelivered).Return([]kernel.UserID{"user-a", "user-b"}, nil)
 	err := m.Deliver(notifier)
 	require.NoError(t, err)
 	assert.Equal(t, domain.MessageStateDelivered, m.States()["user-a"])
@@ -52,7 +52,7 @@ func TestRoomMessage_DeliverError(t *testing.T) {
 	m := domain.ReceiveRoomMessage(rmID, rmSenderID, rmRoomID, recipients, rmContent, time.Now().UTC())
 	notifier := mocks.NewMockRoomMessageNotifier(ctrl)
 	undelivered := append([]kernel.UserID{}, recipients...)
-	notifier.EXPECT().NotifyRoomMessage(m, undelivered).Return(nil, assert.AnError)
+	notifier.EXPECT().Notify(m, undelivered).Return(nil, assert.AnError)
 	err := m.Deliver(notifier)
 	require.Error(t, err)
 	for _, r := range recipients {

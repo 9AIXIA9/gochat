@@ -69,7 +69,7 @@ func (m *RoomMessage) Deliver(
 		}
 	}
 
-	idsDelivered, err := notifier.NotifyRoomMessage(m, recipientIDsNotDelivered)
+	idsDelivered, err := notifier.Notify(m, recipientIDsNotDelivered)
 	if err != nil {
 		return err
 	}
