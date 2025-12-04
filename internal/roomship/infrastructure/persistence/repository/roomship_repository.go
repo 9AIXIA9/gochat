@@ -54,6 +54,30 @@ func (repo *RoomshipRepository) ExistByUserIDAndRoomID(ctx context.Context, user
 	return count > 0, nil
 }
 
+func (repo *RoomshipRepository) FindByID(ctx context.Context, id domain.RoomshipID) (*domain.Roomship, error) {
+	var roomship model.Roomship
+	if err := repo.db.WithContext(ctx).Where("id = ?", id).First(&roomship).Error; err != nil {
+		return nil, gormutils.TranslateError(err)
+	}
+	return repo.toDomain(&roomship), nil
+}
+
+func (repo *RoomshipRepository) FindsByRoomID(ctx context.Context, id kernel.RoomID) ([]*domain.Roomship, error) {
+	var roomships []model.Roomship
+	if err := repo.db.WithContext(ctx).Where("room_id = ?", id).Find(&roomships).Error; err != nil {
+		return nil, gormutils.TranslateError(err)
+	}
+	return repo.toDomains(roomships), nil
+}
+
+func (repo *RoomshipRepository) FindsByRoomIDAndRole(ctx context.Context, roomID kernel.RoomID, role domain.RoomshipRole) ([]*domain.Roomship, error) {
+	var roomships []model.Roomship
+	if err := repo.db.WithContext(ctx).Where("room_id = ? AND role = ?", roomID, role).Find(&roomships).Error; err != nil {
+		return nil, gormutils.TranslateError(err)
+	}
+	return repo.toDomains(roomships), nil
+}
+
 func (repo *RoomshipRepository) toModel(roomship *domain.Roomship) *model.Roomship {
 	return &model.Roomship{
 		ID:        roomship.ID(),
@@ -66,4 +90,12 @@ func (repo *RoomshipRepository) toModel(roomship *domain.Roomship) *model.Roomsh
 
 func (repo *RoomshipRepository) toDomain(roomship *model.Roomship) *domain.Roomship {
 	return domain.LoadRoomship(roomship.ID, roomship.RoomID, roomship.UserID, roomship.Role, roomship.CreatedAt)
+}
+
+func (repo *RoomshipRepository) toDomains(roomships []model.Roomship) []*domain.Roomship {
+	domainRoomships := make([]*domain.Roomship, len(roomships))
+	for i, roomship := range roomships {
+		domainRoomships[i] = repo.toDomain(&roomship)
+	}
+	return domainRoomships
 }

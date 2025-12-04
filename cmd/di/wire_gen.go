@@ -123,20 +123,16 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	roomMessageCreatedUseCase := provideChatRoomMessageCreatedUseCase(eventIDGenerator, eventRepository, roomRepository, roomMessageRepository)
 	emailNotifier := provideEmailNotifier(appConfig, dialer)
 	welcomeEmailNotificationRequestedUseCase := provideNotificationWelcomeEmailNotificationRequestedUseCase(emailNotifier)
-	systemMessageRepository := provideNotificationSystemMessageRepository(db)
-	systemMessageNotifier := provideSystemMessageNotifier(manager)
-	friendRequestCreatedNotificationRequestedUseCase, err := provideNotificationFriendRequestCreatedNotificationRequestedUseCase(messageIDGenerator, systemMessageRepository, systemMessageNotifier)
-	if err != nil {
-		return nil, err
-	}
-	friendshipCreatedNotificationRequestedUseCase, err := provideNotificationFriendshipCreatedNotificationRequestedUseCase(messageIDGenerator, systemMessageRepository, systemMessageNotifier)
-	if err != nil {
-		return nil, err
-	}
 	privateMessageNotifier := providePrivateMessageNotifier(manager)
 	privateMessageNotificationRequestedUseCase := provideNotificationPrivateMessageNotificationRequestedUseCase(repositoryPrivateMessageRepository, privateMessageNotifier)
 	roomMessageNotifier := provideRoomMessageNotifier(manager)
 	roomMessageNotificationRequestedUseCase := provideNotificationRoomMessageNotificationRequestedUseCase(repositoryRoomMessageRepository, roomMessageNotifier)
+	systemMessageRepository := provideNotificationSystemMessageRepository(db)
+	systemMessageNotifier := provideSystemMessageNotifier(manager)
+	systemMessageNotificationRequestedUseCase, err := provideNotificationSystemMessageNotificationRequestedUseCase(messageIDGenerator, systemMessageRepository, systemMessageNotifier)
+	if err != nil {
+		return nil, err
+	}
 	undeliveredMessagesNotificationRequestedUseCase := provideNotificationUndeliveredMessagesNotificationRequestedUseCase(systemMessageRepository, systemMessageNotifier, repositoryPrivateMessageRepository, privateMessageNotifier, repositoryRoomMessageRepository, roomMessageNotifier)
 	userRepository2 := provideRoomshipUserRepository(db)
 	userCreatedUseCase2, err := provideRoomshipUserCreatedUseCase(userRepository2)
@@ -152,11 +148,11 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	memberRequestCreatedUseCase, err := provideRoomshipMemberRequestCreatedUseCase()
+	memberRequestCreatedUseCase, err := provideRoomshipMemberRequestCreatedUseCase(memberRequestRepository, roomshipRepository, eventIDGenerator, eventRepository)
 	if err != nil {
 		return nil, err
 	}
-	roomshipCreatedUseCase, err := provideRoomshipRoomshipCreatedUseCase()
+	roomshipCreatedUseCase, err := provideRoomshipRoomshipCreatedUseCase(roomshipRepository, eventRepository, eventIDGenerator)
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +174,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	kafkaRouter := provideKafkaRouter(diKafkaTopicEnsured, diEmailServiceAvailable, appConfig, userCreatedUseCase, applicationUserCreatedUseCase, roomCreatedUseCase, roomJoinedUseCase, roomLeftUseCase, privateMessageCreatedUseCase, roomMessageCreatedUseCase, welcomeEmailNotificationRequestedUseCase, friendRequestCreatedNotificationRequestedUseCase, friendshipCreatedNotificationRequestedUseCase, privateMessageNotificationRequestedUseCase, roomMessageNotificationRequestedUseCase, undeliveredMessagesNotificationRequestedUseCase, userCreatedUseCase2, applicationRoomCreatedUseCase, memberRequestAgreedUseCase, memberRequestCreatedUseCase, roomshipCreatedUseCase, userCreatedUseCase3, friendRequestAgreedUseCase, friendRequestCreatedUseCase, friendshipCreatedUseCase)
+	kafkaRouter := provideKafkaRouter(diKafkaTopicEnsured, diEmailServiceAvailable, appConfig, userCreatedUseCase, applicationUserCreatedUseCase, roomCreatedUseCase, roomJoinedUseCase, roomLeftUseCase, privateMessageCreatedUseCase, roomMessageCreatedUseCase, welcomeEmailNotificationRequestedUseCase, privateMessageNotificationRequestedUseCase, roomMessageNotificationRequestedUseCase, systemMessageNotificationRequestedUseCase, undeliveredMessagesNotificationRequestedUseCase, userCreatedUseCase2, applicationRoomCreatedUseCase, memberRequestAgreedUseCase, memberRequestCreatedUseCase, roomshipCreatedUseCase, userCreatedUseCase3, friendRequestAgreedUseCase, friendRequestCreatedUseCase, friendshipCreatedUseCase)
 	consumer, err := provideKafkaConsumer(appConfig, kafkaRouter, eventRepository)
 	if err != nil {
 		return nil, err

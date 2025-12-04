@@ -8,12 +8,27 @@ import (
 
 type RoomshipRepository interface {
 	RoomshipCreator
+	RoomshipFinderByID
+	RoomshipsFinderByRoomID
+	RoomshipsFinderByRoomIDAndRole
 	RoomshipFinderByUserIDAndRoomID
 	RoomshipExisterByUserIDAndRoomID
 }
 
 type RoomshipCreator interface {
 	Create(ctx context.Context, roomship *Roomship) error
+}
+
+type RoomshipFinderByID interface {
+	FindByID(ctx context.Context, id RoomshipID) (*Roomship, error)
+}
+
+type RoomshipsFinderByRoomID interface {
+	FindsByRoomID(ctx context.Context, id kernel.RoomID) ([]*Roomship, error)
+}
+
+type RoomshipsFinderByRoomIDAndRole interface {
+	FindsByRoomIDAndRole(ctx context.Context, roomID kernel.RoomID, role RoomshipRole) ([]*Roomship, error)
 }
 
 type RoomshipFinderByUserIDAndRoomID interface {

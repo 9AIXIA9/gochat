@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"fmt"
 	"gochat/internal/friendship/domain"
 	notificationDomain "gochat/internal/notification/domain"
 	myErrors "gochat/internal/shared/errors"
@@ -53,20 +54,18 @@ func (uc *friendshipCreatedUseCase) Execute(ctx context.Context, input *Friendsh
 		return nil, err
 	}
 
-	ev1, err := notificationDomain.NewFriendshipCreatedNotificationRequestedEvent(
+	ev1, err := notificationDomain.NewSystemMessageNotificationRequestedEvent(
 		friendship.UserID1(),
-		friendship.UserID2(),
-		friendship.CreatedAt(),
+		uc.buildContent(friendship.UserID2()),
 		uc.idGenerator,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	ev2, err := notificationDomain.NewFriendshipCreatedNotificationRequestedEvent(
+	ev2, err := notificationDomain.NewSystemMessageNotificationRequestedEvent(
 		friendship.UserID2(),
-		friendship.UserID1(),
-		friendship.CreatedAt(),
+		uc.buildContent(friendship.UserID1()),
 		uc.idGenerator,
 	)
 	if err != nil {
@@ -78,4 +77,8 @@ func (uc *friendshipCreatedUseCase) Execute(ctx context.Context, input *Friendsh
 	}
 
 	return nil, nil
+}
+
+func (uc *friendshipCreatedUseCase) buildContent(userID kernel.UserID) string {
+	return fmt.Sprintf("You are now friends with user %s.", userID)
 }

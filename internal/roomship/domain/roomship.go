@@ -71,7 +71,7 @@ func CreateRoomship(
 	return roomship, nil
 }
 
-func (r *Roomship) IsOwner() bool {
+func (r *Roomship) IsAdmin() bool {
 	return r.role == OwnerRole
 }
 
