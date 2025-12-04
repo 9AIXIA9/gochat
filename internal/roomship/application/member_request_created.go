@@ -24,7 +24,7 @@ type memberRequestCreatedUseCase struct {
 }
 
 func NewMemberRequestCreatedUseCase() (MemberRequestCreatedUseCase, error) {
-	return nil, nil
+	return &memberRequestCreatedUseCase{}, nil
 }
 
 func (uc *memberRequestCreatedUseCase) Execute(ctx context.Context, input *MemberRequestCreatedInput) (*kernel.NoOutput, error) {

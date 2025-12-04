@@ -22,7 +22,7 @@ type CreateRoomRequest struct {
 func (r *CreateRoomRequest) Bind(ginContext *gin.Context) error {
 	userID := ginutils.GetUserID(ginContext)
 	r.UserID = userID
-	if err := ginContext.ShouldBindUri(r); err != nil {
+	if err := ginContext.ShouldBind(r); err != nil {
 		return err
 	}
 	return nil

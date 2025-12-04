@@ -74,7 +74,7 @@ func CreateMemberRequest(
 		roomID:      roomID,
 		content:     content,
 		operatorID:  "",
-		operatedAt:  time.Time{},
+		operatedAt:  time.Now().UTC(),
 		createdAt:   time.Now().UTC(),
 		manager:     event.NewEventManager(),
 	}

@@ -2,7 +2,9 @@ package repository
 
 import (
 	"context"
+	gormutils "gochat/internal/infrastructure/gorm"
 	"gochat/internal/roomship/domain"
+	"gochat/internal/roomship/infrastructure/persistence/model"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 
@@ -24,11 +26,37 @@ func NewRoomRepository(db *gorm.DB, eventRepo event.Repository) *RoomRepository 
 }
 
 func (repo *RoomRepository) Create(ctx context.Context, room *domain.Room) error {
-	//TODO implement me
-	panic("implement me")
+	return repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(repo.toModel(room)).Error; err != nil {
+			return gormutils.TranslateError(err)
+		}
+
+		if err := repo.eventRepo.CreateUnpublishedEvents(gormutils.SetTransaction(ctx, tx), room.GetEvents()); err != nil {
+			return err
+		}
+		return nil
+	})
 }
 
 func (repo *RoomRepository) FindByID(ctx context.Context, roomID kernel.RoomID) (*domain.Room, error) {
-	//TODO implement me
-	panic("implement me")
+	var room model.Room
+	if err := repo.db.WithContext(ctx).First(&room, "id = ?", roomID).Error; err != nil {
+		return nil, gormutils.TranslateError(err)
+	}
+	return repo.toDomain(&room), nil
+}
+
+func (repo *RoomRepository) toModel(room *domain.Room) *model.Room {
+	return &model.Room{
+		ID:                room.ID(),
+		Number:            room.Number(),
+		OwnerID:           room.OwnerID(),
+		PasswordEncrypted: room.PasswordEncrypted(),
+		MaxMemberCount:    room.MaxMemberCount(),
+		CreatedAt:         room.CreatedAt(),
+	}
+}
+
+func (repo *RoomRepository) toDomain(room *model.Room) *domain.Room {
+	return domain.LoadRoom(room.ID, room.OwnerID, room.Number, room.PasswordEncrypted, room.MaxMemberCount, room.CreatedAt)
 }

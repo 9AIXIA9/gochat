@@ -159,6 +159,10 @@ func provideTopicsEnsured(appConfig *config.App) kafkaTopicEnsured {
 			authDomain.TopicUserCreated,
 			// roomship
 			roomshipDomain.TopicUserCreated,
+			roomshipDomain.TopicRoomshipCreated,
+			roomshipDomain.TopicMemberRequestAgreed,
+			roomshipDomain.TopicMemberRequestCreated,
+			roomshipDomain.TopicRoomCreated,
 			// chat
 			chatDomain.TopicUserCreated,
 			chatDomain.TopicRoomCreated,

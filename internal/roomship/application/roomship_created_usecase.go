@@ -25,7 +25,7 @@ type roomshipCreatedUseCase struct {
 }
 
 func NewRoomshipCreatedUseCase() (RoomshipCreatedUseCase, error) {
-	return nil, nil
+	return &roomshipCreatedUseCase{}, nil
 }
 
 func (uc *roomshipCreatedUseCase) Execute(ctx context.Context, input *RoomshipCreatedInput) (*kernel.NoOutput, error) {
