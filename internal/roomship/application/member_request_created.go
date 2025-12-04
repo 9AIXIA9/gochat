@@ -9,11 +9,11 @@ import (
 type MemberRequestCreatedUseCase kernel.UseCase[*MemberRequestCreatedInput, *kernel.NoOutput]
 
 type MemberRequestCreatedInput struct {
-	UserID kernel.UserID
+	RequestID kernel.OperationID
 }
 
 func (r *MemberRequestCreatedInput) Validate() error {
-	if len(r.UserID) == 0 {
+	if len(r.RequestID) == 0 {
 		return myErrors.ErrEmptyInput
 	}
 
@@ -23,8 +23,8 @@ func (r *MemberRequestCreatedInput) Validate() error {
 type memberRequestCreatedUseCase struct {
 }
 
-func NewMemberRequestCreatedUseCase() MemberRequestCreatedUseCase {
-	return &memberRequestCreatedUseCase{}
+func NewMemberRequestCreatedUseCase() (MemberRequestCreatedUseCase, error) {
+	return nil, nil
 }
 
 func (uc *memberRequestCreatedUseCase) Execute(ctx context.Context, input *MemberRequestCreatedInput) (*kernel.NoOutput, error) {

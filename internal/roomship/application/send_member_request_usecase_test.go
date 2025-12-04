@@ -6,6 +6,7 @@ import (
 	"gochat/internal/roomship/domain/mocks"
 	myErrors "gochat/internal/shared/errors"
 	eventMock "gochat/internal/shared/event/mocks"
+	kernelmocks "gochat/internal/shared/kernel/mocks"
 	"testing"
 	"time"
 
@@ -73,7 +74,7 @@ func TestNewSendMemberRequestUseCase(t *testing.T) {
 	mockRoomshipExister := mocks.NewMockRoomshipExisterByUserIDAndRoomID(ctrl)
 	mockFinder := mocks.NewMockRoomFinderByID(ctrl)
 	mockEventIDGenerator := eventMock.NewMockIDGenerator(ctrl)
-	mockOperationIDGenerator := mocks.NewMockOperationIDGenerator(ctrl)
+	mockOperationIDGenerator := kernelmocks.NewMockOperationIDGenerator(ctrl)
 	mockComparator := mocks.NewMockComparator(ctrl)
 	mockCreator := mocks.NewMockMemberRequestCreator(ctrl)
 
@@ -106,7 +107,7 @@ func TestSendMemberRequestUseCase_Execute(t *testing.T) {
 	mockRoomshipExister := mocks.NewMockRoomshipExisterByUserIDAndRoomID(ctrl)
 	mockFinder := mocks.NewMockRoomFinderByID(ctrl)
 	mockEventIDGenerator := eventMock.NewMockIDGenerator(ctrl)
-	mockOperationIDGenerator := mocks.NewMockOperationIDGenerator(ctrl)
+	mockOperationIDGenerator := kernelmocks.NewMockOperationIDGenerator(ctrl)
 	mockComparator := mocks.NewMockComparator(ctrl)
 	mockCreator := mocks.NewMockMemberRequestCreator(ctrl)
 

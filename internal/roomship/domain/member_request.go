@@ -60,7 +60,7 @@ func CreateMemberRequest(
 	applicantID kernel.UserID,
 	roomID kernel.RoomID,
 	content string,
-	operationIDGenerator OperationIDGenerator,
+	operationIDGenerator kernel.OperationIDGenerator,
 	idGenerator event.IDGenerator,
 ) (*MemberRequest, error) {
 	if len(content) > maxContentLength {

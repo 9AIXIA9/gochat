@@ -38,6 +38,9 @@ var RepoSet = wire.NewSet(
 	wire.Bind(new(authDomain.RefreshTokenRepository), new(*authRepo.RefreshTokenRepository)),
 
 	wire.Bind(new(roomshipDomain.UserRepository), new(*roomshipRepo.UserRepository)),
+	wire.Bind(new(roomshipDomain.RoomRepository), new(*roomshipRepo.RoomRepository)),
+	wire.Bind(new(roomshipDomain.RoomshipRepository), new(*roomshipRepo.RoomshipRepository)),
+	wire.Bind(new(roomshipDomain.MemberRequestRepository), new(*roomshipRepo.MemberRequestRepository)),
 
 	wire.Bind(new(chatDomain.UserRepository), new(*chatRepo.UserRepository)),
 	wire.Bind(new(chatDomain.RoomRepository), new(*chatRepo.RoomRepository)),
@@ -64,6 +67,8 @@ var RepoSet = wire.NewSet(
 	provideChatRoomMessageRepository,
 	provideRoomshipUserRepository,
 	provideRoomshipRoomRepository,
+	provideRoomshipMemberRequestRepository,
+	provideRoomshipRoomshipRepository,
 	provideNotificationSystemMessageRepository,
 	provideNotificationPrivateMessageRepository,
 	provideNotificationRoomMessageRepository,
@@ -124,6 +129,12 @@ func provideRoomshipUserRepository(db *gorm.DB) *roomshipRepo.UserRepository {
 }
 func provideRoomshipRoomRepository(db *gorm.DB, eventRepo event.Repository) *roomshipRepo.RoomRepository {
 	return roomshipRepo.NewRoomRepository(db, eventRepo)
+}
+func provideRoomshipRoomshipRepository(db *gorm.DB, eventRepo event.Repository) *roomshipRepo.RoomshipRepository {
+	return roomshipRepo.NewRoomshipRepository(db, eventRepo)
+}
+func provideRoomshipMemberRequestRepository(db *gorm.DB, eventRepo event.Repository) *roomshipRepo.MemberRequestRepository {
+	return roomshipRepo.NewMemberRequestRepository(db, eventRepo)
 }
 func provideNotificationSystemMessageRepository(db *gorm.DB) *notificationRepo.SystemMessageRepository {
 	return notificationRepo.NewSystemMessageRepository(db)

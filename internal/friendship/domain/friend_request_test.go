@@ -2,9 +2,9 @@ package domain_test
 
 import (
 	"gochat/internal/friendship/domain"
-	"gochat/internal/friendship/domain/mocks"
 	eventMock "gochat/internal/shared/event/mocks"
 	"gochat/internal/shared/kernel"
+	kernelmocks "gochat/internal/shared/kernel/mocks"
 	"testing"
 	"time"
 
@@ -40,7 +40,7 @@ func TestCreateFriendRequest(t *testing.T) {
 	mockIDGenerator := eventMock.NewMockIDGenerator(ctrl)
 	mockIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(1)
 
-	mockOperationIDGenerator := mocks.NewMockOperationIDGenerator(ctrl)
+	mockOperationIDGenerator := kernelmocks.NewMockOperationIDGenerator(ctrl)
 	mockOperationIDGenerator.EXPECT().Generate().Return(fixedRequestID).Times(1)
 
 	start := time.Now()

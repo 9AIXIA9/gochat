@@ -53,3 +53,41 @@ func (mr *MockMessageIDGeneratorMockRecorder) Generate() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generate", reflect.TypeOf((*MockMessageIDGenerator)(nil).Generate))
 }
+
+// MockOperationIDGenerator is a mock of OperationIDGenerator interface.
+type MockOperationIDGenerator struct {
+	ctrl     *gomock.Controller
+	recorder *MockOperationIDGeneratorMockRecorder
+	isgomock struct{}
+}
+
+// MockOperationIDGeneratorMockRecorder is the mock recorder for MockOperationIDGenerator.
+type MockOperationIDGeneratorMockRecorder struct {
+	mock *MockOperationIDGenerator
+}
+
+// NewMockOperationIDGenerator creates a new mock instance.
+func NewMockOperationIDGenerator(ctrl *gomock.Controller) *MockOperationIDGenerator {
+	mock := &MockOperationIDGenerator{ctrl: ctrl}
+	mock.recorder = &MockOperationIDGeneratorMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockOperationIDGenerator) EXPECT() *MockOperationIDGeneratorMockRecorder {
+	return m.recorder
+}
+
+// Generate mocks base method.
+func (m *MockOperationIDGenerator) Generate() kernel.OperationID {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Generate")
+	ret0, _ := ret[0].(kernel.OperationID)
+	return ret0
+}
+
+// Generate indicates an expected call of Generate.
+func (mr *MockOperationIDGeneratorMockRecorder) Generate() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generate", reflect.TypeOf((*MockOperationIDGenerator)(nil).Generate))
+}

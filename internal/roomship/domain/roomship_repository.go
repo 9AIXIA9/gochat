@@ -7,6 +7,7 @@ import (
 )
 
 type RoomshipRepository interface {
+	RoomshipCreator
 	RoomshipFinderByUserIDAndRoomID
 	RoomshipExisterByUserIDAndRoomID
 }

@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"gochat/internal/roomship/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 )
@@ -9,11 +10,11 @@ import (
 type RoomshipCreatedUseCase kernel.UseCase[*RoomshipCreatedInput, *kernel.NoOutput]
 
 type RoomshipCreatedInput struct {
-	UserID kernel.UserID
+	RoomshipID domain.RoomshipID
 }
 
 func (r *RoomshipCreatedInput) Validate() error {
-	if len(r.UserID) == 0 {
+	if len(r.RoomshipID) == 0 {
 		return myErrors.ErrEmptyInput
 	}
 
@@ -23,8 +24,8 @@ func (r *RoomshipCreatedInput) Validate() error {
 type roomshipCreatedUseCase struct {
 }
 
-func NewRoomshipCreatedUseCase() RoomshipCreatedUseCase {
-	return &roomshipCreatedUseCase{}
+func NewRoomshipCreatedUseCase() (RoomshipCreatedUseCase, error) {
+	return nil, nil
 }
 
 func (uc *roomshipCreatedUseCase) Execute(ctx context.Context, input *RoomshipCreatedInput) (*kernel.NoOutput, error) {

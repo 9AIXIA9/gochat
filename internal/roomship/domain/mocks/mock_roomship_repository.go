@@ -42,6 +42,20 @@ func (m *MockRoomshipRepository) EXPECT() *MockRoomshipRepositoryMockRecorder {
 	return m.recorder
 }
 
+// Create mocks base method.
+func (m *MockRoomshipRepository) Create(ctx context.Context, roomship *domain.Roomship) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", ctx, roomship)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockRoomshipRepositoryMockRecorder) Create(ctx, roomship any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRoomshipRepository)(nil).Create), ctx, roomship)
+}
+
 // ExistByUserIDAndRoomID mocks base method.
 func (m *MockRoomshipRepository) ExistByUserIDAndRoomID(ctx context.Context, userID kernel.UserID, roomID kernel.RoomID) (bool, error) {
 	m.ctrl.T.Helper()

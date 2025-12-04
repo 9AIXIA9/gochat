@@ -24,7 +24,3 @@ type RoomIDGenerator interface {
 type RoomshipIDGenerator interface {
 	Generate() RoomshipID
 }
-
-type OperationIDGenerator interface {
-	Generate() kernel.OperationID
-}

@@ -62,8 +62,6 @@ func provideKafkaRouter(
 	appConfig *config.App,
 	// auth
 	authUserCreated authApp.UserCreatedUseCase,
-	// roomship
-	RoomshipUserCreated roomshipApp.UserCreatedUseCase,
 	// chat
 	chatUserCreated chatApp.UserCreatedUseCase,
 	chatRoomCreated chatApp.RoomCreatedUseCase,
@@ -78,6 +76,12 @@ func provideKafkaRouter(
 	notificationPrivateMessageNotificationRequested notificationApp.PrivateMessageNotificationRequestedUseCase,
 	notificationRoomMessageNotificationRequested notificationApp.RoomMessageNotificationRequestedUseCase,
 	notificationUndeliveredMessagesRequested notificationApp.UndeliveredMessagesNotificationRequestedUseCase,
+	// roomship
+	roomshipUserCreated roomshipApp.UserCreatedUseCase,
+	roomshipRoomCreated roomshipApp.RoomCreatedUseCase,
+	roomshipMemberRequestAgreed roomshipApp.MemberRequestAgreedUseCase,
+	roomshipMemberRequestCreated roomshipApp.MemberRequestCreatedUseCase,
+	roomshipRoomshipCreated roomshipApp.RoomshipCreatedUseCase,
 	// friendship
 	friendshipUserCreated friendshipApp.UserCreatedUseCase,
 	friendshipFriendRequestAgreed friendshipApp.FriendRequestAgreedUseCase,
@@ -102,11 +106,6 @@ func provideKafkaRouter(
 		router.Handle(authDomain.TopicUserCreated, kafkaInfra.WrapEventHandler(authEvent.NewUserCreatedEventHandler(authUserCreated)))
 	}
 
-	// Roomship
-	{
-		router.Handle(roomshipDomain.TopicUserCreated, kafkaInfra.WrapEventHandler(roomshipEvent.NewUserCreatedEventHandler(RoomshipUserCreated)))
-	}
-
 	// Chat
 	{
 		router.Handle(chatDomain.TopicUserCreated, kafkaInfra.WrapEventHandler(chatEvent.NewUserCreatedEventHandler(chatUserCreated)))
@@ -129,6 +128,15 @@ func provideKafkaRouter(
 		router.Handle(notificationDomain.TopicPrivateMessageNotificationRequested, kafkaInfra.WrapEventHandler(notificationEvent.NewPrivateMessageNotificationRequestedEventHandler(notificationPrivateMessageNotificationRequested)))
 		router.Handle(notificationDomain.TopicRoomMessageNotificationRequested, kafkaInfra.WrapEventHandler(notificationEvent.NewRoomMessageNotificationRequestedEventHandler(notificationRoomMessageNotificationRequested)))
 		router.Handle(notificationDomain.TopicUndeliveredMessagesNotificationRequested, kafkaInfra.WrapEventHandler(notificationEvent.NewUndeliveredMessagesNotificationRequestedEventHandler(notificationUndeliveredMessagesRequested)))
+	}
+
+	// Roomship
+	{
+		router.Handle(roomshipDomain.TopicUserCreated, kafkaInfra.WrapEventHandler(roomshipEvent.NewUserCreatedEventHandler(roomshipUserCreated)))
+		router.Handle(roomshipDomain.TopicRoomCreated, kafkaInfra.WrapEventHandler(roomshipEvent.NewRoomCreatedEventHandler(roomshipRoomCreated)))
+		router.Handle(roomshipDomain.TopicMemberRequestCreated, kafkaInfra.WrapEventHandler(roomshipEvent.NewMemberRequestCreatedEventHandler(roomshipMemberRequestCreated)))
+		router.Handle(roomshipDomain.TopicMemberRequestAgreed, kafkaInfra.WrapEventHandler(roomshipEvent.NewMemberRequestAgreedEventHandler(roomshipMemberRequestAgreed)))
+		router.Handle(roomshipDomain.TopicRoomshipCreated, kafkaInfra.WrapEventHandler(roomshipEvent.NewRoomshipCreatedEventHandler(roomshipRoomshipCreated)))
 	}
 
 	// Friendship

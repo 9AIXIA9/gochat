@@ -12,12 +12,11 @@ import (
 type MemberRequestAgreedUseCase kernel.UseCase[*MemberRequestAgreedInput, *kernel.NoOutput]
 
 type MemberRequestAgreedInput struct {
-	UserID kernel.UserID
-	RoomID kernel.RoomID
+	RequestID kernel.OperationID
 }
 
 func (r *MemberRequestAgreedInput) Validate() error {
-	if len(r.UserID) == 0 || len(r.RoomID) == 0 {
+	if len(r.RequestID) == 0 {
 		return myErrors.ErrEmptyInput
 	}
 
@@ -28,17 +27,20 @@ type memberRequestAgreedUseCase struct {
 	roomshipIDGenerator domain.RoomshipIDGenerator
 	idGenerator         event.IDGenerator
 	creator             domain.RoomshipCreator
+	finder              domain.MemberRequestFinderByID
 }
 
 func NewMemberRequestAgreedUseCase(
 	roomshipIDGenerator domain.RoomshipIDGenerator,
 	idGenerator event.IDGenerator,
+	finder domain.MemberRequestFinderByID,
 	creator domain.RoomshipCreator,
 ) (MemberRequestAgreedUseCase, error) {
 	if err := utils.CheckInterfaces(
 		roomshipIDGenerator,
 		idGenerator,
 		creator,
+		finder,
 	); err != nil {
 		return nil, err
 	}
@@ -46,13 +48,19 @@ func NewMemberRequestAgreedUseCase(
 		roomshipIDGenerator: roomshipIDGenerator,
 		idGenerator:         idGenerator,
 		creator:             creator,
+		finder:              finder,
 	}, nil
 }
 
 func (uc *memberRequestAgreedUseCase) Execute(ctx context.Context, input *MemberRequestAgreedInput) (*kernel.NoOutput, error) {
+	req, err := uc.finder.FindByID(ctx, input.RequestID)
+	if err != nil {
+		return nil, err
+	}
+
 	roomship, err := domain.CreateRoomship(
-		input.UserID,
-		input.RoomID,
+		req.ApplicantID(),
+		req.RoomID(),
 		domain.MemberRole,
 		uc.roomshipIDGenerator,
 		uc.idGenerator,

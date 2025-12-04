@@ -2,9 +2,9 @@ package domain_test
 
 import (
 	"gochat/internal/roomship/domain"
-	"gochat/internal/roomship/domain/mocks"
 	eventMock "gochat/internal/shared/event/mocks"
 	"gochat/internal/shared/kernel"
+	kernelmocks "gochat/internal/shared/kernel/mocks"
 	"testing"
 	"time"
 
@@ -44,7 +44,7 @@ func TestCreateMemberRequest(t *testing.T) {
 	mockIDGenerator := eventMock.NewMockIDGenerator(ctrl)
 	mockIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(1)
 
-	mockOperationIDGenerator := mocks.NewMockOperationIDGenerator(ctrl)
+	mockOperationIDGenerator := kernelmocks.NewMockOperationIDGenerator(ctrl)
 	mockOperationIDGenerator.EXPECT().Generate().Return(fixedOperationID).Times(1)
 
 	start := time.Now()

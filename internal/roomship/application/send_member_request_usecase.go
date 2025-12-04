@@ -30,7 +30,7 @@ type sendMemberRequestUseCase struct {
 	roomshipExister      domain.RoomshipExisterByUserIDAndRoomID
 	finder               domain.RoomFinderByID
 	eventIDGenerator     event.IDGenerator
-	operationIDGenerator domain.OperationIDGenerator
+	operationIDGenerator kernel.OperationIDGenerator
 	comparator           domain.Comparator
 	creator              domain.MemberRequestCreator
 }
@@ -40,7 +40,7 @@ func NewSendMemberRequestUseCase(
 	roomshipExister domain.RoomshipExisterByUserIDAndRoomID,
 	finder domain.RoomFinderByID,
 	eventIDGenerator event.IDGenerator,
-	operationIDGenerator domain.OperationIDGenerator,
+	operationIDGenerator kernel.OperationIDGenerator,
 	comparator domain.Comparator,
 	creator domain.MemberRequestCreator,
 ) (SendMemberRequestUseCase, error) {

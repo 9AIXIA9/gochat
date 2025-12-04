@@ -52,8 +52,9 @@ var InfraSet = wire.NewSet(
 	provideHasher,
 	provideMessageIDGenerator,
 	provideRoomshipRoomIDGenerator,
+	provideRoomshipRoomshipIDGenerator,
 	provideRoomshipRoomNumberGenerator,
-	provideFriendshipOperationIDGenerator,
+	provideOperationIDGenerator,
 	provideFriendshipFriendshipIDGenerator,
 	provideAccessTokenManager,
 	provideRefreshTokenGenerator,
@@ -66,6 +67,7 @@ var InfraSet = wire.NewSet(
 	// Binds
 	wire.Bind(new(event.IDGenerator), new(*uuid.EventIDGenerator)),
 	wire.Bind(new(kernel.MessageIDGenerator), new(*uuid.MessageIDGenerator)),
+	wire.Bind(new(kernel.OperationIDGenerator), new(*uuid.OperationIDGenerator)),
 	wire.Bind(new(event.Publisher), new(*kafkautil.EventPublisher)),
 	// Authorization binds
 	wire.Bind(new(authDomain.UserIDGenerator), new(*authUUID.UserIDGenerator)),
@@ -77,11 +79,11 @@ var InfraSet = wire.NewSet(
 	wire.Bind(new(authDomain.RefreshTokenGenerator), new(*crypto.RefreshTokenGenerator)),
 	// Roomship generator & crypto binds
 	wire.Bind(new(roomshipDomain.RoomIDGenerator), new(*roomshipUUID.RoomIDGenerator)),
+	wire.Bind(new(roomshipDomain.RoomshipIDGenerator), new(*roomshipUUID.RoomshipIDGenerator)),
 	wire.Bind(new(roomshipDomain.RoomNumberGenerator), new(*roomshipSnowflake.RoomNumberGenerator)),
 	wire.Bind(new(roomshipDomain.Encryptor), new(*bcrypt.Hasher)),
 	wire.Bind(new(roomshipDomain.Comparator), new(*bcrypt.Hasher)),
 	// Friendship generator
-	wire.Bind(new(friendshipDomain.OperationIDGenerator), new(*friendshipUUID.OperationIDGenerator)),
 	wire.Bind(new(friendshipDomain.FriendshipIDGenerator), new(*friendshipUUID.FriendshipIDGenerator)),
 	// Notification binds
 	wire.Bind(new(notificationApp.WelcomeEmailNotifier), new(*gomailInfra.EmailNotifier)),
@@ -101,7 +103,15 @@ func provideValidator() (*validatorInfra.Validator, error) { return validatorInf
 
 func provideMetrics() *prometheus.Metrics { return prometheus.NewMetrics(nil) }
 
-func provideEventIDGenerator() *uuid.EventIDGenerator { return uuid.NewEventIDGenerator() }
+func provideEventIDGenerator() *uuid.EventIDGenerator {
+	return uuid.NewEventIDGenerator()
+}
+func provideOperationIDGenerator() *uuid.OperationIDGenerator {
+	return uuid.NewOperationIDGenerator()
+}
+func provideMessageIDGenerator() *uuid.MessageIDGenerator {
+	return uuid.NewMessageIDGenerator()
+}
 
 func provideAuthorizationUserIDGenerator() *authUUID.UserIDGenerator {
 	return authUUID.NewUserIDGenerator()
@@ -109,19 +119,17 @@ func provideAuthorizationUserIDGenerator() *authUUID.UserIDGenerator {
 func provideAuthorizationUserNumberGenerator(appConfig *config.App) (*authSnowflake.UserNumberGenerator, error) {
 	return authSnowflake.NewUserNumberGenerator(appConfig.MachineNode)
 }
-func provideHasher(appConfig *config.App) *bcrypt.Hasher { return bcrypt.NewHasher(appConfig.Hasher) }
-func provideMessageIDGenerator() *uuid.MessageIDGenerator {
-	return uuid.NewMessageIDGenerator()
+func provideHasher(appConfig *config.App) *bcrypt.Hasher {
+	return bcrypt.NewHasher(appConfig.Hasher)
 }
-
 func provideRoomshipRoomIDGenerator() *roomshipUUID.RoomIDGenerator {
 	return roomshipUUID.NewRoomIDGenerator()
 }
+func provideRoomshipRoomshipIDGenerator() *roomshipUUID.RoomshipIDGenerator {
+	return roomshipUUID.NewRoomshipIDGenerator()
+}
 func provideRoomshipRoomNumberGenerator(appConfig *config.App) (*roomshipSnowflake.RoomNumberGenerator, error) {
 	return roomshipSnowflake.NewRoomNumberGenerator(appConfig.MachineNode)
-}
-func provideFriendshipOperationIDGenerator() *friendshipUUID.OperationIDGenerator {
-	return friendshipUUID.NewOperationIDGenerator()
 }
 func provideFriendshipFriendshipIDGenerator() *friendshipUUID.FriendshipIDGenerator {
 	return friendshipUUID.NewFriendshipIDGenerator()

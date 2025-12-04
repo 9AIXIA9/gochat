@@ -4,3 +4,7 @@ package kernel
 type MessageIDGenerator interface {
 	Generate() MessageID
 }
+
+type OperationIDGenerator interface {
+	Generate() OperationID
+}
