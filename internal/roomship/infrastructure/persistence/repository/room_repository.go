@@ -3,12 +3,10 @@ package repository
 import (
 	"gochat/internal/shared/event"
 
-	"gochat/internal/roomship/domain"
-
 	"gorm.io/gorm"
 )
 
-var _ domain.RoomRepository = (*RoomRepository)(nil)
+//var _ domain.RoomRepository = (*RoomRepository)(nil)
 
 type RoomRepository struct {
 	db        *gorm.DB
@@ -16,8 +14,9 @@ type RoomRepository struct {
 }
 
 func NewRoomRepository(db *gorm.DB, eventRepo event.Repository) *RoomRepository {
-	return &RoomRepository{
-		db:        db,
-		eventRepo: eventRepo,
-	}
+	//return &RoomRepository{
+	//	db:        db,
+	//	eventRepo: eventRepo,
+	//}
+	return nil
 }

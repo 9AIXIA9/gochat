@@ -71,6 +71,10 @@ func CreateRoomship(
 	return roomship, nil
 }
 
+func (r *Roomship) IsOwner() bool {
+	return r.role == OwnerRole
+}
+
 func (r *Roomship) ID() RoomshipID {
 	return r.id
 }

@@ -22,17 +22,17 @@ func (r *UserCreatedInput) Validate() error {
 }
 
 type userCreatedUseCase struct {
-	userIDCreator domain.UserCreator
+	userCreator domain.UserCreator
 }
 
 func NewUserCreatedUseCase(
-	userIDCreator domain.UserCreator,
+	userCreator domain.UserCreator,
 ) UserCreatedUseCase {
 	return &userCreatedUseCase{
-		userIDCreator: userIDCreator,
+		userCreator: userCreator,
 	}
 }
 
 func (uc *userCreatedUseCase) Execute(ctx context.Context, input *UserCreatedInput) (*kernel.NoOutput, error) {
-	return nil, uc.userIDCreator.Create(ctx, domain.CreateUser(input.UserID))
+	return nil, uc.userCreator.Create(ctx, domain.CreateUser(input.UserID))
 }

@@ -41,3 +41,17 @@ func (p Password) Encrypt(encryptor Encryptor) (PasswordEncrypted, error) {
 	}
 	return PasswordEncrypted(encrypted), nil
 }
+
+func (e PasswordEncrypted) Compare(
+	password Password,
+	comparator Comparator,
+) error {
+	if len(e) == 0 {
+		return nil
+	}
+
+	if err := comparator.Compare(e.String(), password.String()); err != nil {
+		return ErrInvalidPassword
+	}
+	return nil
+}

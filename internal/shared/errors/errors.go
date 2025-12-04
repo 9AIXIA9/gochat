@@ -28,6 +28,7 @@ var (
 	ErrExceedMaxValue    = errors.New("logic: exceed max value")
 	ErrAlreadyDone       = errors.New("logic: already done")
 	ErrNotBelongTo       = errors.New("logic: not belong to")
+	ErrPermissionDenied  = errors.New("logic: permission denied")
 )
 
 // 数据库相关错误

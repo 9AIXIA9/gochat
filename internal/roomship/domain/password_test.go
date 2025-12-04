@@ -46,3 +46,25 @@ func TestPassword_Encrypt(t *testing.T) {
 	require.Error(t, err)
 	require.Equal(t, domain.PasswordEncrypted(""), enc3)
 }
+
+func TestPasswordEncrypted_Compare(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// empty encrypted password always succeeds
+	emptyEnc := domain.PasswordEncrypted("")
+	err := emptyEnc.Compare(fixedPassword, nil)
+	require.NoError(t, err)
+
+	// success path
+	comparator := mocks.NewMockComparator(ctrl)
+	comparator.EXPECT().Compare(fixedPasswordEncrypted.String(), fixedPassword.String()).Return(nil)
+	err = fixedPasswordEncrypted.Compare(fixedPassword, comparator)
+	require.NoError(t, err)
+
+	// error path
+	comparatorErr := mocks.NewMockComparator(ctrl)
+	comparatorErr.EXPECT().Compare(fixedPasswordEncrypted.String(), fixedPassword.String()).Return(stdErrors.New("not match"))
+	err = fixedPasswordEncrypted.Compare(fixedPassword, comparatorErr)
+	require.ErrorIs(t, err, domain.ErrInvalidPassword)
+}

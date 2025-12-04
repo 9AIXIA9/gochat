@@ -10,6 +10,11 @@
 package mocks
 
 import (
+	context "context"
+	domain "gochat/internal/roomship/domain"
+	kernel "gochat/internal/shared/kernel"
+	reflect "reflect"
+
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -35,4 +40,110 @@ func NewMockRoomRepository(ctrl *gomock.Controller) *MockRoomRepository {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockRoomRepository) EXPECT() *MockRoomRepositoryMockRecorder {
 	return m.recorder
+}
+
+// Create mocks base method.
+func (m *MockRoomRepository) Create(ctx context.Context, room *domain.Room) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", ctx, room)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockRoomRepositoryMockRecorder) Create(ctx, room any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRoomRepository)(nil).Create), ctx, room)
+}
+
+// FindByID mocks base method.
+func (m *MockRoomRepository) FindByID(ctx context.Context, roomID kernel.RoomID) (*domain.Room, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindByID", ctx, roomID)
+	ret0, _ := ret[0].(*domain.Room)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindByID indicates an expected call of FindByID.
+func (mr *MockRoomRepositoryMockRecorder) FindByID(ctx, roomID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockRoomRepository)(nil).FindByID), ctx, roomID)
+}
+
+// MockRoomCreator is a mock of RoomCreator interface.
+type MockRoomCreator struct {
+	ctrl     *gomock.Controller
+	recorder *MockRoomCreatorMockRecorder
+	isgomock struct{}
+}
+
+// MockRoomCreatorMockRecorder is the mock recorder for MockRoomCreator.
+type MockRoomCreatorMockRecorder struct {
+	mock *MockRoomCreator
+}
+
+// NewMockRoomCreator creates a new mock instance.
+func NewMockRoomCreator(ctrl *gomock.Controller) *MockRoomCreator {
+	mock := &MockRoomCreator{ctrl: ctrl}
+	mock.recorder = &MockRoomCreatorMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockRoomCreator) EXPECT() *MockRoomCreatorMockRecorder {
+	return m.recorder
+}
+
+// Create mocks base method.
+func (m *MockRoomCreator) Create(ctx context.Context, room *domain.Room) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", ctx, room)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockRoomCreatorMockRecorder) Create(ctx, room any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRoomCreator)(nil).Create), ctx, room)
+}
+
+// MockRoomFinderByID is a mock of RoomFinderByID interface.
+type MockRoomFinderByID struct {
+	ctrl     *gomock.Controller
+	recorder *MockRoomFinderByIDMockRecorder
+	isgomock struct{}
+}
+
+// MockRoomFinderByIDMockRecorder is the mock recorder for MockRoomFinderByID.
+type MockRoomFinderByIDMockRecorder struct {
+	mock *MockRoomFinderByID
+}
+
+// NewMockRoomFinderByID creates a new mock instance.
+func NewMockRoomFinderByID(ctrl *gomock.Controller) *MockRoomFinderByID {
+	mock := &MockRoomFinderByID{ctrl: ctrl}
+	mock.recorder = &MockRoomFinderByIDMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockRoomFinderByID) EXPECT() *MockRoomFinderByIDMockRecorder {
+	return m.recorder
+}
+
+// FindByID mocks base method.
+func (m *MockRoomFinderByID) FindByID(ctx context.Context, roomID kernel.RoomID) (*domain.Room, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindByID", ctx, roomID)
+	ret0, _ := ret[0].(*domain.Room)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindByID indicates an expected call of FindByID.
+func (mr *MockRoomFinderByIDMockRecorder) FindByID(ctx, roomID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockRoomFinderByID)(nil).FindByID), ctx, roomID)
 }
