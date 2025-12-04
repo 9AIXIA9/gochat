@@ -8,14 +8,6 @@ type User struct {
 	id kernel.UserID
 }
 
-func LoadUser(
-	id kernel.UserID,
-) *User {
-	return &User{
-		id: id,
-	}
-}
-
 func CreateUser(
 	id kernel.UserID,
 ) *User {

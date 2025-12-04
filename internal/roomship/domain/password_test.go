@@ -12,11 +12,6 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-const (
-	fixedRawPassword       domain.Password = "abc123"
-	fixedEncryptedPassword                 = "encrypted-abc123"
-)
-
 func TestPassword_Validate(t *testing.T) {
 	// exactly max length (20) OK
 	p := domain.Password("12345678901234567890")
@@ -39,15 +34,15 @@ func TestPassword_Encrypt(t *testing.T) {
 
 	// success path
 	encryptor := mocks.NewMockEncryptor(ctrl)
-	encryptor.EXPECT().Encrypt(fixedRawPassword.String()).Return(fixedEncryptedPassword, nil)
-	enc2, err := fixedRawPassword.Encrypt(encryptor)
+	encryptor.EXPECT().Encrypt(fixedPassword.String()).Return(fixedPasswordEncrypted.String(), nil)
+	enc2, err := fixedPassword.Encrypt(encryptor)
 	require.NoError(t, err)
-	require.Equal(t, domain.PasswordEncrypted(fixedEncryptedPassword), enc2)
+	require.Equal(t, fixedPasswordEncrypted, enc2)
 
 	// error path
 	encryptorErr := mocks.NewMockEncryptor(ctrl)
-	encryptorErr.EXPECT().Encrypt(fixedRawPassword.String()).Return("", stdErrors.New("encrypt failed"))
-	enc3, err := fixedRawPassword.Encrypt(encryptorErr)
+	encryptorErr.EXPECT().Encrypt(fixedPassword.String()).Return("", stdErrors.New("encrypt failed"))
+	enc3, err := fixedPassword.Encrypt(encryptorErr)
 	require.Error(t, err)
 	require.Equal(t, domain.PasswordEncrypted(""), enc3)
 }

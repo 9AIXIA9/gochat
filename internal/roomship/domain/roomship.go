@@ -52,7 +52,7 @@ func CreateRoomship(
 	role RoomshipRole,
 	roomshipIDGenerator RoomshipIDGenerator,
 	idGenerator event.IDGenerator,
-) *Roomship {
+) (*Roomship, error) {
 	roomship := &Roomship{
 		id:        roomshipIDGenerator.Generate(),
 		roomID:    roomID,
@@ -64,11 +64,11 @@ func CreateRoomship(
 
 	ev, err := NewRoomshipCreatedEvent(roomship.id, idGenerator)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	roomship.manager.RecordEvent(ev)
-	return roomship
+	return roomship, nil
 }
 
 func (r *Roomship) ID() RoomshipID {

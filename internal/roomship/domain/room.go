@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"time"
 )
@@ -22,6 +23,8 @@ type Room struct {
 	passwordEncrypted PasswordEncrypted
 	maxMemberCount    int
 	createdAt         time.Time
+
+	manager *event.Manager
 }
 
 func LoadRoom(
@@ -34,11 +37,12 @@ func LoadRoom(
 ) *Room {
 	return &Room{
 		id:                id,
-		ownerID:           ownerID,
 		number:            number,
+		ownerID:           ownerID,
 		passwordEncrypted: passwordEncrypted,
 		maxMemberCount:    maxMemberCount,
 		createdAt:         createdAt,
+		manager:           event.NewEventManager(),
 	}
 }
 
@@ -48,21 +52,30 @@ func CreateRoom(
 	passwordEncrypted PasswordEncrypted,
 	roomIDGenerator RoomIDGenerator,
 	roomNumberGenerator RoomNumberGenerator,
+	idGenerator event.IDGenerator,
 ) (*Room, error) {
 	if maxMemberCount < 2 {
 		return nil, ErrInvalidMaxMemberCount
 	}
 
-	r := &Room{
+	room := &Room{
 		id:                roomIDGenerator.Generate(),
 		number:            roomNumberGenerator.Generate(),
 		ownerID:           ownerID,
 		passwordEncrypted: passwordEncrypted,
 		maxMemberCount:    maxMemberCount,
 		createdAt:         time.Now().UTC(),
+		manager:           event.NewEventManager(),
 	}
 
-	return r, nil
+	ev, err := NewRoomCreatedEvent(room.id, idGenerator)
+	if err != nil {
+		return nil, err
+	}
+
+	room.manager.RecordEvent(ev)
+
+	return room, nil
 }
 
 func (r *Room) ID() kernel.RoomID {
@@ -87,4 +100,8 @@ func (r *Room) Number() RoomNumber {
 
 func (r *Room) PasswordEncrypted() PasswordEncrypted {
 	return r.passwordEncrypted
+}
+
+func (r *Room) GetEvents() []event.Event {
+	return r.manager.GetEvents()
 }

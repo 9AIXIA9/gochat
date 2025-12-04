@@ -148,18 +148,18 @@ func TestFriendRequest_Refuse(t *testing.T) {
 	evs := mockRequest.GetEvents()
 	require.Len(t, evs, 0)
 
-	//重复同意
+	//重复拒绝
 	err2 := mockRequest.Refuse()
 	require.ErrorIs(t, err2, domain.ErrFriendRequestHasBeenHandled)
 	require.Len(t, mockRequest.GetEvents(), 0)
 
-	//失败后又同意
+	//同意后又拒绝
 	mockRequestRefused := domain.LoadFriendRequest(
 		fixedRequestID,
 		fixedUserID,
 		fixedToUserID,
 		fixedContent,
-		domain.StateRefused,
+		domain.StateAgreed,
 		time.Now().UTC(),
 	)
 	err3 := mockRequestRefused.Refuse()

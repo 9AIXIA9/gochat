@@ -6,17 +6,19 @@ import (
 	"time"
 )
 
+const maxContentLength = 100
+
+const (
+	StatePending MemberRequestState = "pending"
+	StateAgreed  MemberRequestState = "agreed"
+	StateRefused MemberRequestState = "refused"
+)
+
 type MemberRequestState string
 
 func (s MemberRequestState) String() string {
 	return string(s)
 }
-
-const (
-	StatePending MemberRequestState = "pending"
-	StateAgreed                     = "agreed"
-	StateRefused                    = "refused"
-)
 
 type MemberRequest struct {
 	id          kernel.OperationID
@@ -61,6 +63,10 @@ func CreateMemberRequest(
 	operationIDGenerator OperationIDGenerator,
 	idGenerator event.IDGenerator,
 ) (*MemberRequest, error) {
+	if len(content) > maxContentLength {
+		return nil, ErrContentTooLong
+	}
+
 	request := &MemberRequest{
 		id:          operationIDGenerator.Generate(),
 		state:       StatePending,

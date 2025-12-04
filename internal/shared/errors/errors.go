@@ -25,11 +25,9 @@ var (
 	ErrInvalidFormat     = errors.New("logic: invalid format")
 	ErrEmptyInput        = errors.New("logic: input is empty")
 	ErrExpired           = errors.New("logic: expired")
-	ErrLessThanMin       = errors.New("logic: less than min value")
 	ErrExceedMaxValue    = errors.New("logic: exceed max value")
 	ErrAlreadyDone       = errors.New("logic: already done")
 	ErrNotBelongTo       = errors.New("logic: not belong to")
-	ErrOwnerCantLeave    = errors.New("logic: owner cannot leave the room")
 )
 
 // 数据库相关错误
