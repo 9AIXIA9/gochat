@@ -6,6 +6,7 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/utils"
 )
 
 type AgreeMemberRequestUseCase kernel.UseCase[*AgreeMemberRequestInput, *kernel.NoOutput]
@@ -34,13 +35,21 @@ func NewAgreeMemberRequestUseCase(
 	roomshipFinder domain.RoomshipFinderByUserIDAndRoomID,
 	updater domain.MemberRequestUpdater,
 	eventIDGenerator event.IDGenerator,
-) AgreeMemberRequestUseCase {
+) (AgreeMemberRequestUseCase, error) {
+	if err := utils.CheckInterfaces(requestFinder,
+		roomshipFinder,
+		updater,
+		eventIDGenerator,
+	); err != nil {
+		return nil, err
+	}
+
 	return &agreeMemberRequestUseCase{
 		requestFinder:    requestFinder,
 		roomshipFinder:   roomshipFinder,
 		updater:          updater,
 		eventIDGenerator: eventIDGenerator,
-	}
+	}, nil
 }
 
 func (uc *agreeMemberRequestUseCase) Execute(ctx context.Context, input *AgreeMemberRequestInput) (*kernel.NoOutput, error) {

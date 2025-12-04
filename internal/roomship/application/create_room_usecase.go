@@ -6,11 +6,12 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/utils"
 )
 
 const defaultMemberCount = 20
 
-type CreateRoomUseCase kernel.UseCase[*CreateRoomInput, *CreateRoomOutput]
+type CreateRoomUseCase kernel.UseCase[*CreateRoomInput, *kernel.NoOutput]
 
 type CreateRoomInput struct {
 	UserID         kernel.UserID
@@ -31,10 +32,6 @@ func (r *CreateRoomInput) Validate() error {
 	return nil
 }
 
-type CreateRoomOutput struct {
-	RoomNumber domain.RoomNumber
-}
-
 type createRoomUseCase struct {
 	eventIDGenerator    event.IDGenerator
 	roomIDGenerator     domain.RoomIDGenerator
@@ -49,17 +46,26 @@ func NewCreateRoomUseCase(
 	numberGenerator domain.RoomNumberGenerator,
 	encryptor domain.Encryptor,
 	roomCreator domain.RoomCreator,
-) CreateRoomUseCase {
+) (CreateRoomUseCase, error) {
+	if err := utils.CheckInterfaces(
+		eventIDGenerator,
+		roomIDGenerator,
+		numberGenerator,
+		encryptor,
+		roomCreator,
+	); err != nil {
+		return nil, err
+	}
 	return &createRoomUseCase{
 		eventIDGenerator:    eventIDGenerator,
 		roomIDGenerator:     roomIDGenerator,
 		roomNumberGenerator: numberGenerator,
 		encryptor:           encryptor,
 		roomCreator:         roomCreator,
-	}
+	}, nil
 }
 
-func (uc *createRoomUseCase) Execute(ctx context.Context, input *CreateRoomInput) (*CreateRoomOutput, error) {
+func (uc *createRoomUseCase) Execute(ctx context.Context, input *CreateRoomInput) (*kernel.NoOutput, error) {
 	passwordEncrypted, err := input.Password.Encrypt(uc.encryptor)
 	if err != nil {
 		return nil, err
@@ -82,7 +88,5 @@ func (uc *createRoomUseCase) Execute(ctx context.Context, input *CreateRoomInput
 		return nil, err
 	}
 
-	return &CreateRoomOutput{
-		RoomNumber: room.Number(),
-	}, nil
+	return nil, nil
 }

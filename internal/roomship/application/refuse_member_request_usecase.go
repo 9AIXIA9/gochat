@@ -4,8 +4,8 @@ import (
 	"context"
 	"gochat/internal/roomship/domain"
 	myErrors "gochat/internal/shared/errors"
-	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/utils"
 )
 
 type RefuseMemberRequestUseCase kernel.UseCase[*RefuseMemberRequestInput, *kernel.NoOutput]
@@ -23,24 +23,29 @@ func (r *RefuseMemberRequestInput) Validate() error {
 }
 
 type refuseMemberRequestUseCase struct {
-	requestFinder    domain.MemberRequestFinderByID
-	roomshipFinder   domain.RoomshipFinderByUserIDAndRoomID
-	updater          domain.MemberRequestUpdater
-	eventIDGenerator event.IDGenerator
+	requestFinder  domain.MemberRequestFinderByID
+	roomshipFinder domain.RoomshipFinderByUserIDAndRoomID
+	updater        domain.MemberRequestUpdater
 }
 
 func NewRefuseMemberRequestUseCase(
 	requestFinder domain.MemberRequestFinderByID,
 	roomshipFinder domain.RoomshipFinderByUserIDAndRoomID,
 	updater domain.MemberRequestUpdater,
-	eventIDGenerator event.IDGenerator,
-) RefuseMemberRequestUseCase {
-	return &refuseMemberRequestUseCase{
-		requestFinder:    requestFinder,
-		roomshipFinder:   roomshipFinder,
-		updater:          updater,
-		eventIDGenerator: eventIDGenerator,
+) (RefuseMemberRequestUseCase, error) {
+	if err := utils.CheckInterfaces(
+		requestFinder,
+		roomshipFinder,
+		updater,
+	); err != nil {
+		return nil, err
 	}
+
+	return &refuseMemberRequestUseCase{
+		requestFinder:  requestFinder,
+		roomshipFinder: roomshipFinder,
+		updater:        updater,
+	}, nil
 }
 
 func (uc *refuseMemberRequestUseCase) Execute(ctx context.Context, input *RefuseMemberRequestInput) (*kernel.NoOutput, error) {

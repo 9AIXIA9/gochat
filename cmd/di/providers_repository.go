@@ -38,7 +38,6 @@ var RepoSet = wire.NewSet(
 	wire.Bind(new(authDomain.RefreshTokenRepository), new(*authRepo.RefreshTokenRepository)),
 
 	wire.Bind(new(roomshipDomain.UserRepository), new(*roomshipRepo.UserRepository)),
-	wire.Bind(new(roomshipDomain.RoomRepository), new(*roomshipRepo.RoomRepository)),
 
 	wire.Bind(new(chatDomain.UserRepository), new(*chatRepo.UserRepository)),
 	wire.Bind(new(chatDomain.RoomRepository), new(*chatRepo.RoomRepository)),

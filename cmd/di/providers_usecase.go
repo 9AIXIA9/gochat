@@ -178,7 +178,7 @@ func provideAuthUserCreatedUseCase(
 ) authApp.UserCreatedUseCase {
 	return authApp.NewUserCreatedUseCase(eventIDGen, eventRepo, userRepo)
 }
-func provideRoomshipUserCreatedUseCase(userRepo *RoomshipPersistence.UserRepository) roomshipApp.UserCreatedUseCase {
+func provideRoomshipUserCreatedUseCase(userRepo *RoomshipPersistence.UserRepository) (roomshipApp.UserCreatedUseCase, error) {
 	return roomshipApp.NewUserCreatedUseCase(userRepo)
 }
 func provideChatUserCreatedUseCase(userRepo chatDomain.UserRepository) chatApp.UserCreatedUseCase {

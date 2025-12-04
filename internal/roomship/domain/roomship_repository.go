@@ -1,3 +1,4 @@
+//go:generate mockgen -source=roomship_repository.go -destination=./mocks/mock_roomship_repository.go -package=mocks
 package domain
 
 import (

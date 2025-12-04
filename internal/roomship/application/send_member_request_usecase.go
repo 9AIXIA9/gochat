@@ -6,6 +6,7 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/utils"
 )
 
 type SendMemberRequestUseCase kernel.UseCase[*SendMemberRequestInput, *kernel.NoOutput]
@@ -42,7 +43,18 @@ func NewSendMemberRequestUseCase(
 	operationIDGenerator domain.OperationIDGenerator,
 	comparator domain.Comparator,
 	creator domain.MemberRequestCreator,
-) SendMemberRequestUseCase {
+) (SendMemberRequestUseCase, error) {
+	if err := utils.CheckInterfaces(
+		memberRequestExister,
+		roomshipExister,
+		finder,
+		eventIDGenerator,
+		operationIDGenerator,
+		comparator,
+		creator,
+	); err != nil {
+		return nil, err
+	}
 	return &sendMemberRequestUseCase{
 		memberRequestExister: memberRequestExister,
 		roomshipExister:      roomshipExister,
@@ -51,7 +63,7 @@ func NewSendMemberRequestUseCase(
 		operationIDGenerator: operationIDGenerator,
 		comparator:           comparator,
 		creator:              creator,
-	}
+	}, nil
 }
 
 func (uc *sendMemberRequestUseCase) Execute(ctx context.Context, input *SendMemberRequestInput) (*kernel.NoOutput, error) {

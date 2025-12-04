@@ -91,7 +91,10 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	diEmailServiceAvailable := provideEmailAvailable(dialer)
 	userCreatedUseCase := provideAuthUserCreatedUseCase(eventIDGenerator, eventRepository, userRepository)
 	repositoryUserRepository := provideRoomshipUserRepository(db)
-	applicationUserCreatedUseCase := provideRoomshipUserCreatedUseCase(repositoryUserRepository)
+	applicationUserCreatedUseCase, err := provideRoomshipUserCreatedUseCase(repositoryUserRepository)
+	if err != nil {
+		return nil, err
+	}
 	userRepository2 := provideChatUserRepository(db)
 	userCreatedUseCase2 := provideChatUserCreatedUseCase(userRepository2)
 	roomCreatedUseCase := provideChatRoomCreatedUseCase(roomRepository)

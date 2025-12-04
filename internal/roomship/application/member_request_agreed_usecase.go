@@ -6,6 +6,7 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/utils"
 )
 
 type MemberRequestAgreedUseCase kernel.UseCase[*MemberRequestAgreedInput, *kernel.NoOutput]
@@ -16,7 +17,7 @@ type MemberRequestAgreedInput struct {
 }
 
 func (r *MemberRequestAgreedInput) Validate() error {
-	if len(r.UserID) == 0 {
+	if len(r.UserID) == 0 || len(r.RoomID) == 0 {
 		return myErrors.ErrEmptyInput
 	}
 
@@ -33,12 +34,19 @@ func NewMemberRequestAgreedUseCase(
 	roomshipIDGenerator domain.RoomshipIDGenerator,
 	idGenerator event.IDGenerator,
 	creator domain.RoomshipCreator,
-) MemberRequestAgreedUseCase {
+) (MemberRequestAgreedUseCase, error) {
+	if err := utils.CheckInterfaces(
+		roomshipIDGenerator,
+		idGenerator,
+		creator,
+	); err != nil {
+		return nil, err
+	}
 	return &memberRequestAgreedUseCase{
 		roomshipIDGenerator: roomshipIDGenerator,
 		idGenerator:         idGenerator,
 		creator:             creator,
-	}
+	}, nil
 }
 
 func (uc *memberRequestAgreedUseCase) Execute(ctx context.Context, input *MemberRequestAgreedInput) (*kernel.NoOutput, error) {
