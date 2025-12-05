@@ -52,6 +52,8 @@ var UseCaseKafkaSet = wire.NewSet(
 	provideRoomshipRoomCreatedUseCase,
 	provideChatUserCreatedUseCase,
 	provideChatRoomCreatedUseCase,
+	provideChatRoomshipCreatedUseCase,
+	provideChatFriendshipCreatedUseCase,
 	provideChatRoomMessageCreatedUseCase,
 	provideChatPrivateMessageCreatedUseCase,
 	provideNotificationWelcomeEmailNotificationRequestedUseCase,
@@ -301,6 +303,16 @@ func provideChatRoomCreatedUseCase(
 	roomRepo chatDomain.RoomRepository,
 ) (chatApp.RoomCreatedUseCase, error) {
 	return chatApp.NewRoomCreatedUseCase(roomRepo)
+}
+func provideChatFriendshipCreatedUseCase(
+	friendshipRepo chatDomain.FriendshipRepository,
+) (chatApp.FriendshipCreatedUseCase, error) {
+	return chatApp.NewFriendshipCreatedUseCase(friendshipRepo)
+}
+func provideChatRoomshipCreatedUseCase(
+	roomshipRepo chatDomain.RoomshipRepository,
+) (chatApp.RoomshipCreatedUseCase, error) {
+	return chatApp.NewRoomshipCreatedUseCase(roomshipRepo)
 }
 func provideChatPrivateMessageCreatedUseCase(
 	eventIDGen event.IDGenerator,
