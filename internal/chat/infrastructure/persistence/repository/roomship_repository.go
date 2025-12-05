@@ -25,7 +25,7 @@ func (repo *RoomshipRepository) Create(ctx context.Context, roomship *domain.Roo
 	panic("implement me")
 }
 
-func (repo *RoomshipRepository) FindByUserIDAndRoomID(ctx context.Context, roomID kernel.RoomID, userID kernel.UserID) (*domain.Roomship, error) {
+func (repo *RoomshipRepository) ExistByUserIDAndRoomID(ctx context.Context, roomID kernel.RoomID, userID kernel.UserID) (bool, error) {
 	//TODO implement me
 	panic("implement me")
 }

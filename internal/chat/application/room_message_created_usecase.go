@@ -30,19 +30,19 @@ type roomMessageCreatedUseCase struct {
 	eventIDGenerator  event.IDGenerator
 	creator           event.UnpublishedEventCreator
 	roomMessageFinder domain.RoomMessageFinder
-	roomFinder        domain.RoomshipsFinderByRoomID
+	roomshipFinder    domain.RoomshipsFinderByRoomID
 }
 
 func NewRoomMessageCreatedUseCase(
 	eventIDGenerator event.IDGenerator,
 	roomMessageFinder domain.RoomMessageFinder,
-	roomFinder domain.RoomshipsFinderByRoomID,
+	roomshipFinder domain.RoomshipsFinderByRoomID,
 	creator event.UnpublishedEventCreator,
 ) (RoomMessageCreatedUseCase, error) {
 	if err := utils.CheckInterfaces(
 		eventIDGenerator,
 		roomMessageFinder,
-		roomFinder,
+		roomshipFinder,
 		creator,
 	); err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func NewRoomMessageCreatedUseCase(
 		eventIDGenerator:  eventIDGenerator,
 		creator:           creator,
 		roomMessageFinder: roomMessageFinder,
-		roomFinder:        roomFinder,
+		roomshipFinder:    roomshipFinder,
 	}, nil
 }
 
@@ -61,7 +61,7 @@ func (uc *roomMessageCreatedUseCase) Execute(ctx context.Context, input *RoomMes
 		return nil, err
 	}
 
-	roomships, err := uc.roomFinder.FindsByRoomID(ctx, message.RoomID())
+	roomships, err := uc.roomshipFinder.FindsByRoomID(ctx, message.RoomID())
 	if err != nil {
 		if errors.Is(err, myErrors.ErrNotFound) {
 			return nil, nil

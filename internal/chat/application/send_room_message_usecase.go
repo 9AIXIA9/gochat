@@ -32,20 +32,20 @@ func (i *SendRoomMessageInput) Validate() error {
 type sendRoomMessageUseCase struct {
 	messageIDGenerator kernel.MessageIDGenerator
 	eventIDGenerator   event.IDGenerator
-	roomshipFinder     domain.RoomshipFinderByUserIDAndRoomID
+	exister            domain.RoomshipExisterByUserIDAndRoomID
 	messageCreator     domain.RoomMessageCreator
 }
 
 func NewSendRoomMessageUseCase(
 	messageIDGenerator kernel.MessageIDGenerator,
 	eventIDGenerator event.IDGenerator,
-	roomshipFinder domain.RoomshipFinderByUserIDAndRoomID,
+	exister domain.RoomshipExisterByUserIDAndRoomID,
 	messageCreator domain.RoomMessageCreator,
 ) (SendRoomMessageUseCase, error) {
 	if err := utils.CheckInterfaces(
 		messageIDGenerator,
 		eventIDGenerator,
-		roomshipFinder,
+		exister,
 		messageCreator,
 	); err != nil {
 		return nil, err
@@ -54,19 +54,27 @@ func NewSendRoomMessageUseCase(
 	return &sendRoomMessageUseCase{
 		messageIDGenerator: messageIDGenerator,
 		eventIDGenerator:   eventIDGenerator,
-		roomshipFinder:     roomshipFinder,
+		exister:            exister,
 		messageCreator:     messageCreator,
 	}, nil
 }
 
 func (uc *sendRoomMessageUseCase) Execute(ctx context.Context, input *SendRoomMessageInput) (*kernel.NoOutput, error) {
-	roomship, err := uc.roomshipFinder.FindByUserIDAndRoomID(ctx, input.RoomID, input.SenderID)
+	exist, err := uc.exister.ExistByUserIDAndRoomID(
+		ctx,
+		input.RoomID,
+		input.SenderID,
+	)
 	if err != nil {
 		return nil, err
 	}
 
+	if !exist {
+		return nil, domain.ErrNotMember
+	}
+
 	message, err := domain.CreateRoomMessage(
-		roomship.RoomID(),
+		input.RoomID,
 		input.SenderID,
 		input.Content,
 		uc.messageIDGenerator,

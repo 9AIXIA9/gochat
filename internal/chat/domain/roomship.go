@@ -26,6 +26,18 @@ func CreateRoomship(
 	}
 }
 
+func LoadRoomship(
+	id RoomshipID,
+	userID kernel.UserID,
+	roomID kernel.RoomID,
+) *Roomship {
+	return &Roomship{
+		id:     id,
+		userID: userID,
+		roomID: roomID,
+	}
+}
+
 func (f *Roomship) ID() RoomshipID {
 	return f.id
 }

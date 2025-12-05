@@ -8,7 +8,7 @@ import (
 
 type RoomshipRepository interface {
 	RoomshipCreator
-	RoomshipFinderByUserIDAndRoomID
+	RoomshipExisterByUserIDAndRoomID
 	RoomshipsFinderByRoomID
 }
 
@@ -16,8 +16,8 @@ type RoomshipCreator interface {
 	Create(ctx context.Context, roomship *Roomship) error
 }
 
-type RoomshipFinderByUserIDAndRoomID interface {
-	FindByUserIDAndRoomID(ctx context.Context, roomID kernel.RoomID, userID kernel.UserID) (*Roomship, error)
+type RoomshipExisterByUserIDAndRoomID interface {
+	ExistByUserIDAndRoomID(ctx context.Context, roomID kernel.RoomID, userID kernel.UserID) (bool, error)
 }
 
 type RoomshipsFinderByRoomID interface {
