@@ -21,5 +21,5 @@ type RoomshipFinderByUserIDAndRoomID interface {
 }
 
 type RoomshipsFinderByRoomID interface {
-	FindsByID(ctx context.Context, id kernel.RoomID) ([]*Roomship, error)
+	FindsByRoomID(ctx context.Context, id kernel.RoomID) ([]*Roomship, error)
 }

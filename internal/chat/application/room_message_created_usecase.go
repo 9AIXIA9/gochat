@@ -52,7 +52,7 @@ func (uc *roomMessageCreatedUseCase) Execute(ctx context.Context, input *RoomMes
 		return nil, err
 	}
 
-	roomships, err := uc.roomFinder.FindsByID(ctx, message.RoomID())
+	roomships, err := uc.roomFinder.FindsByRoomID(ctx, message.RoomID())
 	if err != nil {
 		if errors.Is(err, myErrors.ErrNotFound) {
 			return nil, nil

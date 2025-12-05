@@ -30,7 +30,7 @@ func (repo *RoomshipRepository) FindByUserIDAndRoomID(ctx context.Context, roomI
 	panic("implement me")
 }
 
-func (repo *RoomshipRepository) FindsByID(ctx context.Context, id kernel.RoomID) ([]*domain.Roomship, error) {
+func (repo *RoomshipRepository) FindsByRoomID(ctx context.Context, id kernel.RoomID) ([]*domain.Roomship, error) {
 	//TODO implement me
 	panic("implement me")
 }

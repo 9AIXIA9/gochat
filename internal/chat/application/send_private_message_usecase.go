@@ -29,17 +29,20 @@ func (i *SendPrivateMessageInput) Validate() error {
 }
 
 type sendPrivateMessageUseCase struct {
+	exister            domain.FriendshipExisterByUserID
 	messageIDGenerator kernel.MessageIDGenerator
 	eventIDGenerator   event.IDGenerator
 	messageCreator     domain.PrivateMessageCreator
 }
 
 func NewSendPrivateMessageUseCase(
+	exister domain.FriendshipExisterByUserID,
 	messageIDGenerator kernel.MessageIDGenerator,
 	eventIDGenerator event.IDGenerator,
 	messageCreator domain.PrivateMessageCreator,
 ) SendPrivateMessageUseCase {
 	return &sendPrivateMessageUseCase{
+		exister:            exister,
 		messageIDGenerator: messageIDGenerator,
 		eventIDGenerator:   eventIDGenerator,
 		messageCreator:     messageCreator,
@@ -47,7 +50,14 @@ func NewSendPrivateMessageUseCase(
 }
 
 func (uc *sendPrivateMessageUseCase) Execute(ctx context.Context, input *SendPrivateMessageInput) (*kernel.NoOutput, error) {
-	// todo 校验用户是否存在
+	exist, err := uc.exister.ExistByUserID(ctx, input.SenderID, input.RecipientID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !exist {
+		return nil, domain.ErrNotFriends
+	}
 
 	message, err := domain.CreatePrivateMessage(
 		input.RecipientID,

@@ -111,8 +111,9 @@ func provideSendPrivateMessageUseCase(
 	messageIDGen kernel.MessageIDGenerator,
 	eventIDGen event.IDGenerator,
 	messageRepo chatDomain.PrivateMessageRepository,
+	friendshipRepo chatDomain.FriendshipRepository,
 ) chatApp.SendPrivateMessageUseCase {
-	return chatApp.NewSendPrivateMessageUseCase(messageIDGen, eventIDGen, messageRepo)
+	return chatApp.NewSendPrivateMessageUseCase(friendshipRepo, messageIDGen, eventIDGen, messageRepo)
 }
 func provideSendRoomMessageUseCase(
 	messageIDGen kernel.MessageIDGenerator,

@@ -40,7 +40,8 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	parseAccessTokenUseCase := provideParseAccessTokenUseCase(accessTokenManager)
 	messageIDGenerator := provideMessageIDGenerator()
 	privateMessageRepository := provideChatPrivateMessageRepository(db, eventRepository)
-	sendPrivateMessageUseCase := provideSendPrivateMessageUseCase(messageIDGenerator, eventIDGenerator, privateMessageRepository)
+	friendshipRepository := provideChatFriendshipRepository(db)
+	sendPrivateMessageUseCase := provideSendPrivateMessageUseCase(messageIDGenerator, eventIDGenerator, privateMessageRepository, friendshipRepository)
 	roomshipRepository := provideChatRoomshipRepository(db)
 	roomMessageRepository := provideChatRoomMessageRepository(db, eventRepository)
 	sendRoomMessageUseCase := provideSendRoomMessageUseCase(messageIDGenerator, eventIDGenerator, roomshipRepository, roomMessageRepository)
@@ -69,9 +70,9 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	friendshipRepository := provideFriendshipFriendshipRepository(db, eventRepository)
+	repositoryFriendshipRepository := provideFriendshipFriendshipRepository(db, eventRepository)
 	friendRequestRepository := provideFriendshipFriendRequestRepository(db, eventRepository)
-	sendFriendRequestUseCase, err := provideSendFriendRequestUseCase(friendshipRepository, friendRequestRepository, eventIDGenerator, operationIDGenerator)
+	sendFriendRequestUseCase, err := provideSendFriendRequestUseCase(repositoryFriendshipRepository, friendRequestRepository, eventIDGenerator, operationIDGenerator)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +162,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 		return nil, err
 	}
 	friendshipIDGenerator := provideFriendshipFriendshipIDGenerator()
-	friendRequestAgreedUseCase, err := provideFriendshipFriendRequestAgreedUseCase(friendRequestRepository, friendshipRepository, friendshipIDGenerator, eventIDGenerator)
+	friendRequestAgreedUseCase, err := provideFriendshipFriendRequestAgreedUseCase(friendRequestRepository, repositoryFriendshipRepository, friendshipIDGenerator, eventIDGenerator)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +170,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	friendshipCreatedUseCase, err := provideFriendshipFriendshipCreatedUseCase(friendshipRepository, eventRepository, eventIDGenerator)
+	friendshipCreatedUseCase, err := provideFriendshipFriendshipCreatedUseCase(repositoryFriendshipRepository, eventRepository, eventIDGenerator)
 	if err != nil {
 		return nil, err
 	}

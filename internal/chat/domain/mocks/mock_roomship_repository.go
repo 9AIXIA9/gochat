@@ -71,19 +71,19 @@ func (mr *MockRoomshipRepositoryMockRecorder) FindByUserIDAndRoomID(ctx, roomID,
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByUserIDAndRoomID", reflect.TypeOf((*MockRoomshipRepository)(nil).FindByUserIDAndRoomID), ctx, roomID, userID)
 }
 
-// FindsByID mocks base method.
-func (m *MockRoomshipRepository) FindsByID(ctx context.Context, id kernel.RoomID) ([]*domain.Roomship, error) {
+// FindsByRoomID mocks base method.
+func (m *MockRoomshipRepository) FindsByRoomID(ctx context.Context, id kernel.RoomID) ([]*domain.Roomship, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindsByID", ctx, id)
+	ret := m.ctrl.Call(m, "FindsByRoomID", ctx, id)
 	ret0, _ := ret[0].([]*domain.Roomship)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FindsByID indicates an expected call of FindsByID.
-func (mr *MockRoomshipRepositoryMockRecorder) FindsByID(ctx, id any) *gomock.Call {
+// FindsByRoomID indicates an expected call of FindsByRoomID.
+func (mr *MockRoomshipRepositoryMockRecorder) FindsByRoomID(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByID", reflect.TypeOf((*MockRoomshipRepository)(nil).FindsByID), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByRoomID", reflect.TypeOf((*MockRoomshipRepository)(nil).FindsByRoomID), ctx, id)
 }
 
 // MockRoomshipCreator is a mock of RoomshipCreator interface.
@@ -187,17 +187,17 @@ func (m *MockRoomshipsFinderByRoomID) EXPECT() *MockRoomshipsFinderByRoomIDMockR
 	return m.recorder
 }
 
-// FindsByID mocks base method.
-func (m *MockRoomshipsFinderByRoomID) FindsByID(ctx context.Context, id kernel.RoomID) ([]*domain.Roomship, error) {
+// FindsByRoomID mocks base method.
+func (m *MockRoomshipsFinderByRoomID) FindsByRoomID(ctx context.Context, id kernel.RoomID) ([]*domain.Roomship, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindsByID", ctx, id)
+	ret := m.ctrl.Call(m, "FindsByRoomID", ctx, id)
 	ret0, _ := ret[0].([]*domain.Roomship)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FindsByID indicates an expected call of FindsByID.
-func (mr *MockRoomshipsFinderByRoomIDMockRecorder) FindsByID(ctx, id any) *gomock.Call {
+// FindsByRoomID indicates an expected call of FindsByRoomID.
+func (mr *MockRoomshipsFinderByRoomIDMockRecorder) FindsByRoomID(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByID", reflect.TypeOf((*MockRoomshipsFinderByRoomID)(nil).FindsByID), ctx, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByRoomID", reflect.TypeOf((*MockRoomshipsFinderByRoomID)(nil).FindsByRoomID), ctx, id)
 }
