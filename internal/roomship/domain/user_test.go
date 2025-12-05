@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCreateUser(t *testing.T) {
+func TestLoadUser(t *testing.T) {
 	id := kernel.UserID("user-xyz")
-	u := domain.CreateUser(id)
+	u := domain.LoadUser(id)
 	require.NotNil(t, u)
 	require.Equal(t, id, u.ID())
 }

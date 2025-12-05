@@ -30,10 +30,10 @@ func TestNewUserCreatedUseCase(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockUserCreator := mocks.NewMockUserCreator(ctrl)
+	mockUserSaver := mocks.NewMockUserSaver(ctrl)
 
 	useCase, err := application.NewUserCreatedUseCase(
-		mockUserCreator,
+		mockUserSaver,
 	)
 
 	require.NoError(t, err)
@@ -51,16 +51,16 @@ func TestUserCreatedUseCase_Execute(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockUserCreator := mocks.NewMockUserCreator(ctrl)
+	mockUserSaver := mocks.NewMockUserSaver(ctrl)
 
 	useCase, err := application.NewUserCreatedUseCase(
-		mockUserCreator,
+		mockUserSaver,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, useCase)
 
 	// 正常情况
-	mockUserCreator.EXPECT().Create(nil, gomock.Any()).Return(nil).Times(1)
+	mockUserSaver.EXPECT().Save(nil, gomock.Any()).Return(nil).Times(1)
 	_, err = useCase.Execute(nil, &application.UserCreatedInput{
 		UserID: fixedUserID,
 	})

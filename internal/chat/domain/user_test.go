@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCreateUser(t *testing.T) {
-	user := domain.CreateUser(fixedUserID)
+func TestLoadUser(t *testing.T) {
+	user := domain.LoadUser(fixedUserID)
 	require.NotNil(t, user)
 	assert.Equal(t, fixedUserID, user.ID())
 }

@@ -7,15 +7,15 @@ import (
 )
 
 type PrivateMessageRepository interface {
-	PrivateMessageCreator
+	PrivateMessageSaver
 	PrivateMessageUpdater
 	PrivateMessagesUpdater
 	PrivateMessageFinderByID
 	UserPrivateMessagesFinderByState
 }
 
-type PrivateMessageCreator interface {
-	Create(ctx context.Context, message *PrivateMessage) error
+type PrivateMessageSaver interface {
+	Save(ctx context.Context, message *PrivateMessage) error
 }
 
 type PrivateMessageUpdater interface {

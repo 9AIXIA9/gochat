@@ -52,7 +52,7 @@ func TestNewFriendshipCreatedUseCase(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockFriendshipCreator := mocks.NewMockFriendshipCreator(ctrl)
+	mockFriendshipCreator := mocks.NewMockFriendshipSaver(ctrl)
 
 	useCase, err := application.NewFriendshipCreatedUseCase(
 		mockFriendshipCreator,
@@ -73,7 +73,7 @@ func TestFriendshipCreatedUseCase_Execute(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockFriendshipCreator := mocks.NewMockFriendshipCreator(ctrl)
+	mockFriendshipCreator := mocks.NewMockFriendshipSaver(ctrl)
 
 	useCase, err := application.NewFriendshipCreatedUseCase(
 		mockFriendshipCreator,
@@ -82,7 +82,7 @@ func TestFriendshipCreatedUseCase_Execute(t *testing.T) {
 	require.NotNil(t, useCase)
 
 	// 正常情况
-	mockFriendshipCreator.EXPECT().Create(nil, gomock.Any()).Return(nil).Times(1)
+	mockFriendshipCreator.EXPECT().Save(nil, gomock.Any()).Return(nil).Times(1)
 	_, err = useCase.Execute(nil, &application.FriendshipCreatedInput{
 		ID:      fixedFriendshipID,
 		UserID1: fixedUserID,

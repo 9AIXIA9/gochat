@@ -6,7 +6,7 @@ type User struct {
 	id kernel.UserID
 }
 
-func CreateUser(id kernel.UserID) *User {
+func LoadUser(id kernel.UserID) *User {
 	return &User{
 		id: id,
 	}

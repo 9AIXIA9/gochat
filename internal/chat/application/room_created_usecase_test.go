@@ -30,10 +30,10 @@ func TestNewRoomCreatedUseCase(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockRoomCreator := mocks.NewMockRoomCreator(ctrl)
+	mockRoomSaver := mocks.NewMockRoomSaver(ctrl)
 
 	useCase, err := application.NewRoomCreatedUseCase(
-		mockRoomCreator,
+		mockRoomSaver,
 	)
 
 	require.NoError(t, err)
@@ -51,16 +51,16 @@ func TestRoomCreatedUseCase_Execute(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockRoomCreator := mocks.NewMockRoomCreator(ctrl)
+	mockRoomSaver := mocks.NewMockRoomSaver(ctrl)
 
 	useCase, err := application.NewRoomCreatedUseCase(
-		mockRoomCreator,
+		mockRoomSaver,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, useCase)
 
 	// 正常情况
-	mockRoomCreator.EXPECT().Create(nil, gomock.Any()).Return(nil).Times(1)
+	mockRoomSaver.EXPECT().Save(nil, gomock.Any()).Return(nil).Times(1)
 	_, err = useCase.Execute(nil, &application.RoomCreatedInput{
 		RoomID: fixedRoomID,
 	})

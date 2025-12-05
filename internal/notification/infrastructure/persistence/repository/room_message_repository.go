@@ -20,7 +20,7 @@ func NewRoomMessageRepository(db *gorm.DB) *RoomMessageRepository {
 	return &RoomMessageRepository{db: db}
 }
 
-func (repo *RoomMessageRepository) Create(ctx context.Context, message *domain.RoomMessage) error {
+func (repo *RoomMessageRepository) Save(ctx context.Context, message *domain.RoomMessage) error {
 	return gormutils.TranslateError(repo.db.WithContext(ctx).Create(repo.toModel(message)).Error)
 }
 

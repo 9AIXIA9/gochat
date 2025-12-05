@@ -14,18 +14,6 @@ type Roomship struct {
 	roomID kernel.RoomID
 }
 
-func CreateRoomship(
-	id RoomshipID,
-	userID kernel.UserID,
-	roomID kernel.RoomID,
-) *Roomship {
-	return &Roomship{
-		id:     id,
-		userID: userID,
-		roomID: roomID,
-	}
-}
-
 func LoadRoomship(
 	id RoomshipID,
 	userID kernel.UserID,

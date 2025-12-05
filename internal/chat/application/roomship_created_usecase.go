@@ -25,23 +25,26 @@ func (r *RoomshipCreatedInput) Validate() error {
 }
 
 type roomshipCreatedUseCase struct {
-	roomshipCreator domain.RoomshipCreator
+	roomshipSaver domain.RoomshipSaver
 }
 
 func NewRoomshipCreatedUseCase(
-	roomshipCreator domain.RoomshipCreator,
+	roomshipSaver domain.RoomshipSaver,
 ) (RoomshipCreatedUseCase, error) {
-	if err := utils.CheckInterfaces(roomshipCreator); err != nil {
+	if err := utils.CheckInterfaces(roomshipSaver); err != nil {
 		return nil, err
 	}
 
 	return &roomshipCreatedUseCase{
-		roomshipCreator: roomshipCreator,
+		roomshipSaver: roomshipSaver,
 	}, nil
 }
 
 func (uc *roomshipCreatedUseCase) Execute(ctx context.Context, input *RoomshipCreatedInput) (*kernel.NoOutput, error) {
-	roomship := domain.CreateRoomship(input.ID, input.UserID, input.RoomID)
+	roomship := domain.LoadRoomship(input.ID, input.UserID, input.RoomID)
 
-	return nil, uc.roomshipCreator.Create(ctx, roomship)
+	if err := uc.roomshipSaver.Save(ctx, roomship); err != nil {
+		return nil, err
+	}
+	return nil, nil
 }

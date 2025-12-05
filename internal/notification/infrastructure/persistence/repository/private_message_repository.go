@@ -24,7 +24,7 @@ func NewPrivateMessageRepository(db *gorm.DB) *PrivateMessageRepository {
 	return &PrivateMessageRepository{db: db}
 }
 
-func (repo *PrivateMessageRepository) Create(ctx context.Context, message *domain.PrivateMessage) error {
+func (repo *PrivateMessageRepository) Save(ctx context.Context, message *domain.PrivateMessage) error {
 	return gormutils.TranslateError(repo.db.WithContext(ctx).Create(repo.toModel(message)).Error)
 }
 

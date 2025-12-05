@@ -52,10 +52,10 @@ func TestNewRoomshipCreatedUseCase(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockRoomshipCreator := mocks.NewMockRoomshipCreator(ctrl)
+	mockRoomshipSaver := mocks.NewMockRoomshipSaver(ctrl)
 
 	useCase, err := application.NewRoomshipCreatedUseCase(
-		mockRoomshipCreator,
+		mockRoomshipSaver,
 	)
 
 	require.NoError(t, err)
@@ -73,16 +73,16 @@ func TestRoomshipCreatedUseCase_Execute(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockRoomshipCreator := mocks.NewMockRoomshipCreator(ctrl)
+	mockRoomshipSaver := mocks.NewMockRoomshipSaver(ctrl)
 
 	useCase, err := application.NewRoomshipCreatedUseCase(
-		mockRoomshipCreator,
+		mockRoomshipSaver,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, useCase)
 
 	// 正常情况
-	mockRoomshipCreator.EXPECT().Create(nil, gomock.Any()).Return(nil).Times(1)
+	mockRoomshipSaver.EXPECT().Save(nil, gomock.Any()).Return(nil).Times(1)
 	_, err = useCase.Execute(nil, &application.RoomshipCreatedInput{
 		ID:     fixedRoomshipID,
 		UserID: fixedUserID,

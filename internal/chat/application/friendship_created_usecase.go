@@ -25,23 +25,23 @@ func (r *FriendshipCreatedInput) Validate() error {
 }
 
 type friendshipCreatedUseCase struct {
-	friendshipCreator domain.FriendshipCreator
+	friendshipSaver domain.FriendshipSaver
 }
 
 func NewFriendshipCreatedUseCase(
-	friendshipCreator domain.FriendshipCreator,
+	friendshipSaver domain.FriendshipSaver,
 ) (FriendshipCreatedUseCase, error) {
-	if err := utils.CheckInterfaces(friendshipCreator); err != nil {
+	if err := utils.CheckInterfaces(friendshipSaver); err != nil {
 		return nil, err
 	}
 
 	return &friendshipCreatedUseCase{
-		friendshipCreator: friendshipCreator,
+		friendshipSaver: friendshipSaver,
 	}, nil
 }
 
 func (uc *friendshipCreatedUseCase) Execute(ctx context.Context, input *FriendshipCreatedInput) (*kernel.NoOutput, error) {
-	friendship := domain.CreateFriendship(input.ID, input.UserID1, input.UserID2)
+	friendship := domain.LoadFriendship(input.ID, input.UserID1, input.UserID2)
 
-	return nil, uc.friendshipCreator.Create(ctx, friendship)
+	return nil, uc.friendshipSaver.Save(ctx, friendship)
 }

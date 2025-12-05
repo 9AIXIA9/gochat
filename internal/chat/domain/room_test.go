@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCreateRoom(t *testing.T) {
-	room := domain.CreateRoom(fixedRoomID)
+func TestLoadRoom(t *testing.T) {
+	room := domain.LoadRoom(fixedRoomID)
 	require.NotNil(t, room)
 	assert.Equal(t, fixedRoomID, room.ID())
 }

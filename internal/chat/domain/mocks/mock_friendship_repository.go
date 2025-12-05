@@ -42,20 +42,6 @@ func (m *MockFriendshipRepository) EXPECT() *MockFriendshipRepositoryMockRecorde
 	return m.recorder
 }
 
-// Create mocks base method.
-func (m *MockFriendshipRepository) Create(ctx context.Context, friendship *domain.Friendship) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, friendship)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Create indicates an expected call of Create.
-func (mr *MockFriendshipRepositoryMockRecorder) Create(ctx, friendship any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockFriendshipRepository)(nil).Create), ctx, friendship)
-}
-
 // ExistByUserID mocks base method.
 func (m *MockFriendshipRepository) ExistByUserID(ctx context.Context, userID1, userID2 kernel.UserID) (bool, error) {
 	m.ctrl.T.Helper()
@@ -71,42 +57,56 @@ func (mr *MockFriendshipRepositoryMockRecorder) ExistByUserID(ctx, userID1, user
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExistByUserID", reflect.TypeOf((*MockFriendshipRepository)(nil).ExistByUserID), ctx, userID1, userID2)
 }
 
-// MockFriendshipCreator is a mock of FriendshipCreator interface.
-type MockFriendshipCreator struct {
-	ctrl     *gomock.Controller
-	recorder *MockFriendshipCreatorMockRecorder
-	isgomock struct{}
-}
-
-// MockFriendshipCreatorMockRecorder is the mock recorder for MockFriendshipCreator.
-type MockFriendshipCreatorMockRecorder struct {
-	mock *MockFriendshipCreator
-}
-
-// NewMockFriendshipCreator creates a new mock instance.
-func NewMockFriendshipCreator(ctrl *gomock.Controller) *MockFriendshipCreator {
-	mock := &MockFriendshipCreator{ctrl: ctrl}
-	mock.recorder = &MockFriendshipCreatorMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockFriendshipCreator) EXPECT() *MockFriendshipCreatorMockRecorder {
-	return m.recorder
-}
-
-// Create mocks base method.
-func (m *MockFriendshipCreator) Create(ctx context.Context, friendship *domain.Friendship) error {
+// Save mocks base method.
+func (m *MockFriendshipRepository) Save(ctx context.Context, friendship *domain.Friendship) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, friendship)
+	ret := m.ctrl.Call(m, "Save", ctx, friendship)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Create indicates an expected call of Create.
-func (mr *MockFriendshipCreatorMockRecorder) Create(ctx, friendship any) *gomock.Call {
+// Save indicates an expected call of Save.
+func (mr *MockFriendshipRepositoryMockRecorder) Save(ctx, friendship any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockFriendshipCreator)(nil).Create), ctx, friendship)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockFriendshipRepository)(nil).Save), ctx, friendship)
+}
+
+// MockFriendshipSaver is a mock of FriendshipSaver interface.
+type MockFriendshipSaver struct {
+	ctrl     *gomock.Controller
+	recorder *MockFriendshipSaverMockRecorder
+	isgomock struct{}
+}
+
+// MockFriendshipSaverMockRecorder is the mock recorder for MockFriendshipSaver.
+type MockFriendshipSaverMockRecorder struct {
+	mock *MockFriendshipSaver
+}
+
+// NewMockFriendshipSaver creates a new mock instance.
+func NewMockFriendshipSaver(ctrl *gomock.Controller) *MockFriendshipSaver {
+	mock := &MockFriendshipSaver{ctrl: ctrl}
+	mock.recorder = &MockFriendshipSaverMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockFriendshipSaver) EXPECT() *MockFriendshipSaverMockRecorder {
+	return m.recorder
+}
+
+// Save mocks base method.
+func (m *MockFriendshipSaver) Save(ctx context.Context, friendship *domain.Friendship) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Save", ctx, friendship)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Save indicates an expected call of Save.
+func (mr *MockFriendshipSaverMockRecorder) Save(ctx, friendship any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockFriendshipSaver)(nil).Save), ctx, friendship)
 }
 
 // MockFriendshipExisterByUserID is a mock of FriendshipExisterByUserID interface.

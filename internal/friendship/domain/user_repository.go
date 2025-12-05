@@ -6,9 +6,9 @@ import (
 )
 
 type UserRepository interface {
-	UserCreator
+	UserSaver
 }
 
-type UserCreator interface {
-	Create(ctx context.Context, user *User) error
+type UserSaver interface {
+	Save(ctx context.Context, user *User) error
 }

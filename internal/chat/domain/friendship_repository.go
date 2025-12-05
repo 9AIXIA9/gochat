@@ -7,12 +7,12 @@ import (
 )
 
 type FriendshipRepository interface {
-	FriendshipCreator
+	FriendshipSaver
 	FriendshipExisterByUserID
 }
 
-type FriendshipCreator interface {
-	Create(ctx context.Context, friendship *Friendship) error
+type FriendshipSaver interface {
+	Save(ctx context.Context, friendship *Friendship) error
 }
 
 type FriendshipExisterByUserID interface {

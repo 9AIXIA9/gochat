@@ -7,13 +7,13 @@ import (
 )
 
 type RoomshipRepository interface {
-	RoomshipCreator
+	RoomshipSaver
 	RoomshipExisterByUserIDAndRoomID
 	RoomshipsFinderByRoomID
 }
 
-type RoomshipCreator interface {
-	Create(ctx context.Context, roomship *Roomship) error
+type RoomshipSaver interface {
+	Save(ctx context.Context, roomship *Roomship) error
 }
 
 type RoomshipExisterByUserIDAndRoomID interface {

@@ -14,7 +14,7 @@ type Friendship struct {
 	userID2 kernel.UserID
 }
 
-func CreateFriendship(
+func LoadFriendship(
 	id FriendshipID,
 	userID1 kernel.UserID,
 	userID2 kernel.UserID,

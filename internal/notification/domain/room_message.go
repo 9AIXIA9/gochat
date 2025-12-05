@@ -35,30 +35,6 @@ func LoadRoomMessage(
 	}
 }
 
-func ReceiveRoomMessage(
-	id kernel.MessageID,
-	senderID kernel.UserID,
-	roomID kernel.RoomID,
-	recipientIDs []kernel.UserID,
-	content string,
-	sentAt time.Time,
-) *RoomMessage {
-	states := make(map[kernel.UserID]MessageState)
-	for _, recipientID := range recipientIDs {
-		states[recipientID] = MessageStateUndelivered
-	}
-
-	return &RoomMessage{
-		id:           id,
-		senderID:     senderID,
-		roomID:       roomID,
-		recipientIDs: recipientIDs,
-		states:       states,
-		content:      content,
-		sentAt:       sentAt,
-	}
-}
-
 func (m *RoomMessage) Deliver(
 	notifier RoomMessageNotifier,
 ) error {

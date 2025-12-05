@@ -22,7 +22,7 @@ func NewFriendshipRepository(db *gorm.DB) *FriendshipRepository {
 	}
 }
 
-func (repo *FriendshipRepository) Create(ctx context.Context, friendship *domain.Friendship) error {
+func (repo *FriendshipRepository) Save(ctx context.Context, friendship *domain.Friendship) error {
 	if err := repo.db.WithContext(ctx).Create(repo.toModel(friendship)).Error; err != nil {
 		return gormutils.TranslateError(err)
 	}
@@ -33,7 +33,7 @@ func (repo *FriendshipRepository) ExistByUserID(ctx context.Context, userID1, us
 	var count int64
 	err := repo.db.WithContext(ctx).
 		Model(&model.Friendship{}).
-		Where("(user_id_1 = ? AND user_id_2 = ?) OR (user_id_1 = ? AND user_id_2 = ?)", userID1, userID2, userID2, userID1).
+		Where("(user_id1 = ? AND user_id2 = ?) OR (user_id1 = ? AND user_id2 = ?)", userID1, userID2, userID2, userID1).
 		Count(&count).Error
 	if err != nil {
 		return false, gormutils.TranslateError(err)

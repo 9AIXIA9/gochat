@@ -32,26 +32,32 @@ func (r *RoomMessageNotificationRequestedInput) Validate() error {
 }
 
 type roomMessageNotificationRequestedUseCase struct {
-	messageCreator  domain.RoomMessageCreator
+	messageSaver    domain.RoomMessageSaver
 	messageNotifier domain.RoomMessageNotifier
 }
 
 func NewRoomMessageNotificationRequestedUseCase(
 	messageNotifier domain.RoomMessageNotifier,
-	messageCreator domain.RoomMessageCreator,
+	messageSaver domain.RoomMessageSaver,
 ) RoomMessageNotificationRequestedUseCase {
 	return &roomMessageNotificationRequestedUseCase{
-		messageCreator:  messageCreator,
+		messageSaver:    messageSaver,
 		messageNotifier: messageNotifier,
 	}
 }
 
 func (uc *roomMessageNotificationRequestedUseCase) Execute(ctx context.Context, input *RoomMessageNotificationRequestedInput) (*kernel.NoOutput, error) {
-	message := domain.ReceiveRoomMessage(
+	undeliveredStates := make(map[kernel.UserID]domain.MessageState, len(input.RecipientIDs))
+	for _, recipientID := range input.RecipientIDs {
+		undeliveredStates[recipientID] = domain.MessageStateUndelivered
+	}
+
+	message := domain.LoadRoomMessage(
 		input.MessageID,
 		input.SenderID,
 		input.RoomID,
 		input.RecipientIDs,
+		undeliveredStates,
 		input.Content,
 		input.SentAt,
 	)
@@ -62,7 +68,7 @@ func (uc *roomMessageNotificationRequestedUseCase) Execute(ctx context.Context, 
 		return nil, err
 	}
 
-	if err := uc.messageCreator.Create(ctx, message); err != nil {
+	if err := uc.messageSaver.Save(ctx, message); err != nil {
 		return nil, err
 	}
 	return nil, nil

@@ -23,25 +23,23 @@ func (r *RoomCreatedInput) Validate() error {
 }
 
 type roomCreatedUseCase struct {
-	roomCreator domain.RoomCreator
+	roomSaver domain.RoomSaver
 }
 
 func NewRoomCreatedUseCase(
-	roomCreator domain.RoomCreator,
+	roomSaver domain.RoomSaver,
 ) (RoomCreatedUseCase, error) {
-	if err := utils.CheckInterfaces(roomCreator); err != nil {
+	if err := utils.CheckInterfaces(roomSaver); err != nil {
 		return nil, err
 	}
 
 	return &roomCreatedUseCase{
-		roomCreator: roomCreator,
+		roomSaver: roomSaver,
 	}, nil
 }
 
 func (uc *roomCreatedUseCase) Execute(ctx context.Context, input *RoomCreatedInput) (*kernel.NoOutput, error) {
-	room := domain.CreateRoom(input.RoomID)
-
-	if err := uc.roomCreator.Create(ctx, room); err != nil {
+	if err := uc.roomSaver.Save(ctx, domain.LoadRoom(input.RoomID)); err != nil {
 		return nil, err
 	}
 	return nil, nil

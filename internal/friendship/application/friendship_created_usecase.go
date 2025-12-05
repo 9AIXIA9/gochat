@@ -50,8 +50,6 @@ func NewFriendshipCreatedUseCase(
 }
 
 func (uc *friendshipCreatedUseCase) Execute(ctx context.Context, input *FriendshipCreatedInput) (*kernel.NoOutput, error) {
-	//TODO 同步到 chat上下文
-
 	friendship, err := uc.finderByID.FindByID(ctx, input.FriendshipID)
 	if err != nil {
 		return nil, err

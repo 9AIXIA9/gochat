@@ -42,20 +42,6 @@ func (m *MockPrivateMessageRepository) EXPECT() *MockPrivateMessageRepositoryMoc
 	return m.recorder
 }
 
-// Create mocks base method.
-func (m *MockPrivateMessageRepository) Create(ctx context.Context, message *domain.PrivateMessage) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, message)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Create indicates an expected call of Create.
-func (mr *MockPrivateMessageRepositoryMockRecorder) Create(ctx, message any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockPrivateMessageRepository)(nil).Create), ctx, message)
-}
-
 // FindByID mocks base method.
 func (m *MockPrivateMessageRepository) FindByID(ctx context.Context, messageID kernel.MessageID) (*domain.PrivateMessage, error) {
 	m.ctrl.T.Helper()
@@ -86,6 +72,20 @@ func (mr *MockPrivateMessageRepositoryMockRecorder) FindsByState(ctx, userID, st
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByState", reflect.TypeOf((*MockPrivateMessageRepository)(nil).FindsByState), ctx, userID, state)
 }
 
+// Save mocks base method.
+func (m *MockPrivateMessageRepository) Save(ctx context.Context, message *domain.PrivateMessage) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Save", ctx, message)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Save indicates an expected call of Save.
+func (mr *MockPrivateMessageRepositoryMockRecorder) Save(ctx, message any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockPrivateMessageRepository)(nil).Save), ctx, message)
+}
+
 // Update mocks base method.
 func (m *MockPrivateMessageRepository) Update(ctx context.Context, message *domain.PrivateMessage) error {
 	m.ctrl.T.Helper()
@@ -114,42 +114,42 @@ func (mr *MockPrivateMessageRepositoryMockRecorder) Updates(ctx, messages any) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Updates", reflect.TypeOf((*MockPrivateMessageRepository)(nil).Updates), ctx, messages)
 }
 
-// MockPrivateMessageCreator is a mock of PrivateMessageCreator interface.
-type MockPrivateMessageCreator struct {
+// MockPrivateMessageSaver is a mock of PrivateMessageSaver interface.
+type MockPrivateMessageSaver struct {
 	ctrl     *gomock.Controller
-	recorder *MockPrivateMessageCreatorMockRecorder
+	recorder *MockPrivateMessageSaverMockRecorder
 	isgomock struct{}
 }
 
-// MockPrivateMessageCreatorMockRecorder is the mock recorder for MockPrivateMessageCreator.
-type MockPrivateMessageCreatorMockRecorder struct {
-	mock *MockPrivateMessageCreator
+// MockPrivateMessageSaverMockRecorder is the mock recorder for MockPrivateMessageSaver.
+type MockPrivateMessageSaverMockRecorder struct {
+	mock *MockPrivateMessageSaver
 }
 
-// NewMockPrivateMessageCreator creates a new mock instance.
-func NewMockPrivateMessageCreator(ctrl *gomock.Controller) *MockPrivateMessageCreator {
-	mock := &MockPrivateMessageCreator{ctrl: ctrl}
-	mock.recorder = &MockPrivateMessageCreatorMockRecorder{mock}
+// NewMockPrivateMessageSaver creates a new mock instance.
+func NewMockPrivateMessageSaver(ctrl *gomock.Controller) *MockPrivateMessageSaver {
+	mock := &MockPrivateMessageSaver{ctrl: ctrl}
+	mock.recorder = &MockPrivateMessageSaverMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockPrivateMessageCreator) EXPECT() *MockPrivateMessageCreatorMockRecorder {
+func (m *MockPrivateMessageSaver) EXPECT() *MockPrivateMessageSaverMockRecorder {
 	return m.recorder
 }
 
-// Create mocks base method.
-func (m *MockPrivateMessageCreator) Create(ctx context.Context, message *domain.PrivateMessage) error {
+// Save mocks base method.
+func (m *MockPrivateMessageSaver) Save(ctx context.Context, message *domain.PrivateMessage) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, message)
+	ret := m.ctrl.Call(m, "Save", ctx, message)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Create indicates an expected call of Create.
-func (mr *MockPrivateMessageCreatorMockRecorder) Create(ctx, message any) *gomock.Call {
+// Save indicates an expected call of Save.
+func (mr *MockPrivateMessageSaverMockRecorder) Save(ctx, message any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockPrivateMessageCreator)(nil).Create), ctx, message)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockPrivateMessageSaver)(nil).Save), ctx, message)
 }
 
 // MockPrivateMessageUpdater is a mock of PrivateMessageUpdater interface.

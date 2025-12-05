@@ -7,15 +7,15 @@ import (
 )
 
 type RoomMessageRepository interface {
-	RoomMessageCreator
+	RoomMessageSaver
 	RoomMessageUpdater
 	RoomMessagesUpdater
 	RoomMessageFinderByID
 	UserRoomMessagesFinderByState
 }
 
-type RoomMessageCreator interface {
-	Create(ctx context.Context, message *RoomMessage) error
+type RoomMessageSaver interface {
+	Save(ctx context.Context, message *RoomMessage) error
 }
 
 type RoomMessageUpdater interface {

@@ -42,20 +42,6 @@ func (m *MockRoomMessageRepository) EXPECT() *MockRoomMessageRepositoryMockRecor
 	return m.recorder
 }
 
-// Create mocks base method.
-func (m *MockRoomMessageRepository) Create(ctx context.Context, message *domain.RoomMessage) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, message)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Create indicates an expected call of Create.
-func (mr *MockRoomMessageRepositoryMockRecorder) Create(ctx, message any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRoomMessageRepository)(nil).Create), ctx, message)
-}
-
 // FindRoomMessage mocks base method.
 func (m *MockRoomMessageRepository) FindRoomMessage(ctx context.Context, messageID kernel.MessageID) (*domain.RoomMessage, error) {
 	m.ctrl.T.Helper()
@@ -86,6 +72,20 @@ func (mr *MockRoomMessageRepositoryMockRecorder) FindsByState(ctx, userID, state
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByState", reflect.TypeOf((*MockRoomMessageRepository)(nil).FindsByState), ctx, userID, state)
 }
 
+// Save mocks base method.
+func (m *MockRoomMessageRepository) Save(ctx context.Context, message *domain.RoomMessage) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Save", ctx, message)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Save indicates an expected call of Save.
+func (mr *MockRoomMessageRepositoryMockRecorder) Save(ctx, message any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockRoomMessageRepository)(nil).Save), ctx, message)
+}
+
 // Update mocks base method.
 func (m *MockRoomMessageRepository) Update(ctx context.Context, message *domain.RoomMessage) error {
 	m.ctrl.T.Helper()
@@ -114,42 +114,42 @@ func (mr *MockRoomMessageRepositoryMockRecorder) Updates(ctx, messages any) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Updates", reflect.TypeOf((*MockRoomMessageRepository)(nil).Updates), ctx, messages)
 }
 
-// MockRoomMessageCreator is a mock of RoomMessageCreator interface.
-type MockRoomMessageCreator struct {
+// MockRoomMessageSaver is a mock of RoomMessageSaver interface.
+type MockRoomMessageSaver struct {
 	ctrl     *gomock.Controller
-	recorder *MockRoomMessageCreatorMockRecorder
+	recorder *MockRoomMessageSaverMockRecorder
 	isgomock struct{}
 }
 
-// MockRoomMessageCreatorMockRecorder is the mock recorder for MockRoomMessageCreator.
-type MockRoomMessageCreatorMockRecorder struct {
-	mock *MockRoomMessageCreator
+// MockRoomMessageSaverMockRecorder is the mock recorder for MockRoomMessageSaver.
+type MockRoomMessageSaverMockRecorder struct {
+	mock *MockRoomMessageSaver
 }
 
-// NewMockRoomMessageCreator creates a new mock instance.
-func NewMockRoomMessageCreator(ctrl *gomock.Controller) *MockRoomMessageCreator {
-	mock := &MockRoomMessageCreator{ctrl: ctrl}
-	mock.recorder = &MockRoomMessageCreatorMockRecorder{mock}
+// NewMockRoomMessageSaver creates a new mock instance.
+func NewMockRoomMessageSaver(ctrl *gomock.Controller) *MockRoomMessageSaver {
+	mock := &MockRoomMessageSaver{ctrl: ctrl}
+	mock.recorder = &MockRoomMessageSaverMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockRoomMessageCreator) EXPECT() *MockRoomMessageCreatorMockRecorder {
+func (m *MockRoomMessageSaver) EXPECT() *MockRoomMessageSaverMockRecorder {
 	return m.recorder
 }
 
-// Create mocks base method.
-func (m *MockRoomMessageCreator) Create(ctx context.Context, message *domain.RoomMessage) error {
+// Save mocks base method.
+func (m *MockRoomMessageSaver) Save(ctx context.Context, message *domain.RoomMessage) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, message)
+	ret := m.ctrl.Call(m, "Save", ctx, message)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Create indicates an expected call of Create.
-func (mr *MockRoomMessageCreatorMockRecorder) Create(ctx, message any) *gomock.Call {
+// Save indicates an expected call of Save.
+func (mr *MockRoomMessageSaverMockRecorder) Save(ctx, message any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRoomMessageCreator)(nil).Create), ctx, message)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockRoomMessageSaver)(nil).Save), ctx, message)
 }
 
 // MockRoomMessageUpdater is a mock of RoomMessageUpdater interface.

@@ -22,7 +22,7 @@ func NewRoomshipRepository(db *gorm.DB) *RoomshipRepository {
 	}
 }
 
-func (repo *RoomshipRepository) Create(ctx context.Context, roomship *domain.Roomship) error {
+func (repo *RoomshipRepository) Save(ctx context.Context, roomship *domain.Roomship) error {
 	if err := repo.db.WithContext(ctx).Create(repo.toModel(roomship)).Error; err != nil {
 		return gormutils.TranslateError(err)
 	}

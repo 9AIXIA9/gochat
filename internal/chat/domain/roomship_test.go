@@ -8,8 +8,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCreateRoomship(t *testing.T) {
-	friendship := domain.CreateRoomship(
+func TestLoadRoomship(t *testing.T) {
+	friendship := domain.LoadRoomship(
 		fixedRoomshipID,
 		fixedUserID,
 		fixedRoomID,

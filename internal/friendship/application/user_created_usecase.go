@@ -23,20 +23,20 @@ func (r *UserCreatedInput) Validate() error {
 }
 
 type userCreatedUseCase struct {
-	userCreator domain.UserCreator
+	userSaver domain.UserSaver
 }
 
 func NewUserCreatedUseCase(
-	userCreator domain.UserCreator,
+	userSaver domain.UserSaver,
 ) (UserCreatedUseCase, error) {
-	if err := utils.CheckInterfaces(userCreator); err != nil {
+	if err := utils.CheckInterfaces(userSaver); err != nil {
 		return nil, err
 	}
 	return &userCreatedUseCase{
-		userCreator: userCreator,
+		userSaver: userSaver,
 	}, nil
 }
 
 func (uc *userCreatedUseCase) Execute(ctx context.Context, input *UserCreatedInput) (*kernel.NoOutput, error) {
-	return nil, uc.userCreator.Create(ctx, domain.CreateUser(input.UserID))
+	return nil, uc.userSaver.Save(ctx, domain.CreateUser(input.UserID))
 }

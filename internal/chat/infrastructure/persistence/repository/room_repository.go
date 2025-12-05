@@ -21,7 +21,7 @@ func NewRoomRepository(db *gorm.DB) *RoomRepository {
 	}
 }
 
-func (repo *RoomRepository) Create(ctx context.Context, room *domain.Room) error {
+func (repo *RoomRepository) Save(ctx context.Context, room *domain.Room) error {
 	return gormutils.TranslateError(repo.db.WithContext(ctx).Create(&model.Room{
 		ID: room.ID(),
 	}).Error)

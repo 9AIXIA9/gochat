@@ -42,20 +42,6 @@ func (m *MockRoomshipRepository) EXPECT() *MockRoomshipRepositoryMockRecorder {
 	return m.recorder
 }
 
-// Create mocks base method.
-func (m *MockRoomshipRepository) Create(ctx context.Context, roomship *domain.Roomship) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, roomship)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Create indicates an expected call of Create.
-func (mr *MockRoomshipRepositoryMockRecorder) Create(ctx, roomship any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRoomshipRepository)(nil).Create), ctx, roomship)
-}
-
 // ExistByUserIDAndRoomID mocks base method.
 func (m *MockRoomshipRepository) ExistByUserIDAndRoomID(ctx context.Context, roomID kernel.RoomID, userID kernel.UserID) (bool, error) {
 	m.ctrl.T.Helper()
@@ -86,42 +72,56 @@ func (mr *MockRoomshipRepositoryMockRecorder) FindsByRoomID(ctx, id any) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByRoomID", reflect.TypeOf((*MockRoomshipRepository)(nil).FindsByRoomID), ctx, id)
 }
 
-// MockRoomshipCreator is a mock of RoomshipCreator interface.
-type MockRoomshipCreator struct {
-	ctrl     *gomock.Controller
-	recorder *MockRoomshipCreatorMockRecorder
-	isgomock struct{}
-}
-
-// MockRoomshipCreatorMockRecorder is the mock recorder for MockRoomshipCreator.
-type MockRoomshipCreatorMockRecorder struct {
-	mock *MockRoomshipCreator
-}
-
-// NewMockRoomshipCreator creates a new mock instance.
-func NewMockRoomshipCreator(ctrl *gomock.Controller) *MockRoomshipCreator {
-	mock := &MockRoomshipCreator{ctrl: ctrl}
-	mock.recorder = &MockRoomshipCreatorMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockRoomshipCreator) EXPECT() *MockRoomshipCreatorMockRecorder {
-	return m.recorder
-}
-
-// Create mocks base method.
-func (m *MockRoomshipCreator) Create(ctx context.Context, roomship *domain.Roomship) error {
+// Save mocks base method.
+func (m *MockRoomshipRepository) Save(ctx context.Context, roomship *domain.Roomship) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", ctx, roomship)
+	ret := m.ctrl.Call(m, "Save", ctx, roomship)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Create indicates an expected call of Create.
-func (mr *MockRoomshipCreatorMockRecorder) Create(ctx, roomship any) *gomock.Call {
+// Save indicates an expected call of Save.
+func (mr *MockRoomshipRepositoryMockRecorder) Save(ctx, roomship any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRoomshipCreator)(nil).Create), ctx, roomship)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockRoomshipRepository)(nil).Save), ctx, roomship)
+}
+
+// MockRoomshipSaver is a mock of RoomshipSaver interface.
+type MockRoomshipSaver struct {
+	ctrl     *gomock.Controller
+	recorder *MockRoomshipSaverMockRecorder
+	isgomock struct{}
+}
+
+// MockRoomshipSaverMockRecorder is the mock recorder for MockRoomshipSaver.
+type MockRoomshipSaverMockRecorder struct {
+	mock *MockRoomshipSaver
+}
+
+// NewMockRoomshipSaver creates a new mock instance.
+func NewMockRoomshipSaver(ctrl *gomock.Controller) *MockRoomshipSaver {
+	mock := &MockRoomshipSaver{ctrl: ctrl}
+	mock.recorder = &MockRoomshipSaverMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockRoomshipSaver) EXPECT() *MockRoomshipSaverMockRecorder {
+	return m.recorder
+}
+
+// Save mocks base method.
+func (m *MockRoomshipSaver) Save(ctx context.Context, roomship *domain.Roomship) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Save", ctx, roomship)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Save indicates an expected call of Save.
+func (mr *MockRoomshipSaverMockRecorder) Save(ctx, roomship any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockRoomshipSaver)(nil).Save), ctx, roomship)
 }
 
 // MockRoomshipExisterByUserIDAndRoomID is a mock of RoomshipExisterByUserIDAndRoomID interface.

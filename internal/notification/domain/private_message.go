@@ -32,23 +32,6 @@ func LoadPrivateMessage(
 	}
 }
 
-func ReceivePrivateMessage(
-	id kernel.MessageID,
-	senderID kernel.UserID,
-	recipientID kernel.UserID,
-	content string,
-	sentAt time.Time,
-) *PrivateMessage {
-	return &PrivateMessage{
-		id:          id,
-		senderID:    senderID,
-		recipientID: recipientID,
-		state:       MessageStateUndelivered,
-		content:     content,
-		sentAt:      sentAt,
-	}
-}
-
 func (m *PrivateMessage) Deliver(
 	notifier PrivateMessageNotifier,
 ) error {

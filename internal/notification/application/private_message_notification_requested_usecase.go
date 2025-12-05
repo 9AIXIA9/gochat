@@ -32,25 +32,26 @@ func (r *PrivateMessageNotificationRequestedInput) Validate() error {
 }
 
 type privateMessageNotificationRequestedUseCase struct {
-	messageCreator  domain.PrivateMessageCreator
+	messageSaver    domain.PrivateMessageSaver
 	messageNotifier domain.PrivateMessageNotifier
 }
 
 func NewPrivateMessageNotificationRequestedUseCase(
-	messageCreator domain.PrivateMessageCreator,
+	messageSaver domain.PrivateMessageSaver,
 	messageNotifier domain.PrivateMessageNotifier,
 ) PrivateMessageNotificationRequestedUseCase {
 	return &privateMessageNotificationRequestedUseCase{
-		messageCreator:  messageCreator,
+		messageSaver:    messageSaver,
 		messageNotifier: messageNotifier,
 	}
 }
 
 func (uc *privateMessageNotificationRequestedUseCase) Execute(ctx context.Context, input *PrivateMessageNotificationRequestedInput) (*kernel.NoOutput, error) {
-	message := domain.ReceivePrivateMessage(
+	message := domain.LoadPrivateMessage(
 		input.MessageID,
 		input.SenderID,
 		input.RecipientID,
+		domain.MessageStateUndelivered,
 		input.Content,
 		input.SentAt,
 	)
@@ -61,7 +62,7 @@ func (uc *privateMessageNotificationRequestedUseCase) Execute(ctx context.Contex
 		return nil, err
 	}
 
-	if err := uc.messageCreator.Create(ctx, message); err != nil {
+	if err := uc.messageSaver.Save(ctx, message); err != nil {
 		return nil, err
 	}
 	return nil, nil

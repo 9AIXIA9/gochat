@@ -8,7 +8,7 @@ type Room struct {
 	id kernel.RoomID
 }
 
-func CreateRoom(
+func LoadRoom(
 	id kernel.RoomID,
 ) *Room {
 	return &Room{id: id}

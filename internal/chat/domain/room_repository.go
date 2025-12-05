@@ -6,9 +6,9 @@ import (
 )
 
 type RoomRepository interface {
-	RoomCreator
+	RoomSaver
 }
 
-type RoomCreator interface {
-	Create(ctx context.Context, room *Room) error
+type RoomSaver interface {
+	Save(ctx context.Context, room *Room) error
 }
