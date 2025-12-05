@@ -5,6 +5,7 @@ import (
 	"gochat/internal/chat/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/utils"
 )
 
 type RoomCreatedUseCase kernel.UseCase[*RoomCreatedInput, *kernel.NoOutput]
@@ -27,10 +28,14 @@ type roomCreatedUseCase struct {
 
 func NewRoomCreatedUseCase(
 	roomCreator domain.RoomCreator,
-) RoomCreatedUseCase {
+) (RoomCreatedUseCase, error) {
+	if err := utils.CheckInterfaces(roomCreator); err != nil {
+		return nil, err
+	}
+
 	return &roomCreatedUseCase{
 		roomCreator: roomCreator,
-	}
+	}, nil
 }
 
 func (uc *roomCreatedUseCase) Execute(ctx context.Context, input *RoomCreatedInput) (*kernel.NoOutput, error) {

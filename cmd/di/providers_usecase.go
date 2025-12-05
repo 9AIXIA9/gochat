@@ -112,7 +112,7 @@ func provideSendPrivateMessageUseCase(
 	eventIDGen event.IDGenerator,
 	messageRepo chatDomain.PrivateMessageRepository,
 	friendshipRepo chatDomain.FriendshipRepository,
-) chatApp.SendPrivateMessageUseCase {
+) (chatApp.SendPrivateMessageUseCase, error) {
 	return chatApp.NewSendPrivateMessageUseCase(friendshipRepo, messageIDGen, eventIDGen, messageRepo)
 }
 func provideSendRoomMessageUseCase(
@@ -120,7 +120,7 @@ func provideSendRoomMessageUseCase(
 	eventIDGen event.IDGenerator,
 	roomshipRepo chatDomain.RoomshipRepository,
 	messageRepo chatDomain.RoomMessageRepository,
-) chatApp.SendRoomMessageUseCase {
+) (chatApp.SendRoomMessageUseCase, error) {
 	return chatApp.NewSendRoomMessageUseCase(messageIDGen, eventIDGen, roomshipRepo, messageRepo)
 }
 func provideCreateRoomUseCase(
@@ -292,19 +292,19 @@ func provideRoomshipRoomshipCreatedUseCase(
 		eventRepo,
 	)
 }
-func provideChatUserCreatedUseCase(userRepo chatDomain.UserRepository) chatApp.UserCreatedUseCase {
+func provideChatUserCreatedUseCase(userRepo chatDomain.UserRepository) (chatApp.UserCreatedUseCase, error) {
 	return chatApp.NewUserCreatedUseCase(userRepo)
 }
 func provideChatRoomCreatedUseCase(
 	roomRepo chatDomain.RoomRepository,
-) chatApp.RoomCreatedUseCase {
+) (chatApp.RoomCreatedUseCase, error) {
 	return chatApp.NewRoomCreatedUseCase(roomRepo)
 }
 func provideChatPrivateMessageCreatedUseCase(
 	eventIDGen event.IDGenerator,
 	eventRepo event.Repository,
 	messageRepo chatDomain.PrivateMessageRepository,
-) chatApp.PrivateMessageCreatedUseCase {
+) (chatApp.PrivateMessageCreatedUseCase, error) {
 	return chatApp.NewPrivateMessageCreatedUseCase(eventIDGen, messageRepo, eventRepo)
 }
 func provideChatRoomMessageCreatedUseCase(
@@ -312,7 +312,7 @@ func provideChatRoomMessageCreatedUseCase(
 	eventRepo event.Repository,
 	roomshipRepo chatDomain.RoomshipRepository,
 	messageRepo chatDomain.RoomMessageRepository,
-) chatApp.RoomMessageCreatedUseCase {
+) (chatApp.RoomMessageCreatedUseCase, error) {
 	return chatApp.NewRoomMessageCreatedUseCase(eventIDGen, messageRepo, roomshipRepo, eventRepo)
 }
 func provideNotificationWelcomeEmailNotificationRequestedUseCase(emailNotifier notificationApp.WelcomeEmailNotifier) notificationApp.WelcomeEmailNotificationRequestedUseCase {

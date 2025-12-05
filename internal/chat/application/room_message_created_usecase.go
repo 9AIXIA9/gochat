@@ -8,6 +8,7 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/utils"
 )
 
 var _ RoomMessageCreatedUseCase = (*roomMessageCreatedUseCase)(nil)
@@ -37,13 +38,21 @@ func NewRoomMessageCreatedUseCase(
 	roomMessageFinder domain.RoomMessageFinder,
 	roomFinder domain.RoomshipsFinderByRoomID,
 	creator event.UnpublishedEventCreator,
-) RoomMessageCreatedUseCase {
+) (RoomMessageCreatedUseCase, error) {
+	if err := utils.CheckInterfaces(
+		eventIDGenerator,
+		roomMessageFinder,
+		roomFinder,
+		creator,
+	); err != nil {
+		return nil, err
+	}
 	return &roomMessageCreatedUseCase{
 		eventIDGenerator:  eventIDGenerator,
 		creator:           creator,
 		roomMessageFinder: roomMessageFinder,
 		roomFinder:        roomFinder,
-	}
+	}, nil
 }
 
 func (uc *roomMessageCreatedUseCase) Execute(ctx context.Context, input *RoomMessageCreatedInput) (*kernel.NoOutput, error) {

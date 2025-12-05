@@ -6,6 +6,7 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/utils"
 )
 
 var _ SendRoomMessageUseCase = (*sendRoomMessageUseCase)(nil)
@@ -40,13 +41,22 @@ func NewSendRoomMessageUseCase(
 	eventIDGenerator event.IDGenerator,
 	roomshipFinder domain.RoomshipFinderByUserIDAndRoomID,
 	messageCreator domain.RoomMessageCreator,
-) SendRoomMessageUseCase {
+) (SendRoomMessageUseCase, error) {
+	if err := utils.CheckInterfaces(
+		messageIDGenerator,
+		eventIDGenerator,
+		roomshipFinder,
+		messageCreator,
+	); err != nil {
+		return nil, err
+	}
+
 	return &sendRoomMessageUseCase{
 		messageIDGenerator: messageIDGenerator,
 		eventIDGenerator:   eventIDGenerator,
 		roomshipFinder:     roomshipFinder,
 		messageCreator:     messageCreator,
-	}
+	}, nil
 }
 
 func (uc *sendRoomMessageUseCase) Execute(ctx context.Context, input *SendRoomMessageInput) (*kernel.NoOutput, error) {

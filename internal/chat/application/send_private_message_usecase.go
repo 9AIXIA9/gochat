@@ -6,6 +6,7 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/utils"
 )
 
 var _ SendPrivateMessageUseCase = (*sendPrivateMessageUseCase)(nil)
@@ -40,13 +41,21 @@ func NewSendPrivateMessageUseCase(
 	messageIDGenerator kernel.MessageIDGenerator,
 	eventIDGenerator event.IDGenerator,
 	messageCreator domain.PrivateMessageCreator,
-) SendPrivateMessageUseCase {
+) (SendPrivateMessageUseCase, error) {
+	if err := utils.CheckInterfaces(
+		exister,
+		messageIDGenerator,
+		eventIDGenerator,
+		messageCreator,
+	); err != nil {
+		return nil, err
+	}
 	return &sendPrivateMessageUseCase{
 		exister:            exister,
 		messageIDGenerator: messageIDGenerator,
 		eventIDGenerator:   eventIDGenerator,
 		messageCreator:     messageCreator,
-	}
+	}, nil
 }
 
 func (uc *sendPrivateMessageUseCase) Execute(ctx context.Context, input *SendPrivateMessageInput) (*kernel.NoOutput, error) {

@@ -41,10 +41,16 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	messageIDGenerator := provideMessageIDGenerator()
 	privateMessageRepository := provideChatPrivateMessageRepository(db, eventRepository)
 	friendshipRepository := provideChatFriendshipRepository(db)
-	sendPrivateMessageUseCase := provideSendPrivateMessageUseCase(messageIDGenerator, eventIDGenerator, privateMessageRepository, friendshipRepository)
+	sendPrivateMessageUseCase, err := provideSendPrivateMessageUseCase(messageIDGenerator, eventIDGenerator, privateMessageRepository, friendshipRepository)
+	if err != nil {
+		return nil, err
+	}
 	roomshipRepository := provideChatRoomshipRepository(db)
 	roomMessageRepository := provideChatRoomMessageRepository(db, eventRepository)
-	sendRoomMessageUseCase := provideSendRoomMessageUseCase(messageIDGenerator, eventIDGenerator, roomshipRepository, roomMessageRepository)
+	sendRoomMessageUseCase, err := provideSendRoomMessageUseCase(messageIDGenerator, eventIDGenerator, roomshipRepository, roomMessageRepository)
+	if err != nil {
+		return nil, err
+	}
 	roomRepository := provideRoomshipRoomRepository(db, eventRepository)
 	roomIDGenerator := provideRoomshipRoomIDGenerator()
 	roomNumberGenerator, err := provideRoomshipRoomNumberGenerator(appConfig)
@@ -116,11 +122,23 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	diEmailServiceAvailable := provideEmailAvailable(dialer)
 	userCreatedUseCase := provideAuthUserCreatedUseCase(eventIDGenerator, eventRepository, userRepository)
 	repositoryUserRepository := provideChatUserRepository(db)
-	applicationUserCreatedUseCase := provideChatUserCreatedUseCase(repositoryUserRepository)
+	applicationUserCreatedUseCase, err := provideChatUserCreatedUseCase(repositoryUserRepository)
+	if err != nil {
+		return nil, err
+	}
 	repositoryRoomRepository := provideChatRoomRepository(db)
-	roomCreatedUseCase := provideChatRoomCreatedUseCase(repositoryRoomRepository)
-	privateMessageCreatedUseCase := provideChatPrivateMessageCreatedUseCase(eventIDGenerator, eventRepository, privateMessageRepository)
-	roomMessageCreatedUseCase := provideChatRoomMessageCreatedUseCase(eventIDGenerator, eventRepository, roomshipRepository, roomMessageRepository)
+	roomCreatedUseCase, err := provideChatRoomCreatedUseCase(repositoryRoomRepository)
+	if err != nil {
+		return nil, err
+	}
+	privateMessageCreatedUseCase, err := provideChatPrivateMessageCreatedUseCase(eventIDGenerator, eventRepository, privateMessageRepository)
+	if err != nil {
+		return nil, err
+	}
+	roomMessageCreatedUseCase, err := provideChatRoomMessageCreatedUseCase(eventIDGenerator, eventRepository, roomshipRepository, roomMessageRepository)
+	if err != nil {
+		return nil, err
+	}
 	emailNotifier := provideEmailNotifier(appConfig, dialer)
 	welcomeEmailNotificationRequestedUseCase := provideNotificationWelcomeEmailNotificationRequestedUseCase(emailNotifier)
 	privateMessageNotifier := providePrivateMessageNotifier(manager)
