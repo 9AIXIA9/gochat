@@ -34,20 +34,16 @@ func LoadRoomMessage(
 }
 
 func CreateRoomMessage(
-	room *Room,
+	roomID kernel.RoomID,
 	senderID kernel.UserID,
 	content string,
 	messageIDGenerator kernel.MessageIDGenerator,
 	eventIDGenerator event.IDGenerator,
 ) (*RoomMessage, error) {
-	if !room.IsMember(senderID) {
-		return nil, ErrNotBelongToRoom
-	}
-
 	message := &RoomMessage{
 		id:           messageIDGenerator.Generate(),
 		senderID:     senderID,
-		roomID:       room.id,
+		roomID:       roomID,
 		content:      content,
 		sentAt:       time.Now().UTC(),
 		eventManager: event.NewEventManager(),

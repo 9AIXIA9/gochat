@@ -29,13 +29,13 @@ type roomMessageCreatedUseCase struct {
 	eventIDGenerator  event.IDGenerator
 	creator           event.UnpublishedEventCreator
 	roomMessageFinder domain.RoomMessageFinder
-	roomFinder        domain.RoomFinderByID
+	roomFinder        domain.RoomshipsFinderByRoomID
 }
 
 func NewRoomMessageCreatedUseCase(
 	eventIDGenerator event.IDGenerator,
 	roomMessageFinder domain.RoomMessageFinder,
-	roomFinder domain.RoomFinderByID,
+	roomFinder domain.RoomshipsFinderByRoomID,
 	creator event.UnpublishedEventCreator,
 ) RoomMessageCreatedUseCase {
 	return &roomMessageCreatedUseCase{
@@ -52,7 +52,7 @@ func (uc *roomMessageCreatedUseCase) Execute(ctx context.Context, input *RoomMes
 		return nil, err
 	}
 
-	room, err := uc.roomFinder.FindByID(ctx, message.RoomID())
+	roomships, err := uc.roomFinder.FindsByID(ctx, message.RoomID())
 	if err != nil {
 		if errors.Is(err, myErrors.ErrNotFound) {
 			return nil, nil
@@ -61,11 +61,10 @@ func (uc *roomMessageCreatedUseCase) Execute(ctx context.Context, input *RoomMes
 		return nil, err
 	}
 
-	recipients := room.Members()
-	for i, recipient := range recipients {
-		if recipient == message.SenderID() {
-			recipients = append(recipients[:i], recipients[i+1:]...)
-			break
+	recipients := make([]kernel.UserID, 0, len(roomships))
+	for _, roomship := range roomships {
+		if roomship.UserID() != message.SenderID() {
+			recipients = append(recipients, roomship.UserID())
 		}
 	}
 

@@ -31,32 +31,32 @@ func (i *SendRoomMessageInput) Validate() error {
 type sendRoomMessageUseCase struct {
 	messageIDGenerator kernel.MessageIDGenerator
 	eventIDGenerator   event.IDGenerator
-	roomFinder         domain.RoomFinderByID
+	roomshipFinder     domain.RoomshipFinderByUserIDAndRoomID
 	messageCreator     domain.RoomMessageCreator
 }
 
 func NewSendRoomMessageUseCase(
 	messageIDGenerator kernel.MessageIDGenerator,
 	eventIDGenerator event.IDGenerator,
-	roomFinder domain.RoomFinderByID,
+	roomshipFinder domain.RoomshipFinderByUserIDAndRoomID,
 	messageCreator domain.RoomMessageCreator,
 ) SendRoomMessageUseCase {
 	return &sendRoomMessageUseCase{
 		messageIDGenerator: messageIDGenerator,
 		eventIDGenerator:   eventIDGenerator,
-		roomFinder:         roomFinder,
+		roomshipFinder:     roomshipFinder,
 		messageCreator:     messageCreator,
 	}
 }
 
 func (uc *sendRoomMessageUseCase) Execute(ctx context.Context, input *SendRoomMessageInput) (*kernel.NoOutput, error) {
-	room, err := uc.roomFinder.FindByID(ctx, input.RoomID)
+	roomship, err := uc.roomshipFinder.FindByUserIDAndRoomID(ctx, input.RoomID, input.SenderID)
 	if err != nil {
 		return nil, err
 	}
 
 	message, err := domain.CreateRoomMessage(
-		room,
+		roomship.RoomID(),
 		input.SenderID,
 		input.Content,
 		uc.messageIDGenerator,

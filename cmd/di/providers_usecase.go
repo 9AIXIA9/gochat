@@ -117,10 +117,10 @@ func provideSendPrivateMessageUseCase(
 func provideSendRoomMessageUseCase(
 	messageIDGen kernel.MessageIDGenerator,
 	eventIDGen event.IDGenerator,
-	roomRepo chatDomain.RoomRepository,
+	roomshipRepo chatDomain.RoomshipRepository,
 	messageRepo chatDomain.RoomMessageRepository,
 ) chatApp.SendRoomMessageUseCase {
-	return chatApp.NewSendRoomMessageUseCase(messageIDGen, eventIDGen, roomRepo, messageRepo)
+	return chatApp.NewSendRoomMessageUseCase(messageIDGen, eventIDGen, roomshipRepo, messageRepo)
 }
 func provideCreateRoomUseCase(
 	encryptor roomshipDomain.Encryptor,
@@ -309,10 +309,10 @@ func provideChatPrivateMessageCreatedUseCase(
 func provideChatRoomMessageCreatedUseCase(
 	eventIDGen event.IDGenerator,
 	eventRepo event.Repository,
-	roomRepo chatDomain.RoomRepository,
+	roomshipRepo chatDomain.RoomshipRepository,
 	messageRepo chatDomain.RoomMessageRepository,
 ) chatApp.RoomMessageCreatedUseCase {
-	return chatApp.NewRoomMessageCreatedUseCase(eventIDGen, messageRepo, roomRepo, eventRepo)
+	return chatApp.NewRoomMessageCreatedUseCase(eventIDGen, messageRepo, roomshipRepo, eventRepo)
 }
 func provideNotificationWelcomeEmailNotificationRequestedUseCase(emailNotifier notificationApp.WelcomeEmailNotifier) notificationApp.WelcomeEmailNotificationRequestedUseCase {
 	return notificationApp.NewWelcomeEmailNotificationRequestedUseCase(emailNotifier)

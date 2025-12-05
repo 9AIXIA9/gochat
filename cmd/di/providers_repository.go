@@ -44,6 +44,7 @@ var RepoSet = wire.NewSet(
 
 	wire.Bind(new(chatDomain.UserRepository), new(*chatRepo.UserRepository)),
 	wire.Bind(new(chatDomain.RoomRepository), new(*chatRepo.RoomRepository)),
+	wire.Bind(new(chatDomain.RoomshipRepository), new(*chatRepo.RoomshipRepository)),
 	wire.Bind(new(chatDomain.PrivateMessageRepository), new(*chatRepo.PrivateMessageRepository)),
 	wire.Bind(new(chatDomain.RoomMessageRepository), new(*chatRepo.RoomMessageRepository)),
 
@@ -65,6 +66,7 @@ var RepoSet = wire.NewSet(
 	provideChatRoomRepository,
 	provideChatPrivateMessageRepository,
 	provideChatRoomMessageRepository,
+	provideChatRoomshipRepository,
 	provideRoomshipUserRepository,
 	provideRoomshipRoomRepository,
 	provideRoomshipMemberRequestRepository,
@@ -120,6 +122,9 @@ func provideChatUserRepository(db *gorm.DB) *chatRepo.UserRepository {
 }
 func provideChatRoomRepository(db *gorm.DB) *chatRepo.RoomRepository {
 	return chatRepo.NewRoomRepository(db)
+}
+func provideChatRoomshipRepository(db *gorm.DB) *chatRepo.RoomshipRepository {
+	return chatRepo.NewRoomshipRepository(db)
 }
 func provideChatPrivateMessageRepository(db *gorm.DB, eventRepo event.Repository) *chatRepo.PrivateMessageRepository {
 	return chatRepo.NewPrivateMessageRepository(db, eventRepo)
