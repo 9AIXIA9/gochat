@@ -1,10 +1,12 @@
 package http
 
 import (
+	"errors"
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/infrastructure/validator"
 	"gochat/internal/roomship/application"
 	"gochat/internal/roomship/domain"
+	myErrors "gochat/internal/shared/errors"
 	sharedHttp "gochat/internal/shared/http"
 	"gochat/internal/shared/kernel"
 	"time"
@@ -44,6 +46,8 @@ func NewCreateRoomHandler(useCase application.CreateRoomUseCase, validator *vali
 		},
 		func(ginContext *gin.Context, err error) {
 			switch {
+			case errors.Is(err, myErrors.ErrEmptyInput):
+				sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty")
 			default:
 				zap.L().Error("CreateRoomHandler error", zap.Error(err))
 				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
