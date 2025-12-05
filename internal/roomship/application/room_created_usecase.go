@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	chatDomain "gochat/internal/chat/domain"
 	"gochat/internal/roomship/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
@@ -27,20 +28,23 @@ type roomCreatedUseCase struct {
 	roomshipIDGenerator domain.RoomshipIDGenerator
 	idGenerator         event.IDGenerator
 	finder              domain.RoomFinderByID
-	creator             domain.RoomshipCreator
+	roomshipCreator     domain.RoomshipCreator
+	eventCreator        event.UnpublishedEventsCreator
 }
 
 func NewRoomCreatedUseCase(
 	roomshipIDGenerator domain.RoomshipIDGenerator,
 	idGenerator event.IDGenerator,
 	finder domain.RoomFinderByID,
-	creator domain.RoomshipCreator,
+	roomshipCreator domain.RoomshipCreator,
+	eventCreator event.UnpublishedEventsCreator,
 ) (RoomCreatedUseCase, error) {
 	if err := utils.CheckInterfaces(
 		roomshipIDGenerator,
 		idGenerator,
 		finder,
-		creator,
+		roomshipCreator,
+		eventCreator,
 	); err != nil {
 		return nil, err
 	}
@@ -49,7 +53,8 @@ func NewRoomCreatedUseCase(
 		roomshipIDGenerator: roomshipIDGenerator,
 		idGenerator:         idGenerator,
 		finder:              finder,
-		creator:             creator,
+		roomshipCreator:     roomshipCreator,
+		eventCreator:        eventCreator,
 	}, nil
 }
 
@@ -70,7 +75,16 @@ func (uc *roomCreatedUseCase) Execute(ctx context.Context, input *RoomCreatedInp
 		return nil, err
 	}
 
-	if err := uc.creator.Create(ctx, roomship); err != nil {
+	if err := uc.roomshipCreator.Create(ctx, roomship); err != nil {
+		return nil, err
+	}
+
+	chatEvCreated, err := chatDomain.NewRoomCreatedEvent(room.ID(), uc.idGenerator)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := uc.eventCreator.CreateUnpublishedEvents(ctx, []event.Event{chatEvCreated}); err != nil {
 		return nil, err
 	}
 

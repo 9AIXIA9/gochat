@@ -249,12 +249,14 @@ func provideRoomshipRoomCreatedUseCase(
 	idGenerator event.IDGenerator,
 	roomRepo domain.RoomRepository,
 	roomshipRepo domain.RoomshipRepository,
+	eventRepo event.Repository,
 ) (roomshipApp.RoomCreatedUseCase, error) {
 	return roomshipApp.NewRoomCreatedUseCase(
 		roomshipIDGenerator,
 		idGenerator,
 		roomRepo,
 		roomshipRepo,
+		eventRepo,
 	)
 }
 func provideRoomshipMemberRequestCreatedUseCase(

@@ -79,6 +79,7 @@ func TestFriendshipCreatedUseCase_Execute(t *testing.T) {
 		mockFinder.EXPECT().FindByID(nil, fixedFriendshipID).Return(mockFriendship, nil),
 		mockIDGenerator.EXPECT().Generate().Return(fixedEventID),
 		mockIDGenerator.EXPECT().Generate().Return(fixedEventID),
+		mockIDGenerator.EXPECT().Generate().Return(fixedEventID),
 		mockCreator.EXPECT().CreateUnpublishedEvents(nil, gomock.Any()).Return(nil),
 	)
 

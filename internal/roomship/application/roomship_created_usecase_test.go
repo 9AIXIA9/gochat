@@ -99,6 +99,7 @@ func TestRoomshipCreatedUseCase_Execute(t *testing.T) {
 		mockRoomshipFinderByID.EXPECT().FindByID(nil, fixedRoomshipID).Return(mockRoomship, nil),
 		mockRoomshipFinderByRoomID.EXPECT().FindsByRoomID(nil, fixedRoomID).Return(mockOldRoomships, nil),
 		mockIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(len(mockOldRoomships)),
+		mockIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(1),
 		mockCreator.EXPECT().CreateUnpublishedEvents(nil, gomock.Any()).Return(nil),
 	)
 

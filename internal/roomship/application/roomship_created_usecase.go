@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	chatDomain "gochat/internal/chat/domain"
 	notificationDomain "gochat/internal/notification/domain"
 	"gochat/internal/roomship/domain"
 	myErrors "gochat/internal/shared/errors"
@@ -54,8 +55,6 @@ func NewRoomshipCreatedUseCase(
 }
 
 func (uc *roomshipCreatedUseCase) Execute(ctx context.Context, input *RoomshipCreatedInput) (*kernel.NoOutput, error) {
-	//TODO 同步到 chat上下文
-
 	newRoomship, err := uc.roomshipFinderByID.FindByID(ctx, input.RoomshipID)
 	if err != nil {
 		return nil, err
@@ -68,7 +67,7 @@ func (uc *roomshipCreatedUseCase) Execute(ctx context.Context, input *RoomshipCr
 
 	evs := make([]event.Event, 0, len(oldRoomships))
 	for _, oldRoomship := range oldRoomships {
-		ev, err := notificationDomain.NewSystemMessageNotificationRequestedEvent(
+		notificationEvRequested, err := notificationDomain.NewSystemMessageNotificationRequestedEvent(
 			oldRoomship.UserID(),
 			uc.buildContent(
 				newRoomship.UserID(),
@@ -79,8 +78,20 @@ func (uc *roomshipCreatedUseCase) Execute(ctx context.Context, input *RoomshipCr
 		if err != nil {
 			return nil, err
 		}
-		evs = append(evs, ev)
+		evs = append(evs, notificationEvRequested)
 	}
+
+	chatEvCreated, err := chatDomain.NewRoomshipCreatedEvent(
+		chatDomain.RoomshipID(newRoomship.ID()),
+		newRoomship.UserID(),
+		newRoomship.RoomID(),
+		uc.idGenerator,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	evs = append(evs, chatEvCreated)
 
 	if err := uc.creator.CreateUnpublishedEvents(ctx, evs); err != nil {
 		return nil, err

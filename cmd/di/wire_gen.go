@@ -158,7 +158,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 		return nil, err
 	}
 	roomshipIDGenerator := provideRoomshipRoomshipIDGenerator()
-	applicationRoomCreatedUseCase, err := provideRoomshipRoomCreatedUseCase(roomshipIDGenerator, eventIDGenerator, roomRepository, repositoryRoomshipRepository)
+	applicationRoomCreatedUseCase, err := provideRoomshipRoomCreatedUseCase(roomshipIDGenerator, eventIDGenerator, roomRepository, repositoryRoomshipRepository, eventRepository)
 	if err != nil {
 		return nil, err
 	}
