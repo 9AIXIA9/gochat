@@ -10,11 +10,7 @@ type PrivateMessage struct {
 	Content     string           `gorm:"type:text;not null"`
 	RecipientID kernel.UserID    `gorm:"type:char(36);not null;index"`
 	SenderID    kernel.UserID    `gorm:"type:char(36);not null;index"`
-
-	SentAt time.Time
-
-	Sender    *User `gorm:"foreignKey:SenderID;references:ID"`
-	Recipient *User `gorm:"foreignKey:RecipientID;references:ID"`
+	SentAt      time.Time
 }
 
 func (*PrivateMessage) TableName() string {

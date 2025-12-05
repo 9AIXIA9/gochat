@@ -94,6 +94,8 @@ func provideDatabaseMigrated(mysql *gorm.DB) databaseMigrated {
 		&chatModel.Room{},
 		&chatModel.PrivateMessage{},
 		&chatModel.RoomMessage{},
+		&chatModel.Friendship{},
+		&chatModel.Roomship{},
 		&roomshipModel.User{},
 		&roomshipModel.Room{},
 		&roomshipModel.Roomship{},
