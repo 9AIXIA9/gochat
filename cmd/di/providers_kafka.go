@@ -65,8 +65,6 @@ func provideKafkaRouter(
 	// chat
 	chatUserCreated chatApp.UserCreatedUseCase,
 	chatRoomCreated chatApp.RoomCreatedUseCase,
-	chatRoomJoined chatApp.RoomJoinedUseCase,
-	chatRoomLeft chatApp.RoomLeftUseCase,
 	chatPrivateMessageCreated chatApp.PrivateMessageCreatedUseCase,
 	chatRoomMessageCreated chatApp.RoomMessageCreatedUseCase,
 	// notification
@@ -109,8 +107,6 @@ func provideKafkaRouter(
 	{
 		router.Handle(chatDomain.TopicUserCreated, kafkaInfra.WrapEventHandler(chatEvent.NewUserCreatedEventHandler(chatUserCreated)))
 		router.Handle(chatDomain.TopicRoomCreated, kafkaInfra.WrapEventHandler(chatEvent.NewRoomCreatedEventHandler(chatRoomCreated)))
-		router.Handle(chatDomain.TopicRoomJoined, kafkaInfra.WrapEventHandler(chatEvent.NewRoomJoinedEventHandler(chatRoomJoined)))
-		router.Handle(chatDomain.TopicRoomLeft, kafkaInfra.WrapEventHandler(chatEvent.NewRoomLeftEventHandler(chatRoomLeft)))
 		router.Handle(chatDomain.TopicPrivateMessageCreated, kafkaInfra.WrapEventHandler(chatEvent.NewPrivateMessageCreatedEventHandler(chatPrivateMessageCreated)))
 		router.Handle(chatDomain.TopicRoomMessageCreated, kafkaInfra.WrapEventHandler(chatEvent.NewRoomMessageCreatedEventHandler(chatRoomMessageCreated)))
 	}
@@ -164,8 +160,6 @@ func provideTopicsEnsured(appConfig *config.App) kafkaTopicEnsured {
 			// chat
 			chatDomain.TopicUserCreated,
 			chatDomain.TopicRoomCreated,
-			chatDomain.TopicRoomJoined,
-			chatDomain.TopicRoomLeft,
 			chatDomain.TopicPrivateMessageCreated,
 			chatDomain.TopicRoomMessageCreated,
 			// notification

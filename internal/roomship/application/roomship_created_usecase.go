@@ -54,6 +54,8 @@ func NewRoomshipCreatedUseCase(
 }
 
 func (uc *roomshipCreatedUseCase) Execute(ctx context.Context, input *RoomshipCreatedInput) (*kernel.NoOutput, error) {
+	//TODO 同步到 chat上下文
+
 	newRoomship, err := uc.roomshipFinderByID.FindByID(ctx, input.RoomshipID)
 	if err != nil {
 		return nil, err
