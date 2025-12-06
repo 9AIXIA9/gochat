@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"gochat/internal/authorization/domain"
-	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 	"time"
 
@@ -42,7 +41,6 @@ func (m *AccessTokenManager) Generate(userID kernel.UserID) (domain.AccessToken,
 		},
 	}
 
-	// TODO:修改为非对称加密
 	//使用指定的签名方法创建签名对象
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, c)
 
@@ -61,7 +59,7 @@ func (m *AccessTokenManager) Parse(accessToken domain.AccessToken) (kernel.UserI
 	})
 
 	if err != nil || !token.Valid {
-		return "", myErrors.ErrInvalidCredential
+		return "", ErrInvalidToken
 	}
 
 	//验证合理性
@@ -72,16 +70,16 @@ func (m *AccessTokenManager) Parse(accessToken domain.AccessToken) (kernel.UserI
 		return claims.UserID, nil
 	}
 
-	return "", myErrors.ErrInvalidCredential
+	return "", ErrInvalidToken
 }
 
 func (c Claims) Valid() error {
 	if err := c.RegisteredClaims.Valid(); err != nil {
-		return errors.Join(myErrors.ErrInvalidCredential, err)
+		return errors.Join(ErrInvalidToken, err)
 	}
 
 	if len(c.UserID) == 0 {
-		return myErrors.ErrInvalidCredential
+		return ErrInvalidToken
 	}
 
 	return nil

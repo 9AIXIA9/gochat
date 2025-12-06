@@ -63,7 +63,7 @@ func NewLoginHandler(useCase application.LoginUseCase, validator *validator.Vali
 				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "password length is invalid"))
 			case errors.Is(err, myErrors.ErrNotFound):
 				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "user does not exist"))
-			case errors.Is(err, myErrors.ErrInvalidCredential):
+			case errors.Is(err, domain.ErrInvalidPassword):
 				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "wrong account or password"))
 			default:
 				zap.L().Error("login handler failed", zap.Error(err))

@@ -38,7 +38,7 @@ func NewParseAccessTokenUseCase(accessTokenParser domain.AccessTokenParser) (Par
 func (uc *parseAccessTokenUseCase) Execute(_ context.Context, input *ParseAccessTokenInput) (*ParseAccessTokenOutput, error) {
 	userID, err := uc.accessTokenParser.Parse(input.AccessToken)
 	if err != nil {
-		return nil, err
+		return nil, domain.ErrInvalidAccessToken
 	}
 	return &ParseAccessTokenOutput{UserID: userID}, nil
 }

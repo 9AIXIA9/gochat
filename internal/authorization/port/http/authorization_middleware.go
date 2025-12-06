@@ -1,11 +1,9 @@
 package http
 
 import (
-	"errors"
 	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
 	ginutils "gochat/internal/infrastructure/gin"
-	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/http"
 	"gochat/pkg/utils"
 
@@ -37,15 +35,9 @@ func NewAuthorizationMiddleware(useCase application.ParseAccessTokenUseCase) gin
 
 		// 解析token
 		if output, err := useCase.Execute(ginContext.Request.Context(), &application.ParseAccessTokenInput{AccessToken: accessToken}); err != nil {
-			if errors.Is(err, myErrors.ErrInvalidCredential) {
-				ginutils.Response(ginContext, http.ResponseInvalidToken)
-				ginContext.Abort()
-				return
-			} else {
-				ginutils.Response(ginContext, http.ResponseInvalidToken)
-				ginContext.Abort()
-				return
-			}
+			ginutils.Response(ginContext, http.ResponseInvalidToken)
+			ginContext.Abort()
+			return
 		} else {
 			// 写入到 gin.Context 供 gin handlers 使用
 			ginutils.SetUserID(ginContext, output.UserID)
