@@ -5,6 +5,7 @@ import (
 	"gochat/internal/authorization/domain"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/utils"
 )
 
 type SignUpUseCase kernel.UseCase[*SignUpInput, *SignUpOutput]
@@ -39,14 +40,23 @@ func NewSignUpUseCase(
 	numberGenerator domain.UserNumberGenerator,
 	encryptor domain.Encryptor,
 	userCreator domain.UserCreator,
-) SignUpUseCase {
+) (SignUpUseCase, error) {
+	if err := utils.CheckInterfaces(
+		eventIDGenerator,
+		userIDGenerator,
+		numberGenerator,
+		encryptor,
+		userCreator,
+	); err != nil {
+		return nil, err
+	}
 	return &signUpUseCase{
 		eventIDGenerator: eventIDGenerator,
 		userIDGenerator:  userIDGenerator,
 		numberGenerator:  numberGenerator,
 		encryptor:        encryptor,
 		userCreator:      userCreator,
-	}
+	}, nil
 }
 
 func (uc *signUpUseCase) Execute(ctx context.Context, input *SignUpInput) (*SignUpOutput, error) {

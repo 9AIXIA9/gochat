@@ -38,5 +38,5 @@ func NewUserCreatedUseCase(
 }
 
 func (uc *userCreatedUseCase) Execute(ctx context.Context, input *UserCreatedInput) (*kernel.NoOutput, error) {
-	return nil, uc.userSaver.Save(ctx, domain.CreateUser(input.UserID))
+	return nil, uc.userSaver.Save(ctx, domain.LoadUser(input.UserID))
 }

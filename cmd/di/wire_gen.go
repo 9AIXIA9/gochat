@@ -27,7 +27,10 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	}
 	eventRepository := provideEventRepository(db)
 	userRepository := provideAuthorizationUserRepository(db, eventRepository)
-	signUpUseCase := provideSignUpUseCase(eventIDGenerator, userIDGenerator, userNumberGenerator, hasher, userRepository)
+	signUpUseCase, err := provideSignUpUseCase(eventIDGenerator, userIDGenerator, userNumberGenerator, hasher, userRepository)
+	if err != nil {
+		return nil, err
+	}
 	accessTokenManager := provideAccessTokenManager(appConfig)
 	refreshTokenGenerator := provideRefreshTokenGenerator(appConfig)
 	client, err := provideRedis(appConfig)
@@ -35,9 +38,18 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 		return nil, err
 	}
 	refreshTokenRepository := provideAuthorizationRefreshTokenRepository(client)
-	loginUseCase := provideLoginUseCase(eventIDGenerator, hasher, accessTokenManager, refreshTokenGenerator, userRepository, refreshTokenRepository)
-	refreshAccessTokenUseCase := provideRefreshAccessTokenUseCase(refreshTokenRepository, accessTokenManager, refreshTokenGenerator)
-	parseAccessTokenUseCase := provideParseAccessTokenUseCase(accessTokenManager)
+	loginUseCase, err := provideLoginUseCase(hasher, accessTokenManager, refreshTokenGenerator, userRepository, refreshTokenRepository)
+	if err != nil {
+		return nil, err
+	}
+	refreshAccessTokenUseCase, err := provideRefreshAccessTokenUseCase(refreshTokenRepository, accessTokenManager, refreshTokenGenerator)
+	if err != nil {
+		return nil, err
+	}
+	parseAccessTokenUseCase, err := provideParseAccessTokenUseCase(accessTokenManager)
+	if err != nil {
+		return nil, err
+	}
 	messageIDGenerator := provideMessageIDGenerator()
 	privateMessageRepository := provideChatPrivateMessageRepository(db, eventRepository)
 	friendshipRepository := provideChatFriendshipRepository(db)
@@ -120,7 +132,10 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 		return nil, err
 	}
 	diEmailServiceAvailable := provideEmailAvailable(dialer)
-	userCreatedUseCase := provideAuthUserCreatedUseCase(eventIDGenerator, eventRepository, userRepository)
+	userCreatedUseCase, err := provideAuthUserCreatedUseCase(eventIDGenerator, eventRepository, userRepository)
+	if err != nil {
+		return nil, err
+	}
 	repositoryUserRepository := provideChatUserRepository(db)
 	applicationUserCreatedUseCase, err := provideChatUserCreatedUseCase(repositoryUserRepository)
 	if err != nil {

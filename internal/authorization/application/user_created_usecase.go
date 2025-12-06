@@ -10,6 +10,7 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/utils"
 )
 
 type UserCreatedUseCase kernel.UseCase[*UserCreatedInput, *kernel.NoOutput]
@@ -35,12 +36,20 @@ func NewUserCreatedUseCase(
 	idGenerator event.IDGenerator,
 	creator event.UnpublishedEventsCreator,
 	finder domain.UserFinderByID,
-) UserCreatedUseCase {
+) (UserCreatedUseCase, error) {
+	if err := utils.CheckInterfaces(
+		idGenerator,
+		creator,
+		finder,
+	); err != nil {
+		return nil, err
+	}
+
 	return &userCreatedUseCase{
 		idGenerator: idGenerator,
 		creator:     creator,
 		finder:      finder,
-	}
+	}, nil
 }
 
 func (uc *userCreatedUseCase) Execute(ctx context.Context, input *UserCreatedInput) (*kernel.NoOutput, error) {

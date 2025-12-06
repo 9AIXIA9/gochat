@@ -1,11 +1,13 @@
 package application_test
 
 import (
-	"gochat/internal/friendship/application"
-	"gochat/internal/friendship/domain"
-	"gochat/internal/friendship/domain/mocks"
+	"gochat/internal/authorization/application"
+	"gochat/internal/authorization/domain"
+	"gochat/internal/authorization/domain/mocks"
 	myErrors "gochat/internal/shared/errors"
+	eventMock "gochat/internal/shared/event/mocks"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -31,17 +33,21 @@ func TestNewUserCreatedUseCase(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	saver := mocks.NewMockUserSaver(ctrl)
+	mockIDGenerator := eventMock.NewMockIDGenerator(ctrl)
+	mockCreator := eventMock.NewMockUnpublishedEventsCreator(ctrl)
+	mockFinder := mocks.NewMockUserFinderByID(ctrl)
 
 	useCase, err := application.NewUserCreatedUseCase(
-		saver,
+		mockIDGenerator,
+		mockCreator,
+		mockFinder,
 	)
 
 	require.NoError(t, err)
 	require.NotNil(t, useCase)
 
 	useCaseWithNil, err := application.NewUserCreatedUseCase(
-		nil,
+		nil, nil, nil,
 	)
 
 	require.ErrorIs(t, err, myErrors.ErrEmptyPointer)
@@ -52,17 +58,31 @@ func TestUserCreatedUseCase_Execute(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	saver := mocks.NewMockUserSaver(ctrl)
+	mockIDGenerator := eventMock.NewMockIDGenerator(ctrl)
+	mockCreator := eventMock.NewMockUnpublishedEventsCreator(ctrl)
+	mockFinder := mocks.NewMockUserFinderByID(ctrl)
 
 	useCase, err := application.NewUserCreatedUseCase(
-		saver,
+		mockIDGenerator,
+		mockCreator,
+		mockFinder,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, useCase)
 
-	user := domain.LoadUser(fixedUserID)
+	mockUser := domain.LoadUser(
+		fixedUserID,
+		fixedEmail,
+		fixedUserNumber,
+		fixedEncryptedPassword,
+		time.Now().UTC(),
+	)
 
-	saver.EXPECT().Save(gomock.Any(), user).Return(nil).Times(1)
+	gomock.InOrder(
+		mockFinder.EXPECT().FindByID(nil, fixedUserID).Return(mockUser, nil).Times(1),
+		mockIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(4),
+		mockCreator.EXPECT().CreateUnpublishedEvents(nil, gomock.Any()).Return(nil).Times(1),
+	)
 
 	_, err = useCase.Execute(nil, &application.UserCreatedInput{
 		UserID: fixedUserID,

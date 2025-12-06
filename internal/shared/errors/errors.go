@@ -26,7 +26,6 @@ var (
 	ErrEmptyInput        = errors.New("logic: input is empty")
 	ErrExpired           = errors.New("logic: expired")
 	ErrExceedMaxValue    = errors.New("logic: exceed max value")
-	ErrAlreadyDone       = errors.New("logic: already done")
 	ErrNotBelongTo       = errors.New("logic: not belong to")
 	ErrPermissionDenied  = errors.New("logic: permission denied")
 )

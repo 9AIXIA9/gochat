@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+//TODO 还是要有创建逻辑
+
 type PrivateMessage struct {
 	id          kernel.MessageID
 	senderID    kernel.UserID

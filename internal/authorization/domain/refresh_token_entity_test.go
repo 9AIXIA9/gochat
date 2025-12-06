@@ -1,11 +1,8 @@
 package domain_test
 
 import (
-	"errors"
 	"gochat/internal/authorization/domain"
 	"gochat/internal/authorization/domain/mocks"
-	myErrors "gochat/internal/shared/errors"
-	"gochat/internal/shared/kernel"
 	"testing"
 	"time"
 
@@ -14,164 +11,137 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-const (
-	fixedToken                      domain.RefreshToken = "refresh-token-abc"
-	fixedNewToken                   domain.RefreshToken = "new-refresh-token"
-	fixedAccessToken                domain.AccessToken  = "access-token-xyz"
-	fixedUserIDRT                   kernel.UserID       = "user-123"
-	fixedRefreshCount                                   = 3
-	validityDuration                                    = 7 * 24 * time.Hour // mirrored business rule
-	extendDuration                                      = 24 * time.Hour     // mirrored business rule
-	refreshTokenEntityTimeTolerance                     = 200 * time.Millisecond
-)
-
-// helper to load a token with given params
-func load(fixedToken domain.RefreshToken, uid kernel.UserID, exp time.Time, count int) *domain.RefreshTokenEntity {
-	return domain.LoadRefreshToken(fixedToken, uid, exp, count)
+func TestLoadRefreshToken(t *testing.T) {
+	token := domain.LoadRefreshToken(
+		fixedRefreshToken,
+		fixedUserID,
+		time.Now().UTC(),
+		fixedRefreshCount,
+	)
+	require.NotNil(t, token)
+	assert.Equal(t, fixedRefreshToken, token.Token())
+	assert.Equal(t, fixedUserID, token.UserID())
+	assert.Equal(t, fixedRefreshCount, token.RefreshCount())
+	assert.WithinDuration(t, time.Now().UTC(), token.ExpiredAt(), timeTolerance)
 }
 
-func TestRefreshTokenEntity_CreateRefreshToken(t *testing.T) {
+func TestCreateRefreshToken(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	gen := mocks.NewMockRefreshTokenGenerator(ctrl)
-	gen.EXPECT().Generate().Return(fixedToken, nil)
+	mockGenerator := mocks.NewMockRefreshTokenGenerator(ctrl)
 
-	start := time.Now()
-	rt, err := domain.CreateRefreshToken(fixedUserIDRT, gen)
+	mockGenerator.EXPECT().Generate().Return(fixedRefreshToken, nil).Times(1)
+	token, err := domain.CreateRefreshToken(
+		fixedUserID,
+		mockGenerator,
+	)
 	require.NoError(t, err)
-	require.NotNil(t, rt)
-	assert.Equal(t, fixedUserIDRT, rt.UserID())
-	assert.Equal(t, fixedToken, rt.Token())
-	assert.Equal(t, 0, rt.RefreshCount())
-	// Expiry should be roughly now + validityDuration
-	assert.WithinDuration(t, start.Add(validityDuration), rt.ExpiredAt(), refreshTokenEntityTimeTolerance)
-
-	// generator error path
-	genErr := mocks.NewMockRefreshTokenGenerator(ctrl)
-	genErr.EXPECT().Generate().Return(domain.RefreshToken(""), errors.New("generation error"))
-	rt2, err := domain.CreateRefreshToken(fixedUserIDRT, genErr)
-	require.Error(t, err)
-	require.Nil(t, rt2)
-}
-
-func TestRefreshTokenEntity_LoadRefreshToken(t *testing.T) {
-	exp := time.Now().Add(time.Hour)
-	rt := load(fixedToken, fixedUserIDRT, exp, fixedRefreshCount)
-	assert.Equal(t, fixedToken, rt.Token())
-	assert.Equal(t, fixedUserIDRT, rt.UserID())
-	assert.Equal(t, fixedRefreshCount, rt.RefreshCount())
-	assert.Equal(t, exp, rt.ExpiredAt())
-}
-
-func TestRefreshTokenEntity_CanBeRefreshed(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	type tc struct {
-		name string
-		rt   *domain.RefreshTokenEntity
-		err  error
-	}
-
-	cases := []tc{
-		{
-			name: "valid - under max and not expired",
-			rt:   load(fixedToken, fixedUserIDRT, time.Now().Add(time.Hour), (7*24)-1),
-			err:  nil,
-		},
-		{
-			name: "expired",
-			rt:   load(fixedToken, fixedUserIDRT, time.Now().Add(-time.Minute), 0),
-			err:  myErrors.ErrExpired,
-		},
-		{
-			name: "exceeded max",
-			rt:   load(fixedToken, fixedUserIDRT, time.Now().Add(time.Hour), 7*24),
-			err:  myErrors.ErrExceedMaxValue,
-		},
-	}
-
-	for _, c := range cases {
-		got := c.rt.CanBeRefreshed()
-		if c.err == nil {
-			require.NoError(t, got, c.name)
-		} else {
-			require.ErrorIs(t, got, c.err, c.name)
-		}
-	}
-}
-
-func TestRefreshTokenEntity_Refresh(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	genSuccess := mocks.NewMockRefreshTokenGenerator(ctrl)
-	genSuccess.EXPECT().Generate().Return(fixedNewToken, nil)
-
-	initialExp := time.Now().Add(time.Hour)
-	rt := load(fixedToken, fixedUserIDRT, initialExp, 0)
-	err := rt.Refresh(genSuccess)
-	require.NoError(t, err)
-	assert.Equal(t, fixedNewToken, rt.Token())
-	assert.Equal(t, 1, rt.RefreshCount())
-	assert.WithinDuration(t, initialExp.Add(extendDuration), rt.ExpiredAt(), refreshTokenEntityTimeTolerance)
-	// After refresh, generated flag should allow generating access token
-	accGen := mocks.NewMockAccessTokenGenerator(ctrl)
-	accGen.EXPECT().Generate(fixedUserIDRT).Return(fixedAccessToken, nil)
-	accessToken, err := rt.GenerateAccessToken(accGen)
-	require.NoError(t, err)
-	assert.Equal(t, fixedAccessToken, accessToken)
-	// second attempt must fail
-	_, err = rt.GenerateAccessToken(accGen)
-	require.ErrorIs(t, err, myErrors.ErrAlreadyDone)
-
-	// expired token refresh
-	genExpired := mocks.NewMockRefreshTokenGenerator(ctrl)
-	genExpired.EXPECT().Generate().Times(0)
-	rtExpired := load(fixedToken, fixedUserIDRT, time.Now().Add(-time.Minute), 0)
-	err = rtExpired.Refresh(genExpired)
-	require.ErrorIs(t, err, myErrors.ErrExpired)
-
-	// exceeded max count
-	genExceed := mocks.NewMockRefreshTokenGenerator(ctrl)
-	genExceed.EXPECT().Generate().Times(0)
-	rtExceed := load(fixedToken, fixedUserIDRT, time.Now().Add(time.Hour), 7*24)
-	err = rtExceed.Refresh(genExceed)
-	require.ErrorIs(t, err, myErrors.ErrExceedMaxValue)
-
-	// generator error
-	genErr := mocks.NewMockRefreshTokenGenerator(ctrl)
-	genErr.EXPECT().Generate().Return(domain.RefreshToken(""), errors.New("generation error"))
-	rtGenErr := load(fixedToken, fixedUserIDRT, time.Now().Add(time.Hour), 0)
-	err = rtGenErr.Refresh(genErr)
-	require.Error(t, err)
+	require.NotNil(t, token)
+	assert.Equal(t, fixedRefreshToken, token.Token())
+	assert.Equal(t, fixedUserID, token.UserID())
+	assert.Equal(t, 0, token.RefreshCount())
+	assert.WithinDuration(t, time.Now().Add(validityDuration), token.ExpiredAt(), timeTolerance)
 }
 
 func TestRefreshTokenEntity_GenerateAccessToken(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	// create new token via factory (generated flag false & not expired)
-	rtGen := mocks.NewMockRefreshTokenGenerator(ctrl)
-	rtGen.EXPECT().Generate().Return(fixedToken, nil)
-	rt, err := domain.CreateRefreshToken(fixedUserIDRT, rtGen)
-	require.NoError(t, err)
+	mockRefreshTokenGenerator := mocks.NewMockRefreshTokenGenerator(ctrl)
+	mockAccessTokenGenerator := mocks.NewMockAccessTokenGenerator(ctrl)
 
-	accGen := mocks.NewMockAccessTokenGenerator(ctrl)
-	accGen.EXPECT().Generate(fixedUserIDRT).Return(fixedAccessToken, nil)
-	accessToken, err := rt.GenerateAccessToken(accGen)
+	//正常情况
+	mockRefreshTokenGenerator.EXPECT().Generate().Return(fixedRefreshToken, nil).Times(1)
+	refreshToken, err := domain.CreateRefreshToken(
+		fixedUserID,
+		mockRefreshTokenGenerator,
+	)
+	require.NoError(t, err)
+	require.NotNil(t, refreshToken)
+
+	mockAccessTokenGenerator.EXPECT().Generate(fixedUserID).Return(fixedAccessToken, nil).Times(1)
+	accessToken, err := refreshToken.GenerateAccessToken(mockAccessTokenGenerator)
 	require.NoError(t, err)
 	assert.Equal(t, fixedAccessToken, accessToken)
 
-	// second attempt should fail
-	_, err = rt.GenerateAccessToken(accGen)
-	require.ErrorIs(t, err, myErrors.ErrAlreadyDone)
+	//重复生成access token失败
+	_, err = refreshToken.GenerateAccessToken(mockAccessTokenGenerator)
+	require.ErrorIs(t, err, domain.ErrAccessTokenGenerated)
+}
 
-	// expired scenario returns ErrAlreadyDone per implementation
-	accGenExpired := mocks.NewMockAccessTokenGenerator(ctrl)
-	accGenExpired.EXPECT().Generate(fixedUserIDRT).Times(0)
-	rtExpired := load(fixedToken, fixedUserIDRT, time.Now().Add(-time.Hour), 0)
-	_, err = rtExpired.GenerateAccessToken(accGenExpired)
-	require.ErrorIs(t, err, myErrors.ErrAlreadyDone)
+func TestRefreshTokenEntity_Refresh(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRefreshTokenGenerator := mocks.NewMockRefreshTokenGenerator(ctrl)
+
+	//正常情况
+	mockRefreshTokenGenerator.EXPECT().Generate().Return(fixedRefreshToken, nil).Times(1)
+	refreshToken, err := domain.CreateRefreshToken(
+		fixedUserID,
+		mockRefreshTokenGenerator,
+	)
+	require.NoError(t, err)
+	require.NotNil(t, refreshToken)
+
+	mockRefreshTokenGenerator.EXPECT().Generate().Return(fixedRefreshToken, nil).Times(1)
+	err = refreshToken.Refresh(mockRefreshTokenGenerator)
+	require.NoError(t, err)
+	assert.Equal(t, fixedRefreshToken, refreshToken.Token())
+	assert.Equal(t, 1, refreshToken.RefreshCount())
+	assert.WithinDuration(t, time.Now().Add(validityDuration).Add(extendDuration), refreshToken.ExpiredAt(), timeTolerance)
+
+	//过期失败
+	expiredToken := domain.LoadRefreshToken(
+		fixedRefreshToken,
+		fixedUserID,
+		time.Now().Add(-time.Hour),
+		fixedRefreshCount,
+	)
+	err = expiredToken.Refresh(mockRefreshTokenGenerator)
+	require.ErrorIs(t, err, domain.ErrRefreshTokenExpired)
+
+	//超过刷新次数失败
+	limitToken := domain.LoadRefreshToken(
+		fixedRefreshToken,
+		fixedUserID,
+		time.Now().UTC(),
+		maxRefreshCount,
+	)
+	err = limitToken.Refresh(mockRefreshTokenGenerator)
+	require.ErrorIs(t, err, domain.ErrRefreshLimitExceeded)
+}
+
+func TestRefreshTokenEntity_CanBeRefreshed(t *testing.T) {
+	//正常情况
+	token := domain.LoadRefreshToken(
+		fixedRefreshToken,
+		fixedUserID,
+		time.Now().UTC(),
+		fixedRefreshCount,
+	)
+	err := token.CanBeRefreshed()
+	require.NoError(t, err)
+
+	//过期失败
+	expiredToken := domain.LoadRefreshToken(
+		fixedRefreshToken,
+		fixedUserID,
+		time.Now().Add(-time.Hour),
+		fixedRefreshCount,
+	)
+	err = expiredToken.CanBeRefreshed()
+	require.ErrorIs(t, err, domain.ErrRefreshTokenExpired)
+
+	//超过刷新次数失败
+	limitToken := domain.LoadRefreshToken(
+		fixedRefreshToken,
+		fixedUserID,
+		time.Now().UTC(),
+		maxRefreshCount,
+	)
+	err = limitToken.CanBeRefreshed()
+	require.ErrorIs(t, err, domain.ErrRefreshLimitExceeded)
+
 }

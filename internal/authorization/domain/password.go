@@ -33,9 +33,26 @@ func (p Password) Validate() error {
 }
 
 func (p Password) Encrypt(encryptor Encryptor) (PasswordEncrypted, error) {
+	if len(p) == 0 {
+		return "", ErrEmptyPassword
+	}
 	encrypted, err := encryptor.Encrypt(p.String())
 	if err != nil {
 		return "", err
 	}
 	return PasswordEncrypted(encrypted), nil
+}
+
+func (e PasswordEncrypted) Compare(
+	password Password,
+	comparator Comparator,
+) error {
+	if len(e) == 0 {
+		return nil
+	}
+
+	if err := comparator.Compare(e.String(), password.String()); err != nil {
+		return ErrInvalidPassword
+	}
+	return nil
 }

@@ -76,7 +76,10 @@ func provideUnpublishedEventsCreatedCase(
 	publisher event.Publisher,
 	eventRepo event.Repository,
 ) rootapp.UnpublishedEventsCreatedUseCase {
-	return rootapp.NewUnpublishedEventsCreatedUseCase(publisher, eventRepo)
+	return rootapp.NewUnpublishedEventsCreatedUseCase(
+		publisher,
+		eventRepo,
+	)
 }
 
 func provideSignUpUseCase(
@@ -85,29 +88,49 @@ func provideSignUpUseCase(
 	numberGen authDomain.UserNumberGenerator,
 	encryptor authDomain.Encryptor,
 	userRepo authDomain.UserRepository,
-) authApp.SignUpUseCase {
-	return authApp.NewSignUpUseCase(eventIDGen, userIDGen, numberGen, encryptor, userRepo)
+) (authApp.SignUpUseCase, error) {
+	return authApp.NewSignUpUseCase(
+		eventIDGen,
+		userIDGen,
+		numberGen,
+		encryptor,
+		userRepo,
+	)
 }
 
 func provideLoginUseCase(
-	eventIDGen event.IDGenerator,
 	comparator authDomain.Comparator,
 	accessTokenGenerator authDomain.AccessTokenGenerator,
 	refreshTokenGenerator authDomain.RefreshTokenGenerator,
 	userRepo authDomain.UserRepository,
 	refreshTokenRepo authDomain.RefreshTokenRepository,
-) authApp.LoginUseCase {
-	return authApp.NewLoginUseCase(eventIDGen, comparator, userRepo, refreshTokenRepo, accessTokenGenerator, refreshTokenGenerator)
+) (authApp.LoginUseCase, error) {
+	return authApp.NewLoginUseCase(
+		comparator,
+		userRepo,
+		refreshTokenRepo,
+		accessTokenGenerator,
+		refreshTokenGenerator,
+	)
 }
 func provideRefreshAccessTokenUseCase(
 	refreshTokenRepo authDomain.RefreshTokenRepository,
 	accessTokenGenerator authDomain.AccessTokenGenerator,
 	refreshTokenGenerator authDomain.RefreshTokenGenerator,
-) authApp.RefreshAccessTokenUseCase {
-	return authApp.NewRefreshAccessTokenUseCase(refreshTokenRepo, refreshTokenRepo, accessTokenGenerator, refreshTokenGenerator)
+) (authApp.RefreshAccessTokenUseCase, error) {
+	return authApp.NewRefreshAccessTokenUseCase(
+		refreshTokenRepo,
+		refreshTokenRepo,
+		accessTokenGenerator,
+		refreshTokenGenerator,
+	)
 }
-func provideParseAccessTokenUseCase(accessTokenParser authApp.AccessTokenParser) authApp.ParseAccessTokenUseCase {
-	return authApp.NewParseAccessTokenUseCase(accessTokenParser)
+func provideParseAccessTokenUseCase(
+	accessTokenParser authDomain.AccessTokenParser,
+) (authApp.ParseAccessTokenUseCase, error) {
+	return authApp.NewParseAccessTokenUseCase(
+		accessTokenParser,
+	)
 }
 func provideSendPrivateMessageUseCase(
 	messageIDGen kernel.MessageIDGenerator,
@@ -115,7 +138,12 @@ func provideSendPrivateMessageUseCase(
 	messageRepo chatDomain.PrivateMessageRepository,
 	friendshipRepo chatDomain.FriendshipRepository,
 ) (chatApp.SendPrivateMessageUseCase, error) {
-	return chatApp.NewSendPrivateMessageUseCase(friendshipRepo, messageIDGen, eventIDGen, messageRepo)
+	return chatApp.NewSendPrivateMessageUseCase(
+		friendshipRepo,
+		messageIDGen,
+		eventIDGen,
+		messageRepo,
+	)
 }
 func provideSendRoomMessageUseCase(
 	messageIDGen kernel.MessageIDGenerator,
@@ -123,7 +151,12 @@ func provideSendRoomMessageUseCase(
 	roomshipRepo chatDomain.RoomshipRepository,
 	messageRepo chatDomain.RoomMessageRepository,
 ) (chatApp.SendRoomMessageUseCase, error) {
-	return chatApp.NewSendRoomMessageUseCase(messageIDGen, eventIDGen, roomshipRepo, messageRepo)
+	return chatApp.NewSendRoomMessageUseCase(
+		messageIDGen,
+		eventIDGen,
+		roomshipRepo,
+		messageRepo,
+	)
 }
 func provideCreateRoomUseCase(
 	encryptor roomshipDomain.Encryptor,
@@ -225,12 +258,17 @@ func provideWebsocketUserSessionStartedUseCase(
 	eventIDGen event.IDGenerator,
 	eventRepo event.Repository,
 ) rootapp.UserSessionStartedUseCase {
-	return rootapp.NewUserSessionStartedUseCase(eventIDGen, eventRepo)
+	return rootapp.NewUserSessionStartedUseCase(
+		eventIDGen,
+		eventRepo,
+	)
 }
 func provideNotificationReadPrivateMessageUseCase(messageRepo notificationDomain.PrivateMessageRepository) notificationApp.ReadPrivateMessageUseCase {
 	return notificationApp.NewReadPrivateMessageUseCase(messageRepo, messageRepo)
 }
-func provideNotificationReadRoomMessageUseCase(messageRepo notificationDomain.RoomMessageRepository) notificationApp.ReadRoomMessageUseCase {
+func provideNotificationReadRoomMessageUseCase(
+	messageRepo notificationDomain.RoomMessageRepository,
+) notificationApp.ReadRoomMessageUseCase {
 	return notificationApp.NewReadRoomMessageUseCase(messageRepo, messageRepo)
 }
 
@@ -240,10 +278,16 @@ func provideAuthUserCreatedUseCase(
 	eventIDGen event.IDGenerator,
 	eventRepo event.Repository,
 	userRepo authDomain.UserRepository,
-) authApp.UserCreatedUseCase {
-	return authApp.NewUserCreatedUseCase(eventIDGen, eventRepo, userRepo)
+) (authApp.UserCreatedUseCase, error) {
+	return authApp.NewUserCreatedUseCase(
+		eventIDGen,
+		eventRepo,
+		userRepo,
+	)
 }
-func provideRoomshipUserCreatedUseCase(userRepo *RoomshipPersistence.UserRepository) (roomshipApp.UserCreatedUseCase, error) {
+func provideRoomshipUserCreatedUseCase(
+	userRepo *RoomshipPersistence.UserRepository,
+) (roomshipApp.UserCreatedUseCase, error) {
 	return roomshipApp.NewUserCreatedUseCase(userRepo)
 }
 func provideRoomshipRoomCreatedUseCase(
@@ -296,8 +340,12 @@ func provideRoomshipRoomshipCreatedUseCase(
 		eventRepo,
 	)
 }
-func provideChatUserCreatedUseCase(userRepo chatDomain.UserRepository) (chatApp.UserCreatedUseCase, error) {
-	return chatApp.NewUserCreatedUseCase(userRepo)
+func provideChatUserCreatedUseCase(
+	userRepo chatDomain.UserRepository,
+) (chatApp.UserCreatedUseCase, error) {
+	return chatApp.NewUserCreatedUseCase(
+		userRepo,
+	)
 }
 func provideChatRoomCreatedUseCase(
 	roomRepo chatDomain.RoomRepository,
@@ -307,19 +355,27 @@ func provideChatRoomCreatedUseCase(
 func provideChatFriendshipCreatedUseCase(
 	friendshipRepo chatDomain.FriendshipRepository,
 ) (chatApp.FriendshipCreatedUseCase, error) {
-	return chatApp.NewFriendshipCreatedUseCase(friendshipRepo)
+	return chatApp.NewFriendshipCreatedUseCase(
+		friendshipRepo,
+	)
 }
 func provideChatRoomshipCreatedUseCase(
 	roomshipRepo chatDomain.RoomshipRepository,
 ) (chatApp.RoomshipCreatedUseCase, error) {
-	return chatApp.NewRoomshipCreatedUseCase(roomshipRepo)
+	return chatApp.NewRoomshipCreatedUseCase(
+		roomshipRepo,
+	)
 }
 func provideChatPrivateMessageCreatedUseCase(
 	eventIDGen event.IDGenerator,
 	eventRepo event.Repository,
 	messageRepo chatDomain.PrivateMessageRepository,
 ) (chatApp.PrivateMessageCreatedUseCase, error) {
-	return chatApp.NewPrivateMessageCreatedUseCase(eventIDGen, messageRepo, eventRepo)
+	return chatApp.NewPrivateMessageCreatedUseCase(
+		eventIDGen,
+		messageRepo,
+		eventRepo,
+	)
 }
 func provideChatRoomMessageCreatedUseCase(
 	eventIDGen event.IDGenerator,
@@ -327,16 +383,28 @@ func provideChatRoomMessageCreatedUseCase(
 	roomshipRepo chatDomain.RoomshipRepository,
 	messageRepo chatDomain.RoomMessageRepository,
 ) (chatApp.RoomMessageCreatedUseCase, error) {
-	return chatApp.NewRoomMessageCreatedUseCase(eventIDGen, messageRepo, roomshipRepo, eventRepo)
+	return chatApp.NewRoomMessageCreatedUseCase(
+		eventIDGen,
+		messageRepo,
+		roomshipRepo,
+		eventRepo,
+	)
 }
-func provideNotificationWelcomeEmailNotificationRequestedUseCase(emailNotifier notificationApp.WelcomeEmailNotifier) notificationApp.WelcomeEmailNotificationRequestedUseCase {
-	return notificationApp.NewWelcomeEmailNotificationRequestedUseCase(emailNotifier)
+func provideNotificationWelcomeEmailNotificationRequestedUseCase(
+	emailNotifier notificationApp.WelcomeEmailNotifier,
+) notificationApp.WelcomeEmailNotificationRequestedUseCase {
+	return notificationApp.NewWelcomeEmailNotificationRequestedUseCase(
+		emailNotifier,
+	)
 }
 func provideNotificationPrivateMessageNotificationRequestedUseCase(
 	messageRepo notificationDomain.PrivateMessageRepository,
 	messageNotifier notificationDomain.PrivateMessageNotifier,
 ) notificationApp.PrivateMessageNotificationRequestedUseCase {
-	return notificationApp.NewPrivateMessageNotificationRequestedUseCase(messageRepo, messageNotifier)
+	return notificationApp.NewPrivateMessageNotificationRequestedUseCase(
+		messageRepo,
+		messageNotifier,
+	)
 }
 func provideNotificationSystemMessageNotificationRequestedUseCase(
 	idGenerator kernel.MessageIDGenerator,
@@ -353,7 +421,10 @@ func provideNotificationRoomMessageNotificationRequestedUseCase(
 	messageRepo notificationDomain.RoomMessageRepository,
 	messageNotifier notificationDomain.RoomMessageNotifier,
 ) notificationApp.RoomMessageNotificationRequestedUseCase {
-	return notificationApp.NewRoomMessageNotificationRequestedUseCase(messageNotifier, messageRepo)
+	return notificationApp.NewRoomMessageNotificationRequestedUseCase(
+		messageNotifier,
+		messageRepo,
+	)
 }
 func provideNotificationUndeliveredMessagesNotificationRequestedUseCase(
 	systemMessageRepo notificationDomain.SystemMessageRepository,
@@ -378,7 +449,9 @@ func provideNotificationUndeliveredMessagesNotificationRequestedUseCase(
 func provideFriendshipUserCreatedUseCase(
 	userRepo friendshipDomain.UserRepository,
 ) (friendshipApp.UserCreatedUseCase, error) {
-	return friendshipApp.NewUserCreatedUseCase(userRepo)
+	return friendshipApp.NewUserCreatedUseCase(
+		userRepo,
+	)
 }
 func provideFriendshipFriendRequestAgreedUseCase(
 	requestRepo friendshipDomain.FriendRequestRepository,
@@ -386,19 +459,32 @@ func provideFriendshipFriendRequestAgreedUseCase(
 	friendshipIDGen friendshipDomain.FriendshipIDGenerator,
 	eventIDGen event.IDGenerator,
 ) (friendshipApp.FriendRequestAgreedUseCase, error) {
-	return friendshipApp.NewFriendRequestAgreedUseCase(requestRepo, friendshipRepo, friendshipIDGen, eventIDGen)
+	return friendshipApp.NewFriendRequestAgreedUseCase(
+		requestRepo,
+		friendshipRepo,
+		friendshipIDGen,
+		eventIDGen,
+	)
 }
 func provideFriendshipFriendRequestCreatedUseCase(
 	friendRequestRepo friendshipDomain.FriendRequestRepository,
 	eventRepo event.Repository,
 	eventIDGen event.IDGenerator,
 ) (friendshipApp.FriendRequestCreatedUseCase, error) {
-	return friendshipApp.NewFriendRequestCreatedUseCase(friendRequestRepo, eventRepo, eventIDGen)
+	return friendshipApp.NewFriendRequestCreatedUseCase(
+		friendRequestRepo,
+		eventRepo,
+		eventIDGen,
+	)
 }
 func provideFriendshipFriendshipCreatedUseCase(
 	friendshipRepo friendshipDomain.FriendshipRepository,
 	eventRepo event.Repository,
 	eventIDGen event.IDGenerator,
 ) (friendshipApp.FriendshipCreatedUseCase, error) {
-	return friendshipApp.NewFriendshipCreatedUseCase(friendshipRepo, eventRepo, eventIDGen)
+	return friendshipApp.NewFriendshipCreatedUseCase(
+		friendshipRepo,
+		eventRepo,
+		eventIDGen,
+	)
 }

@@ -3,7 +3,6 @@ package di
 import (
 	"context"
 	"gochat/config"
-	authApp "gochat/internal/authorization/application"
 	authDomain "gochat/internal/authorization/domain"
 	"gochat/internal/authorization/infrastructure/crypto"
 	"gochat/internal/authorization/infrastructure/jwt"
@@ -75,7 +74,7 @@ var InfraSet = wire.NewSet(
 	wire.Bind(new(authDomain.Encryptor), new(*bcrypt.Hasher)),
 	wire.Bind(new(authDomain.Comparator), new(*bcrypt.Hasher)),
 	wire.Bind(new(authDomain.AccessTokenGenerator), new(*jwt.AccessTokenManager)),
-	wire.Bind(new(authApp.AccessTokenParser), new(*jwt.AccessTokenManager)),
+	wire.Bind(new(authDomain.AccessTokenParser), new(*jwt.AccessTokenManager)),
 	wire.Bind(new(authDomain.RefreshTokenGenerator), new(*crypto.RefreshTokenGenerator)),
 	// Roomship generator & crypto binds
 	wire.Bind(new(roomshipDomain.RoomIDGenerator), new(*roomshipUUID.RoomIDGenerator)),

@@ -3,7 +3,6 @@ package jwt
 import (
 	"errors"
 	"fmt"
-	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
@@ -12,7 +11,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-var _ application.AccessTokenParser = (*AccessTokenManager)(nil)
+var _ domain.AccessTokenParser = (*AccessTokenManager)(nil)
 var _ domain.AccessTokenGenerator = (*AccessTokenManager)(nil)
 
 type AccessTokenManager struct {
