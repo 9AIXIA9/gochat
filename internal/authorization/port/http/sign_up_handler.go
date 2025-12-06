@@ -29,7 +29,7 @@ type SignUpResponseData struct {
 }
 
 func NewSignUpHandler(useCase application.SignUpUseCase, validator *validator.Validator) gin.HandlerFunc {
-	return ginutils.AdaptUseCaseToHandler[SignUpRequest, *SignUpRequest, *application.SignUpInput, *application.SignUpOutput](
+	return ginutils.AdaptUseCaseToHandler(
 		useCase,
 		validator,
 		func(request *SignUpRequest) *application.SignUpInput {
@@ -43,8 +43,11 @@ func NewSignUpHandler(useCase application.SignUpUseCase, validator *validator.Va
 		},
 		func(ginContext *gin.Context, err error) {
 			switch {
-			case errors.Is(err, myErrors.ErrInvalidLength):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "password length is invalid"))
+			case errors.Is(err, domain.ErrEmptyPassword) ||
+				errors.Is(err, myErrors.ErrInvalidLength) ||
+				errors.Is(err, domain.ErrInvalidPassword) ||
+				errors.Is(err, myErrors.ErrInvalidFormat):
+				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "password is invalid"))
 			case errors.Is(err, myErrors.ErrDuplicatedKey):
 				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "the email address is used"))
 			default:

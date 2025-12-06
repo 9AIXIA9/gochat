@@ -23,8 +23,6 @@ var (
 	ErrInvalidNumber    = errors.New("logic: invalid number")
 	ErrInvalidFormat    = errors.New("logic: invalid format")
 	ErrEmptyInput       = errors.New("logic: input is empty")
-	ErrExpired          = errors.New("logic: expired")
-	ErrExceedMaxValue   = errors.New("logic: exceed max value")
 	ErrNotBelongTo      = errors.New("logic: not belong to")
 	ErrPermissionDenied = errors.New("logic: permission denied")
 )
