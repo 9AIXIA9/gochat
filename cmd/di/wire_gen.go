@@ -157,14 +157,20 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 		return nil, err
 	}
 	emailNotifier := provideEmailNotifier(appConfig, dialer)
-	welcomeEmailNotificationRequestedUseCase := provideNotificationWelcomeEmailNotificationRequestedUseCase(emailNotifier)
+	welcomeEmailNotificationRequestedUseCase, err := provideNotificationWelcomeEmailNotificationRequestedUseCase(emailNotifier)
+	if err != nil {
+		return nil, err
+	}
 	systemMessageRepository := provideNotificationSystemMessageRepository(db)
 	systemMessageNotifier := provideSystemMessageNotifier(manager)
 	systemMessageNotificationRequestedUseCase, err := provideNotificationSystemMessageNotificationRequestedUseCase(messageIDGenerator, systemMessageRepository, systemMessageNotifier)
 	if err != nil {
 		return nil, err
 	}
-	undeliveredMessagesNotificationRequestedUseCase := provideNotificationUndeliveredMessagesNotificationRequestedUseCase(systemMessageRepository, systemMessageNotifier)
+	undeliveredMessagesNotificationRequestedUseCase, err := provideNotificationUndeliveredMessagesNotificationRequestedUseCase(systemMessageRepository, systemMessageNotifier)
+	if err != nil {
+		return nil, err
+	}
 	userRepository2 := provideRoomshipUserRepository(db)
 	userCreatedUseCase2, err := provideRoomshipUserCreatedUseCase(userRepository2)
 	if err != nil {

@@ -5,6 +5,7 @@ import (
 	"gochat/internal/notification/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/utils"
 )
 
 type UndeliveredMessagesNotificationRequestedUseCase kernel.UseCase[*UndeliveredMessagesNotificationRequestedInput, *kernel.NoOutput]
@@ -30,12 +31,19 @@ func NewUndeliveredMessagesNotificationRequestedUseCase(
 	systemMessagesFinderByState domain.UserSystemMessagesFinderByState,
 	systemMessagesUpdater domain.SystemMessagesUpdater,
 	systemMessageNotifier domain.SystemMessageNotifier,
-) UndeliveredMessagesNotificationRequestedUseCase {
+) (UndeliveredMessagesNotificationRequestedUseCase, error) {
+	if err := utils.CheckInterfaces(
+		systemMessagesFinderByState,
+		systemMessagesUpdater,
+		systemMessageNotifier,
+	); err != nil {
+		return nil, err
+	}
 	return &undeliveredMessagesNotificationRequestedUseCase{
 		systemMessagesFinderByState: systemMessagesFinderByState,
 		systemMessagesUpdater:       systemMessagesUpdater,
 		systemMessageNotifier:       systemMessageNotifier,
-	}
+	}, nil
 }
 
 func (uc *undeliveredMessagesNotificationRequestedUseCase) Execute(ctx context.Context, input *UndeliveredMessagesNotificationRequestedInput) (*kernel.NoOutput, error) {

@@ -370,7 +370,7 @@ func provideChatUndeliveredMessagesPushRequestedUseCase(
 }
 func provideNotificationWelcomeEmailNotificationRequestedUseCase(
 	emailNotifier notificationDomain.WelcomeEmailNotifier,
-) notificationApp.WelcomeEmailNotificationRequestedUseCase {
+) (notificationApp.WelcomeEmailNotificationRequestedUseCase, error) {
 	return notificationApp.NewWelcomeEmailNotificationRequestedUseCase(
 		emailNotifier,
 	)
@@ -389,7 +389,7 @@ func provideNotificationSystemMessageNotificationRequestedUseCase(
 func provideNotificationUndeliveredMessagesNotificationRequestedUseCase(
 	systemMessageRepo notificationDomain.SystemMessageRepository,
 	systemMessageNotifier notificationDomain.SystemMessageNotifier,
-) notificationApp.UndeliveredMessagesNotificationRequestedUseCase {
+) (notificationApp.UndeliveredMessagesNotificationRequestedUseCase, error) {
 	return notificationApp.NewUndeliveredMessagesNotificationRequestedUseCase(
 		systemMessageRepo,
 		systemMessageRepo,
