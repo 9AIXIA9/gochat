@@ -1,17 +1,20 @@
 package application_test
 
 import (
+	"fmt"
 	"gochat/internal/chat/application"
 	"gochat/internal/chat/domain"
 	"gochat/internal/chat/domain/mocks"
 	myErrors "gochat/internal/shared/errors"
-	eventMock "gochat/internal/shared/event/mocks"
+	"gochat/internal/shared/kernel"
 	kernelmocks "gochat/internal/shared/kernel/mocks"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
+
+const fixedRoomMembersCount = 10
 
 func TestSendRoomMessageInput_Validate(t *testing.T) {
 	input := &application.SendRoomMessageInput{
@@ -47,14 +50,14 @@ func TestNewSendRoomMessageUseCase(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockMessageIDGenerator := kernelmocks.NewMockMessageIDGenerator(ctrl)
-	mockEventIDGenerator := eventMock.NewMockIDGenerator(ctrl)
-	mockExister := mocks.NewMockRoomshipExisterByUserIDAndRoomID(ctrl)
 	mockMessageCreator := mocks.NewMockRoomMessageCreator(ctrl)
+	mockNotifier := mocks.NewMockRoomMessageNotifier(ctrl)
+	mockFinder := mocks.NewMockRoomshipsFinderByRoomID(ctrl)
 
 	useCase, err := application.NewSendRoomMessageUseCase(
 		mockMessageIDGenerator,
-		mockEventIDGenerator,
-		mockExister,
+		mockNotifier,
+		mockFinder,
 		mockMessageCreator,
 	)
 
@@ -74,24 +77,41 @@ func TestSendRoomMessageUseCase_Execute(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockMessageIDGenerator := kernelmocks.NewMockMessageIDGenerator(ctrl)
-	mockEventIDGenerator := eventMock.NewMockIDGenerator(ctrl)
-	mockExister := mocks.NewMockRoomshipExisterByUserIDAndRoomID(ctrl)
 	mockMessageCreator := mocks.NewMockRoomMessageCreator(ctrl)
+	mockNotifier := mocks.NewMockRoomMessageNotifier(ctrl)
+	mockFinder := mocks.NewMockRoomshipsFinderByRoomID(ctrl)
 
 	useCase, err := application.NewSendRoomMessageUseCase(
 		mockMessageIDGenerator,
-		mockEventIDGenerator,
-		mockExister,
+		mockNotifier,
+		mockFinder,
 		mockMessageCreator,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, useCase)
 
+	mockRoomships := make([]*domain.Roomship, fixedRoomMembersCount)
+	mockMembers := make([]kernel.UserID, 0, fixedRoomMembersCount)
+	for i := 0; i < fixedRoomMembersCount; i++ {
+		mockRoomships[i] = domain.LoadRoomship(
+			domain.RoomshipID(fmt.Sprintf("roomship-%d", i)),
+			kernel.UserID(fmt.Sprintf("user-%d", i)),
+			fixedRoomID,
+		)
+		mockMembers = append(mockMembers, mockRoomships[i].UserID())
+	}
+
+	mockRoomships = append(mockRoomships, domain.LoadRoomship(
+		fixedRoomshipID,
+		fixedUserID,
+		fixedRoomID,
+	))
+
 	// 正常情况
 	gomock.InOrder(
-		mockExister.EXPECT().ExistByUserIDAndRoomID(nil, fixedRoomID, fixedUserID).Return(true, nil).Times(1),
+		mockFinder.EXPECT().FindsByRoomID(nil, fixedRoomID).Return(mockRoomships, nil).Times(1),
 		mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1),
-		mockEventIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(1),
+		mockNotifier.EXPECT().Notify(gomock.Any(), mockMembers).Return(mockMembers, nil).Times(1),
 		mockMessageCreator.EXPECT().Create(nil, gomock.Any()).Times(1),
 	)
 	_, err = useCase.Execute(nil, &application.SendRoomMessageInput{
@@ -102,8 +122,10 @@ func TestSendRoomMessageUseCase_Execute(t *testing.T) {
 	require.NoError(t, err)
 
 	// 不是成员
+	mockRoomships = mockRoomships[:len(mockRoomships)-1]
+
 	gomock.InOrder(
-		mockExister.EXPECT().ExistByUserIDAndRoomID(nil, fixedRoomID, fixedUserID).Return(false, nil).Times(1),
+		mockFinder.EXPECT().FindsByRoomID(nil, fixedRoomID).Return(mockRoomships, nil).Times(1),
 	)
 	_, err = useCase.Execute(nil, &application.SendRoomMessageInput{
 		SenderID: fixedUserID,

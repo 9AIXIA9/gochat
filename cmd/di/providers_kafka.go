@@ -67,8 +67,7 @@ func provideKafkaRouter(
 	chatRoomCreated chatApp.RoomCreatedUseCase,
 	chatRoomshipCreated chatApp.RoomshipCreatedUseCase,
 	chatFriendshipCreated chatApp.FriendshipCreatedUseCase,
-	chatPrivateMessageCreated chatApp.PrivateMessageCreatedUseCase,
-	chatRoomMessageCreated chatApp.RoomMessageCreatedUseCase,
+	chatUndeliveredMessagesPushRequested chatApp.UndeliveredMessagesPushRequestedUseCase,
 	// notification
 	notificationWelcomeEmailNotificationRequested notificationApp.WelcomeEmailNotificationRequestedUseCase,
 	notificationPrivateMessageNotificationRequested notificationApp.PrivateMessageNotificationRequestedUseCase,
@@ -111,8 +110,7 @@ func provideKafkaRouter(
 		router.Handle(chatDomain.TopicRoomCreated, kafkaInfra.WrapEventHandler(chatEvent.NewRoomCreatedEventHandler(chatRoomCreated)))
 		router.Handle(chatDomain.TopicRoomshipCreated, kafkaInfra.WrapEventHandler(chatEvent.NewRoomshipCreatedEventHandler(chatRoomshipCreated)))
 		router.Handle(chatDomain.TopicFriendshipCreated, kafkaInfra.WrapEventHandler(chatEvent.NewFriendshipCreatedEventHandler(chatFriendshipCreated)))
-		router.Handle(chatDomain.TopicPrivateMessageCreated, kafkaInfra.WrapEventHandler(chatEvent.NewPrivateMessageCreatedEventHandler(chatPrivateMessageCreated)))
-		router.Handle(chatDomain.TopicRoomMessageCreated, kafkaInfra.WrapEventHandler(chatEvent.NewRoomMessageCreatedEventHandler(chatRoomMessageCreated)))
+		router.Handle(chatDomain.TopicUndeliveredMessagesPushRequested, kafkaInfra.WrapEventHandler(chatEvent.NewUndeliveredMessagesPushRequestedEventHandler(chatUndeliveredMessagesPushRequested)))
 	}
 	// Notification
 	{
@@ -166,8 +164,6 @@ func provideTopicsEnsured(appConfig *config.App) kafkaTopicEnsured {
 			chatDomain.TopicRoomCreated,
 			chatDomain.TopicFriendshipCreated,
 			chatDomain.TopicRoomshipCreated,
-			chatDomain.TopicPrivateMessageCreated,
-			chatDomain.TopicRoomMessageCreated,
 			// notification
 			notificationDomain.TopicWelcomeEmailNotificationRequested,
 			notificationDomain.TopicPrivateMessageNotificationRequested,

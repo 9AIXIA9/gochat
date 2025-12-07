@@ -2,7 +2,6 @@ package application_test
 
 import (
 	"gochat/internal/chat/domain"
-	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 )
 
@@ -13,6 +12,5 @@ const (
 	fixedMessageID    kernel.MessageID    = "message-123"
 	fixedFriendshipID domain.FriendshipID = "friendship-123"
 	fixedRoomshipID   domain.RoomshipID   = "roomship-123"
-	fixedEventID      event.ID            = "event-123"
 	fixedContent      string              = "Hello, how are you?"
 )

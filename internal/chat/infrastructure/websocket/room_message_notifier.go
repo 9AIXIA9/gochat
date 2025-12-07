@@ -2,15 +2,15 @@ package websocket
 
 import (
 	"encoding/json"
+	"gochat/internal/chat/domain"
 	"gochat/internal/infrastructure/websocket"
-	"gochat/internal/notification/domain"
 	"gochat/internal/shared/kernel"
 	"time"
 )
 
 var _ domain.RoomMessageNotifier = (*RoomMessageNotifier)(nil)
 
-const NotifyRoomMessageTopic websocket.Topic = "notification.notify_room_message"
+const NotifyRoomMessageTopic websocket.Topic = "chat.notify_room_message"
 
 type NotifyRoomMessageResponseData struct {
 	ID       kernel.MessageID                      `json:"id"`

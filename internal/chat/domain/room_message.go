@@ -9,6 +9,7 @@ import (
 type RoomMessage struct {
 	id       kernel.MessageID
 	senderID kernel.UserID
+	states   map[kernel.UserID]MessageState
 	roomID   kernel.RoomID
 	content  string
 	sentAt   time.Time
@@ -19,6 +20,7 @@ type RoomMessage struct {
 func LoadRoomMessage(
 	id kernel.MessageID,
 	senderID kernel.UserID,
+	states map[kernel.UserID]MessageState,
 	roomID kernel.RoomID,
 	content string,
 	sentAt time.Time,
@@ -26,6 +28,7 @@ func LoadRoomMessage(
 	return &RoomMessage{
 		id:           id,
 		senderID:     senderID,
+		states:       states,
 		roomID:       roomID,
 		content:      content,
 		sentAt:       sentAt,
@@ -36,30 +39,57 @@ func LoadRoomMessage(
 func CreateRoomMessage(
 	roomID kernel.RoomID,
 	senderID kernel.UserID,
+	recipientIDs []kernel.UserID,
 	content string,
 	messageIDGenerator kernel.MessageIDGenerator,
-	eventIDGenerator event.IDGenerator,
+	notifier RoomMessageNotifier,
 ) (*RoomMessage, error) {
+	states := make(map[kernel.UserID]MessageState, len(recipientIDs))
+	for _, recipientID := range recipientIDs {
+		if recipientID != senderID {
+			states[recipientID] = MessageStateUndelivered
+		}
+	}
+
 	message := &RoomMessage{
 		id:           messageIDGenerator.Generate(),
 		senderID:     senderID,
+		states:       states,
 		roomID:       roomID,
 		content:      content,
 		sentAt:       time.Now().UTC(),
 		eventManager: event.NewEventManager(),
 	}
 
-	ev, err := NewRoomMessageCreatedEvent(
-		message.id,
-		eventIDGenerator,
-	)
+	ids, err := notifier.Notify(message, recipientIDs)
 	if err != nil {
-		return nil, err
+		return message, nil
 	}
 
-	message.eventManager.RecordEvent(ev)
+	for _, id := range ids {
+		message.states[id] = MessageStateDelivered
+	}
 
 	return message, nil
+}
+
+func (m *RoomMessage) Deliver(
+	userID kernel.UserID,
+	notifier RoomMessageNotifier,
+) error {
+	if state, ok := m.states[userID]; !ok || state != MessageStateUndelivered {
+		return nil
+	}
+
+	ids, err := notifier.Notify(m, []kernel.UserID{userID})
+	if err != nil {
+		return err
+	}
+
+	for _, id := range ids {
+		m.states[id] = MessageStateDelivered
+	}
+	return nil
 }
 
 func (m *RoomMessage) ID() kernel.MessageID {
@@ -80,6 +110,14 @@ func (m *RoomMessage) Content() string {
 
 func (m *RoomMessage) SentAt() time.Time {
 	return m.sentAt
+}
+
+func (m *RoomMessage) States() map[kernel.UserID]MessageState {
+	return m.states
+}
+
+func (m *RoomMessage) State(id kernel.UserID) MessageState {
+	return m.states[id]
 }
 
 func (m *RoomMessage) GetEvents() []event.Event {

@@ -1,8 +1,9 @@
 package domain_test
 
 import (
+	"errors"
 	"gochat/internal/chat/domain"
-	eventMock "gochat/internal/shared/event/mocks"
+	"gochat/internal/chat/domain/mocks"
 	kernelmocks "gochat/internal/shared/kernel/mocks"
 	"testing"
 	"time"
@@ -18,6 +19,7 @@ func TestLoadPrivateMessage(t *testing.T) {
 		fixedUserID,
 		fixedFriendID,
 		"Hello, Friend!",
+		domain.MessageStateRead,
 		time.Now().UTC(),
 	)
 
@@ -26,6 +28,7 @@ func TestLoadPrivateMessage(t *testing.T) {
 	assert.Equal(t, fixedUserID, message.SenderID())
 	assert.Equal(t, fixedFriendID, message.RecipientID())
 	assert.Equal(t, "Hello, Friend!", message.Content())
+	assert.Equal(t, domain.MessageStateRead, message.State())
 }
 
 func TestCreatePrivateMessage(t *testing.T) {
@@ -33,10 +36,10 @@ func TestCreatePrivateMessage(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockMessageIDGenerator := kernelmocks.NewMockMessageIDGenerator(ctrl)
-	mockEventIDGenerator := eventMock.NewMockIDGenerator(ctrl)
+	mockNotifier := mocks.NewMockPrivateMessageNotifier(ctrl)
 
 	mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1)
-	mockEventIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(1)
+	mockNotifier.EXPECT().Notify(gomock.Any()).Return(nil).Times(1)
 
 	start := time.Now()
 
@@ -45,7 +48,7 @@ func TestCreatePrivateMessage(t *testing.T) {
 		fixedUserID,
 		"Hello, Friend!",
 		mockMessageIDGenerator,
-		mockEventIDGenerator,
+		mockNotifier,
 	)
 
 	require.NoError(t, err)
@@ -54,12 +57,73 @@ func TestCreatePrivateMessage(t *testing.T) {
 	assert.Equal(t, fixedUserID, message.SenderID())
 	assert.Equal(t, fixedFriendID, message.RecipientID())
 	assert.Equal(t, "Hello, Friend!", message.Content())
+	assert.Equal(t, domain.MessageStateDelivered, message.State())
 	assert.WithinDuration(t, start, message.SentAt(), timeTolerance)
 
-	events := message.GetEvents()
-	require.Len(t, events, 1)
+	// 发送失败
+	mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1)
+	mockNotifier.EXPECT().Notify(gomock.Any()).Return(errors.New("test")).Times(1)
 
-	evCreated := events[0]
-	assert.Equal(t, domain.TopicPrivateMessageCreated, evCreated.Topic())
-	assert.Equal(t, message.ID().String(), evCreated.AggregateID().String())
+	start = time.Now()
+
+	messageWithFailedDeliver, err := domain.CreatePrivateMessage(
+		fixedFriendID,
+		fixedUserID,
+		"Hello, Friend!",
+		mockMessageIDGenerator,
+		mockNotifier,
+	)
+
+	require.NoError(t, err)
+	require.NotNil(t, messageWithFailedDeliver)
+	assert.Equal(t, fixedMessageID, messageWithFailedDeliver.ID())
+	assert.Equal(t, fixedUserID, messageWithFailedDeliver.SenderID())
+	assert.Equal(t, fixedFriendID, messageWithFailedDeliver.RecipientID())
+	assert.Equal(t, "Hello, Friend!", messageWithFailedDeliver.Content())
+	assert.Equal(t, domain.MessageStateUndelivered, messageWithFailedDeliver.State())
+	assert.WithinDuration(t, start, messageWithFailedDeliver.SentAt(), timeTolerance)
+}
+
+func TestPrivateMessage_Deliver(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockNotifier := mocks.NewMockPrivateMessageNotifier(ctrl)
+
+	message := domain.LoadPrivateMessage(
+		fixedMessageID,
+		fixedUserID,
+		fixedFriendID,
+		"Hello, Friend!",
+		domain.MessageStateUndelivered,
+		time.Now().UTC(),
+	)
+
+	// 成功投递
+	mockNotifier.EXPECT().Notify(gomock.Any()).Return(nil).Times(1)
+
+	err := message.Deliver(mockNotifier)
+	require.NoError(t, err)
+	assert.Equal(t, domain.MessageStateDelivered, message.State())
+
+	// 已经是已投递状态，跳过投递
+	err = message.Deliver(mockNotifier)
+	require.NoError(t, err)
+	assert.Equal(t, domain.MessageStateDelivered, message.State())
+
+	// 投递失败
+	messageUndelivered := domain.LoadPrivateMessage(
+		fixedMessageID,
+		fixedUserID,
+		fixedFriendID,
+		"Hello, Friend!",
+		domain.MessageStateUndelivered,
+		time.Now().UTC(),
+	)
+
+	mockNotifier.EXPECT().Notify(gomock.Any()).Return(errors.New("test")).Times(1)
+
+	err = messageUndelivered.Deliver(mockNotifier)
+	require.Error(t, err)
+	assert.Equal(t, domain.MessageStateUndelivered, messageUndelivered.State())
 }

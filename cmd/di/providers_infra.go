@@ -8,6 +8,8 @@ import (
 	"gochat/internal/authorization/infrastructure/jwt"
 	authSnowflake "gochat/internal/authorization/infrastructure/snowflake"
 	authUUID "gochat/internal/authorization/infrastructure/uuid"
+	chatDomain "gochat/internal/chat/domain"
+	chatWebsocket "gochat/internal/chat/infrastructure/websocket"
 	friendshipDomain "gochat/internal/friendship/domain"
 	friendshipUUID "gochat/internal/friendship/infrastructure/uuid"
 	"gochat/internal/infrastructure/bcrypt"
@@ -63,6 +65,8 @@ var InfraSet = wire.NewSet(
 	provideSystemMessageNotifier,
 	providePrivateMessageNotifier,
 	provideRoomMessageNotifier,
+	provideNotificationPrivateMessageNotifier,
+	provideNotificationRoomMessageNotifier,
 	// Binds
 	wire.Bind(new(event.IDGenerator), new(*uuid.EventIDGenerator)),
 	wire.Bind(new(kernel.MessageIDGenerator), new(*uuid.MessageIDGenerator)),
@@ -76,6 +80,9 @@ var InfraSet = wire.NewSet(
 	wire.Bind(new(authDomain.AccessTokenGenerator), new(*jwt.AccessTokenManager)),
 	wire.Bind(new(authDomain.AccessTokenParser), new(*jwt.AccessTokenManager)),
 	wire.Bind(new(authDomain.RefreshTokenGenerator), new(*crypto.RefreshTokenGenerator)),
+	// Chat Notifier
+	wire.Bind(new(chatDomain.PrivateMessageNotifier), new(*chatWebsocket.PrivateMessageNotifier)),
+	wire.Bind(new(chatDomain.RoomMessageNotifier), new(*chatWebsocket.RoomMessageNotifier)),
 	// Roomship generator & crypto binds
 	wire.Bind(new(roomshipDomain.RoomIDGenerator), new(*roomshipUUID.RoomIDGenerator)),
 	wire.Bind(new(roomshipDomain.RoomshipIDGenerator), new(*roomshipUUID.RoomshipIDGenerator)),
@@ -155,10 +162,16 @@ func provideEmailNotifier(appConfig *config.App, dialer *gomail.Dialer) *gomailI
 func provideSystemMessageNotifier(manager *websocket.Manager) *notificationWebsocket.SystemMessageNotifier {
 	return notificationWebsocket.NewSystemMessageNotifier(manager)
 }
-func providePrivateMessageNotifier(manager *websocket.Manager) *notificationWebsocket.PrivateMessageNotifier {
+func providePrivateMessageNotifier(manager *websocket.Manager) *chatWebsocket.PrivateMessageNotifier {
+	return chatWebsocket.NewPrivateMessageNotifier(manager)
+}
+func provideRoomMessageNotifier(manager *websocket.Manager) *chatWebsocket.RoomMessageNotifier {
+	return chatWebsocket.NewRoomMessageNotifier(manager)
+}
+func provideNotificationPrivateMessageNotifier(manager *websocket.Manager) *notificationWebsocket.PrivateMessageNotifier {
 	return notificationWebsocket.NewPrivateMessageNotifier(manager)
 }
-func provideRoomMessageNotifier(manager *websocket.Manager) *notificationWebsocket.RoomMessageNotifier {
+func provideNotificationRoomMessageNotifier(manager *websocket.Manager) *notificationWebsocket.RoomMessageNotifier {
 	return notificationWebsocket.NewRoomMessageNotifier(manager)
 }
 func provideKafkaPublisher(appConfig *config.App, eventRepo *repository.EventRepository, metrics *prometheus.Metrics) (*kafkautil.EventPublisher, error) {

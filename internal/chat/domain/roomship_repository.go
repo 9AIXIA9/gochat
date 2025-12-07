@@ -8,16 +8,11 @@ import (
 
 type RoomshipRepository interface {
 	RoomshipSaver
-	RoomshipExisterByUserIDAndRoomID
 	RoomshipsFinderByRoomID
 }
 
 type RoomshipSaver interface {
 	Save(ctx context.Context, roomship *Roomship) error
-}
-
-type RoomshipExisterByUserIDAndRoomID interface {
-	ExistByUserIDAndRoomID(ctx context.Context, roomID kernel.RoomID, userID kernel.UserID) (bool, error)
 }
 
 type RoomshipsFinderByRoomID interface {

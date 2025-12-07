@@ -57,7 +57,7 @@ func (m *SystemMessage) Deliver(
 	notifier SystemMessageNotifier,
 ) error {
 	if m.state != MessageStateUndelivered {
-		return ErrNotUndelivered
+		return nil
 	}
 
 	m.state = MessageStateDelivered

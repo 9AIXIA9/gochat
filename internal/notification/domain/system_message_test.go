@@ -120,5 +120,5 @@ func TestSystemMessage_Deliver(t *testing.T) {
 
 	//消息状态不是未发送
 	err = message.Deliver(mockNotifier)
-	require.ErrorIs(t, err, domain.ErrNotUndelivered)
+	require.NoError(t, err)
 }

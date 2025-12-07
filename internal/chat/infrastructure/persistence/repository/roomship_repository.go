@@ -8,6 +8,7 @@ import (
 	"gochat/internal/shared/kernel"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 var _ domain.RoomshipRepository = (*RoomshipRepository)(nil)
@@ -23,23 +24,15 @@ func NewRoomshipRepository(db *gorm.DB) *RoomshipRepository {
 }
 
 func (repo *RoomshipRepository) Save(ctx context.Context, roomship *domain.Roomship) error {
-	if err := repo.db.WithContext(ctx).Create(repo.toModel(roomship)).Error; err != nil {
+	if err := repo.db.WithContext(ctx).
+		Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "id"}}, // 冲突的列
+			DoNothing: true,
+		}).
+		Create(repo.toModel(roomship)).Error; err != nil {
 		return gormutils.TranslateError(err)
 	}
 	return nil
-}
-
-func (repo *RoomshipRepository) ExistByUserIDAndRoomID(ctx context.Context, roomID kernel.RoomID, userID kernel.UserID) (bool, error) {
-	var count int64
-	err := repo.db.WithContext(ctx).
-		Model(&model.Roomship{}).
-		Where("room_id = ? AND user_id = ?", roomID, userID).
-		Count(&count).Error
-	if err != nil {
-		return false, gormutils.TranslateError(err)
-	}
-
-	return count > 0, nil
 }
 
 func (repo *RoomshipRepository) FindsByRoomID(ctx context.Context, id kernel.RoomID) ([]*domain.Roomship, error) {

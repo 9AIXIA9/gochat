@@ -8,6 +8,7 @@ import (
 	"gochat/internal/shared/kernel"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 var _ domain.FriendshipRepository = (*FriendshipRepository)(nil)
@@ -23,7 +24,12 @@ func NewFriendshipRepository(db *gorm.DB) *FriendshipRepository {
 }
 
 func (repo *FriendshipRepository) Save(ctx context.Context, friendship *domain.Friendship) error {
-	if err := repo.db.WithContext(ctx).Create(repo.toModel(friendship)).Error; err != nil {
+	if err := repo.db.WithContext(ctx).Clauses(
+		clause.OnConflict{
+			Columns:   []clause.Column{{Name: "id"}}, // 冲突的列
+			DoNothing: true,
+		},
+	).Create(repo.toModel(friendship)).Error; err != nil {
 		return gormutils.TranslateError(err)
 	}
 	return nil

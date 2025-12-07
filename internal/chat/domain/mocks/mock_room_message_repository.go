@@ -71,6 +71,35 @@ func (mr *MockRoomMessageRepositoryMockRecorder) FindRoomMessage(ctx, messageID 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindRoomMessage", reflect.TypeOf((*MockRoomMessageRepository)(nil).FindRoomMessage), ctx, messageID)
 }
 
+// FindRoomMessagesByRecipientIDAndState mocks base method.
+func (m *MockRoomMessageRepository) FindRoomMessagesByRecipientIDAndState(ctx context.Context, recipientID kernel.UserID, state domain.MessageState) ([]*domain.RoomMessage, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindRoomMessagesByRecipientIDAndState", ctx, recipientID, state)
+	ret0, _ := ret[0].([]*domain.RoomMessage)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindRoomMessagesByRecipientIDAndState indicates an expected call of FindRoomMessagesByRecipientIDAndState.
+func (mr *MockRoomMessageRepositoryMockRecorder) FindRoomMessagesByRecipientIDAndState(ctx, recipientID, state any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindRoomMessagesByRecipientIDAndState", reflect.TypeOf((*MockRoomMessageRepository)(nil).FindRoomMessagesByRecipientIDAndState), ctx, recipientID, state)
+}
+
+// Updates mocks base method.
+func (m *MockRoomMessageRepository) Updates(ctx context.Context, messages []*domain.RoomMessage) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Updates", ctx, messages)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Updates indicates an expected call of Updates.
+func (mr *MockRoomMessageRepositoryMockRecorder) Updates(ctx, messages any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Updates", reflect.TypeOf((*MockRoomMessageRepository)(nil).Updates), ctx, messages)
+}
+
 // MockRoomMessageCreator is a mock of RoomMessageCreator interface.
 type MockRoomMessageCreator struct {
 	ctrl     *gomock.Controller
@@ -107,6 +136,44 @@ func (m *MockRoomMessageCreator) Create(ctx context.Context, message *domain.Roo
 func (mr *MockRoomMessageCreatorMockRecorder) Create(ctx, message any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRoomMessageCreator)(nil).Create), ctx, message)
+}
+
+// MockRoomMessagesUpdater is a mock of RoomMessagesUpdater interface.
+type MockRoomMessagesUpdater struct {
+	ctrl     *gomock.Controller
+	recorder *MockRoomMessagesUpdaterMockRecorder
+	isgomock struct{}
+}
+
+// MockRoomMessagesUpdaterMockRecorder is the mock recorder for MockRoomMessagesUpdater.
+type MockRoomMessagesUpdaterMockRecorder struct {
+	mock *MockRoomMessagesUpdater
+}
+
+// NewMockRoomMessagesUpdater creates a new mock instance.
+func NewMockRoomMessagesUpdater(ctrl *gomock.Controller) *MockRoomMessagesUpdater {
+	mock := &MockRoomMessagesUpdater{ctrl: ctrl}
+	mock.recorder = &MockRoomMessagesUpdaterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockRoomMessagesUpdater) EXPECT() *MockRoomMessagesUpdaterMockRecorder {
+	return m.recorder
+}
+
+// Updates mocks base method.
+func (m *MockRoomMessagesUpdater) Updates(ctx context.Context, messages []*domain.RoomMessage) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Updates", ctx, messages)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Updates indicates an expected call of Updates.
+func (mr *MockRoomMessagesUpdaterMockRecorder) Updates(ctx, messages any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Updates", reflect.TypeOf((*MockRoomMessagesUpdater)(nil).Updates), ctx, messages)
 }
 
 // MockRoomMessageFinder is a mock of RoomMessageFinder interface.
@@ -146,4 +213,43 @@ func (m *MockRoomMessageFinder) FindRoomMessage(ctx context.Context, messageID k
 func (mr *MockRoomMessageFinderMockRecorder) FindRoomMessage(ctx, messageID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindRoomMessage", reflect.TypeOf((*MockRoomMessageFinder)(nil).FindRoomMessage), ctx, messageID)
+}
+
+// MockRoomMessagesFinderByRecipientIDAndState is a mock of RoomMessagesFinderByRecipientIDAndState interface.
+type MockRoomMessagesFinderByRecipientIDAndState struct {
+	ctrl     *gomock.Controller
+	recorder *MockRoomMessagesFinderByRecipientIDAndStateMockRecorder
+	isgomock struct{}
+}
+
+// MockRoomMessagesFinderByRecipientIDAndStateMockRecorder is the mock recorder for MockRoomMessagesFinderByRecipientIDAndState.
+type MockRoomMessagesFinderByRecipientIDAndStateMockRecorder struct {
+	mock *MockRoomMessagesFinderByRecipientIDAndState
+}
+
+// NewMockRoomMessagesFinderByRecipientIDAndState creates a new mock instance.
+func NewMockRoomMessagesFinderByRecipientIDAndState(ctrl *gomock.Controller) *MockRoomMessagesFinderByRecipientIDAndState {
+	mock := &MockRoomMessagesFinderByRecipientIDAndState{ctrl: ctrl}
+	mock.recorder = &MockRoomMessagesFinderByRecipientIDAndStateMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockRoomMessagesFinderByRecipientIDAndState) EXPECT() *MockRoomMessagesFinderByRecipientIDAndStateMockRecorder {
+	return m.recorder
+}
+
+// FindRoomMessagesByRecipientIDAndState mocks base method.
+func (m *MockRoomMessagesFinderByRecipientIDAndState) FindRoomMessagesByRecipientIDAndState(ctx context.Context, recipientID kernel.UserID, state domain.MessageState) ([]*domain.RoomMessage, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindRoomMessagesByRecipientIDAndState", ctx, recipientID, state)
+	ret0, _ := ret[0].([]*domain.RoomMessage)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindRoomMessagesByRecipientIDAndState indicates an expected call of FindRoomMessagesByRecipientIDAndState.
+func (mr *MockRoomMessagesFinderByRecipientIDAndStateMockRecorder) FindRoomMessagesByRecipientIDAndState(ctx, recipientID, state any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindRoomMessagesByRecipientIDAndState", reflect.TypeOf((*MockRoomMessagesFinderByRecipientIDAndState)(nil).FindRoomMessagesByRecipientIDAndState), ctx, recipientID, state)
 }

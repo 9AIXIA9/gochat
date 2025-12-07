@@ -8,6 +8,7 @@ import (
 	"gochat/internal/shared/kernel"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 //TODO 查询功能仍有 bug 待完善
@@ -25,7 +26,13 @@ func NewPrivateMessageRepository(db *gorm.DB) *PrivateMessageRepository {
 }
 
 func (repo *PrivateMessageRepository) Save(ctx context.Context, message *domain.PrivateMessage) error {
-	return gormutils.TranslateError(repo.db.WithContext(ctx).Create(repo.toModel(message)).Error)
+	return gormutils.TranslateError(repo.db.WithContext(ctx).Clauses(
+		clause.OnConflict{
+			DoNothing: true,
+			Columns:   []clause.Column{{Name: "id"}}, // 冲突的列
+		},
+	).
+		Create(repo.toModel(message)).Error)
 }
 
 func (repo *PrivateMessageRepository) Update(ctx context.Context, message *domain.PrivateMessage) error {

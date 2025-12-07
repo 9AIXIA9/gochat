@@ -8,6 +8,7 @@ import (
 	"gochat/internal/shared/kernel"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 var _ domain.RoomMessageRepository = (*RoomMessageRepository)(nil)
@@ -21,7 +22,12 @@ func NewRoomMessageRepository(db *gorm.DB) *RoomMessageRepository {
 }
 
 func (repo *RoomMessageRepository) Save(ctx context.Context, message *domain.RoomMessage) error {
-	return gormutils.TranslateError(repo.db.WithContext(ctx).Create(repo.toModel(message)).Error)
+	return gormutils.TranslateError(repo.db.WithContext(ctx).
+		Clauses(
+			clause.OnConflict{DoNothing: true,
+				Columns: []clause.Column{{Name: "id"}}, // 冲突的列
+			},
+		).Create(repo.toModel(message)).Error)
 }
 
 func (repo *RoomMessageRepository) Update(ctx context.Context, message *domain.RoomMessage) error {

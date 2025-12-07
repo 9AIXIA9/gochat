@@ -4,7 +4,6 @@ import (
 	"context"
 	"gochat/internal/chat/domain"
 	myErrors "gochat/internal/shared/errors"
-	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"gochat/pkg/utils"
 )
@@ -31,21 +30,21 @@ func (i *SendRoomMessageInput) Validate() error {
 
 type sendRoomMessageUseCase struct {
 	messageIDGenerator kernel.MessageIDGenerator
-	eventIDGenerator   event.IDGenerator
-	exister            domain.RoomshipExisterByUserIDAndRoomID
+	notifier           domain.RoomMessageNotifier
+	finder             domain.RoomshipsFinderByRoomID
 	messageCreator     domain.RoomMessageCreator
 }
 
 func NewSendRoomMessageUseCase(
 	messageIDGenerator kernel.MessageIDGenerator,
-	eventIDGenerator event.IDGenerator,
-	exister domain.RoomshipExisterByUserIDAndRoomID,
+	notifier domain.RoomMessageNotifier,
+	finder domain.RoomshipsFinderByRoomID,
 	messageCreator domain.RoomMessageCreator,
 ) (SendRoomMessageUseCase, error) {
 	if err := utils.CheckInterfaces(
 		messageIDGenerator,
-		eventIDGenerator,
-		exister,
+		notifier,
+		finder,
 		messageCreator,
 	); err != nil {
 		return nil, err
@@ -53,20 +52,26 @@ func NewSendRoomMessageUseCase(
 
 	return &sendRoomMessageUseCase{
 		messageIDGenerator: messageIDGenerator,
-		eventIDGenerator:   eventIDGenerator,
-		exister:            exister,
+		notifier:           notifier,
+		finder:             finder,
 		messageCreator:     messageCreator,
 	}, nil
 }
 
 func (uc *sendRoomMessageUseCase) Execute(ctx context.Context, input *SendRoomMessageInput) (*kernel.NoOutput, error) {
-	exist, err := uc.exister.ExistByUserIDAndRoomID(
-		ctx,
-		input.RoomID,
-		input.SenderID,
-	)
+	roomships, err := uc.finder.FindsByRoomID(ctx, input.RoomID)
 	if err != nil {
 		return nil, err
+	}
+
+	var exist bool
+	recipientIDs := make([]kernel.UserID, 0, len(roomships))
+	for _, roomship := range roomships {
+		if roomship.UserID() == input.SenderID {
+			exist = true
+			break
+		}
+		recipientIDs = append(recipientIDs, roomship.UserID())
 	}
 
 	if !exist {
@@ -76,9 +81,10 @@ func (uc *sendRoomMessageUseCase) Execute(ctx context.Context, input *SendRoomMe
 	message, err := domain.CreateRoomMessage(
 		input.RoomID,
 		input.SenderID,
+		recipientIDs,
 		input.Content,
 		uc.messageIDGenerator,
-		uc.eventIDGenerator,
+		uc.notifier,
 	)
 	if err != nil {
 		return nil, err

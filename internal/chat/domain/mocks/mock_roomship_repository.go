@@ -42,21 +42,6 @@ func (m *MockRoomshipRepository) EXPECT() *MockRoomshipRepositoryMockRecorder {
 	return m.recorder
 }
 
-// ExistByUserIDAndRoomID mocks base method.
-func (m *MockRoomshipRepository) ExistByUserIDAndRoomID(ctx context.Context, roomID kernel.RoomID, userID kernel.UserID) (bool, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ExistByUserIDAndRoomID", ctx, roomID, userID)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ExistByUserIDAndRoomID indicates an expected call of ExistByUserIDAndRoomID.
-func (mr *MockRoomshipRepositoryMockRecorder) ExistByUserIDAndRoomID(ctx, roomID, userID any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExistByUserIDAndRoomID", reflect.TypeOf((*MockRoomshipRepository)(nil).ExistByUserIDAndRoomID), ctx, roomID, userID)
-}
-
 // FindsByRoomID mocks base method.
 func (m *MockRoomshipRepository) FindsByRoomID(ctx context.Context, id kernel.RoomID) ([]*domain.Roomship, error) {
 	m.ctrl.T.Helper()
@@ -122,45 +107,6 @@ func (m *MockRoomshipSaver) Save(ctx context.Context, roomship *domain.Roomship)
 func (mr *MockRoomshipSaverMockRecorder) Save(ctx, roomship any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockRoomshipSaver)(nil).Save), ctx, roomship)
-}
-
-// MockRoomshipExisterByUserIDAndRoomID is a mock of RoomshipExisterByUserIDAndRoomID interface.
-type MockRoomshipExisterByUserIDAndRoomID struct {
-	ctrl     *gomock.Controller
-	recorder *MockRoomshipExisterByUserIDAndRoomIDMockRecorder
-	isgomock struct{}
-}
-
-// MockRoomshipExisterByUserIDAndRoomIDMockRecorder is the mock recorder for MockRoomshipExisterByUserIDAndRoomID.
-type MockRoomshipExisterByUserIDAndRoomIDMockRecorder struct {
-	mock *MockRoomshipExisterByUserIDAndRoomID
-}
-
-// NewMockRoomshipExisterByUserIDAndRoomID creates a new mock instance.
-func NewMockRoomshipExisterByUserIDAndRoomID(ctrl *gomock.Controller) *MockRoomshipExisterByUserIDAndRoomID {
-	mock := &MockRoomshipExisterByUserIDAndRoomID{ctrl: ctrl}
-	mock.recorder = &MockRoomshipExisterByUserIDAndRoomIDMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockRoomshipExisterByUserIDAndRoomID) EXPECT() *MockRoomshipExisterByUserIDAndRoomIDMockRecorder {
-	return m.recorder
-}
-
-// ExistByUserIDAndRoomID mocks base method.
-func (m *MockRoomshipExisterByUserIDAndRoomID) ExistByUserIDAndRoomID(ctx context.Context, roomID kernel.RoomID, userID kernel.UserID) (bool, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ExistByUserIDAndRoomID", ctx, roomID, userID)
-	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ExistByUserIDAndRoomID indicates an expected call of ExistByUserIDAndRoomID.
-func (mr *MockRoomshipExisterByUserIDAndRoomIDMockRecorder) ExistByUserIDAndRoomID(ctx, roomID, userID any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExistByUserIDAndRoomID", reflect.TypeOf((*MockRoomshipExisterByUserIDAndRoomID)(nil).ExistByUserIDAndRoomID), ctx, roomID, userID)
 }
 
 // MockRoomshipsFinderByRoomID is a mock of RoomshipsFinderByRoomID interface.

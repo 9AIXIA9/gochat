@@ -65,7 +65,26 @@ func (uc *roomshipCreatedUseCase) Execute(ctx context.Context, input *RoomshipCr
 		return nil, err
 	}
 
-	evs := make([]event.Event, 0, len(oldRoomships))
+	for i, roomship := range oldRoomships {
+		if roomship.ID() == input.RoomshipID {
+			oldRoomships = append(oldRoomships[:i], oldRoomships[i+1:]...)
+			break
+		}
+	}
+
+	evs := make([]event.Event, 0, len(oldRoomships)+1)
+	chatEvCreated, err := chatDomain.NewRoomshipCreatedEvent(
+		chatDomain.RoomshipID(newRoomship.ID()),
+		newRoomship.UserID(),
+		newRoomship.RoomID(),
+		uc.idGenerator,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	evs = append(evs, chatEvCreated)
+
 	for _, oldRoomship := range oldRoomships {
 		notificationEvRequested, err := notificationDomain.NewSystemMessageNotificationRequestedEvent(
 			oldRoomship.UserID(),
@@ -80,18 +99,6 @@ func (uc *roomshipCreatedUseCase) Execute(ctx context.Context, input *RoomshipCr
 		}
 		evs = append(evs, notificationEvRequested)
 	}
-
-	chatEvCreated, err := chatDomain.NewRoomshipCreatedEvent(
-		chatDomain.RoomshipID(newRoomship.ID()),
-		newRoomship.UserID(),
-		newRoomship.RoomID(),
-		uc.idGenerator,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	evs = append(evs, chatEvCreated)
 
 	if err := uc.creator.CreateUnpublishedEvents(ctx, evs); err != nil {
 		return nil, err

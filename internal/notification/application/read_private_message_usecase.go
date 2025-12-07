@@ -7,8 +7,6 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-//TODO 修改 用户已读应该指的是一个用户的所有消息已读而不是单独的一个消息
-
 type ReadPrivateMessageUseCase kernel.UseCase[*ReadPrivateMessageInput, *kernel.NoOutput]
 
 type ReadPrivateMessageInput struct {
