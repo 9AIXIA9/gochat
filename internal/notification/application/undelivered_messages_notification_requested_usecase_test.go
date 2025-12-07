@@ -89,4 +89,14 @@ func TestUndeliveredMessagesNotificationRequestedUseCase_Execute(t *testing.T) {
 		UserID: fixedUserID,
 	})
 	require.NoError(t, err)
+
+	// 不需要通知的情况
+	gomock.InOrder(
+		mockFinder.EXPECT().FindsByState(nil, fixedUserID, domain.MessageStateUndelivered).Return([]*domain.SystemMessage{}, nil),
+	)
+
+	_, err = useCase.Execute(nil, &application.UndeliveredMessagesNotificationRequestedInput{
+		UserID: fixedUserID,
+	})
+	require.NoError(t, err)
 }

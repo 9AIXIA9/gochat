@@ -52,13 +52,13 @@ func (uc *undeliveredMessagesNotificationRequestedUseCase) Execute(ctx context.C
 		return nil, err
 	}
 
-	for _, message := range systemMessages {
-		if err := message.Deliver(uc.systemMessageNotifier); err != nil {
-			return nil, err
-		}
-	}
-
 	if len(systemMessages) > 0 {
+		for _, message := range systemMessages {
+			if err := message.Deliver(uc.systemMessageNotifier); err != nil {
+				return nil, err
+			}
+		}
+
 		if err := uc.systemMessagesUpdater.Updates(ctx, systemMessages); err != nil {
 			return nil, err
 		}
