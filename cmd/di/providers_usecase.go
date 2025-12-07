@@ -70,7 +70,7 @@ var UseCaseBinlogReaderSet = wire.NewSet(
 func provideUnpublishedEventsCreatedCase(
 	publisher event.Publisher,
 	eventRepo event.Repository,
-) rootapp.UnpublishedEventsCreatedUseCase {
+) (rootapp.UnpublishedEventsCreatedUseCase, error) {
 	return rootapp.NewUnpublishedEventsCreatedUseCase(
 		publisher,
 		eventRepo,
@@ -252,7 +252,7 @@ func provideListFriendRequestsUseCase(
 func provideWebsocketUserSessionStartedUseCase(
 	eventIDGen event.IDGenerator,
 	eventRepo event.Repository,
-) rootapp.UserSessionStartedUseCase {
+) (rootapp.UserSessionStartedUseCase, error) {
 	return rootapp.NewUserSessionStartedUseCase(
 		eventIDGen,
 		eventRepo,

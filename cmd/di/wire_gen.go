@@ -115,7 +115,10 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	}
 	upgrader := provideWebsocketUpgrader(appConfig)
 	router := provideWebsocketRouter(appConfig, sendPrivateMessageUseCase, sendRoomMessageUseCase)
-	userSessionStartedUseCase := provideWebsocketUserSessionStartedUseCase(eventIDGenerator, eventRepository)
+	userSessionStartedUseCase, err := provideWebsocketUserSessionStartedUseCase(eventIDGenerator, eventRepository)
+	if err != nil {
+		return nil, err
+	}
 	server := provideWebsocketServer(upgrader, manager, router, userSessionStartedUseCase)
 	metrics := provideMetrics()
 	engine := provideHttpRouter(appConfig, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, createRoomUseCase, sendMemberRequestUseCase, agreeMemberRequestUseCase, refuseMemberRequestUseCase, sendFriendRequestUseCase, agreeFriendRequestUseCase, refuseFriendRequestUseCase, listFriendRequestsUseCase, validator, client, server, metrics)
@@ -220,7 +223,10 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	unpublishedEventsCreatedUseCase := provideUnpublishedEventsCreatedCase(eventPublisher, eventRepository)
+	unpublishedEventsCreatedUseCase, err := provideUnpublishedEventsCreatedCase(eventPublisher, eventRepository)
+	if err != nil {
+		return nil, err
+	}
 	eventHandler := provideCanalBinlogReaderHandler(unpublishedEventsCreatedUseCase)
 	binlogReader := provideCanalBinlogReader(canal, eventHandler)
 	diDatabaseMigrated := provideDatabaseMigrated(db)

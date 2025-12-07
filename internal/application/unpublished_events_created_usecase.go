@@ -4,6 +4,7 @@ import (
 	"context"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/utils"
 )
 
 type UnpublishedEventsCreatedUseCase kernel.UseCase[*kernel.NoInput, *kernel.NoOutput]
@@ -16,11 +17,17 @@ type unpublishedEventsCreatedUseCase struct {
 func NewUnpublishedEventsCreatedUseCase(
 	publisher event.Publisher,
 	lister event.UnpublishedEventsLister,
-) UnpublishedEventsCreatedUseCase {
+) (UnpublishedEventsCreatedUseCase, error) {
+	if err := utils.CheckInterfaces(
+		publisher,
+		lister,
+	); err != nil {
+		return nil, err
+	}
 	return &unpublishedEventsCreatedUseCase{
 		publisher: publisher,
 		lister:    lister,
-	}
+	}, nil
 }
 
 func (uc *unpublishedEventsCreatedUseCase) Execute(ctx context.Context, _ *kernel.NoInput) (*kernel.NoOutput, error) {
@@ -29,11 +36,12 @@ func (uc *unpublishedEventsCreatedUseCase) Execute(ctx context.Context, _ *kerne
 		return nil, err
 	}
 
-	for _, ev := range evs {
-		if err := uc.publisher.Publish(ev); err != nil {
-			return nil, err
+	if len(evs) != 0 {
+		for _, ev := range evs {
+			if err := uc.publisher.Publish(ev); err != nil {
+				return nil, err
+			}
 		}
-
 	}
 	return nil, nil
 }
