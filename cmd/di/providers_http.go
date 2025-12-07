@@ -39,8 +39,9 @@ func provideHttpRouter(
 	sendPrivateMessage chatApp.SendPrivateMessageUseCase,
 	sendRoomMessage chatApp.SendRoomMessageUseCase,
 	createRoom roomshipApp.CreateRoomUseCase,
-	joinRoom roomshipApp.JoinRoomUseCase,
-	leaveRoom roomshipApp.LeaveRoomUseCase,
+	sendMemberRequest roomshipApp.SendMemberRequestUseCase,
+	agreeMemberRequest roomshipApp.AgreeMemberRequestUseCase,
+	refuseMemberRequest roomshipApp.RefuseMemberRequestUseCase,
 	sendFriendRequest friendshipApp.SendFriendRequestUseCase,
 	agreeFriendRequest friendshipApp.AgreeFriendRequestUseCase,
 	refuseFriendRequest friendshipApp.RefuseFriendRequestUseCase,
@@ -104,9 +105,13 @@ func provideHttpRouter(
 	roomshipGroup := baseGroup.Group("/roomship")
 	roomshipGroup.Use(authorizationMiddleware)
 	{
-		roomshipGroup.POST("/room", roomshipHTTP.NewCreateRoomHandler(createRoom, validator))
-		roomshipGroup.POST("/room/member", roomshipHTTP.NewJoinRoomHandler(joinRoom, validator))
-		roomshipGroup.DELETE("/room/member", roomshipHTTP.NewLeaveRoomHandler(leaveRoom, validator))
+		// Rooms
+		roomshipGroup.POST("/rooms", roomshipHTTP.NewCreateRoomHandler(createRoom, validator))
+
+		// Member Requests
+		roomshipGroup.POST("/member_requests", roomshipHTTP.NewSendMemberRequestHandler(sendMemberRequest, validator))
+		roomshipGroup.PUT("/member_requests/:request_id/agree", roomshipHTTP.NewAgreeMemberRequestHandler(agreeMemberRequest, validator))
+		roomshipGroup.PUT("/member_requests/:request_id/refuse", roomshipHTTP.NewRefuseMemberRequestHandler(refuseMemberRequest, validator))
 	}
 
 	// 好友功能路由

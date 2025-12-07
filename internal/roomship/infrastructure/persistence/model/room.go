@@ -8,17 +8,11 @@ import (
 
 type Room struct {
 	ID                kernel.RoomID            `gorm:"primaryKey;type:char(36)"`
+	Number            domain.RoomNumber        `gorm:"type:varchar(20);uniqueIndex;not null"`
 	OwnerID           kernel.UserID            `gorm:"not null;index"`
-	Number            kernel.RoomNumber        `gorm:"type:varchar(20);uniqueIndex;not null"`
-	PasswordEncrypted domain.PasswordEncrypted `gorm:"type:varchar(255);not null"`
+	PasswordEncrypted domain.PasswordEncrypted `gorm:"type:varchar(255)"`
 	MaxMemberCount    int                      `gorm:"not null;default:0;check:max_member_count >= 0"`
 	CreatedAt         time.Time
-
-	// 关联
-	Owner   *User   `gorm:"foreignKey:OwnerID;references:ID"`
-	Members []*User `gorm:"many2many:gochat.roomship_room_members;foreignKey:ID;joinForeignKey:RoomID;references:ID;joinReferences:UserID"`
 }
 
-func (r *Room) TableName() string {
-	return "roomship_rooms"
-}
+func (*Room) TableName() string { return "roomship_rooms" }

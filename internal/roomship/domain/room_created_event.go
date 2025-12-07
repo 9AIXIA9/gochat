@@ -37,12 +37,7 @@ func NewRoomCreatedEvent(
 		return nil, err
 	}
 
-	e.StandardEvent = event.NewStandardEvent(
-		kernel.ID(roomID),
-		TopicRoomCreated,
-		payload,
-		generator,
-	)
+	e.StandardEvent = event.NewStandardEvent(kernel.ID(roomID), TopicRoomCreated, payload, generator)
 	return e, nil
 }
 

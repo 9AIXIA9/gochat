@@ -3,8 +3,8 @@ package application
 import (
 	"context"
 	"gochat/internal/authorization/domain"
-	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/utils"
 )
 
 type LoginUseCase kernel.UseCase[*LoginInput, *LoginOutput]
@@ -27,7 +27,6 @@ func (i *LoginInput) Validate() error {
 }
 
 type loginUseCase struct {
-	eventIDGenerator      event.IDGenerator
 	comparator            domain.Comparator
 	userFinder            domain.UserFinderByNumber
 	refreshTokenUpserter  domain.RefreshTokenUpserter
@@ -36,21 +35,28 @@ type loginUseCase struct {
 }
 
 func NewLoginUseCase(
-	idGenerator event.IDGenerator,
 	comparator domain.Comparator,
 	userFinder domain.UserFinderByNumber,
 	refreshTokenUpserter domain.RefreshTokenUpserter,
 	accessTokenGenerator domain.AccessTokenGenerator,
 	refreshTokenGenerator domain.RefreshTokenGenerator,
-) LoginUseCase {
+) (LoginUseCase, error) {
+	if err := utils.CheckInterfaces(
+		comparator,
+		userFinder,
+		refreshTokenUpserter,
+		accessTokenGenerator,
+		refreshTokenGenerator,
+	); err != nil {
+		return nil, err
+	}
 	return &loginUseCase{
-		eventIDGenerator:      idGenerator,
 		comparator:            comparator,
 		userFinder:            userFinder,
 		refreshTokenUpserter:  refreshTokenUpserter,
 		accessTokenGenerator:  accessTokenGenerator,
 		refreshTokenGenerator: refreshTokenGenerator,
-	}
+	}, nil
 }
 
 func (uc *loginUseCase) Execute(ctx context.Context, input *LoginInput) (*LoginOutput, error) {
@@ -59,9 +65,12 @@ func (uc *loginUseCase) Execute(ctx context.Context, input *LoginInput) (*LoginO
 		return nil, err
 	}
 
-	refreshToken, err := user.Login(
-		input.Password,
-		uc.comparator,
+	if err := user.PasswordEncrypted().Compare(input.Password, uc.comparator); err != nil {
+		return nil, err
+	}
+
+	refreshToken, err := domain.CreateRefreshToken(
+		user.ID(),
 		uc.refreshTokenGenerator,
 	)
 	if err != nil {

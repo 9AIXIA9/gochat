@@ -15,9 +15,9 @@ import (
 )
 
 type SendRoomMessageRequest struct {
-	SenderID   kernel.UserID     `json:"-" validate:"required"`
-	RoomNumber kernel.RoomNumber `json:"room_number" validate:"required"`
-	Content    string            `json:"content" validate:"required,max=1000"`
+	SenderID kernel.UserID `json:"-" validate:"required"`
+	RoomID   kernel.RoomID `json:"room_id" validate:"required"`
+	Content  string        `json:"content" validate:"required,max=1000"`
 }
 
 func (r *SendRoomMessageRequest) Bind(ginContext *gin.Context) error {
@@ -32,9 +32,9 @@ func NewSendRoomMessageHandler(useCase application.SendRoomMessageUseCase, valid
 		validator,
 		func(request *SendRoomMessageRequest) *application.SendRoomMessageInput {
 			return &application.SendRoomMessageInput{
-				SenderID:   request.SenderID,
-				RoomNumber: request.RoomNumber,
-				Content:    request.Content,
+				SenderID: request.SenderID,
+				RoomID:   request.RoomID,
+				Content:  request.Content,
 			}
 		},
 		func(ginContext *gin.Context, _ *kernel.NoOutput) {

@@ -33,7 +33,7 @@ func (r *RefreshAccessTokenRequest) Bind(ginContext *gin.Context) error {
 }
 
 func NewRefreshAccessTokenHandler(useCase application.RefreshAccessTokenUseCase, validator *validator.Validator, cookieConfig *config.Cookie) gin.HandlerFunc {
-	return ginutils.AdaptUseCaseToHandler[RefreshAccessTokenRequest, *RefreshAccessTokenRequest, *application.RefreshAccessTokenInput, *application.RefreshAccessTokenOutput](
+	return ginutils.AdaptUseCaseToHandler(
 		useCase,
 		validator,
 		func(request *RefreshAccessTokenRequest) *application.RefreshAccessTokenInput {
@@ -59,12 +59,11 @@ func NewRefreshAccessTokenHandler(useCase application.RefreshAccessTokenUseCase,
 		},
 		func(ginContext *gin.Context, err error) {
 			switch {
-			case errors.Is(err, myErrors.ErrNotFound):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "refresh token does not exist"))
-			case errors.Is(err, myErrors.ErrExpired):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "refresh token expired"))
-			case errors.Is(err, myErrors.ErrExceedMaxValue):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "the number of token refreshes is exhausted"))
+			case errors.Is(err, domain.ErrRefreshTokenExpired) ||
+				errors.Is(err, domain.ErrAccessTokenGenerated) ||
+				errors.Is(err, domain.ErrRefreshLimitExceeded) ||
+				errors.Is(err, myErrors.ErrNotFound):
+				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "invalid refresh token"))
 			default:
 				zap.L().Error("refresh access token handler failed", zap.Error(err))
 				ginutils.Response(ginContext, sharedHttp.ResponseServerError)

@@ -23,16 +23,6 @@ func (n Number) Validate() error {
 	return nil
 }
 
-type RoomNumber Number
-
-func (n RoomNumber) String() string {
-	return string(n)
-}
-
-func (n RoomNumber) Validate() error {
-	return Number(n).Validate()
-}
-
 type UserNumber Number
 
 func (n UserNumber) String() string {

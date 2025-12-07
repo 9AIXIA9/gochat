@@ -1,11 +1,9 @@
 package bcrypt
 
 import (
-	"errors"
 	"fmt"
 	authorizationApplication "gochat/internal/authorization/domain"
 	roomshipApplication "gochat/internal/roomship/domain"
-	myErrors "gochat/internal/shared/errors"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -25,7 +23,7 @@ func NewHasher(config *HasherConfig) *Hasher {
 
 func (h *Hasher) Compare(hash string, origin string) error {
 	if err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(origin)); err != nil {
-		return errors.Join(myErrors.ErrInvalidCredential, err)
+		return fmt.Errorf("compare failed,err:%w", err)
 	}
 	return nil
 }

@@ -15,32 +15,6 @@ type User struct {
 	eventManager      *event.Manager
 }
 
-func CreateUser(
-	email kernel.Email,
-	passwordEncrypted PasswordEncrypted,
-	userIDGenerator UserIDGenerator,
-	numberGenerator UserNumberGenerator,
-	eventIDGenerator event.IDGenerator,
-) (*User, error) {
-	now := time.Now().UTC()
-	u := &User{
-		id:                userIDGenerator.Generate(),
-		email:             email,
-		number:            numberGenerator.Generate(),
-		passwordEncrypted: passwordEncrypted,
-		signedUpAt:        now,
-		eventManager:      event.NewEventManager(),
-	}
-
-	ev, err := NewUserCreatedEvent(u.id, eventIDGenerator)
-	if err != nil {
-		return nil, err
-	}
-
-	u.eventManager.RecordEvent(ev)
-	return u, nil
-}
-
 func LoadUser(
 	id kernel.UserID,
 	email kernel.Email,
@@ -58,15 +32,29 @@ func LoadUser(
 	}
 }
 
-func (u *User) Login(
-	password Password,
-	comparator Comparator,
-	refreshTokenGenerator RefreshTokenGenerator,
-) (*RefreshTokenEntity, error) {
-	if err := comparator.Compare(u.passwordEncrypted.String(), password.String()); err != nil {
+func CreateUser(
+	email kernel.Email,
+	passwordEncrypted PasswordEncrypted,
+	userIDGenerator UserIDGenerator,
+	numberGenerator UserNumberGenerator,
+	eventIDGenerator event.IDGenerator,
+) (*User, error) {
+	u := &User{
+		id:                userIDGenerator.Generate(),
+		email:             email,
+		number:            numberGenerator.Generate(),
+		passwordEncrypted: passwordEncrypted,
+		signedUpAt:        time.Now().UTC(),
+		eventManager:      event.NewEventManager(),
+	}
+
+	ev, err := NewUserCreatedEvent(u.id, eventIDGenerator)
+	if err != nil {
 		return nil, err
 	}
-	return CreateRefreshToken(u.id, refreshTokenGenerator)
+
+	u.eventManager.RecordEvent(ev)
+	return u, nil
 }
 
 // getter

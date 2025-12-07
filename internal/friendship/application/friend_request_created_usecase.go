@@ -62,12 +62,9 @@ func (uc *friendRequestCreatedUseCase) Execute(ctx context.Context, input *Frien
 		return nil, domain.ErrAddYourselfAsFriend
 	}
 
-	ev, err := notificationDomain.NewFriendRequestCreatedNotificationRequestedEvent(
-		input.RequestID,
-		req.From(),
+	ev, err := notificationDomain.NewSystemMessageNotificationRequestedEvent(
 		req.To(),
-		req.SentAt(),
-		req.Content(),
+		uc.buildContent(req),
 		uc.idGenerator,
 	)
 	if err != nil {
@@ -79,4 +76,8 @@ func (uc *friendRequestCreatedUseCase) Execute(ctx context.Context, input *Frien
 	}
 
 	return nil, nil
+}
+
+func (uc *friendRequestCreatedUseCase) buildContent(req *domain.FriendRequest) string {
+	return "You have a new friend request from user " + string(req.From()) + ". Message: " + req.Content()
 }

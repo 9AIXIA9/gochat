@@ -5,6 +5,7 @@ import (
 	"gochat/internal/roomship/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/utils"
 )
 
 type UserCreatedUseCase kernel.UseCase[*UserCreatedInput, *kernel.NoOutput]
@@ -22,17 +23,21 @@ func (r *UserCreatedInput) Validate() error {
 }
 
 type userCreatedUseCase struct {
-	userIDCreator domain.UserCreator
+	userSaver domain.UserSaver
 }
 
 func NewUserCreatedUseCase(
-	userIDCreator domain.UserCreator,
-) UserCreatedUseCase {
-	return &userCreatedUseCase{
-		userIDCreator: userIDCreator,
+	userSaver domain.UserSaver,
+) (UserCreatedUseCase, error) {
+	if err := utils.CheckInterfaces(userSaver); err != nil {
+		return nil, err
 	}
+
+	return &userCreatedUseCase{
+		userSaver: userSaver,
+	}, nil
 }
 
 func (uc *userCreatedUseCase) Execute(ctx context.Context, input *UserCreatedInput) (*kernel.NoOutput, error) {
-	return nil, uc.userIDCreator.Create(ctx, domain.CreateUser(input.UserID))
+	return nil, uc.userSaver.Save(ctx, domain.LoadUser(input.UserID))
 }

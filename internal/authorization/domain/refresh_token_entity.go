@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 	"time"
 )
@@ -18,6 +17,21 @@ type RefreshTokenEntity struct {
 	expiredAt    time.Time
 	refreshCount int
 	generated    bool
+}
+
+func LoadRefreshToken(
+	token RefreshToken,
+	userID kernel.UserID,
+	expiredAt time.Time,
+	refreshCount int,
+) *RefreshTokenEntity {
+	return &RefreshTokenEntity{
+		userID:       userID,
+		token:        token,
+		expiredAt:    expiredAt,
+		refreshCount: refreshCount,
+		generated:    true,
+	}
 }
 
 func CreateRefreshToken(
@@ -37,40 +51,14 @@ func CreateRefreshToken(
 	}, nil
 }
 
-func LoadRefreshToken(
-	token RefreshToken,
-	userID kernel.UserID,
-	expiredAt time.Time,
-	refreshCount int,
-) *RefreshTokenEntity {
-	return &RefreshTokenEntity{
-		userID:       userID,
-		token:        token,
-		expiredAt:    expiredAt,
-		refreshCount: refreshCount,
-		generated:    true,
-	}
-}
-
 func (t *RefreshTokenEntity) GenerateAccessToken(
 	accessTokenGenerator AccessTokenGenerator,
 ) (AccessToken, error) {
 	if t.generated || time.Now().After(t.expiredAt) {
-		return "", errors.ErrAlreadyDone
+		return "", ErrAccessTokenGenerated
 	}
 	t.generated = true
 	return accessTokenGenerator.Generate(t.userID)
-}
-
-func (t *RefreshTokenEntity) CanBeRefreshed() error {
-	if time.Now().After(t.expiredAt) {
-		return errors.ErrExpired
-	}
-
-	if refreshTokenMaxRefreshCount <= t.refreshCount {
-		return errors.ErrExceedMaxValue
-	}
-	return nil
 }
 
 func (t *RefreshTokenEntity) Refresh(
@@ -87,6 +75,17 @@ func (t *RefreshTokenEntity) Refresh(
 	t.refreshCount++
 	t.expiredAt = t.expiredAt.Add(refreshExtendedDuration)
 	t.generated = false
+	return nil
+}
+
+func (t *RefreshTokenEntity) CanBeRefreshed() error {
+	if time.Now().After(t.expiredAt) {
+		return ErrRefreshTokenExpired
+	}
+
+	if refreshTokenMaxRefreshCount <= t.refreshCount {
+		return ErrRefreshLimitExceeded
+	}
 	return nil
 }
 

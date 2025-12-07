@@ -19,17 +19,12 @@ var (
 
 // 业务逻辑相关错误
 var (
-	ErrInvalidCredential = errors.New("logic: invalid credential")
-	ErrInvalidLength     = errors.New("logic: invalid length")
-	ErrInvalidNumber     = errors.New("logic: invalid number")
-	ErrInvalidFormat     = errors.New("logic: invalid format")
-	ErrEmptyInput        = errors.New("logic: input is empty")
-	ErrExpired           = errors.New("logic: expired")
-	ErrLessThanMin       = errors.New("logic: less than min value")
-	ErrExceedMaxValue    = errors.New("logic: exceed max value")
-	ErrAlreadyDone       = errors.New("logic: already done")
-	ErrNotBelongTo       = errors.New("logic: not belong to")
-	ErrOwnerCantLeave    = errors.New("logic: owner cannot leave the room")
+	ErrInvalidLength    = errors.New("logic: invalid length")
+	ErrInvalidNumber    = errors.New("logic: invalid number")
+	ErrInvalidFormat    = errors.New("logic: invalid format")
+	ErrEmptyInput       = errors.New("logic: input is empty")
+	ErrNotBelongTo      = errors.New("logic: not belong to")
+	ErrPermissionDenied = errors.New("logic: permission denied")
 )
 
 // 数据库相关错误

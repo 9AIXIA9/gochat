@@ -12,8 +12,8 @@ import (
 const SendPrivateMessageTopic websocket.Topic = "chat.send_private_message"
 
 type SendPrivateMessageData struct {
-	RecipientNumber kernel.UserNumber `json:"recipient_number" validate:"required"`
-	Content         string            `json:"content" validate:"required,max=1000"`
+	RecipientID kernel.UserID `json:"recipient_id" validate:"required"`
+	Content     string        `json:"content" validate:"required,max=1000"`
 }
 
 func NewSendPrivateMessageHandler(
@@ -26,9 +26,9 @@ func NewSendPrivateMessageHandler(
 		}
 
 		input := &application.SendPrivateMessageInput{
-			SenderID:        utils.GetUserID(ctx),
-			RecipientNumber: reqData.RecipientNumber,
-			Content:         reqData.Content,
+			SenderID:    utils.GetUserID(ctx),
+			RecipientID: reqData.RecipientID,
+			Content:     reqData.Content,
 		}
 
 		if err := input.Validate(); err != nil {

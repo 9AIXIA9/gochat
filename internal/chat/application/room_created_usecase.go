@@ -5,43 +5,41 @@ import (
 	"gochat/internal/chat/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/utils"
 )
 
 type RoomCreatedUseCase kernel.UseCase[*RoomCreatedInput, *kernel.NoOutput]
 
 type RoomCreatedInput struct {
-	OwnerID    kernel.UserID
-	RoomID     kernel.RoomID
-	RoomNumber kernel.RoomNumber
+	RoomID kernel.RoomID
 }
 
 func (r *RoomCreatedInput) Validate() error {
-	if len(r.RoomID) == 0 || len(r.OwnerID) == 0 {
+	if len(r.RoomID) == 0 {
 		return myErrors.ErrEmptyInput
 	}
 
-	if err := r.RoomNumber.Validate(); err != nil {
-		return err
-	}
 	return nil
 }
 
 type roomCreatedUseCase struct {
-	roomCreator domain.RoomCreator
+	roomSaver domain.RoomSaver
 }
 
 func NewRoomCreatedUseCase(
-	roomCreator domain.RoomCreator,
-) RoomCreatedUseCase {
-	return &roomCreatedUseCase{
-		roomCreator: roomCreator,
+	roomSaver domain.RoomSaver,
+) (RoomCreatedUseCase, error) {
+	if err := utils.CheckInterfaces(roomSaver); err != nil {
+		return nil, err
 	}
+
+	return &roomCreatedUseCase{
+		roomSaver: roomSaver,
+	}, nil
 }
 
 func (uc *roomCreatedUseCase) Execute(ctx context.Context, input *RoomCreatedInput) (*kernel.NoOutput, error) {
-	room := domain.CreateRoom(input.RoomID, input.RoomNumber, input.OwnerID)
-
-	if err := uc.roomCreator.Create(ctx, room); err != nil {
+	if err := uc.roomSaver.Save(ctx, domain.LoadRoom(input.RoomID)); err != nil {
 		return nil, err
 	}
 	return nil, nil

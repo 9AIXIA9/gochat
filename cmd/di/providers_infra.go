@@ -3,12 +3,13 @@ package di
 import (
 	"context"
 	"gochat/config"
-	authApp "gochat/internal/authorization/application"
 	authDomain "gochat/internal/authorization/domain"
 	"gochat/internal/authorization/infrastructure/crypto"
 	"gochat/internal/authorization/infrastructure/jwt"
 	authSnowflake "gochat/internal/authorization/infrastructure/snowflake"
 	authUUID "gochat/internal/authorization/infrastructure/uuid"
+	chatDomain "gochat/internal/chat/domain"
+	chatWebsocket "gochat/internal/chat/infrastructure/websocket"
 	friendshipDomain "gochat/internal/friendship/domain"
 	friendshipUUID "gochat/internal/friendship/infrastructure/uuid"
 	"gochat/internal/infrastructure/bcrypt"
@@ -20,7 +21,6 @@ import (
 	"gochat/internal/infrastructure/uuid"
 	validatorInfra "gochat/internal/infrastructure/validator"
 	"gochat/internal/infrastructure/websocket"
-	notificationApp "gochat/internal/notification/application"
 	notificationDomain "gochat/internal/notification/domain"
 	gomailInfra "gochat/internal/notification/infrastructure/gomail"
 	notificationWebsocket "gochat/internal/notification/infrastructure/websocket"
@@ -52,8 +52,9 @@ var InfraSet = wire.NewSet(
 	provideHasher,
 	provideMessageIDGenerator,
 	provideRoomshipRoomIDGenerator,
+	provideRoomshipRoomshipIDGenerator,
 	provideRoomshipRoomNumberGenerator,
-	provideFriendshipOperationIDGenerator,
+	provideOperationIDGenerator,
 	provideFriendshipFriendshipIDGenerator,
 	provideAccessTokenManager,
 	provideRefreshTokenGenerator,
@@ -66,6 +67,7 @@ var InfraSet = wire.NewSet(
 	// Binds
 	wire.Bind(new(event.IDGenerator), new(*uuid.EventIDGenerator)),
 	wire.Bind(new(kernel.MessageIDGenerator), new(*uuid.MessageIDGenerator)),
+	wire.Bind(new(kernel.OperationIDGenerator), new(*uuid.OperationIDGenerator)),
 	wire.Bind(new(event.Publisher), new(*kafkautil.EventPublisher)),
 	// Authorization binds
 	wire.Bind(new(authDomain.UserIDGenerator), new(*authUUID.UserIDGenerator)),
@@ -73,21 +75,22 @@ var InfraSet = wire.NewSet(
 	wire.Bind(new(authDomain.Encryptor), new(*bcrypt.Hasher)),
 	wire.Bind(new(authDomain.Comparator), new(*bcrypt.Hasher)),
 	wire.Bind(new(authDomain.AccessTokenGenerator), new(*jwt.AccessTokenManager)),
-	wire.Bind(new(authApp.AccessTokenParser), new(*jwt.AccessTokenManager)),
+	wire.Bind(new(authDomain.AccessTokenParser), new(*jwt.AccessTokenManager)),
 	wire.Bind(new(authDomain.RefreshTokenGenerator), new(*crypto.RefreshTokenGenerator)),
+	// Chat Notifier
+	wire.Bind(new(chatDomain.PrivateMessageNotifier), new(*chatWebsocket.PrivateMessageNotifier)),
+	wire.Bind(new(chatDomain.RoomMessageNotifier), new(*chatWebsocket.RoomMessageNotifier)),
 	// Roomship generator & crypto binds
 	wire.Bind(new(roomshipDomain.RoomIDGenerator), new(*roomshipUUID.RoomIDGenerator)),
+	wire.Bind(new(roomshipDomain.RoomshipIDGenerator), new(*roomshipUUID.RoomshipIDGenerator)),
 	wire.Bind(new(roomshipDomain.RoomNumberGenerator), new(*roomshipSnowflake.RoomNumberGenerator)),
 	wire.Bind(new(roomshipDomain.Encryptor), new(*bcrypt.Hasher)),
 	wire.Bind(new(roomshipDomain.Comparator), new(*bcrypt.Hasher)),
 	// Friendship generator
-	wire.Bind(new(friendshipDomain.OperationIDGenerator), new(*friendshipUUID.OperationIDGenerator)),
 	wire.Bind(new(friendshipDomain.FriendshipIDGenerator), new(*friendshipUUID.FriendshipIDGenerator)),
 	// Notification binds
-	wire.Bind(new(notificationApp.WelcomeEmailNotifier), new(*gomailInfra.EmailNotifier)),
+	wire.Bind(new(notificationDomain.WelcomeEmailNotifier), new(*gomailInfra.EmailNotifier)),
 	wire.Bind(new(notificationDomain.SystemMessageNotifier), new(*notificationWebsocket.SystemMessageNotifier)),
-	wire.Bind(new(notificationDomain.PrivateMessageNotifier), new(*notificationWebsocket.PrivateMessageNotifier)),
-	wire.Bind(new(notificationDomain.RoomMessageNotifier), new(*notificationWebsocket.RoomMessageNotifier)),
 )
 
 func provideMysql(appConfig *config.App) (*gorm.DB, error) {
@@ -101,7 +104,15 @@ func provideValidator() (*validatorInfra.Validator, error) { return validatorInf
 
 func provideMetrics() *prometheus.Metrics { return prometheus.NewMetrics(nil) }
 
-func provideEventIDGenerator() *uuid.EventIDGenerator { return uuid.NewEventIDGenerator() }
+func provideEventIDGenerator() *uuid.EventIDGenerator {
+	return uuid.NewEventIDGenerator()
+}
+func provideOperationIDGenerator() *uuid.OperationIDGenerator {
+	return uuid.NewOperationIDGenerator()
+}
+func provideMessageIDGenerator() *uuid.MessageIDGenerator {
+	return uuid.NewMessageIDGenerator()
+}
 
 func provideAuthorizationUserIDGenerator() *authUUID.UserIDGenerator {
 	return authUUID.NewUserIDGenerator()
@@ -109,19 +120,17 @@ func provideAuthorizationUserIDGenerator() *authUUID.UserIDGenerator {
 func provideAuthorizationUserNumberGenerator(appConfig *config.App) (*authSnowflake.UserNumberGenerator, error) {
 	return authSnowflake.NewUserNumberGenerator(appConfig.MachineNode)
 }
-func provideHasher(appConfig *config.App) *bcrypt.Hasher { return bcrypt.NewHasher(appConfig.Hasher) }
-func provideMessageIDGenerator() *uuid.MessageIDGenerator {
-	return uuid.NewMessageIDGenerator()
+func provideHasher(appConfig *config.App) *bcrypt.Hasher {
+	return bcrypt.NewHasher(appConfig.Hasher)
 }
-
 func provideRoomshipRoomIDGenerator() *roomshipUUID.RoomIDGenerator {
 	return roomshipUUID.NewRoomIDGenerator()
 }
+func provideRoomshipRoomshipIDGenerator() *roomshipUUID.RoomshipIDGenerator {
+	return roomshipUUID.NewRoomshipIDGenerator()
+}
 func provideRoomshipRoomNumberGenerator(appConfig *config.App) (*roomshipSnowflake.RoomNumberGenerator, error) {
 	return roomshipSnowflake.NewRoomNumberGenerator(appConfig.MachineNode)
-}
-func provideFriendshipOperationIDGenerator() *friendshipUUID.OperationIDGenerator {
-	return friendshipUUID.NewOperationIDGenerator()
 }
 func provideFriendshipFriendshipIDGenerator() *friendshipUUID.FriendshipIDGenerator {
 	return friendshipUUID.NewFriendshipIDGenerator()
@@ -148,11 +157,11 @@ func provideEmailNotifier(appConfig *config.App, dialer *gomail.Dialer) *gomailI
 func provideSystemMessageNotifier(manager *websocket.Manager) *notificationWebsocket.SystemMessageNotifier {
 	return notificationWebsocket.NewSystemMessageNotifier(manager)
 }
-func providePrivateMessageNotifier(manager *websocket.Manager) *notificationWebsocket.PrivateMessageNotifier {
-	return notificationWebsocket.NewPrivateMessageNotifier(manager)
+func providePrivateMessageNotifier(manager *websocket.Manager) *chatWebsocket.PrivateMessageNotifier {
+	return chatWebsocket.NewPrivateMessageNotifier(manager)
 }
-func provideRoomMessageNotifier(manager *websocket.Manager) *notificationWebsocket.RoomMessageNotifier {
-	return notificationWebsocket.NewRoomMessageNotifier(manager)
+func provideRoomMessageNotifier(manager *websocket.Manager) *chatWebsocket.RoomMessageNotifier {
+	return chatWebsocket.NewRoomMessageNotifier(manager)
 }
 func provideKafkaPublisher(appConfig *config.App, eventRepo *repository.EventRepository, metrics *prometheus.Metrics) (*kafkautil.EventPublisher, error) {
 	return kafkautil.NewEventPublisher(appConfig.Kafka, metrics, func(id event.ID) error {

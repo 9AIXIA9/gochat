@@ -62,25 +62,22 @@ func provideKafkaRouter(
 	appConfig *config.App,
 	// auth
 	authUserCreated authApp.UserCreatedUseCase,
-	// roomship
-	RoomshipUserCreated roomshipApp.UserCreatedUseCase,
-	RoomshipRoomCreated roomshipApp.RoomCreatedUseCase,
-	RoomshipRoomJoined roomshipApp.RoomJoinedUseCase,
-	RoomshipRoomLeft roomshipApp.RoomLeftUseCase,
 	// chat
 	chatUserCreated chatApp.UserCreatedUseCase,
 	chatRoomCreated chatApp.RoomCreatedUseCase,
-	chatRoomJoined chatApp.RoomJoinedUseCase,
-	chatRoomLeft chatApp.RoomLeftUseCase,
-	chatPrivateMessageCreated chatApp.PrivateMessageCreatedUseCase,
-	chatRoomMessageCreated chatApp.RoomMessageCreatedUseCase,
+	chatRoomshipCreated chatApp.RoomshipCreatedUseCase,
+	chatFriendshipCreated chatApp.FriendshipCreatedUseCase,
+	chatUndeliveredMessagesPushRequested chatApp.UndeliveredMessagesPushRequestedUseCase,
 	// notification
 	notificationWelcomeEmailNotificationRequested notificationApp.WelcomeEmailNotificationRequestedUseCase,
-	notificationFriendRequestCreatedNotificationRequested notificationApp.FriendRequestCreatedNotificationRequestedUseCase,
-	notificationFriendshipCreatedNotificationRequested notificationApp.FriendshipCreatedNotificationRequestedUseCase,
-	notificationPrivateMessageNotificationRequested notificationApp.PrivateMessageNotificationRequestedUseCase,
-	notificationRoomMessageNotificationRequested notificationApp.RoomMessageNotificationRequestedUseCase,
+	notificationSystemMessageNotificationRequested notificationApp.SystemMessageNotificationRequestedUseCase,
 	notificationUndeliveredMessagesRequested notificationApp.UndeliveredMessagesNotificationRequestedUseCase,
+	// roomship
+	roomshipUserCreated roomshipApp.UserCreatedUseCase,
+	roomshipRoomCreated roomshipApp.RoomCreatedUseCase,
+	roomshipMemberRequestAgreed roomshipApp.MemberRequestAgreedUseCase,
+	roomshipMemberRequestCreated roomshipApp.MemberRequestCreatedUseCase,
+	roomshipRoomshipCreated roomshipApp.RoomshipCreatedUseCase,
 	// friendship
 	friendshipUserCreated friendshipApp.UserCreatedUseCase,
 	friendshipFriendRequestAgreed friendshipApp.FriendRequestAgreedUseCase,
@@ -105,22 +102,13 @@ func provideKafkaRouter(
 		router.Handle(authDomain.TopicUserCreated, kafkaInfra.WrapEventHandler(authEvent.NewUserCreatedEventHandler(authUserCreated)))
 	}
 
-	// Roomship
-	{
-		router.Handle(roomshipDomain.TopicUserCreated, kafkaInfra.WrapEventHandler(roomshipEvent.NewUserCreatedEventHandler(RoomshipUserCreated)))
-		router.Handle(roomshipDomain.TopicRoomCreated, kafkaInfra.WrapEventHandler(roomshipEvent.NewRoomCreatedEventHandler(RoomshipRoomCreated)))
-		router.Handle(roomshipDomain.TopicRoomJoined, kafkaInfra.WrapEventHandler(roomshipEvent.NewRoomJoinedEventHandler(RoomshipRoomJoined)))
-		router.Handle(roomshipDomain.TopicRoomLeft, kafkaInfra.WrapEventHandler(roomshipEvent.NewRoomLeftEventHandler(RoomshipRoomLeft)))
-	}
-
 	// Chat
 	{
 		router.Handle(chatDomain.TopicUserCreated, kafkaInfra.WrapEventHandler(chatEvent.NewUserCreatedEventHandler(chatUserCreated)))
 		router.Handle(chatDomain.TopicRoomCreated, kafkaInfra.WrapEventHandler(chatEvent.NewRoomCreatedEventHandler(chatRoomCreated)))
-		router.Handle(chatDomain.TopicRoomJoined, kafkaInfra.WrapEventHandler(chatEvent.NewRoomJoinedEventHandler(chatRoomJoined)))
-		router.Handle(chatDomain.TopicRoomLeft, kafkaInfra.WrapEventHandler(chatEvent.NewRoomLeftEventHandler(chatRoomLeft)))
-		router.Handle(chatDomain.TopicPrivateMessageCreated, kafkaInfra.WrapEventHandler(chatEvent.NewPrivateMessageCreatedEventHandler(chatPrivateMessageCreated)))
-		router.Handle(chatDomain.TopicRoomMessageCreated, kafkaInfra.WrapEventHandler(chatEvent.NewRoomMessageCreatedEventHandler(chatRoomMessageCreated)))
+		router.Handle(chatDomain.TopicRoomshipCreated, kafkaInfra.WrapEventHandler(chatEvent.NewRoomshipCreatedEventHandler(chatRoomshipCreated)))
+		router.Handle(chatDomain.TopicFriendshipCreated, kafkaInfra.WrapEventHandler(chatEvent.NewFriendshipCreatedEventHandler(chatFriendshipCreated)))
+		router.Handle(chatDomain.TopicUndeliveredMessagesPushRequested, kafkaInfra.WrapEventHandler(chatEvent.NewUndeliveredMessagesPushRequestedEventHandler(chatUndeliveredMessagesPushRequested)))
 	}
 	// Notification
 	{
@@ -130,11 +118,17 @@ func provideKafkaRouter(
 		} else {
 			zap.L().Info("Skipping subscription to WelcomeEmailNotificationRequested topic as email dialer is not connected")
 		}
-		router.Handle(notificationDomain.TopicFriendshipCreatedNotificationRequested, kafkaInfra.WrapEventHandler(notificationEvent.NewFriendshipCreatedNotificationRequestedEventHandler(notificationFriendshipCreatedNotificationRequested)))
-		router.Handle(notificationDomain.TopicFriendRequestCreatedNotificationRequested, kafkaInfra.WrapEventHandler(notificationEvent.NewFriendRequestCreatedNotificationRequestedEventHandler(notificationFriendRequestCreatedNotificationRequested)))
-		router.Handle(notificationDomain.TopicPrivateMessageNotificationRequested, kafkaInfra.WrapEventHandler(notificationEvent.NewPrivateMessageNotificationRequestedEventHandler(notificationPrivateMessageNotificationRequested)))
-		router.Handle(notificationDomain.TopicRoomMessageNotificationRequested, kafkaInfra.WrapEventHandler(notificationEvent.NewRoomMessageNotificationRequestedEventHandler(notificationRoomMessageNotificationRequested)))
+		router.Handle(notificationDomain.TopicSystemMessageNotificationRequested, kafkaInfra.WrapEventHandler(notificationEvent.NewSystemMessageNotificationRequestedEventHandler(notificationSystemMessageNotificationRequested)))
 		router.Handle(notificationDomain.TopicUndeliveredMessagesNotificationRequested, kafkaInfra.WrapEventHandler(notificationEvent.NewUndeliveredMessagesNotificationRequestedEventHandler(notificationUndeliveredMessagesRequested)))
+	}
+
+	// Roomship
+	{
+		router.Handle(roomshipDomain.TopicUserCreated, kafkaInfra.WrapEventHandler(roomshipEvent.NewUserCreatedEventHandler(roomshipUserCreated)))
+		router.Handle(roomshipDomain.TopicRoomCreated, kafkaInfra.WrapEventHandler(roomshipEvent.NewRoomCreatedEventHandler(roomshipRoomCreated)))
+		router.Handle(roomshipDomain.TopicMemberRequestCreated, kafkaInfra.WrapEventHandler(roomshipEvent.NewMemberRequestCreatedEventHandler(roomshipMemberRequestCreated)))
+		router.Handle(roomshipDomain.TopicMemberRequestAgreed, kafkaInfra.WrapEventHandler(roomshipEvent.NewMemberRequestAgreedEventHandler(roomshipMemberRequestAgreed)))
+		router.Handle(roomshipDomain.TopicRoomshipCreated, kafkaInfra.WrapEventHandler(roomshipEvent.NewRoomshipCreatedEventHandler(roomshipRoomshipCreated)))
 	}
 
 	// Friendship
@@ -157,22 +151,18 @@ func provideTopicsEnsured(appConfig *config.App) kafkaTopicEnsured {
 			authDomain.TopicUserCreated,
 			// roomship
 			roomshipDomain.TopicUserCreated,
+			roomshipDomain.TopicRoomshipCreated,
+			roomshipDomain.TopicMemberRequestAgreed,
+			roomshipDomain.TopicMemberRequestCreated,
 			roomshipDomain.TopicRoomCreated,
-			roomshipDomain.TopicRoomJoined,
-			roomshipDomain.TopicRoomLeft,
 			// chat
 			chatDomain.TopicUserCreated,
 			chatDomain.TopicRoomCreated,
-			chatDomain.TopicRoomJoined,
-			chatDomain.TopicRoomLeft,
-			chatDomain.TopicPrivateMessageCreated,
-			chatDomain.TopicRoomMessageCreated,
+			chatDomain.TopicFriendshipCreated,
+			chatDomain.TopicRoomshipCreated,
 			// notification
 			notificationDomain.TopicWelcomeEmailNotificationRequested,
-			notificationDomain.TopicFriendshipCreatedNotificationRequested,
-			notificationDomain.TopicFriendRequestCreatedNotificationRequested,
-			notificationDomain.TopicPrivateMessageNotificationRequested,
-			notificationDomain.TopicRoomMessageNotificationRequested,
+			notificationDomain.TopicSystemMessageNotificationRequested,
 			notificationDomain.TopicUndeliveredMessagesNotificationRequested,
 			// friendship
 			friendshipDomain.TopicUserCreated,

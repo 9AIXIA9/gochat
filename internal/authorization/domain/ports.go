@@ -17,6 +17,10 @@ type AccessTokenGenerator interface {
 	Generate(userID kernel.UserID) (AccessToken, error)
 }
 
+type AccessTokenParser interface {
+	Parse(token AccessToken) (kernel.UserID, error)
+}
+
 type RefreshTokenGenerator interface {
 	Generate() (RefreshToken, error)
 }

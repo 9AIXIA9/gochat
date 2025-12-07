@@ -2,9 +2,9 @@ package domain_test
 
 import (
 	"gochat/internal/friendship/domain"
-	"gochat/internal/friendship/domain/mocks"
 	eventMock "gochat/internal/shared/event/mocks"
 	"gochat/internal/shared/kernel"
+	kernelmocks "gochat/internal/shared/kernel/mocks"
 	"testing"
 	"time"
 
@@ -40,7 +40,7 @@ func TestCreateFriendRequest(t *testing.T) {
 	mockIDGenerator := eventMock.NewMockIDGenerator(ctrl)
 	mockIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(1)
 
-	mockOperationIDGenerator := mocks.NewMockOperationIDGenerator(ctrl)
+	mockOperationIDGenerator := kernelmocks.NewMockOperationIDGenerator(ctrl)
 	mockOperationIDGenerator.EXPECT().Generate().Return(fixedRequestID).Times(1)
 
 	start := time.Now()
@@ -148,18 +148,18 @@ func TestFriendRequest_Refuse(t *testing.T) {
 	evs := mockRequest.GetEvents()
 	require.Len(t, evs, 0)
 
-	//重复同意
+	//重复拒绝
 	err2 := mockRequest.Refuse()
 	require.ErrorIs(t, err2, domain.ErrFriendRequestHasBeenHandled)
 	require.Len(t, mockRequest.GetEvents(), 0)
 
-	//失败后又同意
+	//同意后又拒绝
 	mockRequestRefused := domain.LoadFriendRequest(
 		fixedRequestID,
 		fixedUserID,
 		fixedToUserID,
 		fixedContent,
-		domain.StateRefused,
+		domain.StateAgreed,
 		time.Now().UTC(),
 	)
 	err3 := mockRequestRefused.Refuse()

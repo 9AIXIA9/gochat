@@ -62,7 +62,6 @@ func (repo *SystemMessageRepository) FindsByState(ctx context.Context, userID ke
 func (repo *SystemMessageRepository) toModel(message *domain.SystemMessage) *model.SystemMessage {
 	return &model.SystemMessage{
 		ID:          message.ID(),
-		Topic:       message.Topic(),
 		RecipientID: message.RecipientID(),
 		State:       message.State(),
 		Content:     message.Content(),
@@ -79,7 +78,13 @@ func (repo *SystemMessageRepository) toModels(messages []*domain.SystemMessage) 
 }
 
 func (repo *SystemMessageRepository) toDomain(message *model.SystemMessage) *domain.SystemMessage {
-	return domain.LoadSystemMessage(message.ID, message.Topic, message.RecipientID, message.State, message.Content, message.SentAt)
+	return domain.LoadSystemMessage(
+		message.ID,
+		message.RecipientID,
+		message.State,
+		message.Content,
+		message.SentAt,
+	)
 }
 
 func (repo *SystemMessageRepository) toDomains(messages []model.SystemMessage) []*domain.SystemMessage {

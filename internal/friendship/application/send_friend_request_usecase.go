@@ -30,7 +30,7 @@ type sendFriendRequestUseCase struct {
 	friendRequestExisterByUserID domain.FriendRequestExisterByUserIDAndState
 	friendRequestCreator         domain.FriendRequestCreator
 	eventIDGenerator             event.IDGenerator
-	operationIDGenerator         domain.OperationIDGenerator
+	operationIDGenerator         kernel.OperationIDGenerator
 }
 
 func NewSendFriendRequestUseCase(
@@ -38,7 +38,7 @@ func NewSendFriendRequestUseCase(
 	friendRequestExisterByUserID domain.FriendRequestExisterByUserIDAndState,
 	friendRequestCreator domain.FriendRequestCreator,
 	eventIDGenerator event.IDGenerator,
-	operationIDGenerator domain.OperationIDGenerator,
+	operationIDGenerator kernel.OperationIDGenerator,
 ) (SendFriendRequestUseCase, error) {
 	if err := utils.CheckInterfaces(
 		friendshipExisterByUserID,

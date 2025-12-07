@@ -3,6 +3,7 @@ package application
 import (
 	"gochat/internal/authorization/domain"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/utils"
 
 	"context"
 )
@@ -34,14 +35,23 @@ func NewRefreshAccessTokenUseCase(
 	refreshTokenFinder domain.RefreshTokenFinder,
 	accessTokenGenerator domain.AccessTokenGenerator,
 	refreshTokenGenerator domain.RefreshTokenGenerator,
-) RefreshAccessTokenUseCase {
+) (RefreshAccessTokenUseCase, error) {
+	if err := utils.CheckInterfaces(
+		refreshTokenUpserter,
+		refreshTokenFinder,
+		accessTokenGenerator,
+		refreshTokenGenerator,
+	); err != nil {
+		return nil, err
+	}
 	return &refreshAccessTokenUseCase{
 		refreshTokenUpserter:  refreshTokenUpserter,
 		refreshTokenFinder:    refreshTokenFinder,
 		accessTokenGenerator:  accessTokenGenerator,
 		refreshTokenGenerator: refreshTokenGenerator,
-	}
+	}, nil
 }
+
 func (uc *refreshAccessTokenUseCase) Execute(ctx context.Context, input *RefreshAccessTokenInput) (*RefreshAccessTokenOutput, error) {
 	refreshToken, err := uc.refreshTokenFinder.FindByToken(ctx, input.RefreshToken)
 	if err != nil {

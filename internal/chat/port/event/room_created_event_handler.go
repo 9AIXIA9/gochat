@@ -16,9 +16,7 @@ func NewRoomCreatedEventHandler(uc application.RoomCreatedUseCase) event.Handler
 		}
 
 		input := application.RoomCreatedInput{
-			OwnerID:    ev.OwnerID(),
-			RoomID:     kernel.RoomID(ev.AggregateID()),
-			RoomNumber: ev.Number(),
+			RoomID: kernel.RoomID(ev.AggregateID()),
 		}
 
 		if err := input.Validate(); err != nil {

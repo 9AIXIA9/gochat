@@ -16,19 +16,18 @@ import (
 )
 
 type CreateRoomRequest struct {
-	OwnerID        kernel.UserID   `json:"-" validate:"required"`
-	MaxMemberCount int             `json:"max_member_count" validate:"min=2,max=100"`
+	UserID         kernel.UserID   `json:"-" validate:"required"`
+	MaxMemberCount int             `json:"max_member_count" validate:"gte=0,lte=200"`
 	Password       domain.Password `json:"password" validate:"max=100"`
-}
-
-type CreateRoomResponseData struct {
-	RoomNumber kernel.RoomNumber `json:"room_number"`
 }
 
 func (r *CreateRoomRequest) Bind(ginContext *gin.Context) error {
 	userID := ginutils.GetUserID(ginContext)
-	r.OwnerID = userID
-	return ginContext.ShouldBind(r)
+	r.UserID = userID
+	if err := ginContext.ShouldBind(r); err != nil {
+		return err
+	}
+	return nil
 }
 
 func NewCreateRoomHandler(useCase application.CreateRoomUseCase, validator *validator.Validator) gin.HandlerFunc {
@@ -37,24 +36,20 @@ func NewCreateRoomHandler(useCase application.CreateRoomUseCase, validator *vali
 		validator,
 		func(request *CreateRoomRequest) *application.CreateRoomInput {
 			return &application.CreateRoomInput{
-				OwnerID:        request.OwnerID,
+				UserID:         request.UserID,
 				MaxMemberCount: request.MaxMemberCount,
 				Password:       request.Password,
 			}
 		},
-		func(ginContext *gin.Context, output *application.CreateRoomOutput) {
-			ginutils.Response(ginContext, sharedHttp.NewApiResponseWithData(&CreateRoomResponseData{
-				RoomNumber: output.RoomNumber,
-			}))
+		func(ginContext *gin.Context, _ *kernel.NoOutput) {
+			ginutils.Response(ginContext, sharedHttp.ResponseSuccess)
 		},
 		func(ginContext *gin.Context, err error) {
 			switch {
 			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty"))
-			case errors.Is(err, myErrors.ErrInvalidNumber):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "max member number is invalid"))
+				sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty")
 			default:
-				zap.L().Error("create room handler failed", zap.Error(err))
+				zap.L().Error("CreateRoomHandler error", zap.Error(err))
 				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
 			}
 		},

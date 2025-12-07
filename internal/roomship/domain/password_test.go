@@ -12,11 +12,6 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-const (
-	fixedRawPassword       domain.Password = "abc123"
-	fixedEncryptedPassword                 = "encrypted-abc123"
-)
-
 func TestPassword_Validate(t *testing.T) {
 	// exactly max length (20) OK
 	p := domain.Password("12345678901234567890")
@@ -39,15 +34,37 @@ func TestPassword_Encrypt(t *testing.T) {
 
 	// success path
 	encryptor := mocks.NewMockEncryptor(ctrl)
-	encryptor.EXPECT().Encrypt(fixedRawPassword.String()).Return(fixedEncryptedPassword, nil)
-	enc2, err := fixedRawPassword.Encrypt(encryptor)
+	encryptor.EXPECT().Encrypt(fixedPassword.String()).Return(fixedPasswordEncrypted.String(), nil)
+	enc2, err := fixedPassword.Encrypt(encryptor)
 	require.NoError(t, err)
-	require.Equal(t, domain.PasswordEncrypted(fixedEncryptedPassword), enc2)
+	require.Equal(t, fixedPasswordEncrypted, enc2)
 
 	// error path
 	encryptorErr := mocks.NewMockEncryptor(ctrl)
-	encryptorErr.EXPECT().Encrypt(fixedRawPassword.String()).Return("", stdErrors.New("encrypt failed"))
-	enc3, err := fixedRawPassword.Encrypt(encryptorErr)
+	encryptorErr.EXPECT().Encrypt(fixedPassword.String()).Return("", stdErrors.New("encrypt failed"))
+	enc3, err := fixedPassword.Encrypt(encryptorErr)
 	require.Error(t, err)
 	require.Equal(t, domain.PasswordEncrypted(""), enc3)
+}
+
+func TestPasswordEncrypted_Compare(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// empty encrypted password always succeeds
+	emptyEnc := domain.PasswordEncrypted("")
+	err := emptyEnc.Compare(fixedPassword, nil)
+	require.NoError(t, err)
+
+	// success path
+	comparator := mocks.NewMockComparator(ctrl)
+	comparator.EXPECT().Compare(fixedPasswordEncrypted.String(), fixedPassword.String()).Return(nil)
+	err = fixedPasswordEncrypted.Compare(fixedPassword, comparator)
+	require.NoError(t, err)
+
+	// error path
+	comparatorErr := mocks.NewMockComparator(ctrl)
+	comparatorErr.EXPECT().Compare(fixedPasswordEncrypted.String(), fixedPassword.String()).Return(stdErrors.New("not match"))
+	err = fixedPasswordEncrypted.Compare(fixedPassword, comparatorErr)
+	require.ErrorIs(t, err, domain.ErrInvalidPassword)
 }

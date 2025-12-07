@@ -39,15 +39,17 @@ var RepoSet = wire.NewSet(
 
 	wire.Bind(new(roomshipDomain.UserRepository), new(*roomshipRepo.UserRepository)),
 	wire.Bind(new(roomshipDomain.RoomRepository), new(*roomshipRepo.RoomRepository)),
+	wire.Bind(new(roomshipDomain.RoomshipRepository), new(*roomshipRepo.RoomshipRepository)),
+	wire.Bind(new(roomshipDomain.MemberRequestRepository), new(*roomshipRepo.MemberRequestRepository)),
 
 	wire.Bind(new(chatDomain.UserRepository), new(*chatRepo.UserRepository)),
 	wire.Bind(new(chatDomain.RoomRepository), new(*chatRepo.RoomRepository)),
+	wire.Bind(new(chatDomain.FriendshipRepository), new(*chatRepo.FriendshipRepository)),
+	wire.Bind(new(chatDomain.RoomshipRepository), new(*chatRepo.RoomshipRepository)),
 	wire.Bind(new(chatDomain.PrivateMessageRepository), new(*chatRepo.PrivateMessageRepository)),
 	wire.Bind(new(chatDomain.RoomMessageRepository), new(*chatRepo.RoomMessageRepository)),
 
 	wire.Bind(new(notificationDomain.SystemMessageRepository), new(*notificationRepo.SystemMessageRepository)),
-	wire.Bind(new(notificationDomain.PrivateMessageRepository), new(*notificationRepo.PrivateMessageRepository)),
-	wire.Bind(new(notificationDomain.RoomMessageRepository), new(*notificationRepo.RoomMessageRepository)),
 
 	wire.Bind(new(friendshipDomain.UserRepository), new(*friendshipRepo.UserRepository)),
 	wire.Bind(new(friendshipDomain.FriendRequestRepository), new(*friendshipRepo.FriendRequestRepository)),
@@ -63,11 +65,13 @@ var RepoSet = wire.NewSet(
 	provideChatRoomRepository,
 	provideChatPrivateMessageRepository,
 	provideChatRoomMessageRepository,
+	provideChatRoomshipRepository,
+	provideChatFriendshipRepository,
 	provideRoomshipUserRepository,
 	provideRoomshipRoomRepository,
+	provideRoomshipMemberRequestRepository,
+	provideRoomshipRoomshipRepository,
 	provideNotificationSystemMessageRepository,
-	provideNotificationPrivateMessageRepository,
-	provideNotificationRoomMessageRepository,
 	provideFriendshipUserRepository,
 	provideFriendshipFriendRequestRepository,
 	provideFriendshipFriendshipRepository,
@@ -78,16 +82,17 @@ func provideDatabaseMigrated(mysql *gorm.DB) databaseMigrated {
 		mysql,
 		&authModel.User{},
 		&notificationModel.SystemMessage{},
-		&notificationModel.PrivateMessage{},
-		&notificationModel.RoomMessage{},
-		&notificationModel.RoomMessageRecipient{},
-		&notificationModel.RoomMessageState{},
 		&chatModel.User{},
 		&chatModel.Room{},
 		&chatModel.PrivateMessage{},
 		&chatModel.RoomMessage{},
+		&chatModel.RoomMessageState{},
+		&chatModel.Friendship{},
+		&chatModel.Roomship{},
 		&roomshipModel.User{},
 		&roomshipModel.Room{},
+		&roomshipModel.Roomship{},
+		&roomshipModel.MemberRequest{},
 		&friendshipModel.User{},
 		&friendshipModel.Friendship{},
 		&friendshipModel.FriendRequest{},
@@ -115,6 +120,12 @@ func provideChatUserRepository(db *gorm.DB) *chatRepo.UserRepository {
 func provideChatRoomRepository(db *gorm.DB) *chatRepo.RoomRepository {
 	return chatRepo.NewRoomRepository(db)
 }
+func provideChatRoomshipRepository(db *gorm.DB) *chatRepo.RoomshipRepository {
+	return chatRepo.NewRoomshipRepository(db)
+}
+func provideChatFriendshipRepository(db *gorm.DB) *chatRepo.FriendshipRepository {
+	return chatRepo.NewFriendshipRepository(db)
+}
 func provideChatPrivateMessageRepository(db *gorm.DB, eventRepo event.Repository) *chatRepo.PrivateMessageRepository {
 	return chatRepo.NewPrivateMessageRepository(db, eventRepo)
 }
@@ -127,14 +138,14 @@ func provideRoomshipUserRepository(db *gorm.DB) *roomshipRepo.UserRepository {
 func provideRoomshipRoomRepository(db *gorm.DB, eventRepo event.Repository) *roomshipRepo.RoomRepository {
 	return roomshipRepo.NewRoomRepository(db, eventRepo)
 }
+func provideRoomshipRoomshipRepository(db *gorm.DB, eventRepo event.Repository) *roomshipRepo.RoomshipRepository {
+	return roomshipRepo.NewRoomshipRepository(db, eventRepo)
+}
+func provideRoomshipMemberRequestRepository(db *gorm.DB, eventRepo event.Repository) *roomshipRepo.MemberRequestRepository {
+	return roomshipRepo.NewMemberRequestRepository(db, eventRepo)
+}
 func provideNotificationSystemMessageRepository(db *gorm.DB) *notificationRepo.SystemMessageRepository {
 	return notificationRepo.NewSystemMessageRepository(db)
-}
-func provideNotificationPrivateMessageRepository(db *gorm.DB) *notificationRepo.PrivateMessageRepository {
-	return notificationRepo.NewPrivateMessageRepository(db)
-}
-func provideNotificationRoomMessageRepository(db *gorm.DB) *notificationRepo.RoomMessageRepository {
-	return notificationRepo.NewRoomMessageRepository(db)
 }
 func provideFriendshipUserRepository(db *gorm.DB) *friendshipRepo.UserRepository {
 	return friendshipRepo.NewUserRepository(db)

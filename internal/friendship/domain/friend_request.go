@@ -54,7 +54,7 @@ func CreateFriendRequest(
 	from kernel.UserID,
 	to kernel.UserID,
 	content string,
-	operationIDGenerator OperationIDGenerator,
+	operationIDGenerator kernel.OperationIDGenerator,
 	idGenerator event.IDGenerator,
 ) (*FriendRequest, error) {
 	if from == to {

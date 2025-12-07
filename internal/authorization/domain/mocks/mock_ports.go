@@ -133,6 +133,45 @@ func (mr *MockAccessTokenGeneratorMockRecorder) Generate(userID any) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generate", reflect.TypeOf((*MockAccessTokenGenerator)(nil).Generate), userID)
 }
 
+// MockAccessTokenParser is a mock of AccessTokenParser interface.
+type MockAccessTokenParser struct {
+	ctrl     *gomock.Controller
+	recorder *MockAccessTokenParserMockRecorder
+	isgomock struct{}
+}
+
+// MockAccessTokenParserMockRecorder is the mock recorder for MockAccessTokenParser.
+type MockAccessTokenParserMockRecorder struct {
+	mock *MockAccessTokenParser
+}
+
+// NewMockAccessTokenParser creates a new mock instance.
+func NewMockAccessTokenParser(ctrl *gomock.Controller) *MockAccessTokenParser {
+	mock := &MockAccessTokenParser{ctrl: ctrl}
+	mock.recorder = &MockAccessTokenParserMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAccessTokenParser) EXPECT() *MockAccessTokenParserMockRecorder {
+	return m.recorder
+}
+
+// Parse mocks base method.
+func (m *MockAccessTokenParser) Parse(token domain.AccessToken) (kernel.UserID, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Parse", token)
+	ret0, _ := ret[0].(kernel.UserID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Parse indicates an expected call of Parse.
+func (mr *MockAccessTokenParserMockRecorder) Parse(token any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Parse", reflect.TypeOf((*MockAccessTokenParser)(nil).Parse), token)
+}
+
 // MockRefreshTokenGenerator is a mock of RefreshTokenGenerator interface.
 type MockRefreshTokenGenerator struct {
 	ctrl     *gomock.Controller

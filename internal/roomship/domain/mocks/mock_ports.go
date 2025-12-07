@@ -10,6 +10,7 @@
 package mocks
 
 import (
+	domain "gochat/internal/roomship/domain"
 	kernel "gochat/internal/shared/kernel"
 	reflect "reflect"
 
@@ -118,10 +119,10 @@ func (m *MockRoomNumberGenerator) EXPECT() *MockRoomNumberGeneratorMockRecorder 
 }
 
 // Generate mocks base method.
-func (m *MockRoomNumberGenerator) Generate() kernel.RoomNumber {
+func (m *MockRoomNumberGenerator) Generate() domain.RoomNumber {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Generate")
-	ret0, _ := ret[0].(kernel.RoomNumber)
+	ret0, _ := ret[0].(domain.RoomNumber)
 	return ret0
 }
 
@@ -167,4 +168,42 @@ func (m *MockRoomIDGenerator) Generate() kernel.RoomID {
 func (mr *MockRoomIDGeneratorMockRecorder) Generate() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generate", reflect.TypeOf((*MockRoomIDGenerator)(nil).Generate))
+}
+
+// MockRoomshipIDGenerator is a mock of RoomshipIDGenerator interface.
+type MockRoomshipIDGenerator struct {
+	ctrl     *gomock.Controller
+	recorder *MockRoomshipIDGeneratorMockRecorder
+	isgomock struct{}
+}
+
+// MockRoomshipIDGeneratorMockRecorder is the mock recorder for MockRoomshipIDGenerator.
+type MockRoomshipIDGeneratorMockRecorder struct {
+	mock *MockRoomshipIDGenerator
+}
+
+// NewMockRoomshipIDGenerator creates a new mock instance.
+func NewMockRoomshipIDGenerator(ctrl *gomock.Controller) *MockRoomshipIDGenerator {
+	mock := &MockRoomshipIDGenerator{ctrl: ctrl}
+	mock.recorder = &MockRoomshipIDGeneratorMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockRoomshipIDGenerator) EXPECT() *MockRoomshipIDGeneratorMockRecorder {
+	return m.recorder
+}
+
+// Generate mocks base method.
+func (m *MockRoomshipIDGenerator) Generate() domain.RoomshipID {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Generate")
+	ret0, _ := ret[0].(domain.RoomshipID)
+	return ret0
+}
+
+// Generate indicates an expected call of Generate.
+func (mr *MockRoomshipIDGeneratorMockRecorder) Generate() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generate", reflect.TypeOf((*MockRoomshipIDGenerator)(nil).Generate))
 }

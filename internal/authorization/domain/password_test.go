@@ -11,30 +11,44 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-const (
-	fixedPlainPassword domain.Password          = "plain-pass"
-	fixedEncryptedPass domain.PasswordEncrypted = "encrypted-pass"
-)
-
 func TestPassword_Encrypt(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	// Test successful encryption
 	encryptor := mocks.NewMockEncryptor(ctrl)
-	encryptor.EXPECT().Encrypt(fixedPlainPassword.String()).Return(fixedEncryptedPass.String(), nil)
+	encryptor.EXPECT().Encrypt(fixedPassword.String()).Return(fixedPasswordEncrypted.String(), nil)
 
-	encrypted, err := fixedPlainPassword.Encrypt(encryptor)
+	encrypted, err := fixedPassword.Encrypt(encryptor)
 	require.NoError(t, err)
-	require.Equal(t, fixedEncryptedPass.String(), encrypted.String())
+	require.Equal(t, fixedPasswordEncrypted.String(), encrypted.String())
 
 	// Test encrypt error
 	errEncryptor := mocks.NewMockEncryptor(ctrl)
-	errEncryptor.EXPECT().Encrypt(fixedPlainPassword.String()).Return("", errors.New("encryption error"))
+	errEncryptor.EXPECT().Encrypt(fixedPassword.String()).Return("", errors.New("encryption error"))
 
-	encrypted2, err := fixedPlainPassword.Encrypt(errEncryptor)
+	encrypted2, err := fixedPassword.Encrypt(errEncryptor)
 	require.ErrorContains(t, err, "encryption error")
 	require.Equal(t, domain.PasswordEncrypted(""), encrypted2)
+}
+
+func TestPasswordEncrypted_Compare(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// Test successful comparison
+	comparator := mocks.NewMockComparator(ctrl)
+	comparator.EXPECT().Compare(fixedPasswordEncrypted.String(), fixedPassword.String()).Return(nil)
+
+	err := fixedPasswordEncrypted.Compare(fixedPassword, comparator)
+	require.NoError(t, err)
+
+	// Test non-matching password
+	comparatorNonMatch := mocks.NewMockComparator(ctrl)
+	comparatorNonMatch.EXPECT().Compare(fixedPasswordEncrypted.String(), fixedPassword.String()).Return(errors.New("test"))
+
+	err = fixedPasswordEncrypted.Compare(fixedPassword, comparatorNonMatch)
+	require.Error(t, err)
 }
 
 func TestPassword_Validate(t *testing.T) {

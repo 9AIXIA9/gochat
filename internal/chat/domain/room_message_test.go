@@ -2,11 +2,10 @@ package domain_test
 
 import (
 	"gochat/internal/chat/domain"
-	"gochat/internal/shared/errors"
-	"gochat/internal/shared/event"
-	eventMocks "gochat/internal/shared/event/mocks"
+	"gochat/internal/chat/domain/mocks"
 	"gochat/internal/shared/kernel"
 	kernelmocks "gochat/internal/shared/kernel/mocks"
+	"strconv"
 	"testing"
 	"time"
 
@@ -15,70 +14,136 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-const (
-	fixedRoomMessageID       kernel.MessageID = "room-msg-123"
-	fixedRoomMessageEvID     event.ID         = "event-room-msg-1"
-	fixedRoomMessageSenderID kernel.UserID    = "room-sender"
-	roomMessageContent                        = "hello room"
-	roomMsgTimeTolerance                      = 150 * time.Millisecond
-)
+const fixedRoomMemberCount = 10
 
-func TestRoomMessage_CreateRoomMessage_Success(t *testing.T) {
+func TestLoadRoomMessage(t *testing.T) {
+	mockRecipients := make([]kernel.UserID, 10)
+	mockStates := make(map[kernel.UserID]domain.MessageState)
+	for i := 0; i < fixedRoomMemberCount; i++ {
+		mockRecipients[i] = kernel.UserID("user-" + strconv.Itoa(i+1))
+		mockStates[mockRecipients[i]] = domain.MessageStateRead
+	}
+
+	message := domain.LoadRoomMessage(
+		fixedMessageID,
+		fixedUserID,
+		mockStates,
+		fixedRoomID,
+		"Hello, Room!",
+		time.Now().UTC(),
+	)
+
+	require.NotNil(t, message)
+	assert.Equal(t, fixedMessageID, message.ID())
+	assert.Equal(t, fixedUserID, message.SenderID())
+	assert.Equal(t, fixedRoomID, message.RoomID())
+	assert.Equal(t, "Hello, Room!", message.Content())
+	for id, state := range mockStates {
+		assert.Equal(t, state, message.State(id))
+	}
+}
+
+func TestCreateRoomMessage(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	room := domain.CreateRoom("room-x", "60001", fixedRoomMessageSenderID) // sender is owner -> member
+	mockMessageIDGenerator := kernelmocks.NewMockMessageIDGenerator(ctrl)
+	mockNotifier := mocks.NewMockRoomMessageNotifier(ctrl)
 
-	msgIDGen := kernelmocks.NewMockMessageIDGenerator(ctrl)
-	msgIDGen.EXPECT().Generate().Return(fixedRoomMessageID)
+	mockRecipients := make([]kernel.UserID, 10)
+	for i := 0; i < fixedRoomMemberCount; i++ {
+		mockRecipients[i] = kernel.UserID("user-" + strconv.Itoa(i+1))
+	}
 
-	evIDGen := eventMocks.NewMockIDGenerator(ctrl)
-	evIDGen.EXPECT().Generate().Return(fixedRoomMessageEvID)
+	mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1)
+	mockNotifier.EXPECT().Notify(gomock.Any(), mockRecipients).Return(mockRecipients, nil).Times(1)
 
-	start := time.Now().UTC()
-	rm, err := domain.CreateRoomMessage(room, fixedRoomMessageSenderID, roomMessageContent, msgIDGen, evIDGen)
+	start := time.Now()
+	message, err := domain.CreateRoomMessage(
+		fixedRoomID,
+		fixedUserID,
+		mockRecipients,
+		"Hello, Room!",
+		mockMessageIDGenerator,
+		mockNotifier,
+	)
+
 	require.NoError(t, err)
-	require.NotNil(t, rm)
-	assert.Equal(t, fixedRoomMessageID, rm.ID())
-	assert.Equal(t, fixedRoomMessageSenderID, rm.SenderID())
-	assert.Equal(t, kernel.RoomID("room-x"), rm.RoomID())
-	assert.Equal(t, roomMessageContent, rm.Content())
-	assert.WithinDuration(t, start, rm.SentAt(), roomMsgTimeTolerance)
+	require.NotNil(t, message)
+	assert.Equal(t, fixedMessageID, message.ID())
+	assert.Equal(t, fixedUserID, message.SenderID())
+	assert.Equal(t, fixedRoomID, message.RoomID())
+	assert.Equal(t, "Hello, Room!", message.Content())
+	assert.WithinDuration(t, start, message.SentAt(), timeTolerance)
 
-	events := rm.GetEvents()
-	assert.Len(t, events, 1)
-	assert.Empty(t, rm.GetEvents()) // drained
+	for _, state := range message.States() {
+		assert.Equal(t, domain.MessageStateDelivered, state)
+	}
 
-	createdEv := events[0]
-	assert.Equal(t, fixedRoomMessageEvID, createdEv.ID())
-	assert.Equal(t, domain.TopicRoomMessageCreated, createdEv.Topic())
-	assert.Equal(t, kernel.ID(fixedRoomMessageID), createdEv.AggregateID())
-	assert.Equal(t, []byte(""), createdEv.Payload())
+	// 部分未成功
+	mockSuccessIDs := mockRecipients[:5]
+	mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1)
+	mockNotifier.EXPECT().Notify(gomock.Any(), mockRecipients).Return(mockSuccessIDs, nil).Times(1)
+
+	message, err = domain.CreateRoomMessage(
+		fixedRoomID,
+		fixedUserID,
+		mockRecipients,
+		"Hello again, Room!",
+		mockMessageIDGenerator,
+		mockNotifier,
+	)
+
+	require.NoError(t, err)
+	require.NotNil(t, message)
+
+	for _, id := range mockSuccessIDs {
+		assert.Equal(t, domain.MessageStateDelivered, message.State(id))
+	}
+	for _, id := range mockRecipients[5:] {
+		assert.Equal(t, domain.MessageStateUndelivered, message.State(id))
+	}
 }
 
-func TestRoomMessage_CreateRoomMessage_NotMember(t *testing.T) {
+func TestRoomMessage_Deliver(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	room := domain.CreateRoom("room-y", "60002", "room-owner") // sender not a member
+	mockStates := make(map[kernel.UserID]domain.MessageState, fixedRoomMemberCount+1)
+	for i := 0; i < fixedRoomMemberCount; i++ {
+		mockID := kernel.UserID("user-" + strconv.Itoa(i+1))
+		if i < 5 {
+			mockStates[mockID] = domain.MessageStateUndelivered
+		} else {
+			mockStates[mockID] = domain.MessageStateRead
+		}
+	}
+	mockStates[fixedUserID] = domain.MessageStateUndelivered
 
-	msgIDGen := kernelmocks.NewMockMessageIDGenerator(ctrl)
-	// Expect no Generate call
-	msgIDGen.EXPECT().Generate().Times(0)
-	evIDGen := eventMocks.NewMockIDGenerator(ctrl)
-	// Expect no event ID generate
-	evIDGen.EXPECT().Generate().Times(0)
+	message := domain.LoadRoomMessage(
+		fixedMessageID,
+		fixedSenderID,
+		mockStates,
+		fixedRoomID,
+		"Hello, Room!",
+		time.Now().UTC(),
+	)
 
-	rm, err := domain.CreateRoomMessage(room, fixedRoomMessageSenderID, roomMessageContent, msgIDGen, evIDGen)
-	require.ErrorIs(t, err, errors.ErrNotBelongTo)
-	assert.Nil(t, rm)
-}
+	mockNotifier := mocks.NewMockRoomMessageNotifier(ctrl)
+	mockNotifier.EXPECT().Notify(message, []kernel.UserID{fixedUserID}).Return([]kernel.UserID{fixedUserID}, nil).Times(1)
 
-func TestRoomMessage_LoadRoomMessage(t *testing.T) {
-	rm := domain.LoadRoomMessage(fixedRoomMessageID, fixedRoomMessageSenderID, "room-z", roomMessageContent, time.Now().UTC())
-	require.NotNil(t, rm)
-	assert.Equal(t, fixedRoomMessageID, rm.ID())
-	assert.Equal(t, fixedRoomMessageSenderID, rm.SenderID())
-	assert.Equal(t, kernel.RoomID("room-z"), rm.RoomID())
-	assert.Equal(t, roomMessageContent, rm.Content())
+	err := message.Deliver(fixedUserID, mockNotifier)
+	require.NoError(t, err)
+	assert.Equal(t, domain.MessageStateDelivered, message.State(fixedUserID))
+
+	// 重复投递
+	err = message.Deliver(fixedUserID, mockNotifier)
+	require.NoError(t, err)
+
+	// 投递失败
+	mockNotifier.EXPECT().Notify(message, []kernel.UserID{"user-1"}).Return([]kernel.UserID{}, nil).Times(1)
+
+	err = message.Deliver("user-1", mockNotifier)
+	require.NoError(t, err)
+	assert.Equal(t, domain.MessageStateUndelivered, message.State("user-1"))
 }

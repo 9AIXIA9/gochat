@@ -6,6 +6,7 @@ import (
 	"gochat/internal/friendship/domain/mocks"
 	myErrors "gochat/internal/shared/errors"
 	eventMocks "gochat/internal/shared/event/mocks"
+	kernelmocks "gochat/internal/shared/kernel/mocks"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -62,7 +63,7 @@ func TestNewSendFriendRequestUseCase(t *testing.T) {
 	mockFriendRequestExisterByUserIDAndState := mocks.NewMockFriendRequestExisterByUserIDAndState(ctrl)
 	mockFriendRequestCreator := mocks.NewMockFriendRequestCreator(ctrl)
 	mockIDGenerator := eventMocks.NewMockIDGenerator(ctrl)
-	mockOperationIDGenerator := mocks.NewMockOperationIDGenerator(ctrl)
+	mockOperationIDGenerator := kernelmocks.NewMockOperationIDGenerator(ctrl)
 
 	useCase, err := application.NewSendFriendRequestUseCase(
 		mockFriendshipExisterByUserID,
@@ -92,7 +93,7 @@ func TestSendFriendRequestUseCase_Execute(t *testing.T) {
 	mockFriendRequestExisterByUserIDAndState := mocks.NewMockFriendRequestExisterByUserIDAndState(ctrl)
 	mockFriendRequestCreator := mocks.NewMockFriendRequestCreator(ctrl)
 	mockIDGenerator := eventMocks.NewMockIDGenerator(ctrl)
-	mockOperationIDGenerator := mocks.NewMockOperationIDGenerator(ctrl)
+	mockOperationIDGenerator := kernelmocks.NewMockOperationIDGenerator(ctrl)
 
 	//正常情况
 	useCase, err := application.NewSendFriendRequestUseCase(

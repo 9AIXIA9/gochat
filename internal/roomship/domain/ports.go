@@ -14,9 +14,13 @@ type Comparator interface {
 }
 
 type RoomNumberGenerator interface {
-	Generate() kernel.RoomNumber
+	Generate() RoomNumber
 }
 
 type RoomIDGenerator interface {
 	Generate() kernel.RoomID
+}
+
+type RoomshipIDGenerator interface {
+	Generate() RoomshipID
 }

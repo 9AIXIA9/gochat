@@ -1,10 +1,9 @@
 package domain_test
 
 import (
+	"errors"
 	"gochat/internal/chat/domain"
-	"gochat/internal/shared/event"
-	eventMocks "gochat/internal/shared/event/mocks"
-	"gochat/internal/shared/kernel"
+	"gochat/internal/chat/domain/mocks"
 	kernelmocks "gochat/internal/shared/kernel/mocks"
 	"testing"
 	"time"
@@ -14,53 +13,117 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-const (
-	fixedPrivateMessageID   kernel.MessageID = "priv-msg-123"
-	fixedPrivateEventID     event.ID         = "event-priv-1"
-	fixedPrivateSenderID    kernel.UserID    = "user-sender"
-	fixedPrivateRecipient   kernel.UserID    = "user-recipient"
-	privateMessageContent                    = "hello private"
-	privateMsgTimeTolerance                  = 150 * time.Millisecond
-)
+func TestLoadPrivateMessage(t *testing.T) {
+	message := domain.LoadPrivateMessage(
+		fixedMessageID,
+		fixedUserID,
+		fixedFriendID,
+		"Hello, Friend!",
+		domain.MessageStateRead,
+		time.Now().UTC(),
+	)
 
-func TestPrivateMessage_CreatePrivateMessage(t *testing.T) {
+	require.NotNil(t, message)
+	assert.Equal(t, fixedMessageID, message.ID())
+	assert.Equal(t, fixedUserID, message.SenderID())
+	assert.Equal(t, fixedFriendID, message.RecipientID())
+	assert.Equal(t, "Hello, Friend!", message.Content())
+	assert.Equal(t, domain.MessageStateRead, message.State())
+}
+
+func TestCreatePrivateMessage(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	recipient := domain.CreateUser(fixedPrivateRecipient, "50001")
+	mockMessageIDGenerator := kernelmocks.NewMockMessageIDGenerator(ctrl)
+	mockNotifier := mocks.NewMockPrivateMessageNotifier(ctrl)
 
-	msgIDGen := kernelmocks.NewMockMessageIDGenerator(ctrl)
-	msgIDGen.EXPECT().Generate().Return(fixedPrivateMessageID)
+	mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1)
+	mockNotifier.EXPECT().Notify(gomock.Any()).Return(nil).Times(1)
 
-	evIDGen := eventMocks.NewMockIDGenerator(ctrl)
-	evIDGen.EXPECT().Generate().Return(fixedPrivateEventID)
+	start := time.Now()
 
-	start := time.Now().UTC()
-	pm, err := domain.CreatePrivateMessage(recipient, fixedPrivateSenderID, privateMessageContent, msgIDGen, evIDGen)
+	message, err := domain.CreatePrivateMessage(
+		fixedFriendID,
+		fixedUserID,
+		"Hello, Friend!",
+		mockMessageIDGenerator,
+		mockNotifier,
+	)
+
 	require.NoError(t, err)
-	require.NotNil(t, pm)
-	assert.Equal(t, fixedPrivateMessageID, pm.ID())
-	assert.Equal(t, fixedPrivateSenderID, pm.SenderID())
-	assert.Equal(t, fixedPrivateRecipient, pm.RecipientID())
-	assert.Equal(t, privateMessageContent, pm.Content())
-	assert.WithinDuration(t, start, pm.SentAt(), privateMsgTimeTolerance)
+	require.NotNil(t, message)
+	assert.Equal(t, fixedMessageID, message.ID())
+	assert.Equal(t, fixedUserID, message.SenderID())
+	assert.Equal(t, fixedFriendID, message.RecipientID())
+	assert.Equal(t, "Hello, Friend!", message.Content())
+	assert.Equal(t, domain.MessageStateDelivered, message.State())
+	assert.WithinDuration(t, start, message.SentAt(), timeTolerance)
 
-	events := pm.GetEvents()
-	assert.Len(t, events, 1)
-	assert.Empty(t, pm.GetEvents()) // drained
+	// 发送失败
+	mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1)
+	mockNotifier.EXPECT().Notify(gomock.Any()).Return(errors.New("test")).Times(1)
 
-	createdEv := events[0]
-	assert.Equal(t, fixedPrivateEventID, createdEv.ID())
-	assert.Equal(t, domain.TopicPrivateMessageCreated, createdEv.Topic())
-	assert.Equal(t, kernel.ID(fixedPrivateMessageID), createdEv.AggregateID())
-	assert.Equal(t, []byte(""), createdEv.Payload())
+	start = time.Now()
+
+	messageWithFailedDeliver, err := domain.CreatePrivateMessage(
+		fixedFriendID,
+		fixedUserID,
+		"Hello, Friend!",
+		mockMessageIDGenerator,
+		mockNotifier,
+	)
+
+	require.NoError(t, err)
+	require.NotNil(t, messageWithFailedDeliver)
+	assert.Equal(t, fixedMessageID, messageWithFailedDeliver.ID())
+	assert.Equal(t, fixedUserID, messageWithFailedDeliver.SenderID())
+	assert.Equal(t, fixedFriendID, messageWithFailedDeliver.RecipientID())
+	assert.Equal(t, "Hello, Friend!", messageWithFailedDeliver.Content())
+	assert.Equal(t, domain.MessageStateUndelivered, messageWithFailedDeliver.State())
+	assert.WithinDuration(t, start, messageWithFailedDeliver.SentAt(), timeTolerance)
 }
 
-func TestPrivateMessage_LoadPrivateMessage(t *testing.T) {
-	pm := domain.LoadPrivateMessage(fixedPrivateMessageID, fixedPrivateSenderID, fixedPrivateRecipient, privateMessageContent, time.Now().UTC())
-	require.NotNil(t, pm)
-	assert.Equal(t, fixedPrivateMessageID, pm.ID())
-	assert.Equal(t, fixedPrivateSenderID, pm.SenderID())
-	assert.Equal(t, fixedPrivateRecipient, pm.RecipientID())
-	assert.Equal(t, privateMessageContent, pm.Content())
+func TestPrivateMessage_Deliver(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockNotifier := mocks.NewMockPrivateMessageNotifier(ctrl)
+
+	message := domain.LoadPrivateMessage(
+		fixedMessageID,
+		fixedUserID,
+		fixedFriendID,
+		"Hello, Friend!",
+		domain.MessageStateUndelivered,
+		time.Now().UTC(),
+	)
+
+	// 成功投递
+	mockNotifier.EXPECT().Notify(gomock.Any()).Return(nil).Times(1)
+
+	err := message.Deliver(mockNotifier)
+	require.NoError(t, err)
+	assert.Equal(t, domain.MessageStateDelivered, message.State())
+
+	// 已经是已投递状态，跳过投递
+	err = message.Deliver(mockNotifier)
+	require.NoError(t, err)
+	assert.Equal(t, domain.MessageStateDelivered, message.State())
+
+	// 投递失败
+	messageUndelivered := domain.LoadPrivateMessage(
+		fixedMessageID,
+		fixedUserID,
+		fixedFriendID,
+		"Hello, Friend!",
+		domain.MessageStateUndelivered,
+		time.Now().UTC(),
+	)
+
+	mockNotifier.EXPECT().Notify(gomock.Any()).Return(errors.New("test")).Times(1)
+
+	err = messageUndelivered.Deliver(mockNotifier)
+	require.Error(t, err)
+	assert.Equal(t, domain.MessageStateUndelivered, messageUndelivered.State())
 }

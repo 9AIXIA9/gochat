@@ -1,22 +1,32 @@
 package model
 
 import (
+	"gochat/internal/chat/domain"
 	"gochat/internal/shared/kernel"
 	"time"
 )
 
 type RoomMessage struct {
 	ID       kernel.MessageID `gorm:"primaryKey;type:char(36)"`
-	Content  string           `gorm:"type:text;not null"`
-	RoomID   kernel.RoomID    `gorm:"type:char(36);not null;index"`
 	SenderID kernel.UserID    `gorm:"type:char(36);not null;index"`
+	RoomID   kernel.RoomID    `gorm:"type:char(36);not null;index"`
+	Content  string           `gorm:"type:text;not null"`
+	SentAt   time.Time
 
-	SentAt time.Time
-
-	Sender *User `gorm:"foreignKey:SenderID;references:ID"`
-	Room   *Room `gorm:"foreignKey:RoomID;references:ID"`
+	// 关联状态
+	States []*RoomMessageState `gorm:"foreignKey:MessageID;constraint:OnDelete:CASCADE"`
 }
 
-func (*RoomMessage) TableName() string {
+func (RoomMessage) TableName() string {
 	return "chat_room_messages"
+}
+
+type RoomMessageState struct {
+	MessageID kernel.MessageID    `gorm:"type:char(36);index;not null"`
+	UserID    kernel.UserID       `gorm:"type:char(36);index;not null"`
+	State     domain.MessageState `gorm:"type:varchar(36);index,not null"`
+}
+
+func (*RoomMessageState) TableName() string {
+	return "chat_room_message_states"
 }

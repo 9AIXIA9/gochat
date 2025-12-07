@@ -2,6 +2,8 @@ package application
 
 import (
 	"context"
+	"fmt"
+	chatDomain "gochat/internal/chat/domain"
 	"gochat/internal/friendship/domain"
 	notificationDomain "gochat/internal/notification/domain"
 	myErrors "gochat/internal/shared/errors"
@@ -53,29 +55,45 @@ func (uc *friendshipCreatedUseCase) Execute(ctx context.Context, input *Friendsh
 		return nil, err
 	}
 
-	ev1, err := notificationDomain.NewFriendshipCreatedNotificationRequestedEvent(
+	notificationEvRequested1, err := notificationDomain.NewSystemMessageNotificationRequestedEvent(
 		friendship.UserID1(),
-		friendship.UserID2(),
-		friendship.CreatedAt(),
+		uc.buildContent(friendship.UserID2()),
 		uc.idGenerator,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	ev2, err := notificationDomain.NewFriendshipCreatedNotificationRequestedEvent(
+	notificationEvRequested2, err := notificationDomain.NewSystemMessageNotificationRequestedEvent(
 		friendship.UserID2(),
-		friendship.UserID1(),
-		friendship.CreatedAt(),
+		uc.buildContent(friendship.UserID1()),
 		uc.idGenerator,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := uc.creator.CreateUnpublishedEvents(ctx, []event.Event{ev1, ev2}); err != nil {
+	chatEvCreated, err := chatDomain.NewFriendshipCreatedEvent(
+		chatDomain.FriendshipID(friendship.ID()),
+		friendship.UserID1(),
+		friendship.UserID2(),
+		uc.idGenerator,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := uc.creator.CreateUnpublishedEvents(ctx, []event.Event{
+		notificationEvRequested1,
+		notificationEvRequested2,
+		chatEvCreated,
+	}); err != nil {
 		return nil, err
 	}
 
 	return nil, nil
+}
+
+func (uc *friendshipCreatedUseCase) buildContent(userID kernel.UserID) string {
+	return fmt.Sprintf("You are now friends with user %s.", userID)
 }

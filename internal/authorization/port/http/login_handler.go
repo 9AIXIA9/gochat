@@ -32,7 +32,7 @@ func (r *LoginRequest) Bind(ginContext *gin.Context) error {
 }
 
 func NewLoginHandler(useCase application.LoginUseCase, validator *validator.Validator, cookieConfig *config.Cookie) gin.HandlerFunc {
-	return ginutils.AdaptUseCaseToHandler[LoginRequest, *LoginRequest, *application.LoginInput, *application.LoginOutput](
+	return ginutils.AdaptUseCaseToHandler(
 		useCase,
 		validator,
 		func(request *LoginRequest) *application.LoginInput {
@@ -59,12 +59,12 @@ func NewLoginHandler(useCase application.LoginUseCase, validator *validator.Vali
 		},
 		func(ginContext *gin.Context, err error) {
 			switch {
-			case errors.Is(err, myErrors.ErrInvalidLength):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "password length is invalid"))
-			case errors.Is(err, myErrors.ErrNotFound):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "user does not exist"))
-			case errors.Is(err, myErrors.ErrInvalidCredential):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "wrong account or password"))
+			case errors.Is(err, domain.ErrEmptyPassword) ||
+				errors.Is(err, myErrors.ErrInvalidLength) ||
+				errors.Is(err, domain.ErrInvalidPassword) ||
+				errors.Is(err, myErrors.ErrInvalidNumber) ||
+				errors.Is(err, myErrors.ErrNotFound):
+				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "password is invalid"))
 			default:
 				zap.L().Error("login handler failed", zap.Error(err))
 				ginutils.Response(ginContext, sharedHttp.ResponseServerError)

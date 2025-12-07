@@ -51,16 +51,62 @@ func (repo *PrivateMessageRepository) FindPrivateMessage(ctx context.Context, me
 	return repo.toDomain(&message), nil
 }
 
+func (repo *PrivateMessageRepository) Updates(ctx context.Context, messages []*domain.PrivateMessage) error {
+	return repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		txCtx := context.WithValue(ctx, "transaction", tx)
+		for _, message := range messages {
+			if err := tx.Model(&model.PrivateMessage{}).
+				Where("id = ?", message.ID()).
+				Updates(map[string]interface{}{
+					"state": message.State(),
+				}).Error; err != nil {
+				return gormutils.TranslateError(err)
+			}
+
+			if err := repo.eventRepo.CreateUnpublishedEvents(txCtx, message.GetEvents()); err != nil {
+				return gormutils.TranslateError(err)
+			}
+		}
+		return nil
+	})
+}
+
+func (repo *PrivateMessageRepository) FindPrivateMessagesByRecipientIDAndState(ctx context.Context, recipientID kernel.UserID, state domain.MessageState) ([]*domain.PrivateMessage, error) {
+	var messages []model.PrivateMessage
+	if err := repo.db.WithContext(ctx).
+		Where("recipient_id = ? AND state = ?", recipientID, state).
+		Find(&messages).Error; err != nil {
+		return nil, gormutils.TranslateError(err)
+	}
+	return repo.toDomains(messages), nil
+}
+
 func (repo *PrivateMessageRepository) toModel(message *domain.PrivateMessage) *model.PrivateMessage {
 	return &model.PrivateMessage{
 		ID:          message.ID(),
 		Content:     message.Content(),
 		RecipientID: message.RecipientID(),
 		SenderID:    message.SenderID(),
+		State:       message.State(),
 		SentAt:      message.SentAt(),
 	}
 }
 
 func (repo *PrivateMessageRepository) toDomain(message *model.PrivateMessage) *domain.PrivateMessage {
-	return domain.LoadPrivateMessage(message.ID, message.SenderID, message.RecipientID, message.Content, message.SentAt)
+	return domain.LoadPrivateMessage(
+		message.ID,
+		message.SenderID,
+		message.RecipientID,
+		message.Content,
+		message.State,
+		message.SentAt,
+	)
+}
+
+func (repo *PrivateMessageRepository) toDomains(messages []model.PrivateMessage) []*domain.PrivateMessage {
+	domainMessages := make([]*domain.PrivateMessage, 0, len(messages))
+	for _, message := range messages {
+		domainMessages = append(domainMessages, repo.toDomain(&message))
+	}
+	return domainMessages
 }
