@@ -50,8 +50,6 @@ var RepoSet = wire.NewSet(
 	wire.Bind(new(chatDomain.RoomMessageRepository), new(*chatRepo.RoomMessageRepository)),
 
 	wire.Bind(new(notificationDomain.SystemMessageRepository), new(*notificationRepo.SystemMessageRepository)),
-	wire.Bind(new(notificationDomain.PrivateMessageRepository), new(*notificationRepo.PrivateMessageRepository)),
-	wire.Bind(new(notificationDomain.RoomMessageRepository), new(*notificationRepo.RoomMessageRepository)),
 
 	wire.Bind(new(friendshipDomain.UserRepository), new(*friendshipRepo.UserRepository)),
 	wire.Bind(new(friendshipDomain.FriendRequestRepository), new(*friendshipRepo.FriendRequestRepository)),
@@ -74,8 +72,6 @@ var RepoSet = wire.NewSet(
 	provideRoomshipMemberRequestRepository,
 	provideRoomshipRoomshipRepository,
 	provideNotificationSystemMessageRepository,
-	provideNotificationPrivateMessageRepository,
-	provideNotificationRoomMessageRepository,
 	provideFriendshipUserRepository,
 	provideFriendshipFriendRequestRepository,
 	provideFriendshipFriendshipRepository,
@@ -86,10 +82,6 @@ func provideDatabaseMigrated(mysql *gorm.DB) databaseMigrated {
 		mysql,
 		&authModel.User{},
 		&notificationModel.SystemMessage{},
-		&notificationModel.PrivateMessage{},
-		&notificationModel.RoomMessage{},
-		&notificationModel.RoomMessageRecipient{},
-		&notificationModel.RoomMessageState{},
 		&chatModel.User{},
 		&chatModel.Room{},
 		&chatModel.PrivateMessage{},
@@ -154,12 +146,6 @@ func provideRoomshipMemberRequestRepository(db *gorm.DB, eventRepo event.Reposit
 }
 func provideNotificationSystemMessageRepository(db *gorm.DB) *notificationRepo.SystemMessageRepository {
 	return notificationRepo.NewSystemMessageRepository(db)
-}
-func provideNotificationPrivateMessageRepository(db *gorm.DB) *notificationRepo.PrivateMessageRepository {
-	return notificationRepo.NewPrivateMessageRepository(db)
-}
-func provideNotificationRoomMessageRepository(db *gorm.DB) *notificationRepo.RoomMessageRepository {
-	return notificationRepo.NewRoomMessageRepository(db)
 }
 func provideFriendshipUserRepository(db *gorm.DB) *friendshipRepo.UserRepository {
 	return friendshipRepo.NewUserRepository(db)

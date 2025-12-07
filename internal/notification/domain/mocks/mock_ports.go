@@ -10,6 +10,7 @@
 package mocks
 
 import (
+	context "context"
 	domain "gochat/internal/notification/domain"
 	kernel "gochat/internal/shared/kernel"
 	reflect "reflect"
@@ -55,79 +56,40 @@ func (mr *MockSystemMessageNotifierMockRecorder) Notify(message any) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Notify", reflect.TypeOf((*MockSystemMessageNotifier)(nil).Notify), message)
 }
 
-// MockPrivateMessageNotifier is a mock of PrivateMessageNotifier interface.
-type MockPrivateMessageNotifier struct {
+// MockWelcomeEmailNotifier is a mock of WelcomeEmailNotifier interface.
+type MockWelcomeEmailNotifier struct {
 	ctrl     *gomock.Controller
-	recorder *MockPrivateMessageNotifierMockRecorder
+	recorder *MockWelcomeEmailNotifierMockRecorder
 	isgomock struct{}
 }
 
-// MockPrivateMessageNotifierMockRecorder is the mock recorder for MockPrivateMessageNotifier.
-type MockPrivateMessageNotifierMockRecorder struct {
-	mock *MockPrivateMessageNotifier
+// MockWelcomeEmailNotifierMockRecorder is the mock recorder for MockWelcomeEmailNotifier.
+type MockWelcomeEmailNotifierMockRecorder struct {
+	mock *MockWelcomeEmailNotifier
 }
 
-// NewMockPrivateMessageNotifier creates a new mock instance.
-func NewMockPrivateMessageNotifier(ctrl *gomock.Controller) *MockPrivateMessageNotifier {
-	mock := &MockPrivateMessageNotifier{ctrl: ctrl}
-	mock.recorder = &MockPrivateMessageNotifierMockRecorder{mock}
+// NewMockWelcomeEmailNotifier creates a new mock instance.
+func NewMockWelcomeEmailNotifier(ctrl *gomock.Controller) *MockWelcomeEmailNotifier {
+	mock := &MockWelcomeEmailNotifier{ctrl: ctrl}
+	mock.recorder = &MockWelcomeEmailNotifierMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockPrivateMessageNotifier) EXPECT() *MockPrivateMessageNotifierMockRecorder {
+func (m *MockWelcomeEmailNotifier) EXPECT() *MockWelcomeEmailNotifierMockRecorder {
 	return m.recorder
 }
 
-// Notify mocks base method.
-func (m *MockPrivateMessageNotifier) Notify(message *domain.PrivateMessage) error {
+// NotifyWelcomeEmail mocks base method.
+func (m *MockWelcomeEmailNotifier) NotifyWelcomeEmail(ctx context.Context, email kernel.Email, number kernel.UserNumber) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Notify", message)
+	ret := m.ctrl.Call(m, "NotifyWelcomeEmail", ctx, email, number)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Notify indicates an expected call of Notify.
-func (mr *MockPrivateMessageNotifierMockRecorder) Notify(message any) *gomock.Call {
+// NotifyWelcomeEmail indicates an expected call of NotifyWelcomeEmail.
+func (mr *MockWelcomeEmailNotifierMockRecorder) NotifyWelcomeEmail(ctx, email, number any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Notify", reflect.TypeOf((*MockPrivateMessageNotifier)(nil).Notify), message)
-}
-
-// MockRoomMessageNotifier is a mock of RoomMessageNotifier interface.
-type MockRoomMessageNotifier struct {
-	ctrl     *gomock.Controller
-	recorder *MockRoomMessageNotifierMockRecorder
-	isgomock struct{}
-}
-
-// MockRoomMessageNotifierMockRecorder is the mock recorder for MockRoomMessageNotifier.
-type MockRoomMessageNotifierMockRecorder struct {
-	mock *MockRoomMessageNotifier
-}
-
-// NewMockRoomMessageNotifier creates a new mock instance.
-func NewMockRoomMessageNotifier(ctrl *gomock.Controller) *MockRoomMessageNotifier {
-	mock := &MockRoomMessageNotifier{ctrl: ctrl}
-	mock.recorder = &MockRoomMessageNotifierMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockRoomMessageNotifier) EXPECT() *MockRoomMessageNotifierMockRecorder {
-	return m.recorder
-}
-
-// Notify mocks base method.
-func (m *MockRoomMessageNotifier) Notify(message *domain.RoomMessage, recipients []kernel.UserID) ([]kernel.UserID, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Notify", message, recipients)
-	ret0, _ := ret[0].([]kernel.UserID)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Notify indicates an expected call of Notify.
-func (mr *MockRoomMessageNotifierMockRecorder) Notify(message, recipients any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Notify", reflect.TypeOf((*MockRoomMessageNotifier)(nil).Notify), message, recipients)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotifyWelcomeEmail", reflect.TypeOf((*MockWelcomeEmailNotifier)(nil).NotifyWelcomeEmail), ctx, email, number)
 }

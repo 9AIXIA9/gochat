@@ -2,6 +2,7 @@
 package domain
 
 import (
+	"context"
 	"gochat/internal/shared/kernel"
 )
 
@@ -9,10 +10,6 @@ type SystemMessageNotifier interface {
 	Notify(message *SystemMessage) error
 }
 
-type PrivateMessageNotifier interface {
-	Notify(message *PrivateMessage) error
-}
-
-type RoomMessageNotifier interface {
-	Notify(message *RoomMessage, recipients []kernel.UserID) ([]kernel.UserID, error)
+type WelcomeEmailNotifier interface {
+	NotifyWelcomeEmail(ctx context.Context, email kernel.Email, number kernel.UserNumber) error
 }

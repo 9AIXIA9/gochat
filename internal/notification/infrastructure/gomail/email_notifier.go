@@ -2,7 +2,7 @@ package gomail
 
 import (
 	"context"
-	"gochat/internal/notification/application"
+	"gochat/internal/notification/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 	"sync"
@@ -14,7 +14,7 @@ import (
 
 //TODO 提供一个熔断机制，防止邮件服务不可用时大量请求堆积
 
-var _ application.WelcomeEmailNotifier = (*EmailNotifier)(nil)
+var _ domain.WelcomeEmailNotifier = (*EmailNotifier)(nil)
 
 const (
 	maxWaitTime  = 300 * time.Second

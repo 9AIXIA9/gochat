@@ -8,8 +8,6 @@ import (
 	websocketDelivery "gochat/internal/delivery/websocket/handler"
 	"gochat/internal/delivery/websocket/middleware"
 	"gochat/internal/infrastructure/websocket"
-	notificationApp "gochat/internal/notification/application"
-	notificationWebsocket "gochat/internal/notification/port/websocket"
 
 	"github.com/google/wire"
 	gorillaWebsocket "github.com/gorilla/websocket"
@@ -34,8 +32,6 @@ func provideWebsocketRouter(
 	appConfig *config.App,
 	chatSendPrivateMessage chatApp.SendPrivateMessageUseCase,
 	chatSendRoomMessage chatApp.SendRoomMessageUseCase,
-	notificationReadPrivateMessage notificationApp.ReadPrivateMessageUseCase,
-	notificationReadRoomMessage notificationApp.ReadRoomMessageUseCase,
 ) *websocket.Router {
 	router := websocket.NewRouter()
 
@@ -51,12 +47,6 @@ func provideWebsocketRouter(
 		router.Handle(chatWebsocket.SendPrivateMessageTopic, chatWebsocket.NewSendPrivateMessageHandler(chatSendPrivateMessage))
 		router.Handle(chatWebsocket.SendRoomMessageTopic, chatWebsocket.NewSendRoomMessageHandler(chatSendRoomMessage))
 	}
-
-	{
-		router.Handle(notificationWebsocket.ReadPrivateMessageTopic, notificationWebsocket.NewReadPrivateMessageHandler(notificationReadPrivateMessage))
-		router.Handle(notificationWebsocket.ReadRoomMessageTopic, notificationWebsocket.NewReadRoomMessageHandler(notificationReadRoomMessage))
-	}
-
 	return router
 }
 

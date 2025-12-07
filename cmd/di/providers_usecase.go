@@ -39,8 +39,6 @@ var UseCaseHTTPSet = wire.NewSet(
 
 var UseCaseWebsocketSet = wire.NewSet(
 	provideWebsocketUserSessionStartedUseCase,
-	provideNotificationReadPrivateMessageUseCase,
-	provideNotificationReadRoomMessageUseCase,
 )
 
 var UseCaseKafkaSet = wire.NewSet(
@@ -56,9 +54,7 @@ var UseCaseKafkaSet = wire.NewSet(
 	provideChatFriendshipCreatedUseCase,
 	provideChatUndeliveredMessagesPushRequestedUseCase,
 	provideNotificationWelcomeEmailNotificationRequestedUseCase,
-	provideNotificationRoomMessageNotificationRequestedUseCase,
 	provideNotificationSystemMessageNotificationRequestedUseCase,
-	provideNotificationPrivateMessageNotificationRequestedUseCase,
 	provideNotificationUndeliveredMessagesNotificationRequestedUseCase,
 	provideFriendshipUserCreatedUseCase,
 	provideFriendshipFriendshipCreatedUseCase,
@@ -262,14 +258,6 @@ func provideWebsocketUserSessionStartedUseCase(
 		eventRepo,
 	)
 }
-func provideNotificationReadPrivateMessageUseCase(messageRepo notificationDomain.PrivateMessageRepository) notificationApp.ReadPrivateMessageUseCase {
-	return notificationApp.NewReadPrivateMessageUseCase(messageRepo, messageRepo)
-}
-func provideNotificationReadRoomMessageUseCase(
-	messageRepo notificationDomain.RoomMessageRepository,
-) notificationApp.ReadRoomMessageUseCase {
-	return notificationApp.NewReadRoomMessageUseCase(messageRepo, messageRepo)
-}
 
 // -------------------- Event UseCases (Kafka consumer side) --------------------
 
@@ -381,19 +369,10 @@ func provideChatUndeliveredMessagesPushRequestedUseCase(
 	)
 }
 func provideNotificationWelcomeEmailNotificationRequestedUseCase(
-	emailNotifier notificationApp.WelcomeEmailNotifier,
+	emailNotifier notificationDomain.WelcomeEmailNotifier,
 ) notificationApp.WelcomeEmailNotificationRequestedUseCase {
 	return notificationApp.NewWelcomeEmailNotificationRequestedUseCase(
 		emailNotifier,
-	)
-}
-func provideNotificationPrivateMessageNotificationRequestedUseCase(
-	messageRepo notificationDomain.PrivateMessageRepository,
-	messageNotifier notificationDomain.PrivateMessageNotifier,
-) notificationApp.PrivateMessageNotificationRequestedUseCase {
-	return notificationApp.NewPrivateMessageNotificationRequestedUseCase(
-		messageRepo,
-		messageNotifier,
 	)
 }
 func provideNotificationSystemMessageNotificationRequestedUseCase(
@@ -407,33 +386,14 @@ func provideNotificationSystemMessageNotificationRequestedUseCase(
 		idGenerator,
 	)
 }
-func provideNotificationRoomMessageNotificationRequestedUseCase(
-	messageRepo notificationDomain.RoomMessageRepository,
-	messageNotifier notificationDomain.RoomMessageNotifier,
-) notificationApp.RoomMessageNotificationRequestedUseCase {
-	return notificationApp.NewRoomMessageNotificationRequestedUseCase(
-		messageNotifier,
-		messageRepo,
-	)
-}
 func provideNotificationUndeliveredMessagesNotificationRequestedUseCase(
 	systemMessageRepo notificationDomain.SystemMessageRepository,
 	systemMessageNotifier notificationDomain.SystemMessageNotifier,
-	privateMessageRepo notificationDomain.PrivateMessageRepository,
-	privateMessageNotifier notificationDomain.PrivateMessageNotifier,
-	roomMessageRepo notificationDomain.RoomMessageRepository,
-	roomMessageNotifier notificationDomain.RoomMessageNotifier,
 ) notificationApp.UndeliveredMessagesNotificationRequestedUseCase {
 	return notificationApp.NewUndeliveredMessagesNotificationRequestedUseCase(
 		systemMessageRepo,
 		systemMessageRepo,
 		systemMessageNotifier,
-		privateMessageRepo,
-		privateMessageRepo,
-		privateMessageNotifier,
-		roomMessageRepo,
-		roomMessageRepo,
-		roomMessageNotifier,
 	)
 }
 func provideFriendshipUserCreatedUseCase(

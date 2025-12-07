@@ -21,7 +21,6 @@ import (
 	"gochat/internal/infrastructure/uuid"
 	validatorInfra "gochat/internal/infrastructure/validator"
 	"gochat/internal/infrastructure/websocket"
-	notificationApp "gochat/internal/notification/application"
 	notificationDomain "gochat/internal/notification/domain"
 	gomailInfra "gochat/internal/notification/infrastructure/gomail"
 	notificationWebsocket "gochat/internal/notification/infrastructure/websocket"
@@ -65,8 +64,6 @@ var InfraSet = wire.NewSet(
 	provideSystemMessageNotifier,
 	providePrivateMessageNotifier,
 	provideRoomMessageNotifier,
-	provideNotificationPrivateMessageNotifier,
-	provideNotificationRoomMessageNotifier,
 	// Binds
 	wire.Bind(new(event.IDGenerator), new(*uuid.EventIDGenerator)),
 	wire.Bind(new(kernel.MessageIDGenerator), new(*uuid.MessageIDGenerator)),
@@ -92,10 +89,8 @@ var InfraSet = wire.NewSet(
 	// Friendship generator
 	wire.Bind(new(friendshipDomain.FriendshipIDGenerator), new(*friendshipUUID.FriendshipIDGenerator)),
 	// Notification binds
-	wire.Bind(new(notificationApp.WelcomeEmailNotifier), new(*gomailInfra.EmailNotifier)),
+	wire.Bind(new(notificationDomain.WelcomeEmailNotifier), new(*gomailInfra.EmailNotifier)),
 	wire.Bind(new(notificationDomain.SystemMessageNotifier), new(*notificationWebsocket.SystemMessageNotifier)),
-	wire.Bind(new(notificationDomain.PrivateMessageNotifier), new(*notificationWebsocket.PrivateMessageNotifier)),
-	wire.Bind(new(notificationDomain.RoomMessageNotifier), new(*notificationWebsocket.RoomMessageNotifier)),
 )
 
 func provideMysql(appConfig *config.App) (*gorm.DB, error) {
@@ -167,12 +162,6 @@ func providePrivateMessageNotifier(manager *websocket.Manager) *chatWebsocket.Pr
 }
 func provideRoomMessageNotifier(manager *websocket.Manager) *chatWebsocket.RoomMessageNotifier {
 	return chatWebsocket.NewRoomMessageNotifier(manager)
-}
-func provideNotificationPrivateMessageNotifier(manager *websocket.Manager) *notificationWebsocket.PrivateMessageNotifier {
-	return notificationWebsocket.NewPrivateMessageNotifier(manager)
-}
-func provideNotificationRoomMessageNotifier(manager *websocket.Manager) *notificationWebsocket.RoomMessageNotifier {
-	return notificationWebsocket.NewRoomMessageNotifier(manager)
 }
 func provideKafkaPublisher(appConfig *config.App, eventRepo *repository.EventRepository, metrics *prometheus.Metrics) (*kafkautil.EventPublisher, error) {
 	return kafkautil.NewEventPublisher(appConfig.Kafka, metrics, func(id event.ID) error {
