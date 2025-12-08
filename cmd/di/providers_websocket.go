@@ -30,10 +30,13 @@ func provideWebsocketManager() *websocket.Manager {
 
 func provideWebsocketRouter(
 	appConfig *config.App,
+	validator websocket.Validator,
 	chatSendPrivateMessage chatApp.SendPrivateMessageUseCase,
 	chatSendRoomMessage chatApp.SendRoomMessageUseCase,
+	chatReadPrivateMessages chatApp.ReadPrivateMessagesUseCase,
+	chatReadRoomMessages chatApp.ReadRoomMessagesUseCase,
 ) *websocket.Router {
-	router := websocket.NewRouter()
+	router := websocket.NewRouter(validator)
 
 	router.Use(
 		middleware.NewLoggerMiddleware(),
@@ -46,6 +49,8 @@ func provideWebsocketRouter(
 	{
 		router.Handle(chatWebsocket.SendPrivateMessageTopic, chatWebsocket.NewSendPrivateMessageHandler(chatSendPrivateMessage))
 		router.Handle(chatWebsocket.SendRoomMessageTopic, chatWebsocket.NewSendRoomMessageHandler(chatSendRoomMessage))
+		router.Handle(chatWebsocket.ReadPrivateMessagesTopic, chatWebsocket.NewReadPrivateMessagesHandler(chatReadPrivateMessages))
+		router.Handle(chatWebsocket.ReadRoomMessagesTopic, chatWebsocket.NewReadRoomMessagesHandler(chatReadRoomMessages))
 	}
 	return router
 }

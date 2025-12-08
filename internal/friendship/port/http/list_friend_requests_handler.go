@@ -5,7 +5,6 @@ import (
 	"gochat/internal/friendship/application"
 	"gochat/internal/friendship/dto"
 	ginutils "gochat/internal/infrastructure/gin"
-	"gochat/internal/infrastructure/validator"
 	myErrors "gochat/internal/shared/errors"
 	sharedHttp "gochat/internal/shared/http"
 	"gochat/internal/shared/kernel"
@@ -40,7 +39,7 @@ type ListFriendRequestsResponseData struct {
 	Requests []*dto.FriendRequest `json:"requests,omitempty"`
 }
 
-func NewListFriendRequestsHandler(useCase application.ListFriendRequestsUseCase, validator *validator.Validator) gin.HandlerFunc {
+func NewListFriendRequestsHandler(useCase application.ListFriendRequestsUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,
 		validator,

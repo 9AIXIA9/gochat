@@ -65,11 +65,11 @@ func (uc *sendRoomMessageUseCase) Execute(ctx context.Context, input *SendRoomMe
 	}
 
 	var exist bool
-	recipientIDs := make([]kernel.UserID, 0, len(roomships))
+	recipientIDs := make([]kernel.UserID, 0, len(roomships)-1)
 	for _, roomship := range roomships {
 		if roomship.UserID() == input.SenderID {
 			exist = true
-			break
+			continue
 		}
 		recipientIDs = append(recipientIDs, roomship.UserID())
 	}

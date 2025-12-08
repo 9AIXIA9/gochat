@@ -2,7 +2,6 @@ package application
 
 import (
 	"context"
-	"fmt"
 	"gochat/internal/notification/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
@@ -50,7 +49,6 @@ func NewUndeliveredMessagesNotificationRequestedUseCase(
 }
 
 func (uc *undeliveredMessagesNotificationRequestedUseCase) Execute(ctx context.Context, input *UndeliveredMessagesNotificationRequestedInput) (*kernel.NoOutput, error) {
-	fmt.Println("1111")
 	systemMessages, err := uc.systemMessagesFinderByState.FindsByState(ctx, input.UserID, domain.MessageStateUndelivered, messageCountLimit)
 	if err != nil {
 		return nil, err

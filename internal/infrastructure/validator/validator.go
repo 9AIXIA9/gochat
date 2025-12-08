@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"gochat/internal/infrastructure/gin"
+	"gochat/internal/infrastructure/websocket"
 	"reflect"
 	"strings"
 
@@ -15,6 +16,7 @@ import (
 )
 
 var _ gin.Validator = (*Validator)(nil)
+var _ websocket.Validator = (*Validator)(nil)
 
 type Validator struct {
 	validator  *validator.Validate

@@ -5,7 +5,6 @@ import (
 	"gochat/internal/friendship/application"
 	"gochat/internal/friendship/domain"
 	ginutils "gochat/internal/infrastructure/gin"
-	"gochat/internal/infrastructure/validator"
 	myErrors "gochat/internal/shared/errors"
 	sharedHttp "gochat/internal/shared/http"
 	"gochat/internal/shared/kernel"
@@ -29,7 +28,7 @@ func (r *RefuseFriendRequestRequest) Bind(ginContext *gin.Context) error {
 	return nil
 }
 
-func NewRefuseFriendRequestHandler(useCase application.RefuseFriendRequestUseCase, validator *validator.Validator) gin.HandlerFunc {
+func NewRefuseFriendRequestHandler(useCase application.RefuseFriendRequestUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,
 		validator,

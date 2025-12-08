@@ -3,7 +3,6 @@ package http
 import (
 	"errors"
 	ginutils "gochat/internal/infrastructure/gin"
-	"gochat/internal/infrastructure/validator"
 	"gochat/internal/roomship/application"
 	"gochat/internal/roomship/domain"
 	myErrors "gochat/internal/shared/errors"
@@ -30,7 +29,7 @@ func (r *CreateRoomRequest) Bind(ginContext *gin.Context) error {
 	return nil
 }
 
-func NewCreateRoomHandler(useCase application.CreateRoomUseCase, validator *validator.Validator) gin.HandlerFunc {
+func NewCreateRoomHandler(useCase application.CreateRoomUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,
 		validator,
