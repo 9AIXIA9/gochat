@@ -16,7 +16,7 @@ type FriendRequestCreatedEvent struct {
 
 func ToFriendRequestCreatedEvent(ev event.Event) (*FriendRequestCreatedEvent, error) {
 	if ev.Topic() != TopicFriendRequestCreated {
-		return nil, myErrors.ErrWrongEventType
+		return nil, myErrors.ErrWrongEventTopic
 	}
 	e := &FriendRequestCreatedEvent{StandardEvent: event.LoadStandardEventFromEvent(ev)}
 	if len(ev.Payload()) > 0 {

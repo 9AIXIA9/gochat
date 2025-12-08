@@ -16,7 +16,7 @@ type FriendRequestAgreedEvent struct {
 
 func ToFriendRequestAgreedEvent(ev event.Event) (*FriendRequestAgreedEvent, error) {
 	if ev.Topic() != TopicFriendRequestAgreed {
-		return nil, myErrors.ErrWrongEventType
+		return nil, myErrors.ErrWrongEventTopic
 	}
 	e := &FriendRequestAgreedEvent{StandardEvent: event.LoadStandardEventFromEvent(ev)}
 	if len(ev.Payload()) > 0 {

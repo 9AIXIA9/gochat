@@ -19,7 +19,7 @@ type WelcomeEmailRequestedNotificationEvent struct {
 
 func ToWelcomeEmailNotificationRequestedEvent(ev event.Event) (*WelcomeEmailRequestedNotificationEvent, error) {
 	if ev.Topic() != TopicWelcomeEmailNotificationRequested {
-		return nil, myErrors.ErrWrongEventType
+		return nil, myErrors.ErrWrongEventTopic
 	}
 	e := &WelcomeEmailRequestedNotificationEvent{StandardEvent: event.LoadStandardEventFromEvent(ev)}
 	if len(ev.Payload()) > 0 {

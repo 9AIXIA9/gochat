@@ -16,7 +16,7 @@ type UserCreatedEvent struct {
 
 func ToUserCreatedEvent(ev event.Event) (*UserCreatedEvent, error) {
 	if ev.Topic() != TopicUserCreated {
-		return nil, myErrors.ErrWrongEventType
+		return nil, myErrors.ErrWrongEventTopic
 	}
 	e := &UserCreatedEvent{StandardEvent: event.LoadStandardEventFromEvent(ev)}
 	if len(ev.Payload()) > 0 {

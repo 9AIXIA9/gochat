@@ -18,7 +18,7 @@ type SystemMessageNotificationRequestedEvent struct {
 
 func ToSystemMessageNotificationRequestedEvent(ev event.Event) (*SystemMessageNotificationRequestedEvent, error) {
 	if ev.Topic() != TopicSystemMessageNotificationRequested {
-		return nil, myErrors.ErrWrongEventType
+		return nil, myErrors.ErrWrongEventTopic
 	}
 	e := &SystemMessageNotificationRequestedEvent{StandardEvent: event.LoadStandardEventFromEvent(ev)}
 	if len(ev.Payload()) > 0 {

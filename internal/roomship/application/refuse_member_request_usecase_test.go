@@ -132,5 +132,5 @@ func TestRefuseMemberRequestUseCase_Execute(t *testing.T) {
 		UserID:    fixedUserID,
 		RequestID: fixedOperationID,
 	})
-	require.ErrorIs(t, err, myErrors.ErrPermissionDenied)
+	require.ErrorIs(t, err, domain.ErrNotAdmin)
 }

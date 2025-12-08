@@ -16,7 +16,7 @@ type MemberRequestAgreedEvent struct {
 
 func ToMemberRequestAgreedEvent(ev event.Event) (*MemberRequestAgreedEvent, error) {
 	if ev.Topic() != TopicMemberRequestAgreed {
-		return nil, myErrors.ErrWrongEventType
+		return nil, myErrors.ErrWrongEventTopic
 	}
 	e := &MemberRequestAgreedEvent{StandardEvent: event.LoadStandardEventFromEvent(ev)}
 	if len(ev.Payload()) > 0 {
