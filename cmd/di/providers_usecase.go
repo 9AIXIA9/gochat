@@ -39,6 +39,8 @@ var UseCaseHTTPSet = wire.NewSet(
 
 var UseCaseWebsocketSet = wire.NewSet(
 	provideWebsocketUserSessionStartedUseCase,
+	provideChatReadRoomMessagesUseCase,
+	provideChatReadPrivateMessagesUseCase,
 )
 
 var UseCaseKafkaSet = wire.NewSet(
@@ -256,6 +258,22 @@ func provideWebsocketUserSessionStartedUseCase(
 	return rootapp.NewUserSessionStartedUseCase(
 		eventIDGen,
 		eventRepo,
+	)
+}
+
+func provideChatReadPrivateMessagesUseCase(
+	messageRepo chatDomain.PrivateMessageRepository,
+) (chatApp.ReadPrivateMessagesUseCase, error) {
+	return chatApp.NewReadPrivateMessagesUseCase(
+		messageRepo,
+	)
+}
+
+func provideChatReadRoomMessagesUseCase(
+	messageRepo chatDomain.RoomMessageRepository,
+) (chatApp.ReadRoomMessagesUseCase, error) {
+	return chatApp.NewReadRoomMessagesUseCase(
+		messageRepo,
 	)
 }
 

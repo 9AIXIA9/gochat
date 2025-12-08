@@ -88,6 +88,12 @@ func (repo *PrivateMessageRepository) FindPrivateMessagesByRecipientIDAndState(
 	return repo.toDomains(messages), nil
 }
 
+func (repo *PrivateMessageRepository) UpdatesByUserID(ctx context.Context, senderID, recipientID kernel.UserID, state domain.MessageState) error {
+	return gormutils.TranslateError(repo.db.WithContext(ctx).Model(&model.PrivateMessage{}).
+		Where("sender_id = ? AND recipient_id = ?", senderID, recipientID).
+		Update("state", state).Error)
+}
+
 func (repo *PrivateMessageRepository) toModel(message *domain.PrivateMessage) *model.PrivateMessage {
 	return &model.PrivateMessage{
 		ID:          message.ID(),

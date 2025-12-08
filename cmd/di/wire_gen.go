@@ -114,7 +114,15 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 		return nil, err
 	}
 	upgrader := provideWebsocketUpgrader(appConfig)
-	router := provideWebsocketRouter(appConfig, validator, sendPrivateMessageUseCase, sendRoomMessageUseCase)
+	readPrivateMessagesUseCase, err := provideChatReadPrivateMessagesUseCase(privateMessageRepository)
+	if err != nil {
+		return nil, err
+	}
+	readRoomMessagesUseCase, err := provideChatReadRoomMessagesUseCase(roomMessageRepository)
+	if err != nil {
+		return nil, err
+	}
+	router := provideWebsocketRouter(appConfig, validator, sendPrivateMessageUseCase, sendRoomMessageUseCase, readPrivateMessagesUseCase, readRoomMessagesUseCase)
 	userSessionStartedUseCase, err := provideWebsocketUserSessionStartedUseCase(eventIDGenerator, eventRepository)
 	if err != nil {
 		return nil, err

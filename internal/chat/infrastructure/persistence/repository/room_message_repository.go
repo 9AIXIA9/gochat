@@ -101,6 +101,19 @@ func (repo *RoomMessageRepository) FindRoomMessagesByRecipientIDAndState(
 	return repo.toDomains(messages), nil
 }
 
+func (repo *RoomMessageRepository) UpdatesByUserIDAndRoomID(ctx context.Context, userID kernel.UserID, roomID kernel.RoomID, state domain.MessageState) error {
+	// 使用子查询避免在 UPDATE 中直接 JOIN
+	sub := repo.db.WithContext(ctx).
+		Table("chat_room_messages").
+		Select("id").
+		Where("room_id = ?", roomID)
+
+	return repo.db.WithContext(ctx).
+		Model(&model.RoomMessageState{}).
+		Where("chat_room_message_states.user_id = ? AND chat_room_message_states.message_id IN (?)", userID, sub).
+		Update("chat_room_message_states.state", state).Error
+}
+
 func (repo *RoomMessageRepository) toModel(message *domain.RoomMessage) *model.RoomMessage {
 	states := make([]*model.RoomMessageState, 0, len(message.States()))
 	for id, state := range message.States() {
