@@ -11,6 +11,7 @@ type MemberRequestRepository interface {
 	MemberRequestUpdater
 	MemberRequestFinderByID
 	MemberRequestExisterByUserIDAndRoomIDAndState
+	MemberRequestsFinderByUserID
 }
 
 type MemberRequestCreator interface {
@@ -27,4 +28,8 @@ type MemberRequestFinderByID interface {
 
 type MemberRequestExisterByUserIDAndRoomIDAndState interface {
 	ExistByUserIDAndRoomIDAndState(ctx context.Context, userID kernel.UserID, roomID kernel.RoomID, state MemberRequestState) (bool, error)
+}
+
+type MemberRequestsFinderByUserID interface {
+	FindsByUserID(ctx context.Context, userID kernel.UserID, limit int, baseID kernel.OperationID) ([]*MemberRequest, error)
 }

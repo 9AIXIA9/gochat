@@ -27,7 +27,7 @@ type FriendRequestFinderByID interface {
 }
 
 type FriendRequestsFinderByUserID interface {
-	FindsByUserID(ctx context.Context, userID kernel.UserID, limit int, baseID ...kernel.OperationID) ([]*FriendRequest, error)
+	FindsByUserID(ctx context.Context, userID kernel.UserID, limit int, baseID kernel.OperationID) ([]*FriendRequest, error)
 }
 
 type FriendRequestExisterByUserIDAndState interface {

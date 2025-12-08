@@ -94,6 +94,22 @@ func (repo *PrivateMessageRepository) UpdatesByUserID(ctx context.Context, sende
 		Update("state", state).Error)
 }
 
+func (repo *PrivateMessageRepository) FindsByRecipientID(ctx context.Context, recipientID kernel.UserID, limit int, baseID kernel.MessageID) ([]*domain.PrivateMessage, error) {
+	var messages []model.PrivateMessage
+	query := repo.db.WithContext(ctx).Model(&model.PrivateMessage{}).
+		Where("recipient_id = ?", recipientID).
+		Order("id DESC").
+		Limit(limit)
+	if baseID != "" {
+		query = query.Where("id < ?", baseID)
+	}
+
+	if err := query.Find(&messages).Error; err != nil {
+		return nil, gormutils.TranslateError(err)
+	}
+	return repo.toDomains(messages), nil
+}
+
 func (repo *PrivateMessageRepository) toModel(message *domain.PrivateMessage) *model.PrivateMessage {
 	return &model.PrivateMessage{
 		ID:          message.ID(),

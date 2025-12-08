@@ -46,6 +46,14 @@ func (repo *RoomRepository) FindByID(ctx context.Context, roomID kernel.RoomID) 
 	return repo.toDomain(&room), nil
 }
 
+func (repo *RoomRepository) FindsByIDs(ctx context.Context, roomIDs []kernel.RoomID) ([]*domain.Room, error) {
+	var rooms []model.Room
+	if err := repo.db.WithContext(ctx).Where("id IN ?", roomIDs).Find(&rooms).Error; err != nil {
+		return nil, gormutils.TranslateError(err)
+	}
+	return repo.toDomains(rooms), nil
+}
+
 func (repo *RoomRepository) toModel(room *domain.Room) *model.Room {
 	return &model.Room{
 		ID:                room.ID(),
@@ -59,4 +67,12 @@ func (repo *RoomRepository) toModel(room *domain.Room) *model.Room {
 
 func (repo *RoomRepository) toDomain(room *model.Room) *domain.Room {
 	return domain.LoadRoom(room.ID, room.OwnerID, room.Number, room.PasswordEncrypted, room.MaxMemberCount, room.CreatedAt)
+}
+
+func (repo *RoomRepository) toDomains(rooms []model.Room) []*domain.Room {
+	domains := make([]*domain.Room, 0, len(rooms))
+	for _, room := range rooms {
+		domains = append(domains, repo.toDomain(&room))
+	}
+	return domains
 }

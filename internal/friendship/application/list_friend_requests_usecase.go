@@ -11,8 +11,8 @@ import (
 type ListFriendRequestsUseCase kernel.UseCase[*ListFriendRequestsInput, *ListFriendRequestsOutput]
 
 const (
-	defaultLimit = 10
-	maxLimit     = 100
+	defaultFriendRequestsLimit = 10
+	maxFriendRequestsLimit     = 100
 )
 
 type ListFriendRequestsInput struct {
@@ -52,9 +52,9 @@ func (uc *listFriendRequestsUseCase) Execute(ctx context.Context, input *ListFri
 	limit := input.Limit
 	switch {
 	case limit <= 0:
-		limit = defaultLimit
-	case limit > maxLimit:
-		limit = maxLimit
+		limit = defaultFriendRequestsLimit
+	case limit > maxFriendRequestsLimit:
+		limit = maxFriendRequestsLimit
 	}
 
 	requests, err := uc.finder.FindsByUserID(ctx, input.UserID, limit, input.BaseID)

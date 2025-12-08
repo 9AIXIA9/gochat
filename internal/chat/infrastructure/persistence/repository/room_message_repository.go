@@ -114,6 +114,24 @@ func (repo *RoomMessageRepository) UpdatesByUserIDAndRoomID(ctx context.Context,
 		Update("chat_room_message_states.state", state).Error
 }
 
+func (repo *RoomMessageRepository) FindsByRecipientID(ctx context.Context, recipientID kernel.UserID, limit int, baseID kernel.MessageID) ([]*domain.RoomMessage, error) {
+	var messages []model.RoomMessage
+	query := repo.db.WithContext(ctx).
+		Joins("JOIN chat_room_message_states ON chat_room_messages.id = chat_room_message_states.message_id").
+		Where("chat_room_message_states.user_id = ?", recipientID).
+		Preload("States").
+		Order("chat_room_messages.id DESC").
+		Limit(limit)
+	if baseID != "" {
+		query = query.Where("chat_room_messages.id < ?", baseID)
+	}
+
+	if err := query.Find(&messages).Error; err != nil {
+		return nil, gormutils.TranslateError(err)
+	}
+	return repo.toDomains(messages), nil
+}
+
 func (repo *RoomMessageRepository) toModel(message *domain.RoomMessage) *model.RoomMessage {
 	states := make([]*model.RoomMessageState, 0, len(message.States()))
 	for id, state := range message.States() {

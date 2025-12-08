@@ -12,6 +12,7 @@ type SystemMessageRepository interface {
 	SystemMessagesUpdater
 	SystemMessageFinderByID
 	UserSystemMessagesFinderByState
+	SystemMessageFinderByUserID
 }
 
 type SystemMessageCreator interface {
@@ -32,4 +33,8 @@ type SystemMessageFinderByID interface {
 
 type UserSystemMessagesFinderByState interface {
 	FindsByState(ctx context.Context, userID kernel.UserID, state MessageState, limit int) ([]*SystemMessage, error)
+}
+
+type SystemMessageFinderByUserID interface {
+	FindsByUserID(ctx context.Context, userID kernel.UserID, limit int, baseID kernel.MessageID) ([]*SystemMessage, error)
 }
