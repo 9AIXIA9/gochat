@@ -97,4 +97,17 @@ func TestMemberRequestAgreedUseCase_Execute(t *testing.T) {
 		RequestID: fixedOperationID,
 	})
 	require.NoError(t, err)
+
+	// 已经创建
+	gomock.InOrder(
+		mockFinder.EXPECT().FindByID(nil, fixedOperationID).Return(mockMemberRequest, nil),
+		mockRoomshipIDGenerator.EXPECT().Generate().Return(fixedRoomshipID),
+		mockIDGenerator.EXPECT().Generate().Return(fixedEventID),
+		mockCreator.EXPECT().Create(nil, gomock.Any()).Return(myErrors.ErrDuplicatedKey),
+	)
+
+	_, err = useCase.Execute(nil, &application.MemberRequestAgreedInput{
+		RequestID: fixedOperationID,
+	})
+	require.NoError(t, err)
 }

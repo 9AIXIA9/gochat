@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	chatDomain "gochat/internal/chat/domain"
 	"gochat/internal/roomship/domain"
 	myErrors "gochat/internal/shared/errors"
@@ -59,7 +60,6 @@ func NewRoomCreatedUseCase(
 }
 
 func (uc *roomCreatedUseCase) Execute(ctx context.Context, input *RoomCreatedInput) (*kernel.NoOutput, error) {
-	//TODO 可能重复的原因在于 事件被重复发布了，需要处理幂等性 所以要为仓库添加唯一性索引
 	room, err := uc.finder.FindByID(ctx, input.RoomID)
 	if err != nil {
 		return nil, err
@@ -77,6 +77,9 @@ func (uc *roomCreatedUseCase) Execute(ctx context.Context, input *RoomCreatedInp
 	}
 
 	if err := uc.roomshipCreator.Create(ctx, roomship); err != nil {
+		if errors.Is(err, myErrors.ErrDuplicatedKey) {
+			return nil, nil
+		}
 		return nil, err
 	}
 

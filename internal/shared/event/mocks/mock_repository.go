@@ -55,20 +55,6 @@ func (mr *MockRepositoryMockRecorder) CreateDeadLetter(ctx, e, reason any) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateDeadLetter", reflect.TypeOf((*MockRepository)(nil).CreateDeadLetter), ctx, e, reason)
 }
 
-// CreateUnpublishedEvent mocks base method.
-func (m *MockRepository) CreateUnpublishedEvent(ctx context.Context, e event.Event) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateUnpublishedEvent", ctx, e)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// CreateUnpublishedEvent indicates an expected call of CreateUnpublishedEvent.
-func (mr *MockRepositoryMockRecorder) CreateUnpublishedEvent(ctx, e any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUnpublishedEvent", reflect.TypeOf((*MockRepository)(nil).CreateUnpublishedEvent), ctx, e)
-}
-
 // CreateUnpublishedEvents mocks base method.
 func (m *MockRepository) CreateUnpublishedEvents(ctx context.Context, evs []event.Event) error {
 	m.ctrl.T.Helper()
@@ -98,56 +84,32 @@ func (mr *MockRepositoryMockRecorder) ListUnpublishedEvents(ctx any) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUnpublishedEvents", reflect.TypeOf((*MockRepository)(nil).ListUnpublishedEvents), ctx)
 }
 
-// MarkAsPublished mocks base method.
-func (m *MockRepository) MarkAsPublished(ctx context.Context, ID event.ID) error {
+// MarkAsNotProcessing mocks base method.
+func (m *MockRepository) MarkAsNotProcessing(ctx context.Context, ID event.ID) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "MarkAsPublished", ctx, ID)
+	ret := m.ctrl.Call(m, "MarkAsNotProcessing", ctx, ID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// MarkAsPublished indicates an expected call of MarkAsPublished.
-func (mr *MockRepositoryMockRecorder) MarkAsPublished(ctx, ID any) *gomock.Call {
+// MarkAsNotProcessing indicates an expected call of MarkAsNotProcessing.
+func (mr *MockRepositoryMockRecorder) MarkAsNotProcessing(ctx, ID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkAsPublished", reflect.TypeOf((*MockRepository)(nil).MarkAsPublished), ctx, ID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkAsNotProcessing", reflect.TypeOf((*MockRepository)(nil).MarkAsNotProcessing), ctx, ID)
 }
 
-// MockUnpublishedEventCreator is a mock of UnpublishedEventCreator interface.
-type MockUnpublishedEventCreator struct {
-	ctrl     *gomock.Controller
-	recorder *MockUnpublishedEventCreatorMockRecorder
-	isgomock struct{}
-}
-
-// MockUnpublishedEventCreatorMockRecorder is the mock recorder for MockUnpublishedEventCreator.
-type MockUnpublishedEventCreatorMockRecorder struct {
-	mock *MockUnpublishedEventCreator
-}
-
-// NewMockUnpublishedEventCreator creates a new mock instance.
-func NewMockUnpublishedEventCreator(ctrl *gomock.Controller) *MockUnpublishedEventCreator {
-	mock := &MockUnpublishedEventCreator{ctrl: ctrl}
-	mock.recorder = &MockUnpublishedEventCreatorMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockUnpublishedEventCreator) EXPECT() *MockUnpublishedEventCreatorMockRecorder {
-	return m.recorder
-}
-
-// CreateUnpublishedEvent mocks base method.
-func (m *MockUnpublishedEventCreator) CreateUnpublishedEvent(ctx context.Context, e event.Event) error {
+// MarkAsPublishedAndNotProcessing mocks base method.
+func (m *MockRepository) MarkAsPublishedAndNotProcessing(ctx context.Context, ID event.ID) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateUnpublishedEvent", ctx, e)
+	ret := m.ctrl.Call(m, "MarkAsPublishedAndNotProcessing", ctx, ID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// CreateUnpublishedEvent indicates an expected call of CreateUnpublishedEvent.
-func (mr *MockUnpublishedEventCreatorMockRecorder) CreateUnpublishedEvent(ctx, e any) *gomock.Call {
+// MarkAsPublishedAndNotProcessing indicates an expected call of MarkAsPublishedAndNotProcessing.
+func (mr *MockRepositoryMockRecorder) MarkAsPublishedAndNotProcessing(ctx, ID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUnpublishedEvent", reflect.TypeOf((*MockUnpublishedEventCreator)(nil).CreateUnpublishedEvent), ctx, e)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkAsPublishedAndNotProcessing", reflect.TypeOf((*MockRepository)(nil).MarkAsPublishedAndNotProcessing), ctx, ID)
 }
 
 // MockUnpublishedEventsCreator is a mock of UnpublishedEventsCreator interface.
@@ -227,42 +189,80 @@ func (mr *MockUnpublishedEventsListerMockRecorder) ListUnpublishedEvents(ctx any
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUnpublishedEvents", reflect.TypeOf((*MockUnpublishedEventsLister)(nil).ListUnpublishedEvents), ctx)
 }
 
-// MockPublishedMarker is a mock of PublishedMarker interface.
-type MockPublishedMarker struct {
+// MockPublishedAndNotProcessingMarker is a mock of PublishedAndNotProcessingMarker interface.
+type MockPublishedAndNotProcessingMarker struct {
 	ctrl     *gomock.Controller
-	recorder *MockPublishedMarkerMockRecorder
+	recorder *MockPublishedAndNotProcessingMarkerMockRecorder
 	isgomock struct{}
 }
 
-// MockPublishedMarkerMockRecorder is the mock recorder for MockPublishedMarker.
-type MockPublishedMarkerMockRecorder struct {
-	mock *MockPublishedMarker
+// MockPublishedAndNotProcessingMarkerMockRecorder is the mock recorder for MockPublishedAndNotProcessingMarker.
+type MockPublishedAndNotProcessingMarkerMockRecorder struct {
+	mock *MockPublishedAndNotProcessingMarker
 }
 
-// NewMockPublishedMarker creates a new mock instance.
-func NewMockPublishedMarker(ctrl *gomock.Controller) *MockPublishedMarker {
-	mock := &MockPublishedMarker{ctrl: ctrl}
-	mock.recorder = &MockPublishedMarkerMockRecorder{mock}
+// NewMockPublishedAndNotProcessingMarker creates a new mock instance.
+func NewMockPublishedAndNotProcessingMarker(ctrl *gomock.Controller) *MockPublishedAndNotProcessingMarker {
+	mock := &MockPublishedAndNotProcessingMarker{ctrl: ctrl}
+	mock.recorder = &MockPublishedAndNotProcessingMarkerMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockPublishedMarker) EXPECT() *MockPublishedMarkerMockRecorder {
+func (m *MockPublishedAndNotProcessingMarker) EXPECT() *MockPublishedAndNotProcessingMarkerMockRecorder {
 	return m.recorder
 }
 
-// MarkAsPublished mocks base method.
-func (m *MockPublishedMarker) MarkAsPublished(ctx context.Context, ID event.ID) error {
+// MarkAsPublishedAndNotProcessing mocks base method.
+func (m *MockPublishedAndNotProcessingMarker) MarkAsPublishedAndNotProcessing(ctx context.Context, ID event.ID) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "MarkAsPublished", ctx, ID)
+	ret := m.ctrl.Call(m, "MarkAsPublishedAndNotProcessing", ctx, ID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// MarkAsPublished indicates an expected call of MarkAsPublished.
-func (mr *MockPublishedMarkerMockRecorder) MarkAsPublished(ctx, ID any) *gomock.Call {
+// MarkAsPublishedAndNotProcessing indicates an expected call of MarkAsPublishedAndNotProcessing.
+func (mr *MockPublishedAndNotProcessingMarkerMockRecorder) MarkAsPublishedAndNotProcessing(ctx, ID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkAsPublished", reflect.TypeOf((*MockPublishedMarker)(nil).MarkAsPublished), ctx, ID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkAsPublishedAndNotProcessing", reflect.TypeOf((*MockPublishedAndNotProcessingMarker)(nil).MarkAsPublishedAndNotProcessing), ctx, ID)
+}
+
+// MockNotProcessingMarker is a mock of NotProcessingMarker interface.
+type MockNotProcessingMarker struct {
+	ctrl     *gomock.Controller
+	recorder *MockNotProcessingMarkerMockRecorder
+	isgomock struct{}
+}
+
+// MockNotProcessingMarkerMockRecorder is the mock recorder for MockNotProcessingMarker.
+type MockNotProcessingMarkerMockRecorder struct {
+	mock *MockNotProcessingMarker
+}
+
+// NewMockNotProcessingMarker creates a new mock instance.
+func NewMockNotProcessingMarker(ctrl *gomock.Controller) *MockNotProcessingMarker {
+	mock := &MockNotProcessingMarker{ctrl: ctrl}
+	mock.recorder = &MockNotProcessingMarkerMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockNotProcessingMarker) EXPECT() *MockNotProcessingMarkerMockRecorder {
+	return m.recorder
+}
+
+// MarkAsNotProcessing mocks base method.
+func (m *MockNotProcessingMarker) MarkAsNotProcessing(ctx context.Context, ID event.ID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MarkAsNotProcessing", ctx, ID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// MarkAsNotProcessing indicates an expected call of MarkAsNotProcessing.
+func (mr *MockNotProcessingMarkerMockRecorder) MarkAsNotProcessing(ctx, ID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarkAsNotProcessing", reflect.TypeOf((*MockNotProcessingMarker)(nil).MarkAsNotProcessing), ctx, ID)
 }
 
 // MockDeadLetterCreator is a mock of DeadLetterCreator interface.

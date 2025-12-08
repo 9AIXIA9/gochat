@@ -3,6 +3,7 @@ package kafka
 import (
 	"fmt"
 	myErrors "gochat/internal/shared/errors"
+	"gochat/internal/shared/kernel"
 	"sync"
 	"sync/atomic"
 
@@ -20,6 +21,7 @@ type EventPublisher struct {
 	producer          *ckafka.Producer
 	metrics           *prometheus.Metrics
 	onDelivered       func(event.ID) error
+	onFailed          func(ev event.Event, reason error) error
 
 	wg     sync.WaitGroup
 	closed atomic.Bool
@@ -29,9 +31,14 @@ func NewEventPublisher(
 	config *Config,
 	metrics *prometheus.Metrics,
 	onDelivered func(event.ID) error,
+	onFailed func(ev event.Event, reason error) error,
 ) (*EventPublisher, error) {
 	if onDelivered == nil {
 		return nil, fmt.Errorf("%w: onDelivered is nil", myErrors.ErrEmptyPointer)
+	}
+
+	if onFailed == nil {
+		return nil, fmt.Errorf("%w: onFailed is nil", myErrors.ErrEmptyPointer)
 	}
 
 	producer, err := ckafka.NewProducer(getProducerConfigMap(config))
@@ -44,23 +51,24 @@ func NewEventPublisher(
 		producer:          producer,
 		metrics:           metrics,
 		onDelivered:       onDelivered,
+		onFailed:          onFailed,
 	}, nil
 }
 
-func (p *EventPublisher) Publish(event event.Event) error {
-	if event == nil {
+func (p *EventPublisher) Publish(ev event.Event) error {
+	if ev == nil {
 		return myErrors.ErrEmptyPointer
 	}
 
 	if p.closed.Load() {
 		return myErrors.ErrHasBeenClosed
 	}
-
-	message := p.getMessage(event)
+	message := p.getMessage(ev)
 	if err := p.producer.Produce(message, p.publishResultChan); err != nil {
 		if p.metrics != nil {
 			p.metrics.KafkaProduced.WithLabelValues(*message.TopicPartition.Topic, "error").Inc()
 		}
+		_ = p.onFailed(ev, err) // 入队失败释放 processing，并留给回调写死信
 		zap.L().Error("produce message failed", zap.Error(err))
 		return err
 	}
@@ -71,13 +79,15 @@ func (p *EventPublisher) processPublishingResponse() {
 	for result := range p.publishResultChan {
 		switch message := result.(type) {
 		case *ckafka.Message:
-			if message.TopicPartition.Error != nil {
+			if err := message.TopicPartition.Error; err != nil {
+				// 送达失败：标记未处理并记录
 				if p.metrics != nil {
 					p.metrics.KafkaProduced.WithLabelValues(*message.TopicPartition.Topic, "error").Inc()
 				}
+				_ = p.onFailed(p.parseMessage(message), err)
 				continue
 			}
-
+			// 送达成功：标记已发布并释放处理标记
 			if err := p.onDelivered(message.Opaque.(event.ID)); err != nil {
 				zap.L().Error(
 					"kafka message delivered callback error",
@@ -137,4 +147,31 @@ func (p *EventPublisher) getMessage(ev event.Event) *ckafka.Message {
 		Opaque: ev.ID(), // 回调 识别消息
 	}
 	return m
+}
+
+func (p *EventPublisher) parseMessage(message *ckafka.Message) event.Event {
+	var id event.ID
+
+	for _, header := range message.Headers {
+		if header.Key == "event_id" {
+			id = event.ID(header.Value)
+			break
+		}
+	}
+
+	if len(id) == 0 {
+		idInOpaque, ok := message.Opaque.(event.ID)
+		if !ok {
+			zap.L().Warn("Failed to parse event ID from kafka message")
+		}
+		id = idInOpaque
+	}
+
+	return event.LoadStandardEvent(
+		id,
+		kernel.ID(message.Key),
+		message.Timestamp,
+		event.Topic(*message.TopicPartition.Topic),
+		message.Value,
+	)
 }

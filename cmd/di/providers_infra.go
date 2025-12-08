@@ -164,7 +164,19 @@ func provideRoomMessageNotifier(manager *websocket.Manager) *chatWebsocket.RoomM
 	return chatWebsocket.NewRoomMessageNotifier(manager)
 }
 func provideKafkaPublisher(appConfig *config.App, eventRepo *repository.EventRepository, metrics *prometheus.Metrics) (*kafkautil.EventPublisher, error) {
-	return kafkautil.NewEventPublisher(appConfig.Kafka, metrics, func(id event.ID) error {
-		return eventRepo.MarkAsPublished(context.Background(), id)
-	})
+	return kafkautil.NewEventPublisher(
+		appConfig.Kafka,
+		metrics,
+		func(id event.ID) error {
+			return eventRepo.MarkAsPublishedAndNotProcessing(context.Background(), id)
+		},
+		func(ev event.Event, reason error) error {
+			if err := eventRepo.MarkAsNotProcessing(context.Background(), ev.ID()); err != nil {
+				if err := eventRepo.CreateDeadLetter(context.Background(), ev, reason); err != nil {
+					return err
+				}
+			}
+			return nil
+		},
+	)
 }

@@ -101,4 +101,17 @@ func TestRoomCreatedUseCase_Execute(t *testing.T) {
 		RoomID: fixedRoomID,
 	})
 	require.NoError(t, err)
+
+	// 已经创建了
+	gomock.InOrder(
+		mockFinder.EXPECT().FindByID(nil, fixedRoomID).Return(mockRoom, nil),
+		mockRoomshipIDGenerator.EXPECT().Generate().Return(fixedRoomshipID),
+		mockIDGenerator.EXPECT().Generate().Return(fixedEventID),
+		mockRoomshipCreator.EXPECT().Create(nil, gomock.Any()).Return(myErrors.ErrDuplicatedKey),
+	)
+
+	_, err = useCase.Execute(nil, &application.RoomCreatedInput{
+		RoomID: fixedRoomID,
+	})
+	require.NoError(t, err)
 }
