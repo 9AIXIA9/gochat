@@ -31,5 +31,5 @@ type SystemMessageFinderByID interface {
 }
 
 type UserSystemMessagesFinderByState interface {
-	FindsByState(ctx context.Context, userID kernel.UserID, state MessageState) ([]*SystemMessage, error)
+	FindsByState(ctx context.Context, userID kernel.UserID, state MessageState, limit int) ([]*SystemMessage, error)
 }
