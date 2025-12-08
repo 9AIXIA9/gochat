@@ -2,6 +2,7 @@ package di
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"gochat/config"
 	authApp "gochat/internal/authorization/application"
@@ -10,6 +11,7 @@ import (
 	chatApp "gochat/internal/chat/application"
 	chatDomain "gochat/internal/chat/domain"
 	chatEvent "gochat/internal/chat/port/event"
+	"gochat/internal/delivery/kafka/handler"
 	"gochat/internal/delivery/kafka/middleware"
 	friendshipApp "gochat/internal/friendship/application"
 	friendshipDomain "gochat/internal/friendship/domain"
@@ -21,38 +23,73 @@ import (
 	roomshipApp "gochat/internal/roomship/application"
 	roomshipDomain "gochat/internal/roomship/domain"
 	roomshipEvent "gochat/internal/roomship/port/event"
+	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 
+	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/google/wire"
 	"go.uber.org/zap"
 )
 
 type (
 	kafkaTopicEnsured bool
+	retryJudge        func(error) bool
 )
 
 var KafkaSet = wire.NewSet(
 	provideTopicsEnsured,
 	provideKafkaRouter,
+	provideRetryJudge,
 	provideKafkaConsumer,
+	provideKafkaProducer,
 )
 
 func provideKafkaConsumer(
 	appConfig *config.App,
 	router *kafkaInfra.Router,
-	creator event.DeadLetterCreator,
+	reproducer *ckafka.Producer,
+	eventRepo event.Repository,
+	retrier retryJudge,
 ) (*kafkaInfra.Consumer, error) {
 	consumer, err := kafkaInfra.NewConsumer(appConfig.Kafka, router)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Kafka consumer: %w", err)
 	}
-	handler, err := kafkaInfra.NewErrorHandlerWithDeadLetterAndRetry(appConfig.Kafka, creator)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create Kafka error handler: %w", err)
-	}
 
-	consumer.SetErrorHandler(handler)
+	consumer.SetErrorHandler(
+		handler.NewLoggerErrorHandler(),
+		middleware.NewRetryErrorMiddleware(
+			reproducer,
+			retrier,
+		),
+		middleware.NewDeadLetterErrorMiddleware(
+			eventRepo,
+		),
+	)
+
 	return consumer, nil
+}
+
+func provideKafkaProducer(appConf *config.App) (*ckafka.Producer, error) {
+	producer, err := kafkaInfra.NewProducer(appConf.Kafka)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create Kafka producer: %w", err)
+	}
+	return producer, nil
+}
+
+func provideRetryJudge() retryJudge {
+	return func(err error) bool {
+		if errors.Is(err, myErrors.ErrNotFound) ||
+			errors.Is(err, chatDomain.ErrNotFriends) ||
+			errors.Is(err, chatDomain.ErrNotMember) ||
+			errors.Is(err, friendshipDomain.ErrFriendRequestNotAgreed) ||
+			errors.Is(err, roomshipDomain.ErrNotAdmin) ||
+			errors.Is(err, myErrors.ErrChanIsFull) {
+			return true
+		}
+		return false
+	}
 }
 
 // TODO 各上下文 分开订阅 添加中间件

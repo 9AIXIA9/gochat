@@ -31,7 +31,7 @@ func NewLoggerMiddleware() kafka.Middleware {
 
 			zap.L().Info("kafka event completed", append(fields,
 				zap.String("topic", *message.TopicPartition.Topic),
-				zap.Bool("error", err != nil),
+				zap.Error(err),
 			)...)
 
 			return err
