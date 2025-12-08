@@ -16,7 +16,7 @@ type RoomCreatedEvent struct {
 
 func ToRoomCreatedEvent(ev event.Event) (*RoomCreatedEvent, error) {
 	if ev.Topic() != TopicRoomCreated {
-		return nil, myErrors.ErrWrongEventType
+		return nil, myErrors.ErrWrongEventTopic
 	}
 	e := &RoomCreatedEvent{StandardEvent: event.LoadStandardEventFromEvent(ev)}
 	if len(ev.Payload()) > 0 {

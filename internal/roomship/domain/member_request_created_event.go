@@ -16,7 +16,7 @@ type MemberRequestCreatedEvent struct {
 
 func ToMemberRequestCreatedEvent(ev event.Event) (*MemberRequestCreatedEvent, error) {
 	if ev.Topic() != TopicMemberRequestCreated {
-		return nil, myErrors.ErrWrongEventType
+		return nil, myErrors.ErrWrongEventTopic
 	}
 	e := &MemberRequestCreatedEvent{StandardEvent: event.LoadStandardEventFromEvent(ev)}
 	if len(ev.Payload()) > 0 {

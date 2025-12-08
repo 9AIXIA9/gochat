@@ -16,7 +16,7 @@ type RoomshipCreatedEvent struct {
 
 func ToRoomshipCreatedEvent(ev event.Event) (*RoomshipCreatedEvent, error) {
 	if ev.Topic() != TopicRoomshipCreated {
-		return nil, myErrors.ErrWrongEventType
+		return nil, myErrors.ErrWrongEventTopic
 	}
 	e := &RoomshipCreatedEvent{StandardEvent: event.LoadStandardEventFromEvent(ev)}
 	if len(ev.Payload()) > 0 {

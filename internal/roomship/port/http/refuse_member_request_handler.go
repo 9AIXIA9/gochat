@@ -5,6 +5,7 @@ import (
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/infrastructure/validator"
 	"gochat/internal/roomship/application"
+	"gochat/internal/roomship/domain"
 	myErrors "gochat/internal/shared/errors"
 	sharedHttp "gochat/internal/shared/http"
 	"gochat/internal/shared/kernel"
@@ -47,7 +48,7 @@ func NewRefuseMemberRequestHandler(useCase application.RefuseMemberRequestUseCas
 				sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty")
 			case errors.Is(err, myErrors.ErrNotFound):
 				sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "request is not found")
-			case errors.Is(err, myErrors.ErrPermissionDenied):
+			case errors.Is(err, domain.ErrNotAdmin):
 				sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "you have no permission to refuse this request")
 			default:
 				zap.L().Error("RefuseMemberRequestHandler error", zap.Error(err))

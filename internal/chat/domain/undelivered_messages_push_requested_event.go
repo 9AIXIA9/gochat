@@ -16,7 +16,7 @@ type UndeliveredMessagesPushRequestedEvent struct {
 
 func ToUndeliveredMessagesPushRequestedEvent(ev event.Event) (*UndeliveredMessagesPushRequestedEvent, error) {
 	if ev.Topic() != TopicUndeliveredMessagesPushRequested {
-		return nil, myErrors.ErrWrongEventType
+		return nil, myErrors.ErrWrongEventTopic
 	}
 	e := &UndeliveredMessagesPushRequestedEvent{StandardEvent: event.LoadStandardEventFromEvent(ev)}
 	if len(ev.Payload()) > 0 {

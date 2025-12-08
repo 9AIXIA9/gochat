@@ -4,27 +4,21 @@ import (
 	"errors"
 )
 
-//TODO 领域错误 定义在各自的领域包中，这里只定义通用错误
-
 // 系统相关错误
 
 var (
-	ErrInternalError  = errors.New("system: internal server error")
-	ErrEmptyPointer   = errors.New("system: empty pointer")
-	ErrHasBeenClosed  = errors.New("system: has been closed")
-	ErrDecode         = errors.New("system: decode error")
-	ErrChanIsFull     = errors.New("system: chan is full")
-	ErrWrongEventType = errors.New("system: wrong event type")
+	ErrEmptyPointer    = errors.New("system: empty pointer")
+	ErrHasBeenClosed   = errors.New("system: has been closed")
+	ErrChanIsFull      = errors.New("system: chan is full")
+	ErrWrongEventTopic = errors.New("system: wrong event topic")
 )
 
 // 业务逻辑相关错误
 var (
-	ErrInvalidLength    = errors.New("logic: invalid length")
-	ErrInvalidNumber    = errors.New("logic: invalid number")
-	ErrInvalidFormat    = errors.New("logic: invalid format")
-	ErrEmptyInput       = errors.New("logic: input is empty")
-	ErrNotBelongTo      = errors.New("logic: not belong to")
-	ErrPermissionDenied = errors.New("logic: permission denied")
+	ErrInvalidLength = errors.New("logic: invalid length")
+	ErrInvalidNumber = errors.New("logic: invalid number")
+	ErrInvalidFormat = errors.New("logic: invalid format")
+	ErrEmptyInput    = errors.New("logic: input is empty")
 )
 
 // 数据库相关错误

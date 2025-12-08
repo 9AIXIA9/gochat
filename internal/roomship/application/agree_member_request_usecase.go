@@ -64,7 +64,7 @@ func (uc *agreeMemberRequestUseCase) Execute(ctx context.Context, input *AgreeMe
 	}
 
 	if roomship == nil || !roomship.IsAdmin() {
-		return nil, myErrors.ErrPermissionDenied
+		return nil, domain.ErrNotAdmin
 	}
 
 	if err := req.Agree(

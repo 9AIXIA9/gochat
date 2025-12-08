@@ -19,7 +19,7 @@ type FriendshipCreatedEvent struct {
 
 func ToFriendshipCreatedEvent(ev event.Event) (*FriendshipCreatedEvent, error) {
 	if ev.Topic() != TopicFriendshipCreated {
-		return nil, myErrors.ErrWrongEventType
+		return nil, myErrors.ErrWrongEventTopic
 	}
 	e := &FriendshipCreatedEvent{StandardEvent: event.LoadStandardEventFromEvent(ev)}
 	if len(ev.Payload()) > 0 {

@@ -60,7 +60,7 @@ func (uc *refuseMemberRequestUseCase) Execute(ctx context.Context, input *Refuse
 	}
 
 	if roomship == nil || !roomship.IsAdmin() {
-		return nil, myErrors.ErrPermissionDenied
+		return nil, domain.ErrNotAdmin
 	}
 
 	if err := req.Refuse(input.UserID); err != nil {

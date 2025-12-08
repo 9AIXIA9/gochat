@@ -3,6 +3,7 @@ package http
 import (
 	"errors"
 	"gochat/internal/chat/application"
+	"gochat/internal/chat/domain"
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/infrastructure/validator"
 	myErrors "gochat/internal/shared/errors"
@@ -46,7 +47,7 @@ func NewSendRoomMessageHandler(useCase application.SendRoomMessageUseCase, valid
 				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty"))
 			case errors.Is(err, myErrors.ErrNotFound):
 				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "room not found"))
-			case errors.Is(err, myErrors.ErrNotBelongTo):
+			case errors.Is(err, domain.ErrNotMember):
 				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeNotBelongTo, "not belong to this room"))
 			case errors.Is(err, myErrors.ErrInvalidLength):
 				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidRoom, "invalid room"))

@@ -2,8 +2,8 @@ package middleware
 
 import (
 	"context"
+	"fmt"
 	"gochat/internal/infrastructure/websocket"
-	myErrors "gochat/internal/shared/errors"
 	"gochat/pkg/utils"
 	"runtime/debug"
 
@@ -23,7 +23,7 @@ func NewRecoverMiddleware() websocket.Middleware {
 						zap.String("topic", utils.GetWebsocketTopic(ctx)),
 					)
 					// Return a safe, generic error to the client
-					err = myErrors.ErrInternalError
+					err = fmt.Errorf("panic recovered: %v", r)
 				}
 			}()
 
