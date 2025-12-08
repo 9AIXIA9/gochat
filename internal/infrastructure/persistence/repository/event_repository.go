@@ -21,13 +21,6 @@ func NewEventRepository(db *gorm.DB) *EventRepository {
 	}
 }
 
-func (repo *EventRepository) CreateUnpublishedEvent(ctx context.Context, e event.Event) error {
-	if e == nil {
-		return nil
-	}
-	return gormutils.TranslateError(repo.db.WithContext(ctx).Create(repo.toModel(e)).Error)
-}
-
 func (repo *EventRepository) CreateUnpublishedEvents(ctx context.Context, evs []event.Event) error {
 	if len(evs) == 0 {
 		return nil
@@ -47,14 +40,41 @@ func (repo *EventRepository) CreateUnpublishedEvents(ctx context.Context, evs []
 func (repo *EventRepository) ListUnpublishedEvents(ctx context.Context) ([]event.Event, error) {
 	var models []*model.Event
 
-	if err := repo.db.WithContext(ctx).Where("published = false").Find(&models).Error; err != nil {
-		return nil, gormutils.TranslateError(err)
+	if err := repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("published = ? AND processing = ?", false, false).Find(&models).Error; err != nil {
+			return gormutils.TranslateError(err)
+		}
+
+		if len(models) == 0 {
+			return nil
+		}
+
+		ids := make([]event.ID, 0, len(models))
+		for _, m := range models {
+			ids = append(ids, m.ID)
+		}
+
+		if err := tx.Model(&model.Event{}).Where("id IN ?", ids).Updates(map[string]interface{}{
+			"processing": true,
+		}).Error; err != nil {
+			return gormutils.TranslateError(err)
+		}
+		return nil
+	}); err != nil {
+		return nil, err
 	}
 	return repo.toEvents(models), nil
 }
 
-func (repo *EventRepository) MarkAsPublished(ctx context.Context, ID event.ID) error {
-	return gormutils.TranslateError(repo.db.WithContext(ctx).Model(&model.Event{}).Where("id = ?", ID).Update("published", true).Error)
+func (repo *EventRepository) MarkAsPublishedAndNotProcessing(ctx context.Context, ID event.ID) error {
+	return gormutils.TranslateError(repo.db.WithContext(ctx).Model(&model.Event{}).Where("id = ?", ID).Updates(map[string]interface{}{
+		"published":  true,
+		"processing": false,
+	}).Error)
+}
+
+func (repo *EventRepository) MarkAsNotProcessing(ctx context.Context, ID event.ID) error {
+	return gormutils.TranslateError(repo.db.WithContext(ctx).Model(&model.Event{}).Where("id = ?", ID).Update("processing", false).Error)
 }
 
 func (repo *EventRepository) CreateDeadLetter(ctx context.Context, e event.Event, reason error) error {
@@ -69,6 +89,8 @@ func (repo *EventRepository) toModel(e event.Event) *model.Event {
 		ID:          e.ID(),
 		AggregateID: e.AggregateID(),
 		Topic:       e.Topic(),
+		Published:   false,
+		Processing:  false,
 		Payload:     e.Payload(),
 		CreatedAt:   e.OccurredAt(),
 	}
@@ -80,14 +102,7 @@ func (repo *EventRepository) toModels(evs []event.Event) []*model.Event {
 	}
 	models := make([]*model.Event, 0, len(evs))
 	for _, e := range evs {
-		models = append(models, &model.Event{
-			ID:          e.ID(),
-			AggregateID: e.AggregateID(),
-			Topic:       e.Topic(),
-			Published:   false,
-			Payload:     e.Payload(),
-			CreatedAt:   e.OccurredAt(),
-		})
+		models = append(models, repo.toModel(e))
 	}
 	return models
 }
@@ -98,6 +113,8 @@ func (repo *EventRepository) toDeadLetter(e event.Event, reason error) *model.De
 			ID:          e.ID(),
 			AggregateID: e.AggregateID(),
 			Topic:       e.Topic(),
+			Published:   false,
+			Processing:  false,
 			Payload:     e.Payload(),
 			CreatedAt:   e.OccurredAt(),
 		},

@@ -107,4 +107,17 @@ func TestFriendRequestAgreedUseCase_Execute(t *testing.T) {
 		RequestID: fixedOperationID,
 	})
 	require.ErrorIs(t, err, domain.ErrFriendRequestNotAgreed)
+
+	//已经创建了
+	gomock.InOrder(
+		friendRequestFinderByID.EXPECT().FindByID(nil, fixedOperationID).Return(mockRequest, nil),
+		friendshipIDGenerator.EXPECT().Generate().Return(fixedFriendshipID),
+		idGenerator.EXPECT().Generate().Return(fixedEventID),
+		creator.EXPECT().Create(nil, gomock.Any()).Return(myErrors.ErrDuplicatedKey),
+	)
+
+	_, err = useCase.Execute(nil, &application.FriendRequestAgreedInput{
+		RequestID: fixedOperationID,
+	})
+	require.NoError(t, err)
 }

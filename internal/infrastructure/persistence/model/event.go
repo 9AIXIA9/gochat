@@ -11,6 +11,7 @@ type Event struct {
 	AggregateID kernel.ID   `gorm:"type:char(36);not null;index"`
 	Topic       event.Topic `gorm:"type:varchar(100);not null;index"`
 	Published   bool        `gorm:"not null;default:false;index"`
+	Processing  bool        `gorm:"not null;default:false;index"`
 	Payload     []byte
 
 	CreatedAt time.Time

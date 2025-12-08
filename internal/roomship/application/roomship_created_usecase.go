@@ -2,7 +2,6 @@ package application
 
 import (
 	"context"
-	"fmt"
 	chatDomain "gochat/internal/chat/domain"
 	notificationDomain "gochat/internal/notification/domain"
 	"gochat/internal/roomship/domain"
@@ -56,7 +55,6 @@ func NewRoomshipCreatedUseCase(
 }
 
 func (uc *roomshipCreatedUseCase) Execute(ctx context.Context, input *RoomshipCreatedInput) (*kernel.NoOutput, error) {
-	fmt.Println("Executing roomship context RoomshipCreatedUseCase with RoomshipID:", input.RoomshipID)
 	newRoomship, err := uc.roomshipFinderByID.FindByID(ctx, input.RoomshipID)
 	if err != nil {
 		return nil, err
@@ -67,14 +65,7 @@ func (uc *roomshipCreatedUseCase) Execute(ctx context.Context, input *RoomshipCr
 		return nil, err
 	}
 
-	for i, roomship := range oldRoomships {
-		if roomship.ID() == input.RoomshipID {
-			oldRoomships = append(oldRoomships[:i], oldRoomships[i+1:]...)
-			break
-		}
-	}
-
-	evs := make([]event.Event, 0, len(oldRoomships)+1)
+	evs := make([]event.Event, 0, len(oldRoomships))
 	chatEvCreated, err := chatDomain.NewRoomshipCreatedEvent(
 		chatDomain.RoomshipID(newRoomship.ID()),
 		newRoomship.UserID(),
@@ -88,6 +79,10 @@ func (uc *roomshipCreatedUseCase) Execute(ctx context.Context, input *RoomshipCr
 	evs = append(evs, chatEvCreated)
 
 	for _, oldRoomship := range oldRoomships {
+		if oldRoomship.ID() == input.RoomshipID {
+			continue
+		}
+
 		notificationEvRequested, err := notificationDomain.NewSystemMessageNotificationRequestedEvent(
 			oldRoomship.UserID(),
 			uc.buildContent(
@@ -100,10 +95,6 @@ func (uc *roomshipCreatedUseCase) Execute(ctx context.Context, input *RoomshipCr
 			return nil, err
 		}
 		evs = append(evs, notificationEvRequested)
-	}
-
-	for _, ev := range evs {
-		fmt.Printf("event topic:%s,aggregate id: %s\n", ev.Topic(), ev.AggregateID())
 	}
 
 	if err := uc.creator.CreateUnpublishedEvents(ctx, evs); err != nil {

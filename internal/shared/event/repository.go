@@ -4,15 +4,11 @@ package event
 import "context"
 
 type Repository interface {
-	UnpublishedEventCreator
 	UnpublishedEventsCreator
 	UnpublishedEventsLister
-	PublishedMarker
+	PublishedAndNotProcessingMarker
+	NotProcessingMarker
 	DeadLetterCreator
-}
-
-type UnpublishedEventCreator interface {
-	CreateUnpublishedEvent(ctx context.Context, e Event) error
 }
 
 type UnpublishedEventsCreator interface {
@@ -23,8 +19,12 @@ type UnpublishedEventsLister interface {
 	ListUnpublishedEvents(ctx context.Context) ([]Event, error)
 }
 
-type PublishedMarker interface {
-	MarkAsPublished(ctx context.Context, ID ID) error
+type PublishedAndNotProcessingMarker interface {
+	MarkAsPublishedAndNotProcessing(ctx context.Context, ID ID) error
+}
+
+type NotProcessingMarker interface {
+	MarkAsNotProcessing(ctx context.Context, ID ID) error
 }
 
 type DeadLetterCreator interface {

@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	"gochat/internal/friendship/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
@@ -70,6 +71,9 @@ func (uc *friendRequestAgreedUseCase) Execute(ctx context.Context, input *Friend
 	}
 
 	if err := uc.creator.Create(ctx, friendship); err != nil {
+		if errors.Is(err, myErrors.ErrDuplicatedKey) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
