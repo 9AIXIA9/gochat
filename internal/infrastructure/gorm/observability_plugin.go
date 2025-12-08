@@ -126,7 +126,7 @@ func (p *ObservabilityPlugin) before(op string) func(*gorm.DB) {
 			span.SetAttributes(attribute.String("db.table", db.Statement.Table))
 		}
 		db.Statement.Context = context.WithValue(spanCtx, ctxKey{}, span)
-		db.InstanceSet("observe_start", time.Now())
+		db.InstanceSet("observe_start", time.Now().UTC())
 	}
 }
 

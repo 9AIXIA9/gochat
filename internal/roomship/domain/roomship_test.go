@@ -13,7 +13,8 @@ import (
 )
 
 func TestLoadRoomship(t *testing.T) {
-	start := time.Now().UTC()
+	start := time.Now().UTC().
+		UTC()
 	roomship := domain.LoadRoomship(
 		fixedRoomshipID,
 		fixedRoomID,
@@ -40,7 +41,8 @@ func TestCreateRoomship(t *testing.T) {
 	mockRoomshipIDGenerator.EXPECT().Generate().Return(fixedRoomshipID).Times(1)
 	mockIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(1)
 
-	start := time.Now().UTC()
+	start := time.Now().UTC().
+		UTC()
 	roomship, err := domain.CreateRoomship(
 		fixedUserID,
 		fixedRoomID,

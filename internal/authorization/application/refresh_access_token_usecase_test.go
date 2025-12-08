@@ -76,7 +76,7 @@ func TestRefreshAccessTokenUseCase_Execute(t *testing.T) {
 	mockRefreshTokenEntity := domain.LoadRefreshToken(
 		fixedRefreshToken,
 		fixedUserID,
-		time.Now().Add(time.Hour),
+		time.Now().UTC().Add(time.Hour),
 		fixedRefreshCount,
 	)
 

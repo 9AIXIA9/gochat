@@ -13,7 +13,7 @@ import (
 func NewTelemetryMiddleware(serviceName string) gin.HandlerFunc {
 	tracer := otel.Tracer(serviceName + "/http")
 	return func(c *gin.Context) {
-		start := time.Now()
+		start := time.Now().UTC()
 		ctx, span := tracer.Start(c.Request.Context(), c.Request.Method+" "+c.FullPath(), trace.WithSpanKind(trace.SpanKindServer))
 		c.Request = c.Request.WithContext(ctx)
 		c.Next()

@@ -13,7 +13,8 @@ import (
 )
 
 func TestLoadFriendship(t *testing.T) {
-	start := time.Now().UTC()
+	start := time.Now().UTC().
+		UTC()
 	friendship := domain.LoadFriendship(
 		fixedFriendshipID,
 		fixedUserID,
@@ -38,7 +39,8 @@ func TestCreateFriendship(t *testing.T) {
 	mockFriendshipIDGenerator.EXPECT().Generate().Return(fixedFriendshipID).Times(1)
 
 	//正常情况
-	start := time.Now().UTC()
+	start := time.Now().UTC().
+		UTC()
 	friendship, err := domain.CreateFriendship(
 		fixedUserID,
 		fixedToUserID,

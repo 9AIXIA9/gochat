@@ -14,7 +14,7 @@ import (
 func NewLoggerMiddleware() kafka.Middleware {
 	return func(next kafka.Handler) kafka.Handler {
 		return kafka.HandlerFunc(func(ctx context.Context, message *ckafka.Message) error {
-			start := time.Now()
+			start := time.Now().UTC()
 
 			// Call the next handler in the chain
 			err := next.Handle(ctx, message)

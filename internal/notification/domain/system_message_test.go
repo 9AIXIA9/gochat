@@ -14,7 +14,7 @@ import (
 )
 
 func TestLoadSystemMessage(t *testing.T) {
-	start := time.Now()
+	start := time.Now().UTC()
 	message := domain.LoadSystemMessage(
 		fixedMessageID,
 		fixedRecipientID,
@@ -35,7 +35,7 @@ func TestCreateSystemMessage(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	start := time.Now()
+	start := time.Now().UTC()
 	mockIDGenerator := kernelmocks.NewMockMessageIDGenerator(ctrl)
 	mockNotifier := mocks.NewMockSystemMessageNotifier(ctrl)
 

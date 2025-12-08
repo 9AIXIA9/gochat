@@ -41,7 +41,7 @@ func TestCreateRefreshToken(t *testing.T) {
 	assert.Equal(t, fixedRefreshToken, token.Token())
 	assert.Equal(t, fixedUserID, token.UserID())
 	assert.Equal(t, 0, token.RefreshCount())
-	assert.WithinDuration(t, time.Now().Add(validityDuration), token.ExpiredAt(), timeTolerance)
+	assert.WithinDuration(t, time.Now().UTC().Add(validityDuration), token.ExpiredAt(), timeTolerance)
 }
 
 func TestRefreshTokenEntity_GenerateAccessToken(t *testing.T) {
@@ -90,13 +90,13 @@ func TestRefreshTokenEntity_Refresh(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, fixedRefreshToken, refreshToken.Token())
 	assert.Equal(t, 1, refreshToken.RefreshCount())
-	assert.WithinDuration(t, time.Now().Add(validityDuration).Add(extendDuration), refreshToken.ExpiredAt(), timeTolerance)
+	assert.WithinDuration(t, time.Now().UTC().Add(validityDuration).Add(extendDuration), refreshToken.ExpiredAt(), timeTolerance)
 
 	//过期失败
 	expiredToken := domain.LoadRefreshToken(
 		fixedRefreshToken,
 		fixedUserID,
-		time.Now().Add(-time.Hour),
+		time.Now().UTC().Add(-time.Hour),
 		fixedRefreshCount,
 	)
 	err = expiredToken.Refresh(mockRefreshTokenGenerator)
@@ -118,7 +118,7 @@ func TestRefreshTokenEntity_CanBeRefreshed(t *testing.T) {
 	token := domain.LoadRefreshToken(
 		fixedRefreshToken,
 		fixedUserID,
-		time.Now().UTC(),
+		time.Now().UTC().Add(time.Hour),
 		fixedRefreshCount,
 	)
 	err := token.CanBeRefreshed()
@@ -128,7 +128,7 @@ func TestRefreshTokenEntity_CanBeRefreshed(t *testing.T) {
 	expiredToken := domain.LoadRefreshToken(
 		fixedRefreshToken,
 		fixedUserID,
-		time.Now().Add(-time.Hour),
+		time.Now().UTC().Add(-time.Hour),
 		fixedRefreshCount,
 	)
 	err = expiredToken.CanBeRefreshed()
@@ -138,10 +138,9 @@ func TestRefreshTokenEntity_CanBeRefreshed(t *testing.T) {
 	limitToken := domain.LoadRefreshToken(
 		fixedRefreshToken,
 		fixedUserID,
-		time.Now().UTC(),
+		time.Now().UTC().Add(time.Hour),
 		maxRefreshCount,
 	)
 	err = limitToken.CanBeRefreshed()
 	require.ErrorIs(t, err, domain.ErrRefreshLimitExceeded)
-
 }

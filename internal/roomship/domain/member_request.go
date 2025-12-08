@@ -104,7 +104,8 @@ func (r *MemberRequest) Agree(
 
 	r.state = StateAgreed
 	r.operatorID = operatorID
-	r.operatedAt = time.Now().UTC()
+	r.operatedAt = time.Now().UTC().
+		UTC()
 
 	r.manager.RecordEvent(ev)
 
@@ -120,7 +121,8 @@ func (r *MemberRequest) Refuse(
 
 	r.state = StateRefused
 	r.operatorID = operatorID
-	r.operatedAt = time.Now().UTC()
+	r.operatedAt = time.Now().UTC().
+		UTC()
 
 	return nil
 }

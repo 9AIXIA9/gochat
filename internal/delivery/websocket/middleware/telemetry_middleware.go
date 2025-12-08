@@ -16,7 +16,7 @@ func NewTelemetryMiddleware(serviceName string) websocket.Middleware {
 	tracer := otel.Tracer(serviceName + "/websocket")
 	return func(next websocket.Handler) websocket.Handler {
 		return websocket.HandlerFunc(func(ctx context.Context, data []byte) ([]byte, error) {
-			start := time.Now()
+			start := time.Now().UTC()
 			ctx, span := tracer.Start(ctx, utils.GetWebsocketTopic(ctx), trace.WithSpanKind(trace.SpanKindServer))
 			resp, err := next.Handle(ctx, data)
 
