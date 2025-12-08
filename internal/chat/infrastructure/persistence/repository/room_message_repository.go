@@ -82,13 +82,20 @@ func (repo *RoomMessageRepository) Updates(ctx context.Context, messages []*doma
 
 }
 
-func (repo *RoomMessageRepository) FindRoomMessagesByRecipientIDAndState(ctx context.Context, recipientID kernel.UserID, state domain.MessageState) ([]*domain.RoomMessage, error) {
+func (repo *RoomMessageRepository) FindRoomMessagesByRecipientIDAndState(
+	ctx context.Context,
+	recipientID kernel.UserID,
+	state domain.MessageState,
+	limit int,
+) ([]*domain.RoomMessage, error) {
 	var messages []model.RoomMessage
 	if err := repo.db.WithContext(ctx).
 		Joins("JOIN chat_room_message_states ON chat_room_messages.id = chat_room_message_states.message_id").
 		Where("chat_room_message_states.user_id = ? AND chat_room_message_states.state = ?", recipientID, state).
 		Preload("States").
-		Find(&messages).Error; err != nil {
+		Limit(limit).
+		Find(&messages).
+		Error; err != nil {
 		return nil, gormutils.TranslateError(err)
 	}
 	return repo.toDomains(messages), nil
