@@ -160,6 +160,7 @@ func provideTopicsEnsured(appConfig *config.App) kafkaTopicEnsured {
 			chatDomain.TopicRoomCreated,
 			chatDomain.TopicFriendshipCreated,
 			chatDomain.TopicRoomshipCreated,
+			chatDomain.TopicUndeliveredMessagesPushRequested,
 			// notification
 			notificationDomain.TopicWelcomeEmailNotificationRequested,
 			notificationDomain.TopicSystemMessageNotificationRequested,
