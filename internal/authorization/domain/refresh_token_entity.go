@@ -45,7 +45,7 @@ func CreateRefreshToken(
 	return &RefreshTokenEntity{
 		userID:       userID,
 		token:        token,
-		expiredAt:    time.Now().Add(refreshTokenValidityDuration),
+		expiredAt:    time.Now().UTC().Add(refreshTokenValidityDuration),
 		refreshCount: 0,
 		generated:    false,
 	}, nil
@@ -54,7 +54,7 @@ func CreateRefreshToken(
 func (t *RefreshTokenEntity) GenerateAccessToken(
 	accessTokenGenerator AccessTokenGenerator,
 ) (AccessToken, error) {
-	if t.generated || time.Now().After(t.expiredAt) {
+	if t.generated || time.Now().UTC().After(t.expiredAt) {
 		return "", ErrAccessTokenGenerated
 	}
 	t.generated = true
@@ -79,12 +79,12 @@ func (t *RefreshTokenEntity) Refresh(
 }
 
 func (t *RefreshTokenEntity) CanBeRefreshed() error {
-	if time.Now().After(t.expiredAt) {
-		return ErrRefreshTokenExpired
-	}
-
 	if refreshTokenMaxRefreshCount <= t.refreshCount {
 		return ErrRefreshLimitExceeded
+	}
+
+	if time.Now().UTC().After(t.expiredAt) {
+		return ErrRefreshTokenExpired
 	}
 	return nil
 }

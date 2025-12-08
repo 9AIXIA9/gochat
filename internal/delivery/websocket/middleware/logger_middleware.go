@@ -15,7 +15,7 @@ import (
 func NewLoggerMiddleware() websocket.Middleware {
 	return func(next websocket.Handler) websocket.Handler {
 		return websocket.HandlerFunc(func(ctx context.Context, data []byte) ([]byte, error) {
-			start := time.Now()
+			start := time.Now().UTC()
 
 			// Call the next handler in the chain
 			resp, err := next.Handle(ctx, data)

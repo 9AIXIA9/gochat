@@ -42,7 +42,7 @@ func NewRefreshAccessTokenHandler(useCase application.RefreshAccessTokenUseCase,
 			}
 		},
 		func(ginContext *gin.Context, output *application.RefreshAccessTokenOutput) {
-			if time.Now().After(output.RefreshToken.ExpiredAt()) {
+			if time.Now().UTC().After(output.RefreshToken.ExpiredAt()) {
 				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
 				return
 			}

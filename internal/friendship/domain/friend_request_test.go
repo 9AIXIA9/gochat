@@ -14,7 +14,7 @@ import (
 )
 
 func TestLoadFriendRequest(t *testing.T) {
-	start := time.Now()
+	start := time.Now().UTC()
 	req := domain.LoadFriendRequest(
 		fixedRequestID,
 		fixedUserID,
@@ -43,8 +43,7 @@ func TestCreateFriendRequest(t *testing.T) {
 	mockOperationIDGenerator := kernelmocks.NewMockOperationIDGenerator(ctrl)
 	mockOperationIDGenerator.EXPECT().Generate().Return(fixedRequestID).Times(1)
 
-	start := time.Now()
-
+	start := time.Now().UTC()
 	req, err := domain.CreateFriendRequest(fixedUserID, fixedToUserID, fixedContent, mockOperationIDGenerator, mockIDGenerator)
 	require.NoError(t, err)
 	require.NotNil(t, req)

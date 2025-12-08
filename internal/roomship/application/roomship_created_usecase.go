@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"fmt"
 	chatDomain "gochat/internal/chat/domain"
 	notificationDomain "gochat/internal/notification/domain"
 	"gochat/internal/roomship/domain"
@@ -55,6 +56,7 @@ func NewRoomshipCreatedUseCase(
 }
 
 func (uc *roomshipCreatedUseCase) Execute(ctx context.Context, input *RoomshipCreatedInput) (*kernel.NoOutput, error) {
+	fmt.Println("Executing roomship context RoomshipCreatedUseCase with RoomshipID:", input.RoomshipID)
 	newRoomship, err := uc.roomshipFinderByID.FindByID(ctx, input.RoomshipID)
 	if err != nil {
 		return nil, err
@@ -98,6 +100,10 @@ func (uc *roomshipCreatedUseCase) Execute(ctx context.Context, input *RoomshipCr
 			return nil, err
 		}
 		evs = append(evs, notificationEvRequested)
+	}
+
+	for _, ev := range evs {
+		fmt.Printf("event topic:%s,aggregate id: %s\n", ev.Topic(), ev.AggregateID())
 	}
 
 	if err := uc.creator.CreateUnpublishedEvents(ctx, evs); err != nil {

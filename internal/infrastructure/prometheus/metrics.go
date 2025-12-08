@@ -215,7 +215,7 @@ func (m *Metrics) Handler() http.Handler { return promhttp.Handler() }
 func (m *Metrics) GinMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		m.HTTPInFlight.Inc()
-		start := time.Now()
+		start := time.Now().UTC()
 		c.Next()
 		m.HTTPInFlight.Dec()
 		statusCode := c.Writer.Status()

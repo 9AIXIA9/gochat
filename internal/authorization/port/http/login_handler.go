@@ -42,7 +42,7 @@ func NewLoginHandler(useCase application.LoginUseCase, validator *validator.Vali
 			}
 		},
 		func(ginContext *gin.Context, output *application.LoginOutput) {
-			if time.Now().After(output.RefreshToken.ExpiredAt()) {
+			if time.Now().UTC().After(output.RefreshToken.ExpiredAt()) {
 				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
 				return
 			}

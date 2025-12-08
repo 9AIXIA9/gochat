@@ -58,7 +58,7 @@ func TestCreateRoomMessage(t *testing.T) {
 	mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1)
 	mockNotifier.EXPECT().Notify(gomock.Any(), mockRecipients).Return(mockRecipients, nil).Times(1)
 
-	start := time.Now()
+	start := time.Now().UTC()
 	message, err := domain.CreateRoomMessage(
 		fixedRoomID,
 		fixedUserID,
