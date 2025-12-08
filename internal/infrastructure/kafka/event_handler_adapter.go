@@ -16,7 +16,6 @@ func WrapEventHandler(eventHandler event.Handler) Handler {
 
 func toEvent(message *ckafka.Message) event.Event {
 	var id event.ID
-
 	for _, header := range message.Headers {
 		if header.Key == "event_id" {
 			id = event.ID(header.Value)

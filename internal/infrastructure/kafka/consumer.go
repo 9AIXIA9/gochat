@@ -15,11 +15,6 @@ const (
 	pollTimeout = 500 * time.Millisecond
 )
 
-type ErrorHandler interface {
-	Handle(ctx context.Context, err error, message *ckafka.Message)
-}
-type ErrorHandlerFunc func(ctx context.Context, err error, message *ckafka.Message)
-
 type Consumer struct {
 	consumer     *ckafka.Consumer
 	router       *Router
@@ -111,8 +106,8 @@ func (c *Consumer) processMessage() {
 	}
 }
 
-func (c *Consumer) SetErrorHandler(h ErrorHandler) {
-	c.errorHandler = h
+func (c *Consumer) SetErrorHandler(h ErrorHandler, middlewares ...ErrorMiddleware) {
+	c.errorHandler = chainErrorHandlers(h, middlewares)
 }
 
 func (c *Consumer) Close() {
