@@ -13,6 +13,7 @@ import (
 	friendshipDomain "gochat/internal/friendship/domain"
 	friendshipUUID "gochat/internal/friendship/infrastructure/uuid"
 	"gochat/internal/infrastructure/bcrypt"
+	ginutils "gochat/internal/infrastructure/gin"
 	gormInfra "gochat/internal/infrastructure/gorm"
 	kafkautil "gochat/internal/infrastructure/kafka"
 	"gochat/internal/infrastructure/persistence/repository"
@@ -69,6 +70,8 @@ var InfraSet = wire.NewSet(
 	wire.Bind(new(kernel.MessageIDGenerator), new(*uuid.MessageIDGenerator)),
 	wire.Bind(new(kernel.OperationIDGenerator), new(*uuid.OperationIDGenerator)),
 	wire.Bind(new(event.Publisher), new(*kafkautil.EventPublisher)),
+	wire.Bind(new(ginutils.Validator), new(*validatorInfra.Validator)),
+	wire.Bind(new(websocket.Validator), new(*validatorInfra.Validator)),
 	// Authorization binds
 	wire.Bind(new(authDomain.UserIDGenerator), new(*authUUID.UserIDGenerator)),
 	wire.Bind(new(authDomain.UserNumberGenerator), new(*authSnowflake.UserNumberGenerator)),

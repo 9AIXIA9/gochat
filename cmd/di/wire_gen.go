@@ -114,7 +114,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 		return nil, err
 	}
 	upgrader := provideWebsocketUpgrader(appConfig)
-	router := provideWebsocketRouter(appConfig, sendPrivateMessageUseCase, sendRoomMessageUseCase)
+	router := provideWebsocketRouter(appConfig, validator, sendPrivateMessageUseCase, sendRoomMessageUseCase)
 	userSessionStartedUseCase, err := provideWebsocketUserSessionStartedUseCase(eventIDGenerator, eventRepository)
 	if err != nil {
 		return nil, err

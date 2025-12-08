@@ -5,7 +5,6 @@ import (
 	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
 	ginutils "gochat/internal/infrastructure/gin"
-	"gochat/internal/infrastructure/validator"
 	myErrors "gochat/internal/shared/errors"
 	sharedHttp "gochat/internal/shared/http"
 	"gochat/internal/shared/kernel"
@@ -28,7 +27,7 @@ type SignUpResponseData struct {
 	UserNumber kernel.UserNumber `json:"user_number"`
 }
 
-func NewSignUpHandler(useCase application.SignUpUseCase, validator *validator.Validator) gin.HandlerFunc {
+func NewSignUpHandler(useCase application.SignUpUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,
 		validator,

@@ -8,8 +8,6 @@ import (
 	"go.uber.org/zap"
 )
 
-//TODO 添加适配器来添加一些行为 比如validate
-
 type Topic string
 
 func (t Topic) String() string {
@@ -17,23 +15,25 @@ func (t Topic) String() string {
 }
 
 type Request struct {
-	Topic Topic           `json:"topic"`
+	Topic Topic           `json:"topic" validate:"required"`
 	Data  json.RawMessage `json:"data,omitempty"`
 }
 
 type Response struct {
-	Topic Topic           `json:"topic"`
+	Topic Topic           `json:"topic" validate:"required"`
 	Data  json.RawMessage `json:"data,omitempty"`
 }
 
 type Router struct {
+	validator   Validator
 	handlers    map[Topic]Handler
 	middlewares []Middleware
 	notFound    Handler
 }
 
-func NewRouter() *Router {
+func NewRouter(validator Validator) *Router {
 	return &Router{
+		validator:   validator,
 		handlers:    make(map[Topic]Handler),
 		middlewares: make([]Middleware, 0),
 		notFound:    nil,
@@ -58,6 +58,31 @@ func (r *Router) Handle(topic Topic, h Handler, middlewares ...Middleware) {
 }
 
 func (r *Router) Route(ctx context.Context, request *Request) *Response {
+	msg, err := r.validator.Validate(ctx, request)
+	if err != nil {
+		data, mErr := json.Marshal(&ErrorData{Message: err.Error()})
+		if mErr != nil {
+			return nil
+		}
+		return &Response{
+			Topic: request.Topic,
+			Data:  data,
+		}
+	}
+
+	if len(msg) != 0 {
+		data, mErr := json.Marshal(&ErrorData{
+			Message: msg,
+		})
+		if mErr != nil {
+			return nil
+		}
+		return &Response{
+			Topic: request.Topic,
+			Data:  data,
+		}
+	}
+
 	h, ok := r.handlers[request.Topic]
 	if !ok {
 		if r.notFound != nil {

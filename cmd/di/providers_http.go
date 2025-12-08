@@ -20,7 +20,6 @@ import (
 	friendshipHTTP "gochat/internal/friendship/port/http"
 	ginInfra "gochat/internal/infrastructure/gin"
 	"gochat/internal/infrastructure/prometheus"
-	"gochat/internal/infrastructure/validator"
 	"gochat/internal/infrastructure/websocket"
 	roomshipHTTP "gochat/internal/roomship/port/http"
 )
@@ -46,7 +45,7 @@ func provideHttpRouter(
 	agreeFriendRequest friendshipApp.AgreeFriendRequestUseCase,
 	refuseFriendRequest friendshipApp.RefuseFriendRequestUseCase,
 	listFriendRequests friendshipApp.ListFriendRequestsUseCase,
-	validator *validator.Validator,
+	validator ginInfra.Validator,
 	redisClient *redis.Client,
 	websocketServer *websocket.Server,
 	metrics *prometheus.Metrics,

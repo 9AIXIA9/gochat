@@ -30,10 +30,11 @@ func provideWebsocketManager() *websocket.Manager {
 
 func provideWebsocketRouter(
 	appConfig *config.App,
+	validator websocket.Validator,
 	chatSendPrivateMessage chatApp.SendPrivateMessageUseCase,
 	chatSendRoomMessage chatApp.SendRoomMessageUseCase,
 ) *websocket.Router {
-	router := websocket.NewRouter()
+	router := websocket.NewRouter(validator)
 
 	router.Use(
 		middleware.NewLoggerMiddleware(),

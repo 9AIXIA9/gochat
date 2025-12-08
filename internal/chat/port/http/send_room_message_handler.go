@@ -5,7 +5,6 @@ import (
 	"gochat/internal/chat/application"
 	"gochat/internal/chat/domain"
 	ginutils "gochat/internal/infrastructure/gin"
-	"gochat/internal/infrastructure/validator"
 	myErrors "gochat/internal/shared/errors"
 	sharedHttp "gochat/internal/shared/http"
 	"gochat/internal/shared/kernel"
@@ -27,7 +26,7 @@ func (r *SendRoomMessageRequest) Bind(ginContext *gin.Context) error {
 	return ginContext.ShouldBind(r)
 }
 
-func NewSendRoomMessageHandler(useCase application.SendRoomMessageUseCase, validator *validator.Validator) gin.HandlerFunc {
+func NewSendRoomMessageHandler(useCase application.SendRoomMessageUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,
 		validator,
