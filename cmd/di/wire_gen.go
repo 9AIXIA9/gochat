@@ -223,7 +223,8 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 		return nil, err
 	}
 	kafkaRouter := provideKafkaRouter(diKafkaTopicEnsured, diEmailServiceAvailable, appConfig, userCreatedUseCase, applicationUserCreatedUseCase, roomCreatedUseCase, roomshipCreatedUseCase, friendshipCreatedUseCase, undeliveredMessagesPushRequestedUseCase, welcomeEmailNotificationRequestedUseCase, systemMessageNotificationRequestedUseCase, undeliveredMessagesNotificationRequestedUseCase, userCreatedUseCase2, applicationRoomCreatedUseCase, memberRequestAgreedUseCase, memberRequestCreatedUseCase, applicationRoomshipCreatedUseCase, userCreatedUseCase3, friendRequestAgreedUseCase, friendRequestCreatedUseCase, applicationFriendshipCreatedUseCase)
-	consumer, err := provideKafkaConsumer(appConfig, kafkaRouter, eventRepository)
+	diRetryJudge := provideRetryJudge()
+	consumer, err := provideKafkaConsumer(appConfig, kafkaRouter, eventRepository, diRetryJudge)
 	if err != nil {
 		return nil, err
 	}

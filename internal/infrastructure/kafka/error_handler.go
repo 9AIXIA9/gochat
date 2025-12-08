@@ -17,22 +17,34 @@ const (
 )
 
 type ErrorHandlerWithDeadLetterAndRetry struct {
-	producer *ckafka.Producer
-	creator  event.DeadLetterCreator
+	isRetriableError func(error) bool
+	producer         *ckafka.Producer
+	creator          event.DeadLetterCreator
 }
 
-func NewErrorHandlerWithDeadLetterAndRetry(config *Config, creator event.DeadLetterCreator) (ErrorHandler, error) {
+func NewErrorHandlerWithDeadLetterAndRetry(
+	config *Config,
+	creator event.DeadLetterCreator,
+	isRetriableError func(error) bool,
+) (ErrorHandler, error) {
 	if config == nil {
 		return nil, fmt.Errorf("kafka error handler: config is nil")
 	}
 	if creator == nil {
 		return nil, fmt.Errorf("kafka error handler: dead letter creator is nil")
 	}
+	if isRetriableError == nil {
+		return nil, fmt.Errorf("kafka error handler: retry judge is nil")
+	}
 	producer, err := ckafka.NewProducer(getProducerConfigMap(config))
 	if err != nil {
 		return nil, fmt.Errorf("create kafka producer for error handler failed: %w", err)
 	}
-	return &ErrorHandlerWithDeadLetterAndRetry{producer: producer, creator: creator}, nil
+	return &ErrorHandlerWithDeadLetterAndRetry{
+		isRetriableError: isRetriableError,
+		producer:         producer,
+		creator:          creator,
+	}, nil
 }
 
 func (h *ErrorHandlerWithDeadLetterAndRetry) Handle(ctx context.Context, err error, message *ckafka.Message) {
@@ -54,7 +66,7 @@ func (h *ErrorHandlerWithDeadLetterAndRetry) Handle(ctx context.Context, err err
 		retry = 1
 	}
 
-	if retry <= maxRetry {
+	if retry <= maxRetry && h.isRetriableError(err) {
 		h.reproduce(ctx, err, message, retry)
 	} else {
 		if err := h.creator.CreateDeadLetter(ctx, toEvent(message), err); err != nil {
