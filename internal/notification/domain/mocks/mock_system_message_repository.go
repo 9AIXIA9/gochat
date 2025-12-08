@@ -72,18 +72,18 @@ func (mr *MockSystemMessageRepositoryMockRecorder) FindByID(ctx, messageID any) 
 }
 
 // FindsByState mocks base method.
-func (m *MockSystemMessageRepository) FindsByState(ctx context.Context, userID kernel.UserID, state domain.MessageState) ([]*domain.SystemMessage, error) {
+func (m *MockSystemMessageRepository) FindsByState(ctx context.Context, userID kernel.UserID, state domain.MessageState, limit int) ([]*domain.SystemMessage, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindsByState", ctx, userID, state)
+	ret := m.ctrl.Call(m, "FindsByState", ctx, userID, state, limit)
 	ret0, _ := ret[0].([]*domain.SystemMessage)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindsByState indicates an expected call of FindsByState.
-func (mr *MockSystemMessageRepositoryMockRecorder) FindsByState(ctx, userID, state any) *gomock.Call {
+func (mr *MockSystemMessageRepositoryMockRecorder) FindsByState(ctx, userID, state, limit any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByState", reflect.TypeOf((*MockSystemMessageRepository)(nil).FindsByState), ctx, userID, state)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByState", reflect.TypeOf((*MockSystemMessageRepository)(nil).FindsByState), ctx, userID, state, limit)
 }
 
 // Update mocks base method.
@@ -292,16 +292,16 @@ func (m *MockUserSystemMessagesFinderByState) EXPECT() *MockUserSystemMessagesFi
 }
 
 // FindsByState mocks base method.
-func (m *MockUserSystemMessagesFinderByState) FindsByState(ctx context.Context, userID kernel.UserID, state domain.MessageState) ([]*domain.SystemMessage, error) {
+func (m *MockUserSystemMessagesFinderByState) FindsByState(ctx context.Context, userID kernel.UserID, state domain.MessageState, limit int) ([]*domain.SystemMessage, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindsByState", ctx, userID, state)
+	ret := m.ctrl.Call(m, "FindsByState", ctx, userID, state, limit)
 	ret0, _ := ret[0].([]*domain.SystemMessage)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindsByState indicates an expected call of FindsByState.
-func (mr *MockUserSystemMessagesFinderByStateMockRecorder) FindsByState(ctx, userID, state any) *gomock.Call {
+func (mr *MockUserSystemMessagesFinderByStateMockRecorder) FindsByState(ctx, userID, state, limit any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByState", reflect.TypeOf((*MockUserSystemMessagesFinderByState)(nil).FindsByState), ctx, userID, state)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByState", reflect.TypeOf((*MockUserSystemMessagesFinderByState)(nil).FindsByState), ctx, userID, state, limit)
 }

@@ -12,7 +12,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-const fixedMessageLen = 10
+const limit = 100
 
 func TestUndeliveredMessagesNotificationRequestedInput_Validate(t *testing.T) {
 	input := &application.UndeliveredMessagesNotificationRequestedInput{
@@ -67,8 +67,8 @@ func TestUndeliveredMessagesNotificationRequestedUseCase_Execute(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, useCase)
 
-	mockMessages := make([]*domain.SystemMessage, 0, fixedMessageLen)
-	for i := 0; i < fixedMessageLen; i++ {
+	mockMessages := make([]*domain.SystemMessage, 0, limit-1)
+	for i := 0; i < limit-1; i++ {
 		message := domain.LoadSystemMessage(
 			fixedMessageID,
 			fixedUserID,
@@ -80,9 +80,9 @@ func TestUndeliveredMessagesNotificationRequestedUseCase_Execute(t *testing.T) {
 	}
 
 	gomock.InOrder(
-		mockFinder.EXPECT().FindsByState(nil, fixedUserID, domain.MessageStateUndelivered).Return(mockMessages, nil),
-		mockNotifier.EXPECT().Notify(gomock.Any()).Times(fixedMessageLen).Return(nil),
-		mockUpdater.EXPECT().Updates(nil, mockMessages).Return(nil),
+		mockFinder.EXPECT().FindsByState(nil, fixedUserID, domain.MessageStateUndelivered, limit).Return(mockMessages, nil).Times(1),
+		mockNotifier.EXPECT().Notify(gomock.Any()).Return(nil).Times(limit-1),
+		mockUpdater.EXPECT().Updates(nil, mockMessages).Return(nil).Times(1),
 	)
 
 	_, err = useCase.Execute(nil, &application.UndeliveredMessagesNotificationRequestedInput{
@@ -92,7 +92,32 @@ func TestUndeliveredMessagesNotificationRequestedUseCase_Execute(t *testing.T) {
 
 	// 不需要通知的情况
 	gomock.InOrder(
-		mockFinder.EXPECT().FindsByState(nil, fixedUserID, domain.MessageStateUndelivered).Return([]*domain.SystemMessage{}, nil),
+		mockFinder.EXPECT().FindsByState(nil, fixedUserID, domain.MessageStateUndelivered, limit).Return([]*domain.SystemMessage{}, nil).Times(1),
+	)
+
+	_, err = useCase.Execute(nil, &application.UndeliveredMessagesNotificationRequestedInput{
+		UserID: fixedUserID,
+	})
+	require.NoError(t, err)
+
+	//多次通知的情况
+	mockMessages = make([]*domain.SystemMessage, 0, limit)
+	for i := 0; i < limit; i++ {
+		message := domain.LoadSystemMessage(
+			fixedMessageID,
+			fixedUserID,
+			domain.MessageStateUndelivered,
+			"Test content",
+			time.Now().UTC(),
+		)
+		mockMessages = append(mockMessages, message)
+	}
+
+	gomock.InOrder(
+		mockFinder.EXPECT().FindsByState(nil, fixedUserID, domain.MessageStateUndelivered, limit).Return(mockMessages, nil).Times(1),
+		mockNotifier.EXPECT().Notify(gomock.Any()).Return(nil).Times(limit),
+		mockUpdater.EXPECT().Updates(nil, mockMessages).Return(nil).Times(1),
+		mockFinder.EXPECT().FindsByState(nil, fixedUserID, domain.MessageStateUndelivered, limit).Return(nil, nil).Times(1),
 	)
 
 	_, err = useCase.Execute(nil, &application.UndeliveredMessagesNotificationRequestedInput{

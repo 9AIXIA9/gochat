@@ -8,7 +8,7 @@ import (
 	"gochat/pkg/utils"
 )
 
-//TODO 消息太多的情况下还是没有优化，后续考虑分批次推送
+const messageCountLimit = 100
 
 type UndeliveredMessagesPushRequestedUseCase kernel.UseCase[*UndeliveredMessagesPushRequestedInput, *kernel.NoOutput]
 
@@ -63,12 +63,7 @@ func NewUndeliveredMessagesPushRequestedUseCase(
 }
 
 func (uc *undeliveredMessagesPushRequestedUseCase) Execute(ctx context.Context, input *UndeliveredMessagesPushRequestedInput) (*kernel.NoOutput, error) {
-	privateMessages, err := uc.privateMessagesFinder.FindPrivateMessagesByRecipientIDAndState(ctx, input.UserID, domain.MessageStateUndelivered)
-	if err != nil {
-		return nil, err
-	}
-
-	roomMessages, err := uc.roomMessagesFinder.FindRoomMessagesByRecipientIDAndState(ctx, input.UserID, domain.MessageStateUndelivered)
+	privateMessages, err := uc.privateMessagesFinder.FindPrivateMessagesByRecipientIDAndState(ctx, input.UserID, domain.MessageStateUndelivered, messageCountLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -85,6 +80,11 @@ func (uc *undeliveredMessagesPushRequestedUseCase) Execute(ctx context.Context, 
 		}
 	}
 
+	roomMessages, err := uc.roomMessagesFinder.FindRoomMessagesByRecipientIDAndState(ctx, input.UserID, domain.MessageStateUndelivered, messageCountLimit)
+	if err != nil {
+		return nil, err
+	}
+
 	if len(roomMessages) > 0 {
 		for _, message := range roomMessages {
 			if err := message.Deliver(input.UserID, uc.roomMessageNotifier); err != nil {
@@ -95,6 +95,11 @@ func (uc *undeliveredMessagesPushRequestedUseCase) Execute(ctx context.Context, 
 		if err := uc.roomMessagesUpdater.Updates(ctx, roomMessages); err != nil {
 			return nil, err
 		}
+	}
+
+	if len(privateMessages) >= messageCountLimit || len(roomMessages) >= messageCountLimit {
+		//还有未送达的消息，继续请求推送
+		return uc.Execute(ctx, input)
 	}
 
 	return nil, nil

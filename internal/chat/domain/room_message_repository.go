@@ -26,5 +26,5 @@ type RoomMessageFinder interface {
 }
 
 type RoomMessagesFinderByRecipientIDAndState interface {
-	FindRoomMessagesByRecipientIDAndState(ctx context.Context, recipientID kernel.UserID, state MessageState) ([]*RoomMessage, error)
+	FindRoomMessagesByRecipientIDAndState(ctx context.Context, recipientID kernel.UserID, state MessageState, limit int) ([]*RoomMessage, error)
 }

@@ -72,18 +72,18 @@ func (mr *MockRoomMessageRepositoryMockRecorder) FindRoomMessage(ctx, messageID 
 }
 
 // FindRoomMessagesByRecipientIDAndState mocks base method.
-func (m *MockRoomMessageRepository) FindRoomMessagesByRecipientIDAndState(ctx context.Context, recipientID kernel.UserID, state domain.MessageState) ([]*domain.RoomMessage, error) {
+func (m *MockRoomMessageRepository) FindRoomMessagesByRecipientIDAndState(ctx context.Context, recipientID kernel.UserID, state domain.MessageState, limit int) ([]*domain.RoomMessage, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindRoomMessagesByRecipientIDAndState", ctx, recipientID, state)
+	ret := m.ctrl.Call(m, "FindRoomMessagesByRecipientIDAndState", ctx, recipientID, state, limit)
 	ret0, _ := ret[0].([]*domain.RoomMessage)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindRoomMessagesByRecipientIDAndState indicates an expected call of FindRoomMessagesByRecipientIDAndState.
-func (mr *MockRoomMessageRepositoryMockRecorder) FindRoomMessagesByRecipientIDAndState(ctx, recipientID, state any) *gomock.Call {
+func (mr *MockRoomMessageRepositoryMockRecorder) FindRoomMessagesByRecipientIDAndState(ctx, recipientID, state, limit any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindRoomMessagesByRecipientIDAndState", reflect.TypeOf((*MockRoomMessageRepository)(nil).FindRoomMessagesByRecipientIDAndState), ctx, recipientID, state)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindRoomMessagesByRecipientIDAndState", reflect.TypeOf((*MockRoomMessageRepository)(nil).FindRoomMessagesByRecipientIDAndState), ctx, recipientID, state, limit)
 }
 
 // Updates mocks base method.
@@ -240,16 +240,16 @@ func (m *MockRoomMessagesFinderByRecipientIDAndState) EXPECT() *MockRoomMessages
 }
 
 // FindRoomMessagesByRecipientIDAndState mocks base method.
-func (m *MockRoomMessagesFinderByRecipientIDAndState) FindRoomMessagesByRecipientIDAndState(ctx context.Context, recipientID kernel.UserID, state domain.MessageState) ([]*domain.RoomMessage, error) {
+func (m *MockRoomMessagesFinderByRecipientIDAndState) FindRoomMessagesByRecipientIDAndState(ctx context.Context, recipientID kernel.UserID, state domain.MessageState, limit int) ([]*domain.RoomMessage, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindRoomMessagesByRecipientIDAndState", ctx, recipientID, state)
+	ret := m.ctrl.Call(m, "FindRoomMessagesByRecipientIDAndState", ctx, recipientID, state, limit)
 	ret0, _ := ret[0].([]*domain.RoomMessage)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindRoomMessagesByRecipientIDAndState indicates an expected call of FindRoomMessagesByRecipientIDAndState.
-func (mr *MockRoomMessagesFinderByRecipientIDAndStateMockRecorder) FindRoomMessagesByRecipientIDAndState(ctx, recipientID, state any) *gomock.Call {
+func (mr *MockRoomMessagesFinderByRecipientIDAndStateMockRecorder) FindRoomMessagesByRecipientIDAndState(ctx, recipientID, state, limit any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindRoomMessagesByRecipientIDAndState", reflect.TypeOf((*MockRoomMessagesFinderByRecipientIDAndState)(nil).FindRoomMessagesByRecipientIDAndState), ctx, recipientID, state)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindRoomMessagesByRecipientIDAndState", reflect.TypeOf((*MockRoomMessagesFinderByRecipientIDAndState)(nil).FindRoomMessagesByRecipientIDAndState), ctx, recipientID, state, limit)
 }

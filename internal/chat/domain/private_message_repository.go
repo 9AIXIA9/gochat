@@ -26,5 +26,5 @@ type PrivateMessageFinder interface {
 }
 
 type PrivateMessagesFinderByRecipientIDAndState interface {
-	FindPrivateMessagesByRecipientIDAndState(ctx context.Context, recipientID kernel.UserID, state MessageState) ([]*PrivateMessage, error)
+	FindPrivateMessagesByRecipientIDAndState(ctx context.Context, recipientID kernel.UserID, state MessageState, limit int) ([]*PrivateMessage, error)
 }
