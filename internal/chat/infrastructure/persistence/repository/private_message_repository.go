@@ -80,6 +80,7 @@ func (repo *PrivateMessageRepository) FindPrivateMessagesByRecipientIDAndState(
 	var messages []model.PrivateMessage
 	if err := repo.db.WithContext(ctx).
 		Where("recipient_id = ? AND state = ?", recipientID, state).
+		Order("id DESC").
 		Limit(limit).
 		Find(&messages).
 		Error; err != nil {
@@ -92,6 +93,22 @@ func (repo *PrivateMessageRepository) UpdatesByUserID(ctx context.Context, sende
 	return gormutils.TranslateError(repo.db.WithContext(ctx).Model(&model.PrivateMessage{}).
 		Where("sender_id = ? AND recipient_id = ?", senderID, recipientID).
 		Update("state", state).Error)
+}
+
+func (repo *PrivateMessageRepository) FindsByRecipientID(ctx context.Context, recipientID kernel.UserID, limit int, baseID kernel.MessageID) ([]*domain.PrivateMessage, error) {
+	var messages []model.PrivateMessage
+	query := repo.db.WithContext(ctx).Model(&model.PrivateMessage{}).
+		Where("recipient_id = ?", recipientID).
+		Order("id DESC").
+		Limit(limit)
+	if baseID != "" {
+		query = query.Where("id < ?", baseID)
+	}
+
+	if err := query.Find(&messages).Error; err != nil {
+		return nil, gormutils.TranslateError(err)
+	}
+	return repo.toDomains(messages), nil
 }
 
 func (repo *PrivateMessageRepository) toModel(message *domain.PrivateMessage) *model.PrivateMessage {

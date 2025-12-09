@@ -60,9 +60,25 @@ func (repo *SystemMessageRepository) FindsByState(
 	var messages []model.SystemMessage
 	if err := repo.db.
 		WithContext(ctx).
+		Order("id DESC").
 		Limit(limit).
 		Find(&messages, "recipient_id = ? AND state = ?", userID, state).
 		Error; err != nil {
+		return nil, gormutils.TranslateError(err)
+	}
+	return repo.toDomains(messages), nil
+}
+
+func (repo *SystemMessageRepository) FindsByUserID(ctx context.Context, userID kernel.UserID, limit int, baseID kernel.MessageID) ([]*domain.SystemMessage, error) {
+	var messages []model.SystemMessage
+	query := repo.db.WithContext(ctx).Model(&model.SystemMessage{}).
+		Where("recipient_id = ?", userID).
+		Order("id DESC").
+		Limit(limit)
+	if baseID != "" {
+		query = query.Where("id < ?", baseID)
+	}
+	if err := query.Find(&messages).Error; err != nil {
 		return nil, gormutils.TranslateError(err)
 	}
 	return repo.toDomains(messages), nil

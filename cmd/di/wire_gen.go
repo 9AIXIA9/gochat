@@ -66,6 +66,14 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
+	listPrivateMessagesUseCase, err := provideListPrivateMessagesUseCase(privateMessageRepository)
+	if err != nil {
+		return nil, err
+	}
+	listRoomMessagesUseCase, err := provideListRoomMessagesUseCase(roomMessageRepository)
+	if err != nil {
+		return nil, err
+	}
 	roomRepository := provideRoomshipRoomRepository(db, eventRepository)
 	roomIDGenerator := provideRoomshipRoomIDGenerator()
 	roomNumberGenerator, err := provideRoomshipRoomNumberGenerator(appConfig)
@@ -91,6 +99,14 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
+	listMemberRequestsUseCase, err := provideListMemberRequestsUseCase(memberRequestRepository)
+	if err != nil {
+		return nil, err
+	}
+	listRoomshipsUseCase, err := provideListRoomshipsUseCase(repositoryRoomshipRepository)
+	if err != nil {
+		return nil, err
+	}
 	repositoryFriendshipRepository := provideFriendshipFriendshipRepository(db, eventRepository)
 	friendRequestRepository := provideFriendshipFriendRequestRepository(db, eventRepository)
 	sendFriendRequestUseCase, err := provideSendFriendRequestUseCase(repositoryFriendshipRepository, friendRequestRepository, eventIDGenerator, operationIDGenerator)
@@ -105,7 +121,16 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
+	listFriendshipsUseCase, err := provideListFriendshipsUseCase(repositoryFriendshipRepository)
+	if err != nil {
+		return nil, err
+	}
 	listFriendRequestsUseCase, err := provideListFriendRequestsUseCase(friendRequestRepository)
+	if err != nil {
+		return nil, err
+	}
+	systemMessageRepository := provideNotificationSystemMessageRepository(db)
+	listSystemMessagesUseCase, err := provideListSystemMessagesUseCase(systemMessageRepository)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +154,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	}
 	server := provideWebsocketServer(upgrader, manager, router, userSessionStartedUseCase)
 	metrics := provideMetrics()
-	engine := provideHttpRouter(appConfig, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, createRoomUseCase, sendMemberRequestUseCase, agreeMemberRequestUseCase, refuseMemberRequestUseCase, sendFriendRequestUseCase, agreeFriendRequestUseCase, refuseFriendRequestUseCase, listFriendRequestsUseCase, validator, client, server, metrics)
+	engine := provideHttpRouter(appConfig, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, listPrivateMessagesUseCase, listRoomMessagesUseCase, createRoomUseCase, sendMemberRequestUseCase, agreeMemberRequestUseCase, refuseMemberRequestUseCase, listMemberRequestsUseCase, listRoomshipsUseCase, sendFriendRequestUseCase, agreeFriendRequestUseCase, refuseFriendRequestUseCase, listFriendshipsUseCase, listFriendRequestsUseCase, listSystemMessagesUseCase, validator, client, server, metrics)
 	ginServer := provideHttpServer(appConfig, engine)
 	eventPublisher, err := provideKafkaPublisher(appConfig, eventRepository, metrics)
 	if err != nil {
@@ -172,7 +197,6 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	systemMessageRepository := provideNotificationSystemMessageRepository(db)
 	systemMessageNotifier := provideSystemMessageNotifier(manager)
 	systemMessageNotificationRequestedUseCase, err := provideNotificationSystemMessageNotificationRequestedUseCase(messageIDGenerator, systemMessageRepository, systemMessageNotifier)
 	if err != nil {

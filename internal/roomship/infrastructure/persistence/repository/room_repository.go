@@ -60,3 +60,11 @@ func (repo *RoomRepository) toModel(room *domain.Room) *model.Room {
 func (repo *RoomRepository) toDomain(room *model.Room) *domain.Room {
 	return domain.LoadRoom(room.ID, room.OwnerID, room.Number, room.PasswordEncrypted, room.MaxMemberCount, room.CreatedAt)
 }
+
+func (repo *RoomRepository) toDomains(rooms []model.Room) []*domain.Room {
+	domains := make([]*domain.Room, 0, len(rooms))
+	for _, room := range rooms {
+		domains = append(domains, repo.toDomain(&room))
+	}
+	return domains
+}

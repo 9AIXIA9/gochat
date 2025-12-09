@@ -1,7 +1,6 @@
 package application_test
 
 import (
-	"fmt"
 	"gochat/internal/friendship/application"
 	"gochat/internal/friendship/domain"
 	"gochat/internal/friendship/domain/mocks"
@@ -10,16 +9,21 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
+)
+
+const (
+	fixedFriendRequestBaseID   kernel.OperationID = "request-123"
+	maxFriendRequestsLimit                        = 100
+	defaultFriendRequestsLimit                    = 10
 )
 
 func TestListFriendRequestsInput_Validate(t *testing.T) {
 	input := &application.ListFriendRequestsInput{
 		UserID: fixedUserID,
-		BaseID: fixedBaseID,
-		Limit:  fixedLimit,
+		BaseID: fixedFriendRequestBaseID,
+		Limit:  maxFriendRequestsLimit,
 	}
 
 	err := input.Validate()
@@ -28,7 +32,7 @@ func TestListFriendRequestsInput_Validate(t *testing.T) {
 	inputWithNoBaseID := &application.ListFriendRequestsInput{
 		UserID: fixedUserID,
 		BaseID: "",
-		Limit:  fixedLimit,
+		Limit:  maxFriendRequestsLimit,
 	}
 
 	err = inputWithNoBaseID.Validate()
@@ -36,7 +40,7 @@ func TestListFriendRequestsInput_Validate(t *testing.T) {
 
 	inputWithNoLimit := &application.ListFriendRequestsInput{
 		UserID: fixedUserID,
-		BaseID: fixedBaseID,
+		BaseID: fixedFriendRequestBaseID,
 		Limit:  0,
 	}
 
@@ -45,7 +49,7 @@ func TestListFriendRequestsInput_Validate(t *testing.T) {
 
 	inputWithNegativeLimit := &application.ListFriendRequestsInput{
 		UserID: fixedUserID,
-		BaseID: fixedBaseID,
+		BaseID: fixedFriendRequestBaseID,
 		Limit:  -10,
 	}
 
@@ -63,8 +67,8 @@ func TestListFriendRequestsInput_Validate(t *testing.T) {
 
 	inputWithEmptyUserID := &application.ListFriendRequestsInput{
 		UserID: "",
-		BaseID: fixedBaseID,
-		Limit:  fixedLimit,
+		BaseID: fixedFriendRequestBaseID,
+		Limit:  maxFriendRequestsLimit,
 	}
 
 	err = inputWithEmptyUserID.Validate()
@@ -104,101 +108,77 @@ func TestListFriendRequestsUseCase_Execute(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, useCase)
 
-	requests := make([]*domain.FriendRequest, fixedLimit)
-	for i := 0; i < fixedLimit; i++ {
-		requests[i] = domain.LoadFriendRequest(
-			kernel.OperationID(fmt.Sprintf("mock-request-id-%d", i+1)),
-			fixedUserID,
-			fixedToID,
-			fmt.Sprintf("Hello %d", i+1),
-			domain.StatePending,
-			time.Now().UTC(),
-		)
-	}
+	// 模拟正常情况，limit在范围内
+	fixedLimit := maxFriendRequestsLimit - 1
+	requests := getFriendRequests(fixedLimit)
 
-	finder.EXPECT().FindsByUserID(gomock.Any(), fixedUserID, fixedLimit, fixedBaseID).Return(requests, nil)
+	finder.EXPECT().FindsByUserID(gomock.Any(), fixedUserID, fixedLimit, fixedFriendRequestBaseID).Return(requests, nil)
 
 	output, err := useCase.Execute(nil, &application.ListFriendRequestsInput{
 		UserID: fixedUserID,
-		BaseID: fixedBaseID,
-		Limit:  fixedLimit,
+		BaseID: fixedFriendRequestBaseID,
+		Limit:  maxFriendRequestsLimit - 1,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, output)
 
-	require.Len(t, output.Requests, 3)
-	for i, request := range requests {
-		assert.Equal(t, kernel.OperationID(fmt.Sprintf("mock-request-id-%d", i+1)), request.ID())
-	}
+	require.Len(t, output.Requests, fixedLimit)
 
-	requests = make([]*domain.FriendRequest, 10)
-	for i := 0; i < 10; i++ {
-		requests[i] = domain.LoadFriendRequest(
-			kernel.OperationID(fmt.Sprintf("mock-request-id-%d", i+1)),
-			fixedUserID,
-			fixedToID,
-			fmt.Sprintf("Hello %d", i+1),
-			domain.StatePending,
-			time.Now().UTC(),
-		)
-	}
+	// 模拟limit为0
+	requests = getFriendRequests(defaultFriendRequestsLimit)
 
-	finder.EXPECT().FindsByUserID(gomock.Any(), fixedUserID, 10, fixedBaseID).Return(requests, nil)
+	finder.EXPECT().FindsByUserID(gomock.Any(), fixedUserID, defaultFriendRequestsLimit, fixedFriendRequestBaseID).Return(requests, nil)
 
 	output, err = useCase.Execute(nil, &application.ListFriendRequestsInput{
 		UserID: fixedUserID,
-		BaseID: fixedBaseID,
+		BaseID: fixedFriendRequestBaseID,
 		Limit:  0,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, output)
 
-	require.Len(t, output.Requests, 10)
-	for i, request := range requests {
-		assert.Equal(t, kernel.OperationID(fmt.Sprintf("mock-request-id-%d", i+1)), request.ID())
-	}
+	require.Len(t, output.Requests, defaultFriendRequestsLimit)
 
 	//模拟负数limit
-	finder.EXPECT().FindsByUserID(gomock.Any(), fixedUserID, 10, fixedBaseID).Return(requests, nil)
+	finder.EXPECT().FindsByUserID(gomock.Any(), fixedUserID, defaultFriendRequestsLimit, fixedFriendRequestBaseID).Return(requests, nil)
 
 	output, err = useCase.Execute(nil, &application.ListFriendRequestsInput{
 		UserID: fixedUserID,
-		BaseID: fixedBaseID,
+		BaseID: fixedFriendRequestBaseID,
 		Limit:  -100,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, output)
 
-	require.Len(t, output.Requests, 10)
-	for i, request := range requests {
-		assert.Equal(t, kernel.OperationID(fmt.Sprintf("mock-request-id-%d", i+1)), request.ID())
-	}
+	require.Len(t, output.Requests, defaultFriendRequestsLimit)
 
 	// 模拟太大的limit
-	requests = make([]*domain.FriendRequest, 100)
-	for i := 0; i < 100; i++ {
-		requests[i] = domain.LoadFriendRequest(
-			kernel.OperationID(fmt.Sprintf("mock-request-id-%d", i+1)),
-			fixedUserID,
-			fixedToID,
-			fmt.Sprintf("Hello %d", i+1),
-			domain.StatePending,
-			time.Now().UTC(),
-		)
-	}
+	requests = getFriendRequests(maxFriendRequestsLimit)
 
-	finder.EXPECT().FindsByUserID(gomock.Any(), fixedUserID, 100, fixedBaseID).Return(requests, nil)
+	finder.EXPECT().FindsByUserID(gomock.Any(), fixedUserID, maxFriendRequestsLimit, fixedFriendRequestBaseID).Return(requests, nil)
 
 	output, err = useCase.Execute(nil, &application.ListFriendRequestsInput{
 		UserID: fixedUserID,
-		BaseID: fixedBaseID,
+		BaseID: fixedFriendRequestBaseID,
 		Limit:  1000,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, output)
 
-	require.Len(t, output.Requests, 100)
-	for i, request := range requests {
-		assert.Equal(t, kernel.OperationID(fmt.Sprintf("mock-request-id-%d", i+1)), request.ID())
+	require.Len(t, output.Requests, maxFriendRequestsLimit)
+}
+
+func getFriendRequests(count int) []*domain.FriendRequest {
+	requests := make([]*domain.FriendRequest, count)
+	for i := 0; i < count; i++ {
+		requests[i] = domain.LoadFriendRequest(
+			fixedOperationID,
+			fixedUserID,
+			fixedToID,
+			fixedContent,
+			domain.StatePending,
+			time.Now().UTC(),
+		)
 	}
+	return requests
 }

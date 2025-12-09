@@ -53,6 +53,11 @@ func CreatePrivateMessage(
 		eventManager: event.NewEventManager(),
 	}
 
+	if recipientID == senderID {
+		message.state = MessageStateDelivered
+		return message, nil
+	}
+
 	if err := notifier.Notify(message); err != nil {
 		return message, nil
 	}

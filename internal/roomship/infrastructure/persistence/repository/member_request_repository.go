@@ -67,6 +67,22 @@ func (repo *MemberRequestRepository) ExistByUserIDAndRoomIDAndState(ctx context.
 	return count > 0, nil
 }
 
+func (repo *MemberRequestRepository) FindsByUserID(ctx context.Context, userID kernel.UserID, limit int, baseID kernel.OperationID) ([]*domain.MemberRequest, error) {
+	var requests []model.MemberRequest
+	query := repo.db.WithContext(ctx).Model(&model.MemberRequest{}).
+		Where("applicant_id = ?", userID).
+		Order("id DESC").
+		Limit(limit)
+	if baseID != "" {
+		query = query.Where("id < ?", baseID)
+	}
+	if err := query.Find(&requests).Error; err != nil {
+		return nil, gormutils.TranslateError(err)
+	}
+
+	return repo.toDomains(requests), nil
+}
+
 func (repo *MemberRequestRepository) toModel(memberRequest *domain.MemberRequest) *model.MemberRequest {
 	return &model.MemberRequest{
 		ID:          memberRequest.ID(),
@@ -91,4 +107,12 @@ func (repo *MemberRequestRepository) toDomain(memberRequest *model.MemberRequest
 		memberRequest.OperatedAt,
 		memberRequest.SentAt,
 	)
+}
+
+func (repo *MemberRequestRepository) toDomains(memberRequests []model.MemberRequest) []*domain.MemberRequest {
+	domains := make([]*domain.MemberRequest, 0, len(memberRequests))
+	for _, request := range memberRequests {
+		domains = append(domains, repo.toDomain(&request))
+	}
+	return domains
 }

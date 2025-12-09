@@ -86,6 +86,21 @@ func (mr *MockMemberRequestRepositoryMockRecorder) FindByID(ctx, requestID any) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockMemberRequestRepository)(nil).FindByID), ctx, requestID)
 }
 
+// FindsByUserID mocks base method.
+func (m *MockMemberRequestRepository) FindsByUserID(ctx context.Context, userID kernel.UserID, limit int, baseID kernel.OperationID) ([]*domain.MemberRequest, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindsByUserID", ctx, userID, limit, baseID)
+	ret0, _ := ret[0].([]*domain.MemberRequest)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindsByUserID indicates an expected call of FindsByUserID.
+func (mr *MockMemberRequestRepositoryMockRecorder) FindsByUserID(ctx, userID, limit, baseID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByUserID", reflect.TypeOf((*MockMemberRequestRepository)(nil).FindsByUserID), ctx, userID, limit, baseID)
+}
+
 // Update mocks base method.
 func (m *MockMemberRequestRepository) Update(ctx context.Context, memberRequest *domain.MemberRequest) error {
 	m.ctrl.T.Helper()
@@ -252,4 +267,43 @@ func (m *MockMemberRequestExisterByUserIDAndRoomIDAndState) ExistByUserIDAndRoom
 func (mr *MockMemberRequestExisterByUserIDAndRoomIDAndStateMockRecorder) ExistByUserIDAndRoomIDAndState(ctx, userID, roomID, state any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExistByUserIDAndRoomIDAndState", reflect.TypeOf((*MockMemberRequestExisterByUserIDAndRoomIDAndState)(nil).ExistByUserIDAndRoomIDAndState), ctx, userID, roomID, state)
+}
+
+// MockMemberRequestsFinderByUserID is a mock of MemberRequestsFinderByUserID interface.
+type MockMemberRequestsFinderByUserID struct {
+	ctrl     *gomock.Controller
+	recorder *MockMemberRequestsFinderByUserIDMockRecorder
+	isgomock struct{}
+}
+
+// MockMemberRequestsFinderByUserIDMockRecorder is the mock recorder for MockMemberRequestsFinderByUserID.
+type MockMemberRequestsFinderByUserIDMockRecorder struct {
+	mock *MockMemberRequestsFinderByUserID
+}
+
+// NewMockMemberRequestsFinderByUserID creates a new mock instance.
+func NewMockMemberRequestsFinderByUserID(ctrl *gomock.Controller) *MockMemberRequestsFinderByUserID {
+	mock := &MockMemberRequestsFinderByUserID{ctrl: ctrl}
+	mock.recorder = &MockMemberRequestsFinderByUserIDMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockMemberRequestsFinderByUserID) EXPECT() *MockMemberRequestsFinderByUserIDMockRecorder {
+	return m.recorder
+}
+
+// FindsByUserID mocks base method.
+func (m *MockMemberRequestsFinderByUserID) FindsByUserID(ctx context.Context, userID kernel.UserID, limit int, baseID kernel.OperationID) ([]*domain.MemberRequest, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindsByUserID", ctx, userID, limit, baseID)
+	ret0, _ := ret[0].([]*domain.MemberRequest)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindsByUserID indicates an expected call of FindsByUserID.
+func (mr *MockMemberRequestsFinderByUserIDMockRecorder) FindsByUserID(ctx, userID, limit, baseID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByUserID", reflect.TypeOf((*MockMemberRequestsFinderByUserID)(nil).FindsByUserID), ctx, userID, limit, baseID)
 }

@@ -13,6 +13,7 @@ type RoomshipRepository interface {
 	RoomshipsFinderByRoomIDAndRole
 	RoomshipFinderByUserIDAndRoomID
 	RoomshipExisterByUserIDAndRoomID
+	RoomshipsFinderByUserID
 }
 
 type RoomshipCreator interface {
@@ -37,4 +38,8 @@ type RoomshipFinderByUserIDAndRoomID interface {
 
 type RoomshipExisterByUserIDAndRoomID interface {
 	ExistByUserIDAndRoomID(ctx context.Context, userID kernel.UserID, roomID kernel.RoomID) (bool, error)
+}
+
+type RoomshipsFinderByUserID interface {
+	FindsByUserID(ctx context.Context, userID kernel.UserID, limit int, baseID RoomshipID) ([]*Roomship, error)
 }

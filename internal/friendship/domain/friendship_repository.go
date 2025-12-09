@@ -10,6 +10,7 @@ type FriendshipRepository interface {
 	FriendshipCreator
 	FriendshipFinderByID
 	FriendshipExisterByUserID
+	FriendshipsFinderByUserID
 }
 
 type FriendshipCreator interface {
@@ -22,4 +23,8 @@ type FriendshipFinderByID interface {
 
 type FriendshipExisterByUserID interface {
 	ExistByUserID(ctx context.Context, userID1, userID2 kernel.UserID) (bool, error)
+}
+
+type FriendshipsFinderByUserID interface {
+	FindsByUserID(ctx context.Context, userID kernel.UserID, limit int, baseID FriendshipID) ([]*Friendship, error)
 }

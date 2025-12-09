@@ -12,6 +12,7 @@ type PrivateMessageRepository interface {
 	PrivateMessageFinder
 	PrivateMessagesFinderByRecipientIDAndState
 	PrivateMessagesStatesUpdaterByUserID
+	PrivateMessagesFinderByRecipientID
 }
 
 type PrivateMessageCreator interface {
@@ -32,4 +33,8 @@ type PrivateMessagesFinderByRecipientIDAndState interface {
 
 type PrivateMessagesStatesUpdaterByUserID interface {
 	UpdatesByUserID(ctx context.Context, senderID, recipientID kernel.UserID, state MessageState) error
+}
+
+type PrivateMessagesFinderByRecipientID interface {
+	FindsByRecipientID(ctx context.Context, recipientID kernel.UserID, limit int, baseID kernel.MessageID) ([]*PrivateMessage, error)
 }

@@ -57,6 +57,21 @@ func (repo *FriendshipRepository) ExistByUserID(ctx context.Context, userID1, us
 	return count > 0, nil
 }
 
+func (repo *FriendshipRepository) FindsByUserID(ctx context.Context, userID kernel.UserID, limit int, baseID domain.FriendshipID) ([]*domain.Friendship, error) {
+	var friendships []model.Friendship
+	query := repo.db.WithContext(ctx).Model(&model.Friendship{}).
+		Where("user_id1 = ? OR user_id2 = ?", userID, userID).
+		Order("id DESC").
+		Limit(limit)
+	if baseID != "" {
+		query = query.Where("id < ?", baseID)
+	}
+	if err := query.Find(&friendships).Error; err != nil {
+		return nil, gormutils.TranslateError(err)
+	}
+	return repo.toDomains(friendships), nil
+}
+
 func (repo *FriendshipRepository) toModel(friendship *domain.Friendship) *model.Friendship {
 	return &model.Friendship{
 		ID:        friendship.ID(),
@@ -65,6 +80,15 @@ func (repo *FriendshipRepository) toModel(friendship *domain.Friendship) *model.
 		CreatedAt: friendship.CreatedAt(),
 	}
 }
+
 func (repo *FriendshipRepository) toDomain(friendship *model.Friendship) *domain.Friendship {
 	return domain.LoadFriendship(friendship.ID, friendship.UserID1, friendship.UserID2, friendship.CreatedAt)
+}
+
+func (repo *FriendshipRepository) toDomains(friendships []model.Friendship) []*domain.Friendship {
+	domains := make([]*domain.Friendship, 0, len(friendships))
+	for _, friendship := range friendships {
+		domains = append(domains, repo.toDomain(&friendship))
+	}
+	return domains
 }

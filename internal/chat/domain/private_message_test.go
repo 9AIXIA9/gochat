@@ -80,6 +80,27 @@ func TestCreatePrivateMessage(t *testing.T) {
 	assert.Equal(t, "Hello, Friend!", messageWithFailedDeliver.Content())
 	assert.Equal(t, domain.MessageStateUndelivered, messageWithFailedDeliver.State())
 	assert.WithinDuration(t, start, messageWithFailedDeliver.SentAt(), timeTolerance)
+
+	// 发送给自己，跳过投递
+	mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1)
+
+	start = time.Now().UTC()
+	messageToSelf, err := domain.CreatePrivateMessage(
+		fixedUserID,
+		fixedUserID,
+		"Hello, Self!",
+		mockMessageIDGenerator,
+		mockNotifier,
+	)
+
+	require.NoError(t, err)
+	require.NotNil(t, messageToSelf)
+	assert.Equal(t, fixedMessageID, messageToSelf.ID())
+	assert.Equal(t, fixedUserID, messageToSelf.SenderID())
+	assert.Equal(t, fixedUserID, messageToSelf.RecipientID())
+	assert.Equal(t, "Hello, Self!", messageToSelf.Content())
+	assert.Equal(t, domain.MessageStateDelivered, messageToSelf.State())
+	assert.WithinDuration(t, start, messageToSelf.SentAt(), timeTolerance)
 }
 
 func TestPrivateMessage_Deliver(t *testing.T) {

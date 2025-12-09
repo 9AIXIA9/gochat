@@ -86,6 +86,21 @@ func (mr *MockSystemMessageRepositoryMockRecorder) FindsByState(ctx, userID, sta
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByState", reflect.TypeOf((*MockSystemMessageRepository)(nil).FindsByState), ctx, userID, state, limit)
 }
 
+// FindsByUserID mocks base method.
+func (m *MockSystemMessageRepository) FindsByUserID(ctx context.Context, userID kernel.UserID, limit int, baseID kernel.MessageID) ([]*domain.SystemMessage, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindsByUserID", ctx, userID, limit, baseID)
+	ret0, _ := ret[0].([]*domain.SystemMessage)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindsByUserID indicates an expected call of FindsByUserID.
+func (mr *MockSystemMessageRepositoryMockRecorder) FindsByUserID(ctx, userID, limit, baseID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByUserID", reflect.TypeOf((*MockSystemMessageRepository)(nil).FindsByUserID), ctx, userID, limit, baseID)
+}
+
 // Update mocks base method.
 func (m *MockSystemMessageRepository) Update(ctx context.Context, message *domain.SystemMessage) error {
 	m.ctrl.T.Helper()
@@ -304,4 +319,43 @@ func (m *MockUserSystemMessagesFinderByState) FindsByState(ctx context.Context, 
 func (mr *MockUserSystemMessagesFinderByStateMockRecorder) FindsByState(ctx, userID, state, limit any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByState", reflect.TypeOf((*MockUserSystemMessagesFinderByState)(nil).FindsByState), ctx, userID, state, limit)
+}
+
+// MockSystemMessageFinderByUserID is a mock of SystemMessageFinderByUserID interface.
+type MockSystemMessageFinderByUserID struct {
+	ctrl     *gomock.Controller
+	recorder *MockSystemMessageFinderByUserIDMockRecorder
+	isgomock struct{}
+}
+
+// MockSystemMessageFinderByUserIDMockRecorder is the mock recorder for MockSystemMessageFinderByUserID.
+type MockSystemMessageFinderByUserIDMockRecorder struct {
+	mock *MockSystemMessageFinderByUserID
+}
+
+// NewMockSystemMessageFinderByUserID creates a new mock instance.
+func NewMockSystemMessageFinderByUserID(ctrl *gomock.Controller) *MockSystemMessageFinderByUserID {
+	mock := &MockSystemMessageFinderByUserID{ctrl: ctrl}
+	mock.recorder = &MockSystemMessageFinderByUserIDMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockSystemMessageFinderByUserID) EXPECT() *MockSystemMessageFinderByUserIDMockRecorder {
+	return m.recorder
+}
+
+// FindsByUserID mocks base method.
+func (m *MockSystemMessageFinderByUserID) FindsByUserID(ctx context.Context, userID kernel.UserID, limit int, baseID kernel.MessageID) ([]*domain.SystemMessage, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindsByUserID", ctx, userID, limit, baseID)
+	ret0, _ := ret[0].([]*domain.SystemMessage)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindsByUserID indicates an expected call of FindsByUserID.
+func (mr *MockSystemMessageFinderByUserIDMockRecorder) FindsByUserID(ctx, userID, limit, baseID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByUserID", reflect.TypeOf((*MockSystemMessageFinderByUserID)(nil).FindsByUserID), ctx, userID, limit, baseID)
 }
