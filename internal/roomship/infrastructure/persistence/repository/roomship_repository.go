@@ -78,6 +78,18 @@ func (repo *RoomshipRepository) FindsByRoomIDAndRole(ctx context.Context, roomID
 	return repo.toDomains(roomships), nil
 }
 
+func (repo *RoomshipRepository) FindsByUserID(ctx context.Context, userID kernel.UserID, limit int, baseID domain.RoomshipID) ([]*domain.Roomship, error) {
+	var roomships []model.Roomship
+	query := repo.db.WithContext(ctx).Where("user_id = ?", userID)
+	if baseID != "" {
+		query = query.Where("id < ?", baseID)
+	}
+	if err := query.Order("id DESC").Limit(limit).Find(&roomships).Error; err != nil {
+		return nil, gormutils.TranslateError(err)
+	}
+	return repo.toDomains(roomships), nil
+}
+
 func (repo *RoomshipRepository) toModel(roomship *domain.Roomship) *model.Roomship {
 	return &model.Roomship{
 		ID:        roomship.ID(),
