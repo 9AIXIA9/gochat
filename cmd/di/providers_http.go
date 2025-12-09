@@ -5,6 +5,7 @@ import (
 	authApp "gochat/internal/authorization/application"
 	chatApp "gochat/internal/chat/application"
 	friendshipApp "gochat/internal/friendship/application"
+	notificationApp "gochat/internal/notification/application"
 	roomshipApp "gochat/internal/roomship/application"
 	"net/http"
 
@@ -21,6 +22,7 @@ import (
 	ginInfra "gochat/internal/infrastructure/gin"
 	"gochat/internal/infrastructure/prometheus"
 	"gochat/internal/infrastructure/websocket"
+	notificationHTTP "gochat/internal/notification/port/http"
 	roomshipHTTP "gochat/internal/roomship/port/http"
 )
 
@@ -37,14 +39,20 @@ func provideHttpRouter(
 	parseAccessToken authApp.ParseAccessTokenUseCase,
 	sendPrivateMessage chatApp.SendPrivateMessageUseCase,
 	sendRoomMessage chatApp.SendRoomMessageUseCase,
+	listPrivateMessages chatApp.ListPrivateMessagesUseCase,
+	listRoomMessages chatApp.ListRoomMessagesUseCase,
 	createRoom roomshipApp.CreateRoomUseCase,
 	sendMemberRequest roomshipApp.SendMemberRequestUseCase,
 	agreeMemberRequest roomshipApp.AgreeMemberRequestUseCase,
 	refuseMemberRequest roomshipApp.RefuseMemberRequestUseCase,
+	listMemberRequests roomshipApp.ListMemberRequestsUseCase,
+	listRoomships roomshipApp.ListRoomshipsUseCase,
 	sendFriendRequest friendshipApp.SendFriendRequestUseCase,
 	agreeFriendRequest friendshipApp.AgreeFriendRequestUseCase,
 	refuseFriendRequest friendshipApp.RefuseFriendRequestUseCase,
+	listFriendships friendshipApp.ListFriendshipsUseCase,
 	listFriendRequests friendshipApp.ListFriendRequestsUseCase,
+	listSystemMessages notificationApp.ListSystemMessagesUseCase,
 	validator ginInfra.Validator,
 	redisClient *redis.Client,
 	websocketServer *websocket.Server,
@@ -96,6 +104,8 @@ func provideHttpRouter(
 	chatGroup := baseGroup.Group("/chat")
 	chatGroup.Use(authorizationMiddleware)
 	{
+		chatGroup.GET("/private", chatHTTP.NewListPrivateMessagesHandler(listPrivateMessages, validator))
+		chatGroup.GET("/room", chatHTTP.NewListRoomMessagesHandler(listRoomMessages, validator))
 		chatGroup.POST("/private", chatHTTP.NewSendPrivateMessageHandler(sendPrivateMessage, validator))
 		chatGroup.POST("/room", chatHTTP.NewSendRoomMessageHandler(sendRoomMessage, validator))
 	}
@@ -105,22 +115,34 @@ func provideHttpRouter(
 	roomshipGroup.Use(authorizationMiddleware)
 	{
 		// Rooms
-		roomshipGroup.POST("/rooms", roomshipHTTP.NewCreateRoomHandler(createRoom, validator))
+		roomshipGroup.POST("/room", roomshipHTTP.NewCreateRoomHandler(createRoom, validator))
+
+		// Roomship
+		roomshipGroup.GET("/", roomshipHTTP.NewListRoomshipsHandler(listRoomships, validator))
 
 		// Member Requests
-		roomshipGroup.POST("/member_requests", roomshipHTTP.NewSendMemberRequestHandler(sendMemberRequest, validator))
-		roomshipGroup.PUT("/member_requests/:request_id/agree", roomshipHTTP.NewAgreeMemberRequestHandler(agreeMemberRequest, validator))
-		roomshipGroup.PUT("/member_requests/:request_id/refuse", roomshipHTTP.NewRefuseMemberRequestHandler(refuseMemberRequest, validator))
+		roomshipGroup.GET("/request", roomshipHTTP.NewListMemberRequestsHandler(listMemberRequests, validator))
+		roomshipGroup.POST("/request", roomshipHTTP.NewSendMemberRequestHandler(sendMemberRequest, validator))
+		roomshipGroup.PUT("/request/:request_id/agree", roomshipHTTP.NewAgreeMemberRequestHandler(agreeMemberRequest, validator))
+		roomshipGroup.PUT("/request/:request_id/refuse", roomshipHTTP.NewRefuseMemberRequestHandler(refuseMemberRequest, validator))
 	}
 
 	// 好友功能路由
-	friendshipGroup := baseGroup.Group("/friend_requests")
+	friendshipGroup := baseGroup.Group("/friendship")
 	friendshipGroup.Use(authorizationMiddleware)
 	{
-		friendshipGroup.POST("/", friendshipHTTP.NewSendFriendRequestHandler(sendFriendRequest, validator))
-		friendshipGroup.GET("/", friendshipHTTP.NewListFriendRequestsHandler(listFriendRequests, validator))
-		friendshipGroup.PUT("/:request_id/agree", friendshipHTTP.NewAgreeFriendRequestHandler(agreeFriendRequest, validator))
-		friendshipGroup.PUT("/:request_id/refuse", friendshipHTTP.NewRefuseFriendRequestHandler(refuseFriendRequest, validator))
+		friendshipGroup.GET("/", friendshipHTTP.NewListFriendshipsHandler(listFriendships, validator))
+		friendshipGroup.GET("/request", friendshipHTTP.NewListFriendRequestsHandler(listFriendRequests, validator))
+		friendshipGroup.POST("/request", friendshipHTTP.NewSendFriendRequestHandler(sendFriendRequest, validator))
+		friendshipGroup.PUT("/request/:request_id/agree", friendshipHTTP.NewAgreeFriendRequestHandler(agreeFriendRequest, validator))
+		friendshipGroup.PUT("/request/:request_id/refuse", friendshipHTTP.NewRefuseFriendRequestHandler(refuseFriendRequest, validator))
+	}
+
+	// 通知功能路由
+	notificationGroup := baseGroup.Group("/notification")
+	notificationGroup.Use(authorizationMiddleware)
+	{
+		notificationGroup.GET("/system", notificationHTTP.NewListSystemMessagesHandler(listSystemMessages, validator))
 	}
 
 	// WebSocket路由

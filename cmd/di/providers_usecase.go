@@ -30,11 +30,17 @@ var UseCaseHTTPSet = wire.NewSet(
 	provideRefuseMemberRequestUseCase,
 	provideAgreeMemberRequestUseCase,
 	provideSendMemberRequestUseCase,
+	provideListRoomMessagesUseCase,
+	provideListPrivateMessagesUseCase,
 	provideCreateRoomUseCase,
 	provideListFriendRequestsUseCase,
+	provideListFriendshipsUseCase,
 	provideRefuseFriendRequestUseCase,
 	provideAgreeFriendRequestUseCase,
 	provideSendFriendRequestUseCase,
+	provideListRoomshipsUseCase,
+	provideListMemberRequestsUseCase,
+	provideListSystemMessagesUseCase,
 )
 
 var UseCaseWebsocketSet = wire.NewSet(
@@ -155,6 +161,20 @@ func provideSendRoomMessageUseCase(
 		messageRepo,
 	)
 }
+func provideListPrivateMessagesUseCase(
+	messageRepo chatDomain.PrivateMessageRepository,
+) (chatApp.ListPrivateMessagesUseCase, error) {
+	return chatApp.NewListPrivateMessagesUseCase(
+		messageRepo,
+	)
+}
+func provideListRoomMessagesUseCase(
+	messageRepo chatDomain.RoomMessageRepository,
+) (chatApp.ListRoomMessagesUseCase, error) {
+	return chatApp.NewListRoomMessagesUseCase(
+		messageRepo,
+	)
+}
 func provideCreateRoomUseCase(
 	encryptor roomshipDomain.Encryptor,
 	roomRepo roomshipDomain.RoomRepository,
@@ -210,6 +230,20 @@ func provideRefuseMemberRequestUseCase(
 		requestRepo,
 	)
 }
+func provideListMemberRequestsUseCase(
+	memberRequestRepo roomshipDomain.MemberRequestRepository,
+) (roomshipApp.ListMemberRequestsUseCase, error) {
+	return roomshipApp.NewListMemberRequestsUseCase(
+		memberRequestRepo,
+	)
+}
+func provideListRoomshipsUseCase(
+	roomshipRepo roomshipDomain.RoomshipRepository,
+) (roomshipApp.ListRoomshipsUseCase, error) {
+	return roomshipApp.NewListRoomshipsUseCase(
+		roomshipRepo,
+	)
+}
 func provideSendFriendRequestUseCase(
 	friendshipRepo friendshipDomain.FriendshipRepository,
 	requestRepo friendshipDomain.FriendRequestRepository,
@@ -247,6 +281,20 @@ func provideListFriendRequestsUseCase(
 ) (friendshipApp.ListFriendRequestsUseCase, error) {
 	return friendshipApp.NewListFriendRequestsUseCase(
 		friendRequestRepo,
+	)
+}
+func provideListFriendshipsUseCase(
+	friendRequestRepo friendshipDomain.FriendshipRepository,
+) (friendshipApp.ListFriendshipsUseCase, error) {
+	return friendshipApp.NewListFriendshipsUseCase(
+		friendRequestRepo,
+	)
+}
+func provideListSystemMessagesUseCase(
+	messageRepo notificationDomain.SystemMessageRepository,
+) (notificationApp.ListSystemMessagesUseCase, error) {
+	return notificationApp.NewListSystemMessagesUseCase(
+		messageRepo,
 	)
 }
 
