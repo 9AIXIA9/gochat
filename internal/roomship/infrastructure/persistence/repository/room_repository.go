@@ -46,14 +46,6 @@ func (repo *RoomRepository) FindByID(ctx context.Context, roomID kernel.RoomID) 
 	return repo.toDomain(&room), nil
 }
 
-func (repo *RoomRepository) FindsByIDs(ctx context.Context, roomIDs []kernel.RoomID) ([]*domain.Room, error) {
-	var rooms []model.Room
-	if err := repo.db.WithContext(ctx).Where("id IN ?", roomIDs).Find(&rooms).Error; err != nil {
-		return nil, gormutils.TranslateError(err)
-	}
-	return repo.toDomains(rooms), nil
-}
-
 func (repo *RoomRepository) toModel(room *domain.Room) *model.Room {
 	return &model.Room{
 		ID:                room.ID(),

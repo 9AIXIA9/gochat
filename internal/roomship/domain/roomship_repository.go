@@ -38,7 +38,3 @@ type RoomshipFinderByUserIDAndRoomID interface {
 type RoomshipExisterByUserIDAndRoomID interface {
 	ExistByUserIDAndRoomID(ctx context.Context, userID kernel.UserID, roomID kernel.RoomID) (bool, error)
 }
-
-type RoomshipsFinderByUserID interface {
-	FindsByUserID(ctx context.Context, userID kernel.UserID, limit int, roomshipID RoomshipID) ([]*Roomship, error)
-}

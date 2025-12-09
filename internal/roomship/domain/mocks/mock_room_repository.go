@@ -71,21 +71,6 @@ func (mr *MockRoomRepositoryMockRecorder) FindByID(ctx, roomID any) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockRoomRepository)(nil).FindByID), ctx, roomID)
 }
 
-// FindsByIDs mocks base method.
-func (m *MockRoomRepository) FindsByIDs(ctx context.Context, roomIDs []kernel.RoomID) ([]*domain.Room, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindsByIDs", ctx, roomIDs)
-	ret0, _ := ret[0].([]*domain.Room)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FindsByIDs indicates an expected call of FindsByIDs.
-func (mr *MockRoomRepositoryMockRecorder) FindsByIDs(ctx, roomIDs any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByIDs", reflect.TypeOf((*MockRoomRepository)(nil).FindsByIDs), ctx, roomIDs)
-}
-
 // MockRoomCreator is a mock of RoomCreator interface.
 type MockRoomCreator struct {
 	ctrl     *gomock.Controller
@@ -161,43 +146,4 @@ func (m *MockRoomFinderByID) FindByID(ctx context.Context, roomID kernel.RoomID)
 func (mr *MockRoomFinderByIDMockRecorder) FindByID(ctx, roomID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockRoomFinderByID)(nil).FindByID), ctx, roomID)
-}
-
-// MockRoomsFinderByIDs is a mock of RoomsFinderByIDs interface.
-type MockRoomsFinderByIDs struct {
-	ctrl     *gomock.Controller
-	recorder *MockRoomsFinderByIDsMockRecorder
-	isgomock struct{}
-}
-
-// MockRoomsFinderByIDsMockRecorder is the mock recorder for MockRoomsFinderByIDs.
-type MockRoomsFinderByIDsMockRecorder struct {
-	mock *MockRoomsFinderByIDs
-}
-
-// NewMockRoomsFinderByIDs creates a new mock instance.
-func NewMockRoomsFinderByIDs(ctrl *gomock.Controller) *MockRoomsFinderByIDs {
-	mock := &MockRoomsFinderByIDs{ctrl: ctrl}
-	mock.recorder = &MockRoomsFinderByIDsMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockRoomsFinderByIDs) EXPECT() *MockRoomsFinderByIDsMockRecorder {
-	return m.recorder
-}
-
-// FindsByIDs mocks base method.
-func (m *MockRoomsFinderByIDs) FindsByIDs(ctx context.Context, roomIDs []kernel.RoomID) ([]*domain.Room, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindsByIDs", ctx, roomIDs)
-	ret0, _ := ret[0].([]*domain.Room)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FindsByIDs indicates an expected call of FindsByIDs.
-func (mr *MockRoomsFinderByIDsMockRecorder) FindsByIDs(ctx, roomIDs any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByIDs", reflect.TypeOf((*MockRoomsFinderByIDs)(nil).FindsByIDs), ctx, roomIDs)
 }
