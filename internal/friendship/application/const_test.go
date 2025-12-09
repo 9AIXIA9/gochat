@@ -12,7 +12,5 @@ const (
 	fixedOperationID  kernel.OperationID  = "operation-789"
 	fixedContent                          = "Let's be friends!"
 	fixedEventID      event.ID            = "event-0001"
-	fixedBaseID       kernel.OperationID  = "base-111"
 	fixedFriendshipID domain.FriendshipID = "friend-23333"
-	fixedLimit                            = 3
 )
