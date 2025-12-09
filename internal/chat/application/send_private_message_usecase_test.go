@@ -110,4 +110,16 @@ func TestSendPrivateMessageUseCase_Execute(t *testing.T) {
 		Content:     fixedContent,
 	})
 	require.ErrorIs(t, err, domain.ErrNotFriends)
+
+	// 发送给自己
+	gomock.InOrder(
+		mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1),
+		mockMessageCreator.EXPECT().Create(nil, gomock.Any()).Return(nil).Times(1),
+	)
+	_, err = useCase.Execute(nil, &application.SendPrivateMessageInput{
+		SenderID:    fixedUserID,
+		RecipientID: fixedUserID,
+		Content:     fixedContent,
+	})
+	require.NoError(t, err)
 }

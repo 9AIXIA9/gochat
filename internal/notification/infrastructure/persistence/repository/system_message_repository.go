@@ -60,6 +60,7 @@ func (repo *SystemMessageRepository) FindsByState(
 	var messages []model.SystemMessage
 	if err := repo.db.
 		WithContext(ctx).
+		Order("id DESC").
 		Limit(limit).
 		Find(&messages, "recipient_id = ? AND state = ?", userID, state).
 		Error; err != nil {

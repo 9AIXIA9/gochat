@@ -79,6 +79,7 @@ func (repo *MemberRequestRepository) FindsByUserID(ctx context.Context, userID k
 	if err := query.Find(&requests).Error; err != nil {
 		return nil, gormutils.TranslateError(err)
 	}
+
 	return repo.toDomains(requests), nil
 }
 

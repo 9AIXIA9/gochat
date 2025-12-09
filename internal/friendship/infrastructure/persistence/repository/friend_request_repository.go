@@ -66,7 +66,10 @@ func (repo *FriendRequestRepository) ExistByUserIDAndState(ctx context.Context, 
 
 func (repo *FriendRequestRepository) FindByID(ctx context.Context, requestID kernel.OperationID) (*domain.FriendRequest, error) {
 	var request model.FriendRequest
-	if err := repo.db.WithContext(ctx).First(&request, "id = ?", requestID).Error; err != nil {
+	if err := repo.db.WithContext(ctx).
+		Order("id DESC").
+		First(&request, "id = ?", requestID).
+		Error; err != nil {
 		return nil, gormutils.TranslateError(err)
 	}
 

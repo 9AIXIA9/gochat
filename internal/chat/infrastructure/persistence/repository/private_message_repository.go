@@ -80,6 +80,7 @@ func (repo *PrivateMessageRepository) FindPrivateMessagesByRecipientIDAndState(
 	var messages []model.PrivateMessage
 	if err := repo.db.WithContext(ctx).
 		Where("recipient_id = ? AND state = ?", recipientID, state).
+		Order("id DESC").
 		Limit(limit).
 		Find(&messages).
 		Error; err != nil {
