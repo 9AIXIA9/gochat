@@ -131,6 +131,21 @@ func (mr *MockRoomshipRepositoryMockRecorder) FindsByRoomIDAndRole(ctx, roomID, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByRoomIDAndRole", reflect.TypeOf((*MockRoomshipRepository)(nil).FindsByRoomIDAndRole), ctx, roomID, role)
 }
 
+// FindsByUserID mocks base method.
+func (m *MockRoomshipRepository) FindsByUserID(ctx context.Context, userID kernel.UserID, limit int, baseID domain.RoomshipID) ([]*domain.Roomship, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindsByUserID", ctx, userID, limit, baseID)
+	ret0, _ := ret[0].([]*domain.Roomship)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindsByUserID indicates an expected call of FindsByUserID.
+func (mr *MockRoomshipRepositoryMockRecorder) FindsByUserID(ctx, userID, limit, baseID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByUserID", reflect.TypeOf((*MockRoomshipRepository)(nil).FindsByUserID), ctx, userID, limit, baseID)
+}
+
 // MockRoomshipCreator is a mock of RoomshipCreator interface.
 type MockRoomshipCreator struct {
 	ctrl     *gomock.Controller
