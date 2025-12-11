@@ -1,18 +1,19 @@
 package domain
 
 import (
+	"gochat/internal/shared/kernel"
 	"time"
 )
 
 type RoomProfile struct {
-	id           ProfileID
+	id           kernel.RoomID
 	name         string
 	introduction string
 	createdAt    time.Time
 }
 
 func LoadRoomProfile(
-	id ProfileID,
+	id kernel.RoomID,
 	name string,
 	introduction string,
 	createdAt time.Time,
@@ -26,15 +27,12 @@ func LoadRoomProfile(
 }
 
 func CreateRoomProfile(
-	name string,
-	introduction string,
-	generator ProfileIDGenerator,
+	id kernel.RoomID,
+	createdAt time.Time,
 ) *RoomProfile {
 	return &RoomProfile{
-		id:           generator.Generate(),
-		name:         name,
-		introduction: introduction,
-		createdAt:    time.Now().UTC(),
+		id:        id,
+		createdAt: createdAt,
 	}
 }
 
@@ -46,7 +44,7 @@ func (p *RoomProfile) UpdateIntroduction(introduction string) {
 	p.introduction = introduction
 }
 
-func (p *RoomProfile) ID() ProfileID {
+func (p *RoomProfile) ID() kernel.RoomID {
 	return p.id
 }
 

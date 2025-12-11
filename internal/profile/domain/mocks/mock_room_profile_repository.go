@@ -10,6 +10,10 @@
 package mocks
 
 import (
+	context "context"
+	domain "gochat/internal/profile/domain"
+	reflect "reflect"
+
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -35,4 +39,56 @@ func NewMockRoomProfileRepository(ctrl *gomock.Controller) *MockRoomProfileRepos
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockRoomProfileRepository) EXPECT() *MockRoomProfileRepositoryMockRecorder {
 	return m.recorder
+}
+
+// Create mocks base method.
+func (m *MockRoomProfileRepository) Create(ctx context.Context, profile *domain.RoomProfile) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", ctx, profile)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockRoomProfileRepositoryMockRecorder) Create(ctx, profile any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRoomProfileRepository)(nil).Create), ctx, profile)
+}
+
+// MockRoomProfileCreator is a mock of RoomProfileCreator interface.
+type MockRoomProfileCreator struct {
+	ctrl     *gomock.Controller
+	recorder *MockRoomProfileCreatorMockRecorder
+	isgomock struct{}
+}
+
+// MockRoomProfileCreatorMockRecorder is the mock recorder for MockRoomProfileCreator.
+type MockRoomProfileCreatorMockRecorder struct {
+	mock *MockRoomProfileCreator
+}
+
+// NewMockRoomProfileCreator creates a new mock instance.
+func NewMockRoomProfileCreator(ctrl *gomock.Controller) *MockRoomProfileCreator {
+	mock := &MockRoomProfileCreator{ctrl: ctrl}
+	mock.recorder = &MockRoomProfileCreatorMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockRoomProfileCreator) EXPECT() *MockRoomProfileCreatorMockRecorder {
+	return m.recorder
+}
+
+// Create mocks base method.
+func (m *MockRoomProfileCreator) Create(ctx context.Context, profile *domain.RoomProfile) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", ctx, profile)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockRoomProfileCreatorMockRecorder) Create(ctx, profile any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRoomProfileCreator)(nil).Create), ctx, profile)
 }

@@ -5,10 +5,8 @@ import (
 	"time"
 )
 
-type ProfileID kernel.ID
-
 type UserProfile struct {
-	id          ProfileID
+	id          kernel.UserID
 	name        string
 	gender      kernel.Gender
 	email       kernel.Email
@@ -19,7 +17,7 @@ type UserProfile struct {
 }
 
 func LoadUserProfile(
-	id ProfileID,
+	id kernel.UserID,
 	name string,
 	gender kernel.Gender,
 	email kernel.Email,
@@ -41,12 +39,12 @@ func LoadUserProfile(
 }
 
 func CreateUserProfile(
+	id kernel.UserID,
 	email kernel.Email,
 	signedUpAt time.Time,
-	generator ProfileIDGenerator,
 ) *UserProfile {
 	return &UserProfile{
-		id:         generator.Generate(),
+		id:         id,
 		gender:     kernel.UnknownGender,
 		email:      email,
 		signedUpAt: signedUpAt,
@@ -73,7 +71,7 @@ func (p *UserProfile) UpdateSign(sign string) {
 	p.sign = sign
 }
 
-func (p *UserProfile) ID() ProfileID {
+func (p *UserProfile) ID() kernel.UserID {
 	return p.id
 }
 
