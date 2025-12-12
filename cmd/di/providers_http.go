@@ -108,8 +108,8 @@ func provideHttpRouter(
 	profileGroup := baseGroup.Group("/profile")
 	profileGroup.Use(authorizationMiddleware)
 	{
-		profileGroup.PUT("/User", profileHTTP.NewUpdateUserProfileHandler(updateUserProfile, validator))
-		profileGroup.PUT("/Room", profileHTTP.NewUpdateRoomProfileHandler(updateRoomProfile, validator))
+		profileGroup.PUT("/user", profileHTTP.NewUpdateUserProfileHandler(updateUserProfile, validator))
+		profileGroup.PUT("/room", profileHTTP.NewUpdateRoomProfileHandler(updateRoomProfile, validator))
 	}
 
 	// 聊天相关路由

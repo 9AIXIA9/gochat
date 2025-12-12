@@ -18,6 +18,7 @@ import (
 	notificationModel "gochat/internal/notification/infrastructure/persistence/model"
 	notificationRepo "gochat/internal/notification/infrastructure/persistence/repository"
 	profileDomain "gochat/internal/profile/domain"
+	profileModel "gochat/internal/profile/infrastructure/persistence/model"
 	profileRepo "gochat/internal/profile/infrastructure/persistence/repository"
 	roomshipDomain "gochat/internal/roomship/domain"
 	roomshipModel "gochat/internal/roomship/infrastructure/persistence/model"
@@ -95,6 +96,11 @@ func provideDatabaseMigrated(mysql *gorm.DB) databaseMigrated {
 		mysql,
 		&authModel.User{},
 		&notificationModel.SystemMessage{},
+		&profileModel.User{},
+		&profileModel.Room{},
+		&profileModel.Roomship{},
+		&profileModel.UserProfile{},
+		&profileModel.RoomProfile{},
 		&chatModel.User{},
 		&chatModel.Room{},
 		&chatModel.PrivateMessage{},

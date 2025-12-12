@@ -6,7 +6,7 @@ import (
 )
 
 type RoomProfile struct {
-	ID           kernel.RoomID
+	ID           kernel.RoomID `gorm:"primaryKey;type:char(36)"`
 	Name         string
 	Introduction string
 	CreatedAt    time.Time

@@ -6,7 +6,7 @@ import (
 )
 
 type UserProfile struct {
-	ID          kernel.UserID
+	ID          kernel.UserID `gorm:"primaryKey;type:char(36)"`
 	Name        string
 	Gender      kernel.Gender
 	Email       kernel.Email

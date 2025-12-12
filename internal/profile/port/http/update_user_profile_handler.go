@@ -54,6 +54,8 @@ func NewUpdateUserProfileHandler(useCase application.UpdateUserProfileUseCase, v
 			switch {
 			case errors.Is(err, myErrors.ErrEmptyInput):
 				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty"))
+			case errors.Is(err, myErrors.ErrNotFound):
+				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeNotFound, "user profile not found"))
 			default:
 				zap.L().Error("UpdateUserProfileHandler error", zap.Error(err))
 				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
