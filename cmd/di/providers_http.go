@@ -118,8 +118,6 @@ func provideHttpRouter(
 	{
 		profileGroup.PUT("/me", profileHTTP.NewUpdateUserProfileHandler(updateUserProfile, validator))
 		profileGroup.PUT("/room", profileHTTP.NewUpdateRoomProfileHandler(updateRoomProfile, validator))
-		//profileGroup.GET("/search/user", profileHTTP.NewSearchUserProfileHandler(getUserProfile, validator))
-		//profileGroup.GET("/search/room", profileHTTP.NewSearchRoomProfileHandler(getRoomProfile, validator))
 	}
 
 	// 聊天相关路由
