@@ -44,11 +44,11 @@ func NewAgreeMemberRequestHandler(useCase application.AgreeMemberRequestUseCase,
 		func(ginContext *gin.Context, err error) {
 			switch {
 			case errors.Is(err, myErrors.ErrEmptyInput):
-				sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty")
+				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty"))
 			case errors.Is(err, myErrors.ErrNotFound):
-				sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "request is not found")
+				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "request is not found"))
 			case errors.Is(err, domain.ErrNotAdmin):
-				sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "you have no permission to agree this request")
+				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "you have no permission to agree this request"))
 			default:
 				zap.L().Error("AgreeMemberRequestHandler error", zap.Error(err))
 				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
