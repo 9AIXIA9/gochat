@@ -11,7 +11,7 @@ type UserProfile struct {
 	gender      kernel.Gender
 	email       kernel.Email
 	phoneNumber kernel.PhoneNumber
-	address     *kernel.Address
+	address     kernel.Address
 	sign        string
 	signedUpAt  time.Time
 }
@@ -22,7 +22,7 @@ func LoadUserProfile(
 	gender kernel.Gender,
 	email kernel.Email,
 	phoneNumber kernel.PhoneNumber,
-	address *kernel.Address,
+	address kernel.Address,
 	sign string,
 	signedUpAt time.Time,
 ) *UserProfile {
@@ -67,7 +67,7 @@ func (p *UserProfile) UpdateEmail(email kernel.Email) {
 	p.email = email
 }
 
-func (p *UserProfile) UpdateAddress(address *kernel.Address) {
+func (p *UserProfile) UpdateAddress(address kernel.Address) {
 	p.address = address
 }
 
@@ -95,7 +95,7 @@ func (p *UserProfile) PhoneNumber() kernel.PhoneNumber {
 	return p.phoneNumber
 }
 
-func (p *UserProfile) Address() *kernel.Address {
+func (p *UserProfile) Address() kernel.Address {
 	return p.address
 }
 

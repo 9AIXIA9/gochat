@@ -18,13 +18,7 @@ func TestLoadUserProfile(t *testing.T) {
 		fixedGender,
 		fixedEmail,
 		fixedPhoneNumber,
-		&kernel.Address{
-			Country:  fixedCountry,
-			Province: fixedProvince,
-			City:     fixedCity,
-			District: fixedDistrict,
-			Street:   fixedStreet,
-		},
+		fixedAddress,
 		fixedSign,
 		time.Now().UTC(),
 	)
@@ -35,12 +29,7 @@ func TestLoadUserProfile(t *testing.T) {
 	assert.Equal(t, fixedGender, profile.Gender())
 	assert.Equal(t, fixedEmail, profile.Email())
 	assert.Equal(t, fixedPhoneNumber, profile.PhoneNumber())
-	assert.NotNil(t, profile.Address())
-	assert.Equal(t, fixedCountry, profile.Address().Country)
-	assert.Equal(t, fixedProvince, profile.Address().Province)
-	assert.Equal(t, fixedCity, profile.Address().City)
-	assert.Equal(t, fixedDistrict, profile.Address().District)
-	assert.Equal(t, fixedStreet, profile.Address().Street)
+	assert.Equal(t, fixedAddress, profile.Address())
 	assert.Equal(t, fixedSign, profile.Sign())
 }
 

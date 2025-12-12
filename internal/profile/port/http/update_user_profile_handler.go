@@ -19,7 +19,7 @@ type UpdateUserProfileRequest struct {
 	Gender      kernel.Gender      `json:"gender"`
 	Email       kernel.Email       `json:"email"`
 	PhoneNumber kernel.PhoneNumber `json:"phone_number"`
-	Address     *kernel.Address    `json:"address"`
+	Address     kernel.Address     `json:"address"`
 	Sign        string             `json:"sign"`
 }
 

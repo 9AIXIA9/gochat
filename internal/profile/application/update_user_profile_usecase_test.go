@@ -5,7 +5,6 @@ import (
 	"gochat/internal/profile/domain"
 	"gochat/internal/profile/domain/mocks"
 	myErrors "gochat/internal/shared/errors"
-	"gochat/internal/shared/kernel"
 	"testing"
 	"time"
 
@@ -14,14 +13,6 @@ import (
 )
 
 func TestUpdateUserProfileInput_Validate(t *testing.T) {
-	var fixedAddress = &kernel.Address{
-		Country:  fixedCountry,
-		Province: fixedProvince,
-		City:     fixedCity,
-		District: fixedDistrict,
-		Street:   fixedStreet,
-	}
-
 	input := &application.UpdateUserProfileInput{
 		UserID:      fixedUserID,
 		Name:        fixedName,
@@ -94,14 +85,6 @@ func TestUpdateUserProfileUseCase_Execute(t *testing.T) {
 	require.NotNil(t, useCase)
 
 	// 正常情况
-	var fixedAddress = &kernel.Address{
-		Country:  fixedCountry,
-		Province: fixedProvince,
-		City:     fixedCity,
-		District: fixedDistrict,
-		Street:   fixedStreet,
-	}
-
 	gomock.InOrder(
 		finder.EXPECT().FindByID(nil, fixedUserID).Return(domain.LoadUserProfile(
 			fixedUserID,

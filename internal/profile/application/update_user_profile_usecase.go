@@ -16,7 +16,7 @@ type UpdateUserProfileInput struct {
 	Gender      kernel.Gender
 	Email       kernel.Email
 	PhoneNumber kernel.PhoneNumber
-	Address     *kernel.Address
+	Address     kernel.Address
 	Sign        string
 }
 
@@ -24,13 +24,12 @@ func (r *UpdateUserProfileInput) Validate() error {
 	if len(r.UserID) == 0 {
 		return myErrors.ErrEmptyInput
 	}
-
 	if len(r.Email) == 0 &&
 		len(r.PhoneNumber) == 0 &&
 		len(r.Name) == 0 &&
-		r.Address == nil &&
-		r.Gender == kernel.UnknownGender &&
-		len(r.Sign) == 0 {
+		len(r.Address) == 0 &&
+		len(r.Sign) == 0 &&
+		r.Gender == kernel.UnknownGender {
 		return myErrors.ErrEmptyInput
 	}
 
@@ -87,7 +86,7 @@ func (uc *updateUserProfileUseCase) updatesProfile(profile *domain.UserProfile, 
 	if input.PhoneNumber != "" {
 		profile.UpdatePhoneNumber(input.PhoneNumber)
 	}
-	if input.Address != nil {
+	if input.Address != "" {
 		profile.UpdateAddress(input.Address)
 	}
 	if input.Sign != "" {

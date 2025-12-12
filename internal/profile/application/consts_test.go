@@ -15,9 +15,5 @@ const (
 	fixedPhoneNumber  kernel.PhoneNumber = "123-456-7890"
 	fixedSign                            = "This is a test sign."
 	fixedGender                          = kernel.MaleGender
-	fixedCountry                         = "Test Country"
-	fixedProvince                        = "Test Province"
-	fixedCity                            = "Test City"
-	fixedDistrict                        = "Test District"
-	fixedStreet                          = "123 Test St."
+	fixedAddress      kernel.Address     = "mock-address"
 )
