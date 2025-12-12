@@ -1,3 +1,4 @@
+//go:generate mockgen -source=event.go -destination=./mocks/mock_event.go -package=mocks
 package event
 
 import (

@@ -8,7 +8,7 @@ type Manager struct {
 
 func NewEventManager() *Manager {
 	return &Manager{
-		events: make([]Event, 0),
+		events: nil,
 	}
 }
 
@@ -20,9 +20,9 @@ func (e *Manager) GetEvents() []Event {
 }
 
 // RecordEvent 记录事件
-func (e *Manager) RecordEvent(event Event) {
+func (e *Manager) RecordEvent(event SpecificEvent) {
 	if e.events == nil {
-		e.events = make([]Event, 0, 1) //提前分配内存
+		e.events = make([]Event, 0, 1)
 	}
 	e.events = append(e.events, event)
 }
