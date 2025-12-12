@@ -60,7 +60,7 @@ func NewListFriendRequestsHandler(useCase application.ListFriendRequestsUseCase,
 			case errors.Is(err, myErrors.ErrEmptyInput):
 				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty"))
 			default:
-				zap.L().Error("SendFriendRequestHandler error", zap.Error(err))
+				zap.L().Error("ListFriendRequestsHandler error", zap.Error(err))
 				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
 			}
 		},

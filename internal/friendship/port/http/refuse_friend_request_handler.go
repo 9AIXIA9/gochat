@@ -52,7 +52,7 @@ func NewRefuseFriendRequestHandler(useCase application.RefuseFriendRequestUseCas
 			case errors.Is(err, domain.ErrFriendRequestHasBeenHandled):
 				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "friend request has been handled"))
 			default:
-				zap.L().Error("SendFriendRequestHandler error", zap.Error(err))
+				zap.L().Error("RefuseFriendRequestHandler error", zap.Error(err))
 				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
 			}
 		},

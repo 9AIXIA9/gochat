@@ -60,7 +60,7 @@ func NewListMemberRequestsHandler(useCase application.ListMemberRequestsUseCase,
 			case errors.Is(err, myErrors.ErrEmptyInput):
 				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty"))
 			default:
-				zap.L().Error("SendMemberRequestHandler error", zap.Error(err))
+				zap.L().Error("ListMemberRequestsHandler error", zap.Error(err))
 				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
 			}
 		},

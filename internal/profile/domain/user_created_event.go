@@ -1,9 +1,11 @@
 package domain
 
 import (
+	"encoding/json"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
+	"time"
 )
 
 const TopicUserCreated event.Topic = "profile.user.created"
@@ -11,6 +13,8 @@ const TopicUserCreated event.Topic = "profile.user.created"
 var _ event.SpecificEvent = (*UserCreatedEvent)(nil)
 
 type UserCreatedEvent struct {
+	email    kernel.Email
+	signedAt time.Time
 	*event.StandardEvent
 }
 
@@ -29,9 +33,14 @@ func ToUserCreatedEvent(ev event.Event) (*UserCreatedEvent, error) {
 
 func NewUserCreatedEvent(
 	userID kernel.UserID,
+	email kernel.Email,
+	signedAt time.Time,
 	generator event.IDGenerator,
 ) (*UserCreatedEvent, error) {
-	e := &UserCreatedEvent{}
+	e := &UserCreatedEvent{
+		email:    email,
+		signedAt: signedAt,
+	}
 	payload, err := e.Marshal()
 	if err != nil {
 		return nil, err
@@ -42,9 +51,34 @@ func NewUserCreatedEvent(
 }
 
 func (e *UserCreatedEvent) Marshal() ([]byte, error) {
-	return []byte(""), nil
+	type Alias struct {
+		Email    kernel.Email
+		SignedAt time.Time
+	}
+	return json.Marshal(Alias{
+		Email:    e.email,
+		SignedAt: e.signedAt,
+	})
 }
 
-func (e *UserCreatedEvent) Unmarshal([]byte) error {
+func (e *UserCreatedEvent) Unmarshal(data []byte) error {
+	type Alias struct {
+		Email    kernel.Email
+		SignedAt time.Time
+	}
+	var tmp Alias
+	if err := json.Unmarshal(data, &tmp); err != nil {
+		return err
+	}
+	e.signedAt = tmp.SignedAt
+	e.email = tmp.Email
 	return nil
+}
+
+func (e *UserCreatedEvent) Email() kernel.Email {
+	return e.email
+}
+
+func (e *UserCreatedEvent) SignedAt() time.Time {
+	return e.signedAt
 }

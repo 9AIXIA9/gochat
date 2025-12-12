@@ -59,7 +59,12 @@ func (uc *userCreatedUseCase) Execute(ctx context.Context, input *UserCreatedInp
 		return nil, err
 	}
 
-	profileEv, err := profileDomain.NewUserCreatedEvent(user.ID(), uc.idGenerator)
+	profileEv, err := profileDomain.NewUserCreatedEvent(
+		user.ID(),
+		user.Email(),
+		user.SignedUpAt(),
+		uc.idGenerator,
+	)
 	if err != nil {
 		return nil, err
 	}

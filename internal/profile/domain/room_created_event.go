@@ -1,9 +1,11 @@
 package domain
 
 import (
+	"encoding/json"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
+	"time"
 )
 
 const TopicRoomCreated event.Topic = "profile.room.created"
@@ -11,6 +13,7 @@ const TopicRoomCreated event.Topic = "profile.room.created"
 var _ event.SpecificEvent = (*RoomCreatedEvent)(nil)
 
 type RoomCreatedEvent struct {
+	createdAt time.Time
 	*event.StandardEvent
 }
 
@@ -29,9 +32,12 @@ func ToRoomCreatedEvent(ev event.Event) (*RoomCreatedEvent, error) {
 
 func NewRoomCreatedEvent(
 	roomID kernel.RoomID,
+	createdAt time.Time,
 	generator event.IDGenerator,
 ) (*RoomCreatedEvent, error) {
-	e := &RoomCreatedEvent{}
+	e := &RoomCreatedEvent{
+		createdAt: createdAt,
+	}
 	payload, err := e.Marshal()
 	if err != nil {
 		return nil, err
@@ -42,9 +48,26 @@ func NewRoomCreatedEvent(
 }
 
 func (e *RoomCreatedEvent) Marshal() ([]byte, error) {
-	return []byte(""), nil
+	type Alias struct {
+		CreatedAt time.Time
+	}
+	return json.Marshal(Alias{
+		CreatedAt: e.createdAt,
+	})
 }
 
-func (e *RoomCreatedEvent) Unmarshal([]byte) error {
+func (e *RoomCreatedEvent) Unmarshal(data []byte) error {
+	type Alias struct {
+		CreatedAt time.Time
+	}
+	var tmp Alias
+	if err := json.Unmarshal(data, &tmp); err != nil {
+		return err
+	}
+	e.createdAt = tmp.CreatedAt
 	return nil
+}
+
+func (e *RoomCreatedEvent) CreatedAt() time.Time {
+	return e.createdAt
 }

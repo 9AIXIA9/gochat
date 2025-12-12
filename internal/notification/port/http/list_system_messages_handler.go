@@ -60,7 +60,7 @@ func NewListSystemMessagesHandler(useCase application.ListSystemMessagesUseCase,
 			case errors.Is(err, myErrors.ErrEmptyInput):
 				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty"))
 			default:
-				zap.L().Error("SendSystemMessageHandler error", zap.Error(err))
+				zap.L().Error("ListSystemMessagesHandler error", zap.Error(err))
 				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
 			}
 		},

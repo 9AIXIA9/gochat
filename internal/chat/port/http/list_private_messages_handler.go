@@ -60,7 +60,7 @@ func NewListPrivateMessagesHandler(useCase application.ListPrivateMessagesUseCas
 			case errors.Is(err, myErrors.ErrEmptyInput):
 				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty"))
 			default:
-				zap.L().Error("SendPrivateMessageHandler error", zap.Error(err))
+				zap.L().Error("ListPrivateMessageHandler error", zap.Error(err))
 				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
 			}
 		},
