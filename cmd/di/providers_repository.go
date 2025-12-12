@@ -17,6 +17,9 @@ import (
 	notificationDomain "gochat/internal/notification/domain"
 	notificationModel "gochat/internal/notification/infrastructure/persistence/model"
 	notificationRepo "gochat/internal/notification/infrastructure/persistence/repository"
+	profileDomain "gochat/internal/profile/domain"
+	profileModel "gochat/internal/profile/infrastructure/persistence/model"
+	profileRepo "gochat/internal/profile/infrastructure/persistence/repository"
 	roomshipDomain "gochat/internal/roomship/domain"
 	roomshipModel "gochat/internal/roomship/infrastructure/persistence/model"
 	roomshipRepo "gochat/internal/roomship/infrastructure/persistence/repository"
@@ -36,6 +39,12 @@ var RepoSet = wire.NewSet(
 
 	wire.Bind(new(authDomain.UserRepository), new(*authRepo.UserRepository)),
 	wire.Bind(new(authDomain.RefreshTokenRepository), new(*authRepo.RefreshTokenRepository)),
+
+	wire.Bind(new(profileDomain.UserRepository), new(*profileRepo.UserRepository)),
+	wire.Bind(new(profileDomain.RoomRepository), new(*profileRepo.RoomRepository)),
+	wire.Bind(new(profileDomain.UserProfileRepository), new(*profileRepo.UserProfileRepository)),
+	wire.Bind(new(profileDomain.RoomProfileRepository), new(*profileRepo.RoomProfileRepository)),
+	wire.Bind(new(profileDomain.RoomshipRepository), new(*profileRepo.RoomshipRepository)),
 
 	wire.Bind(new(roomshipDomain.UserRepository), new(*roomshipRepo.UserRepository)),
 	wire.Bind(new(roomshipDomain.RoomRepository), new(*roomshipRepo.RoomRepository)),
@@ -61,6 +70,11 @@ var RepoSet = wire.NewSet(
 	provideEventRepository,
 	provideAuthorizationUserRepository,
 	provideAuthorizationRefreshTokenRepository,
+	provideProfileRoomshipRepository,
+	provideProfileRoomRepository,
+	provideProfileUserRepository,
+	provideProfileRoomProfileRepository,
+	provideProfileUserProfileRepository,
 	provideChatUserRepository,
 	provideChatRoomRepository,
 	provideChatPrivateMessageRepository,
@@ -82,6 +96,11 @@ func provideDatabaseMigrated(mysql *gorm.DB) databaseMigrated {
 		mysql,
 		&authModel.User{},
 		&notificationModel.SystemMessage{},
+		&profileModel.User{},
+		&profileModel.Room{},
+		&profileModel.Roomship{},
+		&profileModel.UserProfile{},
+		&profileModel.RoomProfile{},
 		&chatModel.User{},
 		&chatModel.Room{},
 		&chatModel.PrivateMessage{},
@@ -113,6 +132,21 @@ func provideAuthorizationUserRepository(db *gorm.DB, eventRepo event.Repository)
 }
 func provideAuthorizationRefreshTokenRepository(redisClient *redis.Client) *authRepo.RefreshTokenRepository {
 	return authRepo.NewRefreshTokenRepository(redisClient, &authConverter.RefreshTokenConverter{})
+}
+func provideProfileUserProfileRepository(db *gorm.DB) *profileRepo.UserProfileRepository {
+	return profileRepo.NewUserProfileRepository(db)
+}
+func provideProfileRoomProfileRepository(db *gorm.DB) *profileRepo.RoomProfileRepository {
+	return profileRepo.NewRoomProfileRepository(db)
+}
+func provideProfileUserRepository(db *gorm.DB) *profileRepo.UserRepository {
+	return profileRepo.NewUserRepository(db)
+}
+func provideProfileRoomRepository(db *gorm.DB) *profileRepo.RoomRepository {
+	return profileRepo.NewRoomRepository(db)
+}
+func provideProfileRoomshipRepository(db *gorm.DB) *profileRepo.RoomshipRepository {
+	return profileRepo.NewRoomshipRepository(db)
 }
 func provideChatUserRepository(db *gorm.DB) *chatRepo.UserRepository {
 	return chatRepo.NewUserRepository(db)

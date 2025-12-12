@@ -50,6 +50,17 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
+	userProfileRepository := provideProfileUserProfileRepository(db)
+	updateUserProfileUseCase, err := provideProfileUpdateUserProfileUseCase(userProfileRepository)
+	if err != nil {
+		return nil, err
+	}
+	roomshipRepository := provideProfileRoomshipRepository(db)
+	roomProfileRepository := provideProfileRoomProfileRepository(db)
+	updateRoomProfileUseCase, err := provideProfileUpdateRoomProfileUseCase(roomshipRepository, roomProfileRepository)
+	if err != nil {
+		return nil, err
+	}
 	messageIDGenerator := provideMessageIDGenerator()
 	manager := provideWebsocketManager()
 	privateMessageNotifier := providePrivateMessageNotifier(manager)
@@ -60,9 +71,9 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 		return nil, err
 	}
 	roomMessageNotifier := provideRoomMessageNotifier(manager)
-	roomshipRepository := provideChatRoomshipRepository(db)
+	repositoryRoomshipRepository := provideChatRoomshipRepository(db)
 	roomMessageRepository := provideChatRoomMessageRepository(db, eventRepository)
-	sendRoomMessageUseCase, err := provideSendRoomMessageUseCase(messageIDGenerator, roomMessageNotifier, roomshipRepository, roomMessageRepository)
+	sendRoomMessageUseCase, err := provideSendRoomMessageUseCase(messageIDGenerator, roomMessageNotifier, repositoryRoomshipRepository, roomMessageRepository)
 	if err != nil {
 		return nil, err
 	}
@@ -84,18 +95,18 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	repositoryRoomshipRepository := provideRoomshipRoomshipRepository(db, eventRepository)
+	roomshipRepository2 := provideRoomshipRoomshipRepository(db, eventRepository)
 	memberRequestRepository := provideRoomshipMemberRequestRepository(db, eventRepository)
 	operationIDGenerator := provideOperationIDGenerator()
-	sendMemberRequestUseCase, err := provideSendMemberRequestUseCase(repositoryRoomshipRepository, memberRequestRepository, roomRepository, eventIDGenerator, operationIDGenerator, hasher)
+	sendMemberRequestUseCase, err := provideSendMemberRequestUseCase(roomshipRepository2, memberRequestRepository, roomRepository, eventIDGenerator, operationIDGenerator, hasher)
 	if err != nil {
 		return nil, err
 	}
-	agreeMemberRequestUseCase, err := provideAgreeMemberRequestUseCase(memberRequestRepository, repositoryRoomshipRepository, eventIDGenerator)
+	agreeMemberRequestUseCase, err := provideAgreeMemberRequestUseCase(memberRequestRepository, roomshipRepository2, eventIDGenerator)
 	if err != nil {
 		return nil, err
 	}
-	refuseMemberRequestUseCase, err := provideRefuseMemberRequestUseCase(memberRequestRepository, repositoryRoomshipRepository)
+	refuseMemberRequestUseCase, err := provideRefuseMemberRequestUseCase(memberRequestRepository, roomshipRepository2)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +114,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	listRoomshipsUseCase, err := provideListRoomshipsUseCase(repositoryRoomshipRepository)
+	listRoomshipsUseCase, err := provideListRoomshipsUseCase(roomshipRepository2)
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +165,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	}
 	server := provideWebsocketServer(upgrader, manager, router, userSessionStartedUseCase)
 	metrics := provideMetrics()
-	engine := provideHttpRouter(appConfig, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, listPrivateMessagesUseCase, listRoomMessagesUseCase, createRoomUseCase, sendMemberRequestUseCase, agreeMemberRequestUseCase, refuseMemberRequestUseCase, listMemberRequestsUseCase, listRoomshipsUseCase, sendFriendRequestUseCase, agreeFriendRequestUseCase, refuseFriendRequestUseCase, listFriendshipsUseCase, listFriendRequestsUseCase, listSystemMessagesUseCase, validator, client, server, metrics)
+	engine := provideHttpRouter(appConfig, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, updateUserProfileUseCase, updateRoomProfileUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, listPrivateMessagesUseCase, listRoomMessagesUseCase, createRoomUseCase, sendMemberRequestUseCase, agreeMemberRequestUseCase, refuseMemberRequestUseCase, listMemberRequestsUseCase, listRoomshipsUseCase, sendFriendRequestUseCase, agreeFriendRequestUseCase, refuseFriendRequestUseCase, listFriendshipsUseCase, listFriendRequestsUseCase, listSystemMessagesUseCase, validator, client, server, metrics)
 	ginServer := provideHttpServer(appConfig, engine)
 	eventPublisher, err := provideKafkaPublisher(appConfig, eventRepository, metrics)
 	if err != nil {
@@ -170,17 +181,31 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	repositoryUserRepository := provideChatUserRepository(db)
-	applicationUserCreatedUseCase, err := provideChatUserCreatedUseCase(repositoryUserRepository)
+	repositoryUserRepository := provideProfileUserRepository(db)
+	applicationUserCreatedUseCase, err := provideProfileUserCreatedUseCase(repositoryUserRepository, userProfileRepository)
 	if err != nil {
 		return nil, err
 	}
-	repositoryRoomRepository := provideChatRoomRepository(db)
-	roomCreatedUseCase, err := provideChatRoomCreatedUseCase(repositoryRoomRepository)
+	repositoryRoomRepository := provideProfileRoomRepository(db)
+	roomCreatedUseCase, err := provideProfileRoomCreatedUseCase(repositoryRoomRepository, roomProfileRepository)
 	if err != nil {
 		return nil, err
 	}
-	roomshipCreatedUseCase, err := provideChatRoomshipCreatedUseCase(roomshipRepository)
+	roomshipCreatedUseCase, err := provideProfileRoomshipCreatedUseCase(roomshipRepository)
+	if err != nil {
+		return nil, err
+	}
+	userRepository2 := provideChatUserRepository(db)
+	userCreatedUseCase2, err := provideChatUserCreatedUseCase(userRepository2)
+	if err != nil {
+		return nil, err
+	}
+	roomRepository2 := provideChatRoomRepository(db)
+	applicationRoomCreatedUseCase, err := provideChatRoomCreatedUseCase(roomRepository2)
+	if err != nil {
+		return nil, err
+	}
+	applicationRoomshipCreatedUseCase, err := provideChatRoomshipCreatedUseCase(repositoryRoomshipRepository)
 	if err != nil {
 		return nil, err
 	}
@@ -206,30 +231,30 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	userRepository2 := provideRoomshipUserRepository(db)
-	userCreatedUseCase2, err := provideRoomshipUserCreatedUseCase(userRepository2)
+	userRepository3 := provideRoomshipUserRepository(db)
+	userCreatedUseCase3, err := provideRoomshipUserCreatedUseCase(userRepository3)
 	if err != nil {
 		return nil, err
 	}
 	roomshipIDGenerator := provideRoomshipRoomshipIDGenerator()
-	applicationRoomCreatedUseCase, err := provideRoomshipRoomCreatedUseCase(roomshipIDGenerator, eventIDGenerator, roomRepository, repositoryRoomshipRepository, eventRepository)
+	roomCreatedUseCase2, err := provideRoomshipRoomCreatedUseCase(roomshipIDGenerator, eventIDGenerator, roomRepository, roomshipRepository2, eventRepository)
 	if err != nil {
 		return nil, err
 	}
-	memberRequestAgreedUseCase, err := provideRoomshipMemberRequestAgreedUseCase(roomshipIDGenerator, eventIDGenerator, memberRequestRepository, repositoryRoomshipRepository)
+	memberRequestAgreedUseCase, err := provideRoomshipMemberRequestAgreedUseCase(roomshipIDGenerator, eventIDGenerator, memberRequestRepository, roomshipRepository2)
 	if err != nil {
 		return nil, err
 	}
-	memberRequestCreatedUseCase, err := provideRoomshipMemberRequestCreatedUseCase(memberRequestRepository, repositoryRoomshipRepository, eventIDGenerator, eventRepository)
+	memberRequestCreatedUseCase, err := provideRoomshipMemberRequestCreatedUseCase(memberRequestRepository, roomshipRepository2, eventIDGenerator, eventRepository)
 	if err != nil {
 		return nil, err
 	}
-	applicationRoomshipCreatedUseCase, err := provideRoomshipRoomshipCreatedUseCase(repositoryRoomshipRepository, eventRepository, eventIDGenerator)
+	roomshipCreatedUseCase2, err := provideRoomshipRoomshipCreatedUseCase(roomshipRepository2, eventRepository, eventIDGenerator)
 	if err != nil {
 		return nil, err
 	}
-	userRepository3 := provideFriendshipUserRepository(db)
-	userCreatedUseCase3, err := provideFriendshipUserCreatedUseCase(userRepository3)
+	userRepository4 := provideFriendshipUserRepository(db)
+	userCreatedUseCase4, err := provideFriendshipUserCreatedUseCase(userRepository4)
 	if err != nil {
 		return nil, err
 	}
@@ -246,7 +271,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	kafkaRouter := provideKafkaRouter(diKafkaTopicEnsured, diEmailServiceAvailable, appConfig, userCreatedUseCase, applicationUserCreatedUseCase, roomCreatedUseCase, roomshipCreatedUseCase, friendshipCreatedUseCase, undeliveredMessagesPushRequestedUseCase, welcomeEmailNotificationRequestedUseCase, systemMessageNotificationRequestedUseCase, undeliveredMessagesNotificationRequestedUseCase, userCreatedUseCase2, applicationRoomCreatedUseCase, memberRequestAgreedUseCase, memberRequestCreatedUseCase, applicationRoomshipCreatedUseCase, userCreatedUseCase3, friendRequestAgreedUseCase, friendRequestCreatedUseCase, applicationFriendshipCreatedUseCase)
+	kafkaRouter := provideKafkaRouter(diKafkaTopicEnsured, diEmailServiceAvailable, appConfig, userCreatedUseCase, applicationUserCreatedUseCase, roomCreatedUseCase, roomshipCreatedUseCase, userCreatedUseCase2, applicationRoomCreatedUseCase, applicationRoomshipCreatedUseCase, friendshipCreatedUseCase, undeliveredMessagesPushRequestedUseCase, welcomeEmailNotificationRequestedUseCase, systemMessageNotificationRequestedUseCase, undeliveredMessagesNotificationRequestedUseCase, userCreatedUseCase3, roomCreatedUseCase2, memberRequestAgreedUseCase, memberRequestCreatedUseCase, roomshipCreatedUseCase2, userCreatedUseCase4, friendRequestAgreedUseCase, friendRequestCreatedUseCase, applicationFriendshipCreatedUseCase)
 	producer, err := provideKafkaProducer(appConfig)
 	if err != nil {
 		return nil, err

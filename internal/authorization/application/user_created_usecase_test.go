@@ -80,7 +80,7 @@ func TestUserCreatedUseCase_Execute(t *testing.T) {
 
 	gomock.InOrder(
 		mockFinder.EXPECT().FindByID(nil, fixedUserID).Return(mockUser, nil).Times(1),
-		mockIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(4),
+		mockIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(5),
 		mockCreator.EXPECT().CreateUnpublishedEvents(nil, gomock.Any()).Return(nil).Times(1),
 	)
 

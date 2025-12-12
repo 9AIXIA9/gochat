@@ -15,6 +15,8 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+const fixedAllRoomshipsLen = 10
+
 func TestRoomshipCreatedInput_Validate(t *testing.T) {
 	input := &application.RoomshipCreatedInput{
 		RoomshipID: fixedRoomshipID,
@@ -84,22 +86,24 @@ func TestRoomshipCreatedUseCase_Execute(t *testing.T) {
 		time.Now(),
 	)
 
-	mockOldRoomships := make([]*domain.Roomship, 10)
-	for i := 0; i < 10; i++ {
-		mockOldRoomships[i] = domain.LoadRoomship(
+	mockAllRoomships := make([]*domain.Roomship, 0, fixedAllRoomshipsLen)
+	for i := 0; i < fixedAllRoomshipsLen-1; i++ {
+		mockAllRoomships = append(mockAllRoomships, domain.LoadRoomship(
 			domain.RoomshipID(fmt.Sprintf("old-roomship-id-%d", i+1)),
 			fixedRoomID,
 			kernel.UserID(fmt.Sprintf("old-user-id-%d", i+1)),
 			domain.MemberRole,
 			time.Now().UTC(),
-		)
+		))
 	}
 
+	mockAllRoomships = append(mockAllRoomships, mockRoomship)
+
+	// 正常情况
 	gomock.InOrder(
 		mockRoomshipFinderByID.EXPECT().FindByID(nil, fixedRoomshipID).Return(mockRoomship, nil),
-		mockRoomshipFinderByRoomID.EXPECT().FindsByRoomID(nil, fixedRoomID).Return(mockOldRoomships, nil),
-		mockIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(len(mockOldRoomships)),
-		mockIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(1),
+		mockRoomshipFinderByRoomID.EXPECT().FindsByRoomID(nil, fixedRoomID).Return(mockAllRoomships, nil),
+		mockIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(len(mockAllRoomships)+1),
 		mockCreator.EXPECT().CreateUnpublishedEvents(nil, gomock.Any()).Return(nil),
 	)
 

@@ -60,7 +60,7 @@ func NewListRoomMessagesHandler(useCase application.ListRoomMessagesUseCase, val
 			case errors.Is(err, myErrors.ErrEmptyInput):
 				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty"))
 			default:
-				zap.L().Error("SendRoomMessageHandler error", zap.Error(err))
+				zap.L().Error("ListRoomMessageHandler error", zap.Error(err))
 				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
 			}
 		},

@@ -6,6 +6,7 @@ import (
 	chatApp "gochat/internal/chat/application"
 	friendshipApp "gochat/internal/friendship/application"
 	notificationApp "gochat/internal/notification/application"
+	profileApp "gochat/internal/profile/application"
 	roomshipApp "gochat/internal/roomship/application"
 	"net/http"
 
@@ -23,6 +24,7 @@ import (
 	"gochat/internal/infrastructure/prometheus"
 	"gochat/internal/infrastructure/websocket"
 	notificationHTTP "gochat/internal/notification/port/http"
+	profileHTTP "gochat/internal/profile/port/http"
 	roomshipHTTP "gochat/internal/roomship/port/http"
 )
 
@@ -37,6 +39,8 @@ func provideHttpRouter(
 	login authApp.LoginUseCase,
 	refreshAccessToken authApp.RefreshAccessTokenUseCase,
 	parseAccessToken authApp.ParseAccessTokenUseCase,
+	updateUserProfile profileApp.UpdateUserProfileUseCase,
+	updateRoomProfile profileApp.UpdateRoomProfileUseCase,
 	sendPrivateMessage chatApp.SendPrivateMessageUseCase,
 	sendRoomMessage chatApp.SendRoomMessageUseCase,
 	listPrivateMessages chatApp.ListPrivateMessagesUseCase,
@@ -99,6 +103,14 @@ func provideHttpRouter(
 	}
 
 	authorizationMiddleware := authHTTP.NewAuthorizationMiddleware(parseAccessToken)
+
+	// 聊天相关路由
+	profileGroup := baseGroup.Group("/profile")
+	profileGroup.Use(authorizationMiddleware)
+	{
+		profileGroup.PUT("/user", profileHTTP.NewUpdateUserProfileHandler(updateUserProfile, validator))
+		profileGroup.PUT("/room", profileHTTP.NewUpdateRoomProfileHandler(updateRoomProfile, validator))
+	}
 
 	// 聊天相关路由
 	chatGroup := baseGroup.Group("/chat")

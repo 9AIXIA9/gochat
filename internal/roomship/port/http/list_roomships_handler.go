@@ -61,7 +61,7 @@ func NewListRoomshipsHandler(useCase application.ListRoomshipsUseCase, validator
 			case errors.Is(err, myErrors.ErrEmptyInput):
 				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty"))
 			default:
-				zap.L().Error("SendRoomshipHandler error", zap.Error(err))
+				zap.L().Error("ListRoomshipsHandler error", zap.Error(err))
 				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
 			}
 		},
