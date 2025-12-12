@@ -91,9 +91,9 @@ func TestRoomCreatedUseCase_Execute(t *testing.T) {
 	gomock.InOrder(
 		mockFinder.EXPECT().FindByID(nil, fixedRoomID).Return(mockRoom, nil),
 		mockRoomshipIDGenerator.EXPECT().Generate().Return(fixedRoomshipID),
-		mockIDGenerator.EXPECT().Generate().Return(fixedEventID),
+		mockIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(1),
 		mockRoomshipCreator.EXPECT().Create(nil, gomock.Any()).Return(nil),
-		mockIDGenerator.EXPECT().Generate().Return(fixedEventID),
+		mockIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(2),
 		mockEventCreator.EXPECT().CreateUnpublishedEvents(nil, gomock.Any()).Return(nil),
 	)
 

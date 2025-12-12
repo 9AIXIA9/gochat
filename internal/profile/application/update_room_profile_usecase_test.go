@@ -100,15 +100,15 @@ func TestUpdateRoomProfileUseCase_Execute(t *testing.T) {
 			fixedRoomshipID,
 			fixedUserID,
 			fixedRoomID,
-			domain.RoleAdmin,
-		), nil),
+			domain.OwnerRole,
+		), nil).Times(1),
 		mockProfileFinder.EXPECT().FindByID(nil, fixedRoomID).Return(domain.LoadRoomProfile(
 			fixedRoomID,
 			fixedName,
 			fixedSign,
 			time.Now().UTC(),
-		), nil),
-		mockUpdater.EXPECT().Update(nil, gomock.Any()).Return(nil),
+		), nil).Times(1),
+		mockUpdater.EXPECT().Update(nil, gomock.Any()).Return(nil).Times(1),
 	)
 
 	_, err = useCase.Execute(nil, &application.UpdateRoomProfileInput{
@@ -125,7 +125,7 @@ func TestUpdateRoomProfileUseCase_Execute(t *testing.T) {
 			fixedRoomshipID,
 			fixedUserID,
 			fixedRoomID,
-			domain.RoleMember,
+			domain.MemberRole,
 		), nil),
 	)
 

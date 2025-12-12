@@ -8,15 +8,14 @@ func (id RoomshipID) String() string {
 	return string(id)
 }
 
-type Role string
+type RoomshipRole string
 
 const (
-	RoleOwner  Role = "owner"
-	RoleAdmin  Role = "admin"
-	RoleMember Role = "member"
+	OwnerRole  RoomshipRole = "owner"
+	MemberRole RoomshipRole = "member"
 )
 
-func (r Role) String() string {
+func (r RoomshipRole) String() string {
 	return string(r)
 }
 
@@ -24,14 +23,14 @@ type Roomship struct {
 	id     RoomshipID
 	userID kernel.UserID
 	roomID kernel.RoomID
-	role   Role
+	role   RoomshipRole
 }
 
 func LoadRoomship(
 	id RoomshipID,
 	userID kernel.UserID,
 	roomID kernel.RoomID,
-	role Role,
+	role RoomshipRole,
 ) *Roomship {
 	return &Roomship{
 		id:     id,
@@ -53,6 +52,10 @@ func (r *Roomship) RoomID() kernel.RoomID {
 	return r.roomID
 }
 
-func (r *Roomship) Role() Role {
+func (r *Roomship) Role() RoomshipRole {
 	return r.role
+}
+
+func (r *Roomship) IsOwner() bool {
+	return r.role == OwnerRole
 }

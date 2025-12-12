@@ -4,6 +4,7 @@ import (
 	"context"
 	chatDomain "gochat/internal/chat/domain"
 	notificationDomain "gochat/internal/notification/domain"
+	profileDomain "gochat/internal/profile/domain"
 	"gochat/internal/roomship/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
@@ -60,25 +61,13 @@ func (uc *roomshipCreatedUseCase) Execute(ctx context.Context, input *RoomshipCr
 		return nil, err
 	}
 
-	oldRoomships, err := uc.roomshipFinderByRoomID.FindsByRoomID(ctx, newRoomship.RoomID())
+	allRoomships, err := uc.roomshipFinderByRoomID.FindsByRoomID(ctx, newRoomship.RoomID())
 	if err != nil {
 		return nil, err
 	}
 
-	evs := make([]event.Event, 0, len(oldRoomships))
-	chatEvCreated, err := chatDomain.NewRoomshipCreatedEvent(
-		chatDomain.RoomshipID(newRoomship.ID()),
-		newRoomship.UserID(),
-		newRoomship.RoomID(),
-		uc.idGenerator,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	evs = append(evs, chatEvCreated)
-
-	for _, oldRoomship := range oldRoomships {
+	evs := make([]event.Event, 0, len(allRoomships)+1)
+	for _, oldRoomship := range allRoomships {
 		if oldRoomship.ID() == input.RoomshipID {
 			continue
 		}
@@ -97,10 +86,30 @@ func (uc *roomshipCreatedUseCase) Execute(ctx context.Context, input *RoomshipCr
 		evs = append(evs, notificationEvRequested)
 	}
 
-	if err := uc.creator.CreateUnpublishedEvents(ctx, evs); err != nil {
+	chatEvCreated, err := chatDomain.NewRoomshipCreatedEvent(
+		chatDomain.RoomshipID(newRoomship.ID()),
+		newRoomship.UserID(),
+		newRoomship.RoomID(),
+		uc.idGenerator,
+	)
+	if err != nil {
 		return nil, err
 	}
 
+	profileEvCreated, err := profileDomain.NewRoomshipCreatedEvent(
+		profileDomain.RoomshipID(newRoomship.ID()),
+		newRoomship.UserID(),
+		newRoomship.RoomID(),
+		profileDomain.RoomshipRole(newRoomship.Role()),
+		uc.idGenerator,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := uc.creator.CreateUnpublishedEvents(ctx, append(evs, chatEvCreated, profileEvCreated)); err != nil {
+		return nil, err
+	}
 	return nil, nil
 }
 

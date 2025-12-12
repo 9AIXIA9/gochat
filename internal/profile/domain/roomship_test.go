@@ -13,11 +13,11 @@ func TestLoadRoomship(t *testing.T) {
 		fixedRoomshipID,
 		fixedUserID,
 		fixedRoomID,
-		domain.RoleAdmin,
+		domain.OwnerRole,
 	)
 	require.NotNil(t, roomship)
 	assert.Equal(t, fixedRoomshipID, roomship.ID())
 	assert.Equal(t, fixedUserID, roomship.UserID())
 	assert.Equal(t, fixedRoomID, roomship.RoomID())
-	assert.Equal(t, domain.RoleAdmin, roomship.Role())
+	assert.Equal(t, domain.OwnerRole, roomship.Role())
 }

@@ -62,7 +62,7 @@ func (uc *updateRoomProfileUseCase) Execute(ctx context.Context, input *UpdateRo
 		return nil, err
 	}
 
-	if roomship.Role() != domain.RoleOwner && roomship.Role() != domain.RoleAdmin {
+	if !roomship.IsOwner() {
 		return nil, domain.ErrNoPermission
 	}
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	chatDomain "gochat/internal/chat/domain"
+	profileDomain "gochat/internal/profile/domain"
 	"gochat/internal/roomship/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
@@ -83,12 +84,20 @@ func (uc *roomCreatedUseCase) Execute(ctx context.Context, input *RoomCreatedInp
 		return nil, err
 	}
 
+	profileEvCreated, err := profileDomain.NewRoomCreatedEvent(room.ID(), uc.idGenerator)
+	if err != nil {
+		return nil, err
+	}
+
 	chatEvCreated, err := chatDomain.NewRoomCreatedEvent(room.ID(), uc.idGenerator)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := uc.eventCreator.CreateUnpublishedEvents(ctx, []event.Event{chatEvCreated}); err != nil {
+	if err := uc.eventCreator.CreateUnpublishedEvents(ctx, []event.Event{
+		profileEvCreated,
+		chatEvCreated,
+	}); err != nil {
 		return nil, err
 	}
 
