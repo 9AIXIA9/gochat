@@ -39,6 +39,8 @@ func provideHttpRouter(
 	login authApp.LoginUseCase,
 	refreshAccessToken authApp.RefreshAccessTokenUseCase,
 	parseAccessToken authApp.ParseAccessTokenUseCase,
+	getUserProfile profileApp.GetUserProfileUseCase,
+	getRoomProfile profileApp.GetRoomProfileUseCase,
 	updateUserProfile profileApp.UpdateUserProfileUseCase,
 	updateRoomProfile profileApp.UpdateRoomProfileUseCase,
 	sendPrivateMessage chatApp.SendPrivateMessageUseCase,
@@ -95,7 +97,6 @@ func provideHttpRouter(
 
 	// 授权相关路由
 	authorizationGroup := baseGroup.Group("/authorization")
-	authorizationGroup.Use()
 	{
 		authorizationGroup.POST("/sign_up", authHTTP.NewSignUpHandler(signUp, validator))
 		authorizationGroup.POST("/login", authHTTP.NewLoginHandler(login, validator, appConfig.Cookie))
@@ -106,10 +107,17 @@ func provideHttpRouter(
 
 	// 聊天相关路由
 	profileGroup := baseGroup.Group("/profile")
+	{
+		profileGroup.GET("/user/:user_id", profileHTTP.NewGetUserProfileHandler(getUserProfile, validator))
+		profileGroup.GET("/room/:room_id", profileHTTP.NewGetRoomProfileHandler(getRoomProfile, validator))
+	}
+
 	profileGroup.Use(authorizationMiddleware)
 	{
-		profileGroup.PUT("/user", profileHTTP.NewUpdateUserProfileHandler(updateUserProfile, validator))
+		profileGroup.PUT("/me", profileHTTP.NewUpdateUserProfileHandler(updateUserProfile, validator))
 		profileGroup.PUT("/room", profileHTTP.NewUpdateRoomProfileHandler(updateRoomProfile, validator))
+		//profileGroup.GET("/search/user", profileHTTP.NewSearchUserProfileHandler(getUserProfile, validator))
+		//profileGroup.GET("/search/room", profileHTTP.NewSearchRoomProfileHandler(getRoomProfile, validator))
 	}
 
 	// 聊天相关路由

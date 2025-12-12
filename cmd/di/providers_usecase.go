@@ -27,6 +27,8 @@ var UseCaseHTTPSet = wire.NewSet(
 	provideLoginUseCase,
 	provideRefreshAccessTokenUseCase,
 	provideParseAccessTokenUseCase,
+	provideProfileGetRoomProfileUseCase,
+	provideProfileGetUserProfileUseCase,
 	provideProfileUpdateRoomProfileUseCase,
 	provideProfileUpdateUserProfileUseCase,
 	provideSendPrivateMessageUseCase,
@@ -140,6 +142,20 @@ func provideParseAccessTokenUseCase(
 ) (authApp.ParseAccessTokenUseCase, error) {
 	return authApp.NewParseAccessTokenUseCase(
 		accessTokenParser,
+	)
+}
+func provideProfileGetUserProfileUseCase(
+	profileRepo profileDomain.UserProfileRepository,
+) (profileApp.GetUserProfileUseCase, error) {
+	return profileApp.NewGetUserProfileUseCase(
+		profileRepo,
+	)
+}
+func provideProfileGetRoomProfileUseCase(
+	profileRepo profileDomain.RoomProfileRepository,
+) (profileApp.GetRoomProfileUseCase, error) {
+	return profileApp.NewGetRoomProfileUseCase(
+		profileRepo,
 	)
 }
 func provideProfileUpdateUserProfileUseCase(
