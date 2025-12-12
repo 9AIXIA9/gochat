@@ -12,6 +12,7 @@ package mocks
 import (
 	context "context"
 	domain "gochat/internal/profile/domain"
+	kernel "gochat/internal/shared/kernel"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
@@ -55,6 +56,35 @@ func (mr *MockRoomProfileRepositoryMockRecorder) Create(ctx, profile any) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRoomProfileRepository)(nil).Create), ctx, profile)
 }
 
+// FindByID mocks base method.
+func (m *MockRoomProfileRepository) FindByID(ctx context.Context, id kernel.RoomID) (*domain.RoomProfile, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindByID", ctx, id)
+	ret0, _ := ret[0].(*domain.RoomProfile)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindByID indicates an expected call of FindByID.
+func (mr *MockRoomProfileRepositoryMockRecorder) FindByID(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockRoomProfileRepository)(nil).FindByID), ctx, id)
+}
+
+// Update mocks base method.
+func (m *MockRoomProfileRepository) Update(ctx context.Context, profile *domain.RoomProfile) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", ctx, profile)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockRoomProfileRepositoryMockRecorder) Update(ctx, profile any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockRoomProfileRepository)(nil).Update), ctx, profile)
+}
+
 // MockRoomProfileCreator is a mock of RoomProfileCreator interface.
 type MockRoomProfileCreator struct {
 	ctrl     *gomock.Controller
@@ -91,4 +121,81 @@ func (m *MockRoomProfileCreator) Create(ctx context.Context, profile *domain.Roo
 func (mr *MockRoomProfileCreatorMockRecorder) Create(ctx, profile any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRoomProfileCreator)(nil).Create), ctx, profile)
+}
+
+// MockRoomProfileUpdater is a mock of RoomProfileUpdater interface.
+type MockRoomProfileUpdater struct {
+	ctrl     *gomock.Controller
+	recorder *MockRoomProfileUpdaterMockRecorder
+	isgomock struct{}
+}
+
+// MockRoomProfileUpdaterMockRecorder is the mock recorder for MockRoomProfileUpdater.
+type MockRoomProfileUpdaterMockRecorder struct {
+	mock *MockRoomProfileUpdater
+}
+
+// NewMockRoomProfileUpdater creates a new mock instance.
+func NewMockRoomProfileUpdater(ctrl *gomock.Controller) *MockRoomProfileUpdater {
+	mock := &MockRoomProfileUpdater{ctrl: ctrl}
+	mock.recorder = &MockRoomProfileUpdaterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockRoomProfileUpdater) EXPECT() *MockRoomProfileUpdaterMockRecorder {
+	return m.recorder
+}
+
+// Update mocks base method.
+func (m *MockRoomProfileUpdater) Update(ctx context.Context, profile *domain.RoomProfile) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", ctx, profile)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockRoomProfileUpdaterMockRecorder) Update(ctx, profile any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockRoomProfileUpdater)(nil).Update), ctx, profile)
+}
+
+// MockRoomProfileFinder is a mock of RoomProfileFinder interface.
+type MockRoomProfileFinder struct {
+	ctrl     *gomock.Controller
+	recorder *MockRoomProfileFinderMockRecorder
+	isgomock struct{}
+}
+
+// MockRoomProfileFinderMockRecorder is the mock recorder for MockRoomProfileFinder.
+type MockRoomProfileFinderMockRecorder struct {
+	mock *MockRoomProfileFinder
+}
+
+// NewMockRoomProfileFinder creates a new mock instance.
+func NewMockRoomProfileFinder(ctrl *gomock.Controller) *MockRoomProfileFinder {
+	mock := &MockRoomProfileFinder{ctrl: ctrl}
+	mock.recorder = &MockRoomProfileFinderMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockRoomProfileFinder) EXPECT() *MockRoomProfileFinderMockRecorder {
+	return m.recorder
+}
+
+// FindByID mocks base method.
+func (m *MockRoomProfileFinder) FindByID(ctx context.Context, id kernel.RoomID) (*domain.RoomProfile, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindByID", ctx, id)
+	ret0, _ := ret[0].(*domain.RoomProfile)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindByID indicates an expected call of FindByID.
+func (mr *MockRoomProfileFinderMockRecorder) FindByID(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockRoomProfileFinder)(nil).FindByID), ctx, id)
 }

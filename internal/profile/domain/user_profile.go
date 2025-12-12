@@ -63,6 +63,10 @@ func (p *UserProfile) UpdatePhoneNumber(phoneNumber kernel.PhoneNumber) {
 	p.phoneNumber = phoneNumber
 }
 
+func (p *UserProfile) UpdateEmail(email kernel.Email) {
+	p.email = email
+}
+
 func (p *UserProfile) UpdateAddress(address *kernel.Address) {
 	p.address = address
 }
