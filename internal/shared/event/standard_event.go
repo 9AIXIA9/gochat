@@ -32,7 +32,7 @@ func LoadStandardEvent(
 }
 
 func LoadStandardEventFromEvent(e Event) *StandardEvent {
-	if se, ok := any(e).(*StandardEvent); ok {
+	if se, ok := e.(*StandardEvent); ok {
 		return se
 	}
 	return &StandardEvent{
