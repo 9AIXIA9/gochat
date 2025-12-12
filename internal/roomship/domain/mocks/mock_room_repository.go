@@ -56,6 +56,20 @@ func (mr *MockRoomRepositoryMockRecorder) Create(ctx, room any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockRoomRepository)(nil).Create), ctx, room)
 }
 
+// DeleteByID mocks base method.
+func (m *MockRoomRepository) DeleteByID(ctx context.Context, roomID kernel.RoomID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteByID", ctx, roomID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteByID indicates an expected call of DeleteByID.
+func (mr *MockRoomRepositoryMockRecorder) DeleteByID(ctx, roomID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByID", reflect.TypeOf((*MockRoomRepository)(nil).DeleteByID), ctx, roomID)
+}
+
 // FindByID mocks base method.
 func (m *MockRoomRepository) FindByID(ctx context.Context, roomID kernel.RoomID) (*domain.Room, error) {
 	m.ctrl.T.Helper()
@@ -146,4 +160,42 @@ func (m *MockRoomFinderByID) FindByID(ctx context.Context, roomID kernel.RoomID)
 func (mr *MockRoomFinderByIDMockRecorder) FindByID(ctx, roomID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockRoomFinderByID)(nil).FindByID), ctx, roomID)
+}
+
+// MockRoomDeleterByID is a mock of RoomDeleterByID interface.
+type MockRoomDeleterByID struct {
+	ctrl     *gomock.Controller
+	recorder *MockRoomDeleterByIDMockRecorder
+	isgomock struct{}
+}
+
+// MockRoomDeleterByIDMockRecorder is the mock recorder for MockRoomDeleterByID.
+type MockRoomDeleterByIDMockRecorder struct {
+	mock *MockRoomDeleterByID
+}
+
+// NewMockRoomDeleterByID creates a new mock instance.
+func NewMockRoomDeleterByID(ctrl *gomock.Controller) *MockRoomDeleterByID {
+	mock := &MockRoomDeleterByID{ctrl: ctrl}
+	mock.recorder = &MockRoomDeleterByIDMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockRoomDeleterByID) EXPECT() *MockRoomDeleterByIDMockRecorder {
+	return m.recorder
+}
+
+// DeleteByID mocks base method.
+func (m *MockRoomDeleterByID) DeleteByID(ctx context.Context, roomID kernel.RoomID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteByID", ctx, roomID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteByID indicates an expected call of DeleteByID.
+func (mr *MockRoomDeleterByIDMockRecorder) DeleteByID(ctx, roomID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteByID", reflect.TypeOf((*MockRoomDeleterByID)(nil).DeleteByID), ctx, roomID)
 }

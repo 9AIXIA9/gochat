@@ -14,12 +14,12 @@ import (
 	"go.uber.org/zap"
 )
 
-type AgreeMemberRequestRequest struct {
-	UserID    kernel.UserID      `json:"-" validate:"required"`
-	RequestID kernel.OperationID `uri:"request_id" validate:"required"`
+type LeaveRoomRequest struct {
+	UserID kernel.UserID `json:"-" validate:"required"`
+	RoomID kernel.RoomID `uri:"room_id" validate:"required"`
 }
 
-func (r *AgreeMemberRequestRequest) Bind(ginContext *gin.Context) error {
+func (r *LeaveRoomRequest) Bind(ginContext *gin.Context) error {
 	userID := ginutils.GetUserID(ginContext)
 	r.UserID = userID
 	if err := ginContext.ShouldBindUri(r); err != nil {
@@ -28,14 +28,14 @@ func (r *AgreeMemberRequestRequest) Bind(ginContext *gin.Context) error {
 	return nil
 }
 
-func NewAgreeMemberRequestHandler(useCase application.AgreeMemberRequestUseCase, validator ginutils.Validator) gin.HandlerFunc {
+func NewLeaveRoomHandler(useCase application.LeaveRoomUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,
 		validator,
-		func(request *AgreeMemberRequestRequest) *application.AgreeMemberRequestInput {
-			return &application.AgreeMemberRequestInput{
-				UserID:    request.UserID,
-				RequestID: request.RequestID,
+		func(request *LeaveRoomRequest) *application.LeaveRoomInput {
+			return &application.LeaveRoomInput{
+				UserID: request.UserID,
+				RoomID: request.RoomID,
 			}
 		},
 		func(ginContext *gin.Context, _ *kernel.NoOutput) {
@@ -45,12 +45,12 @@ func NewAgreeMemberRequestHandler(useCase application.AgreeMemberRequestUseCase,
 			switch {
 			case errors.Is(err, myErrors.ErrEmptyInput):
 				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty"))
+			case errors.Is(err, domain.ErrOwnerCantLeave):
+				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "owner can't leave the room"))
 			case errors.Is(err, myErrors.ErrNotFound):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "request is not found"))
-			case errors.Is(err, domain.ErrNotAdmin):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "you have no permission to agree this request"))
+				ginutils.Response(ginContext, sharedHttp.ResponseSuccess)
 			default:
-				zap.L().Error("AgreeMemberRequestHandler error", zap.Error(err))
+				zap.L().Error("LeaveRoomHandler error", zap.Error(err))
 				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
 			}
 		},

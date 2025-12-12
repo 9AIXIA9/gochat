@@ -27,6 +27,8 @@ var UseCaseHTTPSet = wire.NewSet(
 	provideLoginUseCase,
 	provideRefreshAccessTokenUseCase,
 	provideParseAccessTokenUseCase,
+	provideProfileGetRoomProfileUseCase,
+	provideProfileGetUserProfileUseCase,
 	provideProfileUpdateRoomProfileUseCase,
 	provideProfileUpdateUserProfileUseCase,
 	provideSendPrivateMessageUseCase,
@@ -34,6 +36,8 @@ var UseCaseHTTPSet = wire.NewSet(
 	provideRefuseMemberRequestUseCase,
 	provideAgreeMemberRequestUseCase,
 	provideSendMemberRequestUseCase,
+	provideLeaveRoomUseCase,
+	provideListRoomMembersUseCase,
 	provideListRoomMessagesUseCase,
 	provideListPrivateMessagesUseCase,
 	provideCreateRoomUseCase,
@@ -142,6 +146,20 @@ func provideParseAccessTokenUseCase(
 		accessTokenParser,
 	)
 }
+func provideProfileGetUserProfileUseCase(
+	profileRepo profileDomain.UserProfileRepository,
+) (profileApp.GetUserProfileUseCase, error) {
+	return profileApp.NewGetUserProfileUseCase(
+		profileRepo,
+	)
+}
+func provideProfileGetRoomProfileUseCase(
+	profileRepo profileDomain.RoomProfileRepository,
+) (profileApp.GetRoomProfileUseCase, error) {
+	return profileApp.NewGetRoomProfileUseCase(
+		profileRepo,
+	)
+}
 func provideProfileUpdateUserProfileUseCase(
 	profileRepo profileDomain.UserProfileRepository,
 ) (profileApp.UpdateUserProfileUseCase, error) {
@@ -213,6 +231,24 @@ func provideCreateRoomUseCase(
 		roomNumberGenerator,
 		encryptor,
 		roomRepo,
+	)
+}
+func provideLeaveRoomUseCase(
+	roomRepo roomshipDomain.RoomRepository,
+	roomshipRepo roomshipDomain.RoomshipRepository,
+) (roomshipApp.LeaveRoomUseCase, error) {
+	return roomshipApp.NewLeaveRoomUseCase(
+		roomshipRepo,
+		roomRepo,
+		roomshipRepo,
+		roomshipRepo,
+	)
+}
+func provideListRoomMembersUseCase(
+	roomshipRepo roomshipDomain.RoomshipRepository,
+) (roomshipApp.ListRoomMembersUseCase, error) {
+	return roomshipApp.NewListRoomMembersUseCase(
+		roomshipRepo,
 	)
 }
 func provideSendMemberRequestUseCase(

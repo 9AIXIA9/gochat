@@ -10,4 +10,5 @@ var (
 	ErrIsAlreadyMember            = errors.New("user is already a member of the room")
 	ErrInvalidPassword            = errors.New("invalid password")
 	ErrNotAdmin                   = errors.New("user is not an admin")
+	ErrOwnerCantLeave             = errors.New("owner can't leave room")
 )

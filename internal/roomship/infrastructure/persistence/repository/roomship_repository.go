@@ -93,6 +93,12 @@ func (repo *RoomshipRepository) FindsByUserID(ctx context.Context, userID kernel
 	return repo.toDomains(roomships), nil
 }
 
+func (repo *RoomshipRepository) DeleteByUserIDAndRoomID(ctx context.Context, userID kernel.UserID, roomID kernel.RoomID) error {
+	return gormutils.TranslateError(repo.db.WithContext(ctx).
+		Where("user_id = ? AND room_id = ?", userID, roomID).
+		Delete(&model.Roomship{}).Error)
+}
+
 func (repo *RoomshipRepository) toModel(roomship *domain.Roomship) *model.Roomship {
 	return &model.Roomship{
 		ID:        roomship.ID(),

@@ -39,6 +39,8 @@ func provideHttpRouter(
 	login authApp.LoginUseCase,
 	refreshAccessToken authApp.RefreshAccessTokenUseCase,
 	parseAccessToken authApp.ParseAccessTokenUseCase,
+	getUserProfile profileApp.GetUserProfileUseCase,
+	getRoomProfile profileApp.GetRoomProfileUseCase,
 	updateUserProfile profileApp.UpdateUserProfileUseCase,
 	updateRoomProfile profileApp.UpdateRoomProfileUseCase,
 	sendPrivateMessage chatApp.SendPrivateMessageUseCase,
@@ -46,11 +48,13 @@ func provideHttpRouter(
 	listPrivateMessages chatApp.ListPrivateMessagesUseCase,
 	listRoomMessages chatApp.ListRoomMessagesUseCase,
 	createRoom roomshipApp.CreateRoomUseCase,
+	listRoomMembers roomshipApp.ListRoomMembersUseCase,
 	sendMemberRequest roomshipApp.SendMemberRequestUseCase,
 	agreeMemberRequest roomshipApp.AgreeMemberRequestUseCase,
 	refuseMemberRequest roomshipApp.RefuseMemberRequestUseCase,
 	listMemberRequests roomshipApp.ListMemberRequestsUseCase,
 	listRoomships roomshipApp.ListRoomshipsUseCase,
+	leaveRoom roomshipApp.LeaveRoomUseCase,
 	sendFriendRequest friendshipApp.SendFriendRequestUseCase,
 	agreeFriendRequest friendshipApp.AgreeFriendRequestUseCase,
 	refuseFriendRequest friendshipApp.RefuseFriendRequestUseCase,
@@ -95,7 +99,6 @@ func provideHttpRouter(
 
 	// 授权相关路由
 	authorizationGroup := baseGroup.Group("/authorization")
-	authorizationGroup.Use()
 	{
 		authorizationGroup.POST("/sign_up", authHTTP.NewSignUpHandler(signUp, validator))
 		authorizationGroup.POST("/login", authHTTP.NewLoginHandler(login, validator, appConfig.Cookie))
@@ -106,9 +109,14 @@ func provideHttpRouter(
 
 	// 聊天相关路由
 	profileGroup := baseGroup.Group("/profile")
+	{
+		profileGroup.GET("/user/:user_id", profileHTTP.NewGetUserProfileHandler(getUserProfile, validator))
+		profileGroup.GET("/room/:room_id", profileHTTP.NewGetRoomProfileHandler(getRoomProfile, validator))
+	}
+
 	profileGroup.Use(authorizationMiddleware)
 	{
-		profileGroup.PUT("/user", profileHTTP.NewUpdateUserProfileHandler(updateUserProfile, validator))
+		profileGroup.PUT("/me", profileHTTP.NewUpdateUserProfileHandler(updateUserProfile, validator))
 		profileGroup.PUT("/room", profileHTTP.NewUpdateRoomProfileHandler(updateRoomProfile, validator))
 	}
 
@@ -124,6 +132,10 @@ func provideHttpRouter(
 
 	// 房间功能路由
 	roomshipGroup := baseGroup.Group("/roomship")
+	{
+		roomshipGroup.GET("/room/:room_id", roomshipHTTP.NewListRoomMembersHandler(listRoomMembers, validator))
+	}
+
 	roomshipGroup.Use(authorizationMiddleware)
 	{
 		// Rooms
@@ -131,6 +143,7 @@ func provideHttpRouter(
 
 		// Roomship
 		roomshipGroup.GET("/", roomshipHTTP.NewListRoomshipsHandler(listRoomships, validator))
+		roomshipGroup.DELETE("/room/:room_id", roomshipHTTP.NewLeaveRoomHandler(leaveRoom, validator))
 
 		// Member Requests
 		roomshipGroup.GET("/request", roomshipHTTP.NewListMemberRequestsHandler(listMemberRequests, validator))

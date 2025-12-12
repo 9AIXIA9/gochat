@@ -14,6 +14,7 @@ type RoomshipRepository interface {
 	RoomshipFinderByUserIDAndRoomID
 	RoomshipExisterByUserIDAndRoomID
 	RoomshipsFinderByUserID
+	RoomshipDeleterByUserIDAndRoomID
 }
 
 type RoomshipCreator interface {
@@ -42,4 +43,8 @@ type RoomshipExisterByUserIDAndRoomID interface {
 
 type RoomshipsFinderByUserID interface {
 	FindsByUserID(ctx context.Context, userID kernel.UserID, limit int, baseID RoomshipID) ([]*Roomship, error)
+}
+
+type RoomshipDeleterByUserIDAndRoomID interface {
+	DeleteByUserIDAndRoomID(ctx context.Context, userID kernel.UserID, roomID kernel.RoomID) error
 }
