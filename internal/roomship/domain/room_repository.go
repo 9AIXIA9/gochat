@@ -9,6 +9,7 @@ import (
 type RoomRepository interface {
 	RoomCreator
 	RoomFinderByID
+	RoomDeleterByID
 }
 
 type RoomCreator interface {
@@ -17,4 +18,8 @@ type RoomCreator interface {
 
 type RoomFinderByID interface {
 	FindByID(ctx context.Context, roomID kernel.RoomID) (*Room, error)
+}
+
+type RoomDeleterByID interface {
+	DeleteByID(ctx context.Context, roomID kernel.RoomID) error
 }

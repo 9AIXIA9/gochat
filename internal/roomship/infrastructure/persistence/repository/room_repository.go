@@ -46,6 +46,10 @@ func (repo *RoomRepository) FindByID(ctx context.Context, roomID kernel.RoomID) 
 	return repo.toDomain(&room), nil
 }
 
+func (repo *RoomRepository) DeleteByID(ctx context.Context, roomID kernel.RoomID) error {
+	return gormutils.TranslateError(repo.db.WithContext(ctx).Delete(&model.Room{}, "id = ?", roomID).Error)
+}
+
 func (repo *RoomRepository) toModel(room *domain.Room) *model.Room {
 	return &model.Room{
 		ID:                room.ID(),

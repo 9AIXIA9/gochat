@@ -48,11 +48,13 @@ func provideHttpRouter(
 	listPrivateMessages chatApp.ListPrivateMessagesUseCase,
 	listRoomMessages chatApp.ListRoomMessagesUseCase,
 	createRoom roomshipApp.CreateRoomUseCase,
+	listRoomMembers roomshipApp.ListRoomMembersUseCase,
 	sendMemberRequest roomshipApp.SendMemberRequestUseCase,
 	agreeMemberRequest roomshipApp.AgreeMemberRequestUseCase,
 	refuseMemberRequest roomshipApp.RefuseMemberRequestUseCase,
 	listMemberRequests roomshipApp.ListMemberRequestsUseCase,
 	listRoomships roomshipApp.ListRoomshipsUseCase,
+	leaveRoom roomshipApp.LeaveRoomUseCase,
 	sendFriendRequest friendshipApp.SendFriendRequestUseCase,
 	agreeFriendRequest friendshipApp.AgreeFriendRequestUseCase,
 	refuseFriendRequest friendshipApp.RefuseFriendRequestUseCase,
@@ -132,6 +134,10 @@ func provideHttpRouter(
 
 	// 房间功能路由
 	roomshipGroup := baseGroup.Group("/roomship")
+	{
+		roomshipGroup.GET("/room/:room_id", roomshipHTTP.NewListRoomMembersHandler(listRoomMembers, validator))
+	}
+
 	roomshipGroup.Use(authorizationMiddleware)
 	{
 		// Rooms
@@ -139,6 +145,7 @@ func provideHttpRouter(
 
 		// Roomship
 		roomshipGroup.GET("/", roomshipHTTP.NewListRoomshipsHandler(listRoomships, validator))
+		roomshipGroup.DELETE("/room/:room_id", roomshipHTTP.NewLeaveRoomHandler(leaveRoom, validator))
 
 		// Member Requests
 		roomshipGroup.GET("/request", roomshipHTTP.NewListMemberRequestsHandler(listMemberRequests, validator))

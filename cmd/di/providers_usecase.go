@@ -36,6 +36,8 @@ var UseCaseHTTPSet = wire.NewSet(
 	provideRefuseMemberRequestUseCase,
 	provideAgreeMemberRequestUseCase,
 	provideSendMemberRequestUseCase,
+	provideLeaveRoomUseCase,
+	provideListRoomMembersUseCase,
 	provideListRoomMessagesUseCase,
 	provideListPrivateMessagesUseCase,
 	provideCreateRoomUseCase,
@@ -229,6 +231,24 @@ func provideCreateRoomUseCase(
 		roomNumberGenerator,
 		encryptor,
 		roomRepo,
+	)
+}
+func provideLeaveRoomUseCase(
+	roomRepo roomshipDomain.RoomRepository,
+	roomshipRepo roomshipDomain.RoomshipRepository,
+) (roomshipApp.LeaveRoomUseCase, error) {
+	return roomshipApp.NewLeaveRoomUseCase(
+		roomshipRepo,
+		roomRepo,
+		roomshipRepo,
+		roomshipRepo,
+	)
+}
+func provideListRoomMembersUseCase(
+	roomshipRepo roomshipDomain.RoomshipRepository,
+) (roomshipApp.ListRoomMembersUseCase, error) {
+	return roomshipApp.NewListRoomMembersUseCase(
+		roomshipRepo,
 	)
 }
 func provideSendMemberRequestUseCase(

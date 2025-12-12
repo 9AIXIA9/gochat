@@ -104,6 +104,10 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 		return nil, err
 	}
 	roomshipRepository2 := provideRoomshipRoomshipRepository(db, eventRepository)
+	listRoomMembersUseCase, err := provideListRoomMembersUseCase(roomshipRepository2)
+	if err != nil {
+		return nil, err
+	}
 	memberRequestRepository := provideRoomshipMemberRequestRepository(db, eventRepository)
 	operationIDGenerator := provideOperationIDGenerator()
 	sendMemberRequestUseCase, err := provideSendMemberRequestUseCase(roomshipRepository2, memberRequestRepository, roomRepository, eventIDGenerator, operationIDGenerator, hasher)
@@ -123,6 +127,10 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 		return nil, err
 	}
 	listRoomshipsUseCase, err := provideListRoomshipsUseCase(roomshipRepository2)
+	if err != nil {
+		return nil, err
+	}
+	leaveRoomUseCase, err := provideLeaveRoomUseCase(roomRepository, roomshipRepository2)
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +181,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	}
 	server := provideWebsocketServer(upgrader, manager, router, userSessionStartedUseCase)
 	metrics := provideMetrics()
-	engine := provideHttpRouter(appConfig, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, getUserProfileUseCase, getRoomProfileUseCase, updateUserProfileUseCase, updateRoomProfileUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, listPrivateMessagesUseCase, listRoomMessagesUseCase, createRoomUseCase, sendMemberRequestUseCase, agreeMemberRequestUseCase, refuseMemberRequestUseCase, listMemberRequestsUseCase, listRoomshipsUseCase, sendFriendRequestUseCase, agreeFriendRequestUseCase, refuseFriendRequestUseCase, listFriendshipsUseCase, listFriendRequestsUseCase, listSystemMessagesUseCase, validator, client, server, metrics)
+	engine := provideHttpRouter(appConfig, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, getUserProfileUseCase, getRoomProfileUseCase, updateUserProfileUseCase, updateRoomProfileUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, listPrivateMessagesUseCase, listRoomMessagesUseCase, createRoomUseCase, listRoomMembersUseCase, sendMemberRequestUseCase, agreeMemberRequestUseCase, refuseMemberRequestUseCase, listMemberRequestsUseCase, listRoomshipsUseCase, leaveRoomUseCase, sendFriendRequestUseCase, agreeFriendRequestUseCase, refuseFriendRequestUseCase, listFriendshipsUseCase, listFriendRequestsUseCase, listSystemMessagesUseCase, validator, client, server, metrics)
 	ginServer := provideHttpServer(appConfig, engine)
 	eventPublisher, err := provideKafkaPublisher(appConfig, eventRepository, metrics)
 	if err != nil {
