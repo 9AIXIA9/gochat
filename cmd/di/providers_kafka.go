@@ -20,6 +20,9 @@ import (
 	notificationApp "gochat/internal/notification/application"
 	notificationDomain "gochat/internal/notification/domain"
 	notificationEvent "gochat/internal/notification/port/event"
+	profileApp "gochat/internal/profile/application"
+	profileDomain "gochat/internal/profile/domain"
+	profileEvent "gochat/internal/profile/port/event"
 	roomshipApp "gochat/internal/roomship/application"
 	roomshipDomain "gochat/internal/roomship/domain"
 	roomshipEvent "gochat/internal/roomship/port/event"
@@ -99,6 +102,10 @@ func provideKafkaRouter(
 	appConfig *config.App,
 	// auth
 	authUserCreated authApp.UserCreatedUseCase,
+	// profile
+	profileUserCreated profileApp.UserCreatedUseCase,
+	profileRoomCreated profileApp.RoomCreatedUseCase,
+	profileRoomshipCreated profileApp.RoomshipCreatedUseCase,
 	// chat
 	chatUserCreated chatApp.UserCreatedUseCase,
 	chatRoomCreated chatApp.RoomCreatedUseCase,
@@ -137,6 +144,13 @@ func provideKafkaRouter(
 	// Authorization
 	{
 		router.Handle(authDomain.TopicUserCreated, kafkaInfra.WrapEventHandler(authEvent.NewUserCreatedEventHandler(authUserCreated)))
+	}
+
+	// Profile
+	{
+		router.Handle(profileDomain.TopicUserCreated, kafkaInfra.WrapEventHandler(profileEvent.NewUserCreatedEventHandler(profileUserCreated)))
+		router.Handle(profileDomain.TopicRoomCreated, kafkaInfra.WrapEventHandler(profileEvent.NewRoomCreatedEventHandler(profileRoomCreated)))
+		router.Handle(profileDomain.TopicRoomshipCreated, kafkaInfra.WrapEventHandler(profileEvent.NewRoomshipCreatedEventHandler(profileRoomshipCreated)))
 	}
 
 	// Chat
@@ -186,6 +200,10 @@ func provideTopicsEnsured(appConfig *config.App) kafkaTopicEnsured {
 		[]event.Topic{
 			// authorization
 			authDomain.TopicUserCreated,
+			// profile
+			profileDomain.TopicUserCreated,
+			profileDomain.TopicRoomCreated,
+			profileDomain.TopicRoomshipCreated,
 			// roomship
 			roomshipDomain.TopicUserCreated,
 			roomshipDomain.TopicRoomshipCreated,

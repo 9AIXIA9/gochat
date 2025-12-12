@@ -84,7 +84,7 @@ func (uc *roomCreatedUseCase) Execute(ctx context.Context, input *RoomCreatedInp
 		return nil, err
 	}
 
-	profileEvCreated, err := profileDomain.NewRoomCreatedEvent(room.ID(), uc.idGenerator)
+	profileEvCreated, err := profileDomain.NewRoomCreatedEvent(room.ID(), room.CreatedAt(), uc.idGenerator)
 	if err != nil {
 		return nil, err
 	}

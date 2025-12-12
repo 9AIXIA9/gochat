@@ -10,6 +10,8 @@ import (
 	friendshipDomain "gochat/internal/friendship/domain"
 	notificationApp "gochat/internal/notification/application"
 	notificationDomain "gochat/internal/notification/domain"
+	profileApp "gochat/internal/profile/application"
+	profileDomain "gochat/internal/profile/domain"
 	roomshipApp "gochat/internal/roomship/application"
 	"gochat/internal/roomship/domain"
 	roomshipDomain "gochat/internal/roomship/domain"
@@ -25,6 +27,8 @@ var UseCaseHTTPSet = wire.NewSet(
 	provideLoginUseCase,
 	provideRefreshAccessTokenUseCase,
 	provideParseAccessTokenUseCase,
+	provideProfileUpdateRoomProfileUseCase,
+	provideProfileUpdateUserProfileUseCase,
 	provideSendPrivateMessageUseCase,
 	provideSendRoomMessageUseCase,
 	provideRefuseMemberRequestUseCase,
@@ -51,6 +55,9 @@ var UseCaseWebsocketSet = wire.NewSet(
 
 var UseCaseKafkaSet = wire.NewSet(
 	provideAuthUserCreatedUseCase,
+	provideProfileRoomshipCreatedUseCase,
+	provideProfileRoomCreatedUseCase,
+	provideProfileUserCreatedUseCase,
 	provideRoomshipUserCreatedUseCase,
 	provideRoomshipRoomshipCreatedUseCase,
 	provideRoomshipMemberRequestAgreedUseCase,
@@ -133,6 +140,24 @@ func provideParseAccessTokenUseCase(
 ) (authApp.ParseAccessTokenUseCase, error) {
 	return authApp.NewParseAccessTokenUseCase(
 		accessTokenParser,
+	)
+}
+func provideProfileUpdateUserProfileUseCase(
+	profileRepo profileDomain.UserProfileRepository,
+) (profileApp.UpdateUserProfileUseCase, error) {
+	return profileApp.NewUpdateUserProfileUseCase(
+		profileRepo,
+		profileRepo,
+	)
+}
+func provideProfileUpdateRoomProfileUseCase(
+	roomshipRepo profileDomain.RoomshipRepository,
+	profileRepo profileDomain.RoomProfileRepository,
+) (profileApp.UpdateRoomProfileUseCase, error) {
+	return profileApp.NewUpdateRoomProfileUseCase(
+		profileRepo,
+		profileRepo,
+		roomshipRepo,
 	)
 }
 func provideSendPrivateMessageUseCase(
@@ -336,6 +361,31 @@ func provideAuthUserCreatedUseCase(
 		eventIDGen,
 		eventRepo,
 		userRepo,
+	)
+}
+func provideProfileUserCreatedUseCase(
+	userRepo profileDomain.UserRepository,
+	profileRepo profileDomain.UserProfileRepository,
+) (profileApp.UserCreatedUseCase, error) {
+	return profileApp.NewUserCreatedUseCase(
+		userRepo,
+		profileRepo,
+	)
+}
+func provideProfileRoomCreatedUseCase(
+	roomRepo profileDomain.RoomRepository,
+	profileRepo profileDomain.RoomProfileRepository,
+) (profileApp.RoomCreatedUseCase, error) {
+	return profileApp.NewRoomCreatedUseCase(
+		roomRepo,
+		profileRepo,
+	)
+}
+func provideProfileRoomshipCreatedUseCase(
+	roomshipRepo profileDomain.RoomshipRepository,
+) (profileApp.RoomshipCreatedUseCase, error) {
+	return profileApp.NewRoomshipCreatedUseCase(
+		roomshipRepo,
 	)
 }
 func provideRoomshipUserCreatedUseCase(
