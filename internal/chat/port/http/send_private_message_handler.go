@@ -37,17 +37,17 @@ func NewSendPrivateMessageHandler(useCase application.SendPrivateMessageUseCase,
 			}
 		},
 		func(ginContext *gin.Context, _ *kernel.NoOutput) {
-			ginutils.Response(ginContext, sharedHttp.ResponseSuccess)
+			ginutils.ResponseSuccess(ginContext)
 		},
 		func(ginContext *gin.Context, err error) {
 			switch {
 			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty"))
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "input is empty")
 			case errors.Is(err, myErrors.ErrNotFound):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "recipientID not found"))
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "recipientID not found")
 			default:
 				zap.L().Error("send private message handler failed", zap.Error(err))
-				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
+				ginutils.Response(ginContext, sharedHttp.CodeServerError)
 			}
 		},
 		5*time.Second,

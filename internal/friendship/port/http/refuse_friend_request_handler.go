@@ -39,21 +39,21 @@ func NewRefuseFriendRequestHandler(useCase application.RefuseFriendRequestUseCas
 			}
 		},
 		func(ginContext *gin.Context, _ *kernel.NoOutput) {
-			ginutils.Response(ginContext, sharedHttp.ResponseSuccess)
+			ginutils.ResponseSuccess(ginContext)
 		},
 		func(ginContext *gin.Context, err error) {
 			switch {
 			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty"))
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "input is empty")
 			case errors.Is(err, myErrors.ErrNotFound):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "friend request not found"))
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "friend request not found")
 			case errors.Is(err, domain.ErrFriendRequestNotForUser):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "friend request not for this user"))
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "friend request not for this user")
 			case errors.Is(err, domain.ErrFriendRequestHasBeenHandled):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "friend request has been handled"))
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "friend request has been handled")
 			default:
 				zap.L().Error("RefuseFriendRequestHandler error", zap.Error(err))
-				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
+				ginutils.Response(ginContext, sharedHttp.CodeServerError)
 			}
 		},
 		5*time.Second,

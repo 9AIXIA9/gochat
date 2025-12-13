@@ -40,21 +40,21 @@ func NewSendMemberRequestHandler(useCase application.SendMemberRequestUseCase, v
 			}
 		},
 		func(ginContext *gin.Context, _ *kernel.NoOutput) {
-			ginutils.Response(ginContext, sharedHttp.ResponseSuccess)
+			ginutils.ResponseSuccess(ginContext)
 		},
 		func(ginContext *gin.Context, err error) {
 			switch {
 			case errors.Is(err, domain.ErrMemberRequestAlreadyExists):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "you have already sent a member request to this room"))
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "you have already sent a member request to this room")
 			case errors.Is(err, domain.ErrIsAlreadyMember):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "you are already a member of this room"))
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "you are already a member of this room")
 			case errors.Is(err, myErrors.ErrNotFound):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "the room does not exist"))
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "the room does not exist")
 			case errors.Is(err, domain.ErrInvalidPassword):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "the password is incorrect"))
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "the password is incorrect")
 			default:
 				zap.L().Error("SendMemberRequestHandler error", zap.Error(err))
-				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
+				ginutils.Response(ginContext, sharedHttp.CodeServerError)
 			}
 		},
 		5*time.Second,

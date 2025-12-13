@@ -1,5 +1,13 @@
 package http
 
+var (
+	ResponseSuccess      = NewApiResponse(CodeSuccess)
+	ResponseServerError  = NewApiResponse(CodeServerError)
+	ResponseTimeout      = NewApiResponse(CodeTimeout)
+	ResponseInvalidToken = NewApiResponse(CodeInvalidToken)
+	ResponseInvalidParam = NewApiResponse(CodeInvalidParam)
+)
+
 type ApiResponse struct {
 	Code    BusinessCode `json:"code"`
 	Message string       `json:"message"`
@@ -27,11 +35,3 @@ func NewApiResponseWithData(data any) *ApiResponse {
 		Data:    data,
 	}
 }
-
-var (
-	ResponseSuccess      = NewApiResponse(CodeSuccess)
-	ResponseServerError  = NewApiResponse(CodeServerError)
-	ResponseTimeout      = NewApiResponse(CodeTimeout)
-	ResponseInvalidParam = NewApiResponse(CodeInvalidParam)
-	ResponseInvalidToken = NewApiResponse(CodeInvalidToken)
-)

@@ -39,19 +39,19 @@ func NewGetRoomProfileHandler(useCase application.GetRoomProfileUseCase, validat
 			}
 		},
 		func(ginContext *gin.Context, output *application.GetRoomProfileOutput) {
-			ginutils.Response(ginContext, sharedHttp.NewApiResponseWithData(&GetRoomProfileResponseData{
+			ginutils.ResponseSuccessWithData(ginContext, &GetRoomProfileResponseData{
 				Profile: dto.ToRoomProfileDTO(output.Profile),
-			}))
+			})
 		},
 		func(ginContext *gin.Context, err error) {
 			switch {
 			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty"))
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "input is empty")
 			case errors.Is(err, myErrors.ErrNotFound):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeNotFound, "room is not found"))
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeNotFound, "room is not found")
 			default:
 				zap.L().Error("GetRoomProfileHandler error", zap.Error(err))
-				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
+				ginutils.Response(ginContext, sharedHttp.CodeServerError)
 			}
 		},
 		5*time.Second,

@@ -39,19 +39,19 @@ func NewLeaveRoomHandler(useCase application.LeaveRoomUseCase, validator ginutil
 			}
 		},
 		func(ginContext *gin.Context, _ *kernel.NoOutput) {
-			ginutils.Response(ginContext, sharedHttp.ResponseSuccess)
+			ginutils.ResponseSuccess(ginContext)
 		},
 		func(ginContext *gin.Context, err error) {
 			switch {
 			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty"))
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "input is empty")
 			case errors.Is(err, domain.ErrOwnerCantLeave):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "owner can't leave the room"))
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "owner can't leave the room")
 			case errors.Is(err, myErrors.ErrNotFound):
-				ginutils.Response(ginContext, sharedHttp.ResponseSuccess)
+				ginutils.ResponseSuccess(ginContext)
 			default:
 				zap.L().Error("LeaveRoomHandler error", zap.Error(err))
-				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
+				ginutils.Response(ginContext, sharedHttp.CodeServerError)
 			}
 		},
 		5*time.Second,

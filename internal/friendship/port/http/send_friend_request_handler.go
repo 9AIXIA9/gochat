@@ -38,23 +38,23 @@ func NewSendFriendRequestHandler(useCase application.SendFriendRequestUseCase, v
 			}
 		},
 		func(ginContext *gin.Context, _ *kernel.NoOutput) {
-			ginutils.Response(ginContext, sharedHttp.ResponseSuccess)
+			ginutils.ResponseSuccess(ginContext)
 		},
 		func(ginContext *gin.Context, err error) {
 			switch {
 			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty"))
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "input is empty")
 			case errors.Is(err, domain.ErrAddYourselfAsFriend):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "you cannot add yourself as a friend"))
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "you cannot add yourself as a friend")
 			case errors.Is(err, domain.ErrAlreadyBeenFriends):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "you are already friends"))
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "you are already friends")
 			case errors.Is(err, domain.ErrFriendRequestExists):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "friend request already sent"))
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "friend request already sent")
 			case errors.Is(err, domain.ErrFriendRequestContentTooLong):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "friend request content too long"))
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "friend request content too long")
 			default:
 				zap.L().Error("SendFriendRequestHandler error", zap.Error(err))
-				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
+				ginutils.Response(ginContext, sharedHttp.CodeServerError)
 			}
 		},
 		5*time.Second,

@@ -51,17 +51,17 @@ func NewListRoomMessagesHandler(useCase application.ListRoomMessagesUseCase, val
 			}
 		},
 		func(ginContext *gin.Context, output *application.ListRoomMessagesOutput) {
-			ginutils.Response(ginContext, sharedHttp.NewApiResponseWithData(&ListRoomMessagesResponseData{
+			ginutils.ResponseSuccessWithData(ginContext, &ListRoomMessagesResponseData{
 				RoomMessages: dto.ToRoomMessageDTOs(output.RoomMessages),
-			}))
+			})
 		},
 		func(ginContext *gin.Context, err error) {
 			switch {
 			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty"))
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "input is empty")
 			default:
 				zap.L().Error("ListRoomMessageHandler error", zap.Error(err))
-				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
+				ginutils.Response(ginContext, sharedHttp.CodeServerError)
 			}
 		},
 		5*time.Second,

@@ -51,17 +51,17 @@ func NewListMemberRequestsHandler(useCase application.ListMemberRequestsUseCase,
 			}
 		},
 		func(ginContext *gin.Context, output *application.ListMemberRequestsOutput) {
-			ginutils.Response(ginContext, sharedHttp.NewApiResponseWithData(&ListMemberRequestsResponseData{
+			ginutils.ResponseSuccessWithData(ginContext, &ListMemberRequestsResponseData{
 				Requests: dto.ToMemberRequestDTOs(output.Requests),
-			}))
+			})
 		},
 		func(ginContext *gin.Context, err error) {
 			switch {
 			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty"))
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "input is empty")
 			default:
 				zap.L().Error("ListMemberRequestsHandler error", zap.Error(err))
-				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
+				ginutils.Response(ginContext, sharedHttp.CodeServerError)
 			}
 		},
 		5*time.Second,

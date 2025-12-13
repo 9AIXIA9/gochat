@@ -20,7 +20,7 @@ func NewAuthorizationMiddleware(useCase application.ParseAccessTokenUseCase) gin
 			// Bearer token格式
 			parts := strings.SplitN(authorizationHeader, " ", 2)
 			if len(parts) != 2 || parts[0] != "Bearer" {
-				ginutils.Response(ginContext, http.ResponseInvalidToken)
+				ginutils.Response(ginContext, http.CodeInvalidToken)
 				ginContext.Abort()
 				return
 			}
@@ -28,14 +28,14 @@ func NewAuthorizationMiddleware(useCase application.ParseAccessTokenUseCase) gin
 		} else if authorizationQuery := ginContext.Query("Authorization"); authorizationQuery != "" {
 			accessToken = domain.AccessToken(authorizationQuery)
 		} else {
-			ginutils.Response(ginContext, http.ResponseInvalidToken)
+			ginutils.Response(ginContext, http.CodeInvalidToken)
 			ginContext.Abort()
 			return
 		}
 
 		// 解析token
 		if output, err := useCase.Execute(ginContext.Request.Context(), &application.ParseAccessTokenInput{AccessToken: accessToken}); err != nil {
-			ginutils.Response(ginContext, http.ResponseInvalidToken)
+			ginutils.Response(ginContext, http.CodeInvalidToken)
 			ginContext.Abort()
 			return
 		} else {

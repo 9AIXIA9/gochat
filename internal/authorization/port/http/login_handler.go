@@ -42,7 +42,7 @@ func NewLoginHandler(useCase application.LoginUseCase, validator ginutils.Valida
 		},
 		func(ginContext *gin.Context, output *application.LoginOutput) {
 			if time.Now().UTC().After(output.RefreshToken.ExpiredAt()) {
-				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
+				ginutils.Response(ginContext, sharedHttp.CodeServerError)
 				return
 			}
 			ginContext.SetCookie(
@@ -54,7 +54,7 @@ func NewLoginHandler(useCase application.LoginUseCase, validator ginutils.Valida
 				cookieConfig.Secure,
 				cookieConfig.HttpOnly,
 			)
-			ginutils.Response(ginContext, sharedHttp.NewApiResponseWithData(&LoginResponseData{AccessToken: output.AccessToken}))
+			ginutils.ResponseSuccessWithData(ginContext, &LoginResponseData{AccessToken: output.AccessToken})
 		},
 		func(ginContext *gin.Context, err error) {
 			switch {
@@ -63,10 +63,10 @@ func NewLoginHandler(useCase application.LoginUseCase, validator ginutils.Valida
 				errors.Is(err, domain.ErrInvalidPassword) ||
 				errors.Is(err, myErrors.ErrInvalidNumber) ||
 				errors.Is(err, myErrors.ErrNotFound):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "password is invalid"))
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "password is invalid")
 			default:
 				zap.L().Error("login handler failed", zap.Error(err))
-				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
+				ginutils.Response(ginContext, sharedHttp.CodeServerError)
 			}
 		},
 		5*time.Second,
