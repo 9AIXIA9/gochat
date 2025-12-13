@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"go.opentelemetry.io/otel"
+	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/plugin/opentelemetry/tracing"
@@ -19,6 +20,19 @@ func ConnectToMysql(config *MysqlConfig) (*gorm.DB, error) {
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
+		defer func() {
+			if db == nil {
+				return
+			}
+			sqlDB, err := db.DB()
+			if err != nil {
+				zap.L().Warn("close mysql connection failed", zap.Error(err))
+				return
+			}
+			if err := sqlDB.Close(); err != nil {
+				zap.L().Warn("close mysql connection failed", zap.Error(err))
+			}
+		}()
 		return nil, fmt.Errorf("connect to mysql failed,err:%w", err)
 	}
 	// Register tracing plugin only if a tracer provider exists (telemetry may be disabled)

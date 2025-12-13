@@ -29,6 +29,14 @@ type Consumer struct {
 func NewConsumer(config *Config, router *Router) (*Consumer, error) {
 	consumer, err := ckafka.NewConsumer(getConsumerConfigMap(config))
 	if err != nil {
+		defer func() {
+			if consumer == nil {
+				return
+			}
+			if err := consumer.Close(); err != nil {
+				zap.L().Warn("kafka consumer close failed after creation error", zap.Error(err))
+			}
+		}()
 		return nil, fmt.Errorf("create kafka consumer failed: %w", err)
 	}
 

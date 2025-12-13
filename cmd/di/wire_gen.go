@@ -188,10 +188,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 		return nil, err
 	}
 	diKafkaTopicEnsured := provideTopicsEnsured(appConfig)
-	dialer, err := provideGomailDialer(appConfig)
-	if err != nil {
-		return nil, err
-	}
+	dialer := provideGomailDialer(appConfig)
 	diEmailServiceAvailable := provideEmailAvailable(dialer)
 	userCreatedUseCase, err := provideAuthUserCreatedUseCase(eventIDGenerator, eventRepository, userRepository)
 	if err != nil {
