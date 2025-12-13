@@ -33,17 +33,18 @@ func NewAuthorizationMiddleware(useCase application.ParseAccessTokenUseCase) gin
 			return
 		}
 
-		// 解析token
-		if output, err := useCase.Execute(ginContext.Request.Context(), &application.ParseAccessTokenInput{AccessToken: accessToken}); err != nil {
+		//解析 token
+		output, err := useCase.Execute(ginContext.Request.Context(), &application.ParseAccessTokenInput{AccessToken: accessToken})
+		if err != nil {
 			ginutils.Response(ginContext, http.CodeInvalidToken)
 			ginContext.Abort()
 			return
-		} else {
-			// 写入到 gin.Context 供 gin handlers 使用
-			ginutils.SetUserID(ginContext, output.UserID)
-			// 同步写入到 request.Context，供标准 http.Handler 使用
-			ginContext.Request = ginContext.Request.WithContext(utils.SetUserID(ginContext.Request.Context(), output.UserID))
-			ginContext.Next()
 		}
+
+		// 写入到 gin.Context 供 gin handlers 使用
+		ginutils.SetUserID(ginContext, output.UserID)
+		// 同步写入到 request.Context，供标准 http.Handler 使用
+		ginContext.Request = ginContext.Request.WithContext(utils.SetUserID(ginContext.Request.Context(), output.UserID))
+		ginContext.Next()
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
 )
 
 func ConnectToRedis(config *Config) (*redis.Client, error) {
@@ -17,6 +18,11 @@ func ConnectToRedis(config *Config) (*redis.Client, error) {
 
 	_, err := rdb.Ping(context.Background()).Result()
 	if err != nil {
+		defer func() {
+			if err := rdb.Close(); err != nil {
+				zap.L().Warn("close redis client failed", zap.Error(err))
+			}
+		}()
 		return nil, fmt.Errorf("connect to redis failed,err:%w", err)
 	}
 

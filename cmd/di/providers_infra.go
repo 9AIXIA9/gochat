@@ -144,7 +144,7 @@ func provideAccessTokenManager(appConfig *config.App) *jwt.AccessTokenManager {
 func provideRefreshTokenGenerator(appConfig *config.App) *crypto.RefreshTokenGenerator {
 	return crypto.NewRefreshTokenGenerator(appConfig.RefreshToken)
 }
-func provideGomailDialer(appConfig *config.App) (*gomail.Dialer, error) {
+func provideGomailDialer(appConfig *config.App) *gomail.Dialer {
 	return gomailInfra.NewDialer(appConfig.Email)
 }
 func provideEmailAvailable(d *gomail.Dialer) emailServiceAvailable {

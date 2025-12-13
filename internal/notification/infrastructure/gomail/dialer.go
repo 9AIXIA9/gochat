@@ -6,8 +6,8 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
-func NewDialer(config *EmailNotifierConfig) (*gomail.Dialer, error) {
-	return gomail.NewDialer(config.Host, config.Port, config.Username, config.Password), nil
+func NewDialer(config *EmailNotifierConfig) *gomail.Dialer {
+	return gomail.NewDialer(config.Host, config.Port, config.Username, config.Password)
 }
 
 func TestConnection(dialer *gomail.Dialer) error {

@@ -6,16 +6,11 @@ import (
 )
 
 const (
-	userIDKey         = "user_id"
-	websocketTopicKey = "topic"
+	userIDKey = "user_id"
 )
 
 func SetUserID(ctx context.Context, userID kernel.UserID) context.Context {
 	return context.WithValue(ctx, userIDKey, userID)
-}
-
-func SetWebsocketTopic(ctx context.Context, topic string) context.Context {
-	return context.WithValue(ctx, websocketTopicKey, topic)
 }
 
 func GetUserID(ctx context.Context) kernel.UserID {
@@ -24,12 +19,4 @@ func GetUserID(ctx context.Context) kernel.UserID {
 		return ""
 	}
 	return userID
-}
-
-func GetWebsocketTopic(ctx context.Context) string {
-	topic, ok := ctx.Value(websocketTopicKey).(string)
-	if !ok {
-		return ""
-	}
-	return topic
 }

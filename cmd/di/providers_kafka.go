@@ -143,51 +143,51 @@ func provideKafkaRouter(
 
 	// Authorization
 	{
-		router.Handle(authDomain.TopicUserCreated, kafkaInfra.WrapEventHandler(authEvent.NewUserCreatedEventHandler(authUserCreated)))
+		router.EventHandle(authDomain.TopicUserCreated, authEvent.NewUserCreatedEventHandler(authUserCreated))
 	}
 
 	// Profile
 	{
-		router.Handle(profileDomain.TopicUserCreated, kafkaInfra.WrapEventHandler(profileEvent.NewUserCreatedEventHandler(profileUserCreated)))
-		router.Handle(profileDomain.TopicRoomCreated, kafkaInfra.WrapEventHandler(profileEvent.NewRoomCreatedEventHandler(profileRoomCreated)))
-		router.Handle(profileDomain.TopicRoomshipCreated, kafkaInfra.WrapEventHandler(profileEvent.NewRoomshipCreatedEventHandler(profileRoomshipCreated)))
+		router.EventHandle(profileDomain.TopicUserCreated, profileEvent.NewUserCreatedEventHandler(profileUserCreated))
+		router.EventHandle(profileDomain.TopicRoomCreated, profileEvent.NewRoomCreatedEventHandler(profileRoomCreated))
+		router.EventHandle(profileDomain.TopicRoomshipCreated, profileEvent.NewRoomshipCreatedEventHandler(profileRoomshipCreated))
 	}
 
 	// Chat
 	{
-		router.Handle(chatDomain.TopicUserCreated, kafkaInfra.WrapEventHandler(chatEvent.NewUserCreatedEventHandler(chatUserCreated)))
-		router.Handle(chatDomain.TopicRoomCreated, kafkaInfra.WrapEventHandler(chatEvent.NewRoomCreatedEventHandler(chatRoomCreated)))
-		router.Handle(chatDomain.TopicRoomshipCreated, kafkaInfra.WrapEventHandler(chatEvent.NewRoomshipCreatedEventHandler(chatRoomshipCreated)))
-		router.Handle(chatDomain.TopicFriendshipCreated, kafkaInfra.WrapEventHandler(chatEvent.NewFriendshipCreatedEventHandler(chatFriendshipCreated)))
-		router.Handle(chatDomain.TopicUndeliveredMessagesPushRequested, kafkaInfra.WrapEventHandler(chatEvent.NewUndeliveredMessagesPushRequestedEventHandler(chatUndeliveredMessagesPushRequested)))
+		router.EventHandle(chatDomain.TopicUserCreated, chatEvent.NewUserCreatedEventHandler(chatUserCreated))
+		router.EventHandle(chatDomain.TopicRoomCreated, chatEvent.NewRoomCreatedEventHandler(chatRoomCreated))
+		router.EventHandle(chatDomain.TopicRoomshipCreated, chatEvent.NewRoomshipCreatedEventHandler(chatRoomshipCreated))
+		router.EventHandle(chatDomain.TopicFriendshipCreated, chatEvent.NewFriendshipCreatedEventHandler(chatFriendshipCreated))
+		router.EventHandle(chatDomain.TopicUndeliveredMessagesPushRequested, chatEvent.NewUndeliveredMessagesPushRequestedEventHandler(chatUndeliveredMessagesPushRequested))
 	}
 	// Notification
 	{
 		if emailAvailable {
 			zap.L().Info("Subscribing to WelcomeEmailNotificationRequested topic as email dialer is connected")
-			router.Handle(notificationDomain.TopicWelcomeEmailNotificationRequested, kafkaInfra.WrapEventHandler(notificationEvent.NewWelcomeEmailNotificationRequestedEventHandler(notificationWelcomeEmailNotificationRequested)))
+			router.EventHandle(notificationDomain.TopicWelcomeEmailNotificationRequested, notificationEvent.NewWelcomeEmailNotificationRequestedEventHandler(notificationWelcomeEmailNotificationRequested))
 		} else {
 			zap.L().Info("Skipping subscription to WelcomeEmailNotificationRequested topic as email dialer is not connected")
 		}
-		router.Handle(notificationDomain.TopicSystemMessageNotificationRequested, kafkaInfra.WrapEventHandler(notificationEvent.NewSystemMessageNotificationRequestedEventHandler(notificationSystemMessageNotificationRequested)))
-		router.Handle(notificationDomain.TopicUndeliveredMessagesNotificationRequested, kafkaInfra.WrapEventHandler(notificationEvent.NewUndeliveredMessagesNotificationRequestedEventHandler(notificationUndeliveredMessagesRequested)))
+		router.EventHandle(notificationDomain.TopicSystemMessageNotificationRequested, notificationEvent.NewSystemMessageNotificationRequestedEventHandler(notificationSystemMessageNotificationRequested))
+		router.EventHandle(notificationDomain.TopicUndeliveredMessagesNotificationRequested, notificationEvent.NewUndeliveredMessagesNotificationRequestedEventHandler(notificationUndeliveredMessagesRequested))
 	}
 
 	// Roomship
 	{
-		router.Handle(roomshipDomain.TopicUserCreated, kafkaInfra.WrapEventHandler(roomshipEvent.NewUserCreatedEventHandler(roomshipUserCreated)))
-		router.Handle(roomshipDomain.TopicRoomCreated, kafkaInfra.WrapEventHandler(roomshipEvent.NewRoomCreatedEventHandler(roomshipRoomCreated)))
-		router.Handle(roomshipDomain.TopicMemberRequestCreated, kafkaInfra.WrapEventHandler(roomshipEvent.NewMemberRequestCreatedEventHandler(roomshipMemberRequestCreated)))
-		router.Handle(roomshipDomain.TopicMemberRequestAgreed, kafkaInfra.WrapEventHandler(roomshipEvent.NewMemberRequestAgreedEventHandler(roomshipMemberRequestAgreed)))
-		router.Handle(roomshipDomain.TopicRoomshipCreated, kafkaInfra.WrapEventHandler(roomshipEvent.NewRoomshipCreatedEventHandler(roomshipRoomshipCreated)))
+		router.EventHandle(roomshipDomain.TopicUserCreated, roomshipEvent.NewUserCreatedEventHandler(roomshipUserCreated))
+		router.EventHandle(roomshipDomain.TopicRoomCreated, roomshipEvent.NewRoomCreatedEventHandler(roomshipRoomCreated))
+		router.EventHandle(roomshipDomain.TopicMemberRequestCreated, roomshipEvent.NewMemberRequestCreatedEventHandler(roomshipMemberRequestCreated))
+		router.EventHandle(roomshipDomain.TopicMemberRequestAgreed, roomshipEvent.NewMemberRequestAgreedEventHandler(roomshipMemberRequestAgreed))
+		router.EventHandle(roomshipDomain.TopicRoomshipCreated, roomshipEvent.NewRoomshipCreatedEventHandler(roomshipRoomshipCreated))
 	}
 
 	// Friendship
 	{
-		router.Handle(friendshipDomain.TopicUserCreated, kafkaInfra.WrapEventHandler(friendshipEvent.NewUserCreatedEventHandler(friendshipUserCreated)))
-		router.Handle(friendshipDomain.TopicFriendRequestAgreed, kafkaInfra.WrapEventHandler(friendshipEvent.NewFriendRequestAgreedEventHandler(friendshipFriendRequestAgreed)))
-		router.Handle(friendshipDomain.TopicFriendRequestCreated, kafkaInfra.WrapEventHandler(friendshipEvent.NewFriendRequestCreatedEventHandler(friendshipFriendRequestCreated)))
-		router.Handle(friendshipDomain.TopicFriendshipCreated, kafkaInfra.WrapEventHandler(friendshipEvent.NewFriendshipCreatedEventHandler(friendshipFriendshipCreated)))
+		router.EventHandle(friendshipDomain.TopicUserCreated, friendshipEvent.NewUserCreatedEventHandler(friendshipUserCreated))
+		router.EventHandle(friendshipDomain.TopicFriendRequestAgreed, friendshipEvent.NewFriendRequestAgreedEventHandler(friendshipFriendRequestAgreed))
+		router.EventHandle(friendshipDomain.TopicFriendRequestCreated, friendshipEvent.NewFriendRequestCreatedEventHandler(friendshipFriendRequestCreated))
+		router.EventHandle(friendshipDomain.TopicFriendshipCreated, friendshipEvent.NewFriendshipCreatedEventHandler(friendshipFriendshipCreated))
 	}
 
 	return router

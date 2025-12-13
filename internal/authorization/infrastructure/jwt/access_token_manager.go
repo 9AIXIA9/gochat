@@ -44,12 +44,12 @@ func (m *AccessTokenManager) Generate(userID kernel.UserID) (domain.AccessToken,
 	//使用指定的签名方法创建签名对象
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, c)
 
-	//使用指定的secret签名并获得完整的编码后的字符串token
-	if tokenStr, err := token.SignedString(mySecret); err != nil {
+	//使用指定的 secret 签名并获得完整的编码后的字符串token
+	tokenStr, err := token.SignedString(mySecret)
+	if err != nil {
 		return "", fmt.Errorf("get token signed string failed,err:%w", err)
-	} else {
-		return domain.AccessToken(tokenStr), nil
 	}
+	return domain.AccessToken(tokenStr), nil
 }
 
 func (m *AccessTokenManager) Parse(accessToken domain.AccessToken) (kernel.UserID, error) {

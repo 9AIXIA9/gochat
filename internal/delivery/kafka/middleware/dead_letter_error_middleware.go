@@ -10,6 +10,8 @@ import (
 	"go.uber.org/zap"
 )
 
+const eventIDKey = "event_id"
+
 func NewDeadLetterErrorMiddleware(
 	creator event.DeadLetterCreator,
 ) kafka.ErrorMiddleware {
@@ -34,7 +36,7 @@ func NewDeadLetterErrorMiddleware(
 func convertMessageToEvent(message *ckafka.Message) event.Event {
 	var id event.ID
 	for _, header := range message.Headers {
-		if header.Key == "event_id" {
+		if header.Key == eventIDKey {
 			id = event.ID(header.Value)
 			break
 		}

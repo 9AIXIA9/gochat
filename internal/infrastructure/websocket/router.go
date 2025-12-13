@@ -3,16 +3,9 @@ package websocket
 import (
 	"context"
 	"encoding/json"
-	"gochat/pkg/utils"
 
 	"go.uber.org/zap"
 )
-
-type Topic string
-
-func (t Topic) String() string {
-	return string(t)
-}
 
 type Request struct {
 	Topic Topic           `json:"topic" validate:"required"`
@@ -100,7 +93,7 @@ func (r *Router) Route(ctx context.Context, request *Request) *Response {
 		}
 	}
 
-	ctx = utils.SetWebsocketTopic(ctx, request.Topic.String())
+	ctx = SetTopic(ctx, request.Topic)
 
 	resp, err := h.Handle(ctx, request.Data)
 	if err != nil {

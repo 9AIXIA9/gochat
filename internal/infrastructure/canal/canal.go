@@ -23,6 +23,12 @@ func NewCanal(config *BinlogReaderConfig) (*canal.Canal, error) {
 
 	cn, err := canal.NewCanal(canalConfig)
 	if err != nil {
+		defer func() {
+			if cn == nil {
+				return
+			}
+			cn.Close()
+		}()
 		return nil, err
 	}
 	return cn, nil
