@@ -26,6 +26,19 @@ func (r *SendRoomMessageRequest) Bind(ginContext *gin.Context) error {
 	return ginContext.ShouldBind(r)
 }
 
+// NewSendRoomMessageHandler 发送房间消息
+// @Summary      发送房间消息
+// @Description  向指定房间发送一条消息
+// @Tags         Chat
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      SendRoomMessageRequest     true  "发送房间消息请求体"
+// @Success      201      {object}  sharedHttp.ApiResponse     "发送成功"
+// @Failure      400      {object}  sharedHttp.ApiResponse     "请求参数错误"
+// @Failure      401      {object}  sharedHttp.ApiResponse     "未认证"
+// @Failure      500      {object}  sharedHttp.ApiResponse     "服务器内部错误"
+// @Router       /chat/room [post]
 func NewSendRoomMessageHandler(useCase application.SendRoomMessageUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,

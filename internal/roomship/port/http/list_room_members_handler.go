@@ -29,6 +29,17 @@ type ListRoomMembersResponseData struct {
 	Roomships []*dto.Roomship `json:"roomships,omitempty"`
 }
 
+// NewListRoomMembersHandler 获取房间成员列表
+// @Summary      获取房间成员列表
+// @Description  根据房间ID获取房间成员列表
+// @Tags         Roomship
+// @Produce      json
+// @Param        room_id  path      int                          true  "房间ID"
+// @Success      200      {object}  ListRoomMembersResponseData  "成功返回房间成员列表"
+// @Failure      400      {object}  sharedHttp.ApiResponse       "请求参数错误"
+// @Failure      404      {object}  sharedHttp.ApiResponse       "房间不存在"
+// @Failure      500      {object}  sharedHttp.ApiResponse       "服务器内部错误"
+// @Router       /roomship/room/{room_id} [get]
 func NewListRoomMembersHandler(useCase application.ListRoomMembersUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,

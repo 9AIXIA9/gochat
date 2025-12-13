@@ -29,6 +29,17 @@ type GetRoomProfileResponseData struct {
 	Profile *dto.RoomProfile `json:"profile"`
 }
 
+// NewGetRoomProfileHandler 获取房间资料
+// @Summary      获取房间资料
+// @Description  根据房间ID获取房间公开资料
+// @Tags         Profile
+// @Produce      json
+// @Param        room_id  path      int                        true  "房间ID"
+// @Success      200      {object}  GetRoomProfileResponseData "成功返回房间资料"
+// @Failure      400      {object}  sharedHttp.ApiResponse "请求参数错误"
+// @Failure      404      {object}  sharedHttp.ApiResponse "房间不存在"
+// @Failure      500      {object}  sharedHttp.ApiResponse "服务器内部错误"
+// @Router       /profile/room/{room_id} [get]
 func NewGetRoomProfileHandler(useCase application.GetRoomProfileUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,

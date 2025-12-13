@@ -26,6 +26,19 @@ func (r *SendFriendRequestRequest) Bind(ginContext *gin.Context) error {
 	return ginContext.ShouldBind(r)
 }
 
+// NewSendFriendRequestHandler 发送好友请求
+// @Summary      发送好友请求
+// @Description  向指定用户发送好友请求
+// @Tags         Friendship
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      SendFriendRequestRequest  true  "发送好友请求体"
+// @Success      201      {object}  sharedHttp.ApiResponse    "发送成功"
+// @Failure      400      {object}  sharedHttp.ApiResponse    "请求参数错误或业务校验失败"
+// @Failure      401      {object}  sharedHttp.ApiResponse    "未认证"
+// @Failure      500      {object}  sharedHttp.ApiResponse    "服务器内部错误"
+// @Router       /friendship/request [post]
 func NewSendFriendRequestHandler(useCase application.SendFriendRequestUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,

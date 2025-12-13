@@ -27,6 +27,19 @@ func (r *SendMemberRequestRequest) Bind(ginContext *gin.Context) error {
 	return ginContext.ShouldBind(r)
 }
 
+// NewSendMemberRequestHandler 发送入群请求
+// @Summary      发送入群请求
+// @Description  向指定房间发送入群请求，可携带验证信息及密码
+// @Tags         Roomship
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      SendMemberRequestRequest  true  "发送入群请求体"
+// @Success      201      {object}  sharedHttp.ApiResponse    "发送成功"
+// @Failure      400      {object}  sharedHttp.ApiResponse    "请求参数错误或业务校验失败"
+// @Failure      401      {object}  sharedHttp.ApiResponse    "未认证"
+// @Failure      500      {object}  sharedHttp.ApiResponse    "服务器内部错误"
+// @Router       /roomship/request [post]
 func NewSendMemberRequestHandler(useCase application.SendMemberRequestUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,

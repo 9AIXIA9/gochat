@@ -39,6 +39,19 @@ type ListSystemMessagesResponseData struct {
 	SystemMessages []*dto.SystemMessage `json:"system_messages,omitempty"`
 }
 
+// NewListSystemMessagesHandler 获取系统通知列表
+// @Summary      获取系统通知列表
+// @Description  获取当前登录用户的系统通知列表，可基于 base_id 游标和 limit 分页
+// @Tags         Notification
+// @Security     BearerAuth
+// @Produce      json
+// @Param        base_id  query     int    false "分页游标，返回该ID之前的消息"
+// @Param        limit    query     int    false "分页大小，默认20，最大100"
+// @Success      200      {object}  ListSystemMessagesResponseData "成功返回系统通知列表"
+// @Failure      400      {object}  sharedHttp.ApiResponse        "请求参数错误"
+// @Failure      401      {object}  sharedHttp.ApiResponse        "未认证"
+// @Failure      500      {object}  sharedHttp.ApiResponse        "服务器内部错误"
+// @Router       /notification/system [get]
 func NewListSystemMessagesHandler(useCase application.ListSystemMessagesUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,

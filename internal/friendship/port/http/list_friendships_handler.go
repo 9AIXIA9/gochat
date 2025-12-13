@@ -40,6 +40,19 @@ type ListFriendshipsResponseData struct {
 	Friendships []*dto.Friendship `json:"friendships,omitempty"`
 }
 
+// NewListFriendshipsHandler 获取好友列表
+// @Summary      获取好友列表
+// @Description  获取当前登录用户的好友关系列表，可基于 base_id 游标和 limit 分页
+// @Tags         Friendship
+// @Security     BearerAuth
+// @Produce      json
+// @Param        base_id  query     int    false "分页游标，返回该ID之前的记录"
+// @Param        limit    query     int    false "分页大小，默认20，最大100"
+// @Success      200      {object}  ListFriendshipsResponseData "成功返回好友列表"
+// @Failure      400      {object}  sharedHttp.ApiResponse      "请求参数错误"
+// @Failure      401      {object}  sharedHttp.ApiResponse      "未认证"
+// @Failure      500      {object}  sharedHttp.ApiResponse      "服务器内部错误"
+// @Router       /friendship/ [get]
 func NewListFriendshipsHandler(useCase application.ListFriendshipsUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,

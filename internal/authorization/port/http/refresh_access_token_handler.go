@@ -31,6 +31,15 @@ func (r *RefreshAccessTokenRequest) Bind(ginContext *gin.Context) error {
 	return nil
 }
 
+// NewRefreshAccessTokenHandler 刷新访问令牌
+// @Summary      刷新访问令牌
+// @Description  使用刷新令牌 Cookie 刷新访问令牌，并重新设置刷新令牌 Cookie
+// @Tags         Authorization
+// @Produce      json
+// @Success      200  {object}  RefreshAccessTokenResponseData "刷新成功，返回新的访问令牌"
+// @Failure      400  {object}  sharedHttp.ApiResponse         "刷新令牌无效或已过期"
+// @Failure      500  {object}  sharedHttp.ApiResponse         "服务器内部错误"
+// @Router       /authorization/refresh_access_token [get]
 func NewRefreshAccessTokenHandler(useCase application.RefreshAccessTokenUseCase, validator ginutils.Validator, cookieConfig *config.Cookie) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,
