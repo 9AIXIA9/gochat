@@ -14,10 +14,6 @@ const (
 	CodeTimeout BusinessCode = 400 + iota
 	CodeInvalidParam
 	CodeInvalidToken
-	CodeNotBelongTo
-	CodeMaxReached
-	CodeInvalidRoom
-	CodeOwnerCantLeave
 	CodeNotFound
 )
 
@@ -33,14 +29,6 @@ func (c BusinessCode) ToHTTPCode() int {
 		return http.StatusBadRequest
 	case CodeInvalidToken:
 		return http.StatusUnauthorized
-	case CodeNotBelongTo:
-		return http.StatusConflict
-	case CodeInvalidRoom:
-		return http.StatusNotAcceptable
-	case CodeMaxReached:
-		return http.StatusBadRequest
-	case CodeOwnerCantLeave:
-		return http.StatusBadRequest
 	case CodeNotFound:
 		return http.StatusNotFound
 
@@ -59,14 +47,6 @@ func (c BusinessCode) String() string {
 		return "invalid token"
 	case CodeTimeout:
 		return "request timeout"
-	case CodeNotBelongTo:
-		return "not belong to"
-	case CodeMaxReached:
-		return "reach max"
-	case CodeInvalidRoom:
-		return "invalid room"
-	case CodeOwnerCantLeave:
-		return "owner cannot leave the room"
 	case CodeNotFound:
 		return "not found"
 	default:

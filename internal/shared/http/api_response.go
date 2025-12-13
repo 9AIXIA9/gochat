@@ -1,7 +1,11 @@
 package http
 
 var (
-	ResponseSuccess = NewApiResponse(CodeSuccess)
+	ResponseSuccess      = NewApiResponse(CodeSuccess)
+	ResponseServerError  = NewApiResponse(CodeServerError)
+	ResponseTimeout      = NewApiResponse(CodeTimeout)
+	ResponseInvalidToken = NewApiResponse(CodeInvalidToken)
+	ResponseInvalidParam = NewApiResponse(CodeInvalidParam)
 )
 
 type ApiResponse struct {

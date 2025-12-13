@@ -47,9 +47,9 @@ func NewSendRoomMessageHandler(useCase application.SendRoomMessageUseCase, valid
 			case errors.Is(err, myErrors.ErrNotFound):
 				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "room not found")
 			case errors.Is(err, domain.ErrNotMember):
-				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeNotBelongTo, "not belong to this room")
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "not belong to this room")
 			case errors.Is(err, myErrors.ErrInvalidLength):
-				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidRoom, "invalid room")
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "invalid length")
 			default:
 				zap.L().Error("send room message handler failed", zap.Error(err))
 				ginutils.Response(ginContext, sharedHttp.CodeServerError)
