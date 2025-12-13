@@ -20,7 +20,7 @@ func NewRecoverMiddleware() websocket.Middleware {
 						zap.Any("panic", r),
 						zap.String("stack", stack),
 						zap.String("user_id", utils.GetUserID(ctx).String()),
-						zap.String("topic", utils.GetWebsocketTopic(ctx)),
+						zap.String("topic", websocket.GetTopic(ctx).String()),
 					)
 					// Return a safe, generic error to the client
 					err = fmt.Errorf("panic recovered: %v", r)

@@ -32,7 +32,7 @@ func NewLoggerMiddleware() websocket.Middleware {
 
 			zap.L().Info("websocket request completed", append(fields,
 				zap.String("user_id", utils.GetUserID(ctx).String()),
-				zap.String("topic", utils.GetWebsocketTopic(ctx)),
+				zap.String("topic", websocket.GetTopic(ctx).String()),
 				zap.Error(err),
 			)...)
 

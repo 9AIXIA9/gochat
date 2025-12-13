@@ -17,12 +17,12 @@ func NewTelemetryMiddleware(serviceName string) websocket.Middleware {
 	return func(next websocket.Handler) websocket.Handler {
 		return websocket.HandlerFunc(func(ctx context.Context, data []byte) ([]byte, error) {
 			start := time.Now().UTC()
-			ctx, span := tracer.Start(ctx, utils.GetWebsocketTopic(ctx), trace.WithSpanKind(trace.SpanKindServer))
+			ctx, span := tracer.Start(ctx, websocket.GetTopic(ctx).String(), trace.WithSpanKind(trace.SpanKindServer))
 			resp, err := next.Handle(ctx, data)
 
 			dur := time.Since(start).Seconds()
 			span.SetAttributes(
-				attribute.String("websocket.topic", utils.GetWebsocketTopic(ctx)),
+				attribute.String("websocket.topic", websocket.GetTopic(ctx).String()),
 				attribute.String("websocket.user_id", utils.GetUserID(ctx).String()),
 				attribute.Float64("websocket.duration_seconds", dur),
 			)
