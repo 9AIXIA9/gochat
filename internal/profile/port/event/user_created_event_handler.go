@@ -1,33 +1,24 @@
 package event
 
 import (
-	"context"
 	"gochat/internal/profile/application"
 	"gochat/internal/profile/domain"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 )
 
-func NewUserCreatedEventHandler(uc application.UserCreatedUseCase) event.HandlerFunc {
-	return func(ctx context.Context, e event.Event) error {
-		ev, err := domain.ToUserCreatedEvent(e)
-		if err != nil {
-			return err
-		}
-
-		input := application.UserCreatedInput{
-			UserID:     kernel.UserID(ev.AggregateID()),
-			Email:      ev.Email(),
-			SignedUpAt: ev.SignedAt(),
-		}
-
-		if err := input.Validate(); err != nil {
-			return err
-		}
-
-		if _, err := uc.Execute(ctx, &input); err != nil {
-			return err
-		}
-		return nil
-	}
+func NewUserCreatedEventHandler(uc application.UserCreatedUseCase) event.Handler {
+	return event.AdaptUsecaseToHandler(
+		uc,
+		domain.ToUserCreatedEvent,
+		func(createdEvent *domain.UserCreatedEvent) *application.UserCreatedInput {
+			return &application.UserCreatedInput{
+				UserID:     kernel.UserID(createdEvent.AggregateID()),
+				Email:      createdEvent.Email(),
+				SignedUpAt: createdEvent.SignedAt(),
+			}
+		},
+		nil,
+		nil,
+	)
 }

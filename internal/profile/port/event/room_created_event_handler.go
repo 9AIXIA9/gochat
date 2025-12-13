@@ -1,32 +1,23 @@
 package event
 
 import (
-	"context"
 	"gochat/internal/profile/application"
 	"gochat/internal/profile/domain"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 )
 
-func NewRoomCreatedEventHandler(uc application.RoomCreatedUseCase) event.HandlerFunc {
-	return func(ctx context.Context, e event.Event) error {
-		ev, err := domain.ToRoomCreatedEvent(e)
-		if err != nil {
-			return err
-		}
-
-		input := application.RoomCreatedInput{
-			RoomID:    kernel.RoomID(ev.AggregateID()),
-			CreatedAt: ev.CreatedAt(),
-		}
-
-		if err := input.Validate(); err != nil {
-			return err
-		}
-
-		if _, err := uc.Execute(ctx, &input); err != nil {
-			return err
-		}
-		return nil
-	}
+func NewRoomCreatedEventHandler(uc application.RoomCreatedUseCase) event.Handler {
+	return event.AdaptUsecaseToHandler(
+		uc,
+		domain.ToRoomCreatedEvent,
+		func(createdEvent *domain.RoomCreatedEvent) *application.RoomCreatedInput {
+			return &application.RoomCreatedInput{
+				RoomID:    kernel.RoomID(createdEvent.AggregateID()),
+				CreatedAt: createdEvent.CreatedAt(),
+			}
+		},
+		nil,
+		nil,
+	)
 }
