@@ -1,5 +1,5 @@
 # 第一阶段：构建器
-FROM golang:1.25-alpine AS builder
+FROM golang:1.24-alpine AS builder
 WORKDIR /app
 
 # 配置国内镜像源
