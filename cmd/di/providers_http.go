@@ -26,6 +26,11 @@ import (
 	notificationHTTP "gochat/internal/notification/port/http"
 	profileHTTP "gochat/internal/profile/port/http"
 	roomshipHTTP "gochat/internal/roomship/port/http"
+
+	"gochat/docs"
+
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 var HTTPSet = wire.NewSet(
@@ -69,12 +74,18 @@ func provideHttpRouter(
 	// 初始化Gin路由器
 	router := gin.New()
 
+	// swagger base path 保持与路由前缀一致
+	docs.SwaggerInfo.BasePath = "/api/v1"
+
 	// 全局中间件栈
 	router.Use(
 		middleware.NewRecoverMiddleware(),            // 恢复中间件
 		middleware.NewLoggerMiddleware(),             // 日志中间件
 		middleware.NewCORSMiddleware(appConfig.CORS), // CORS中间件
 	)
+
+	// Swagger 文档路由（可按需限制仅在非生产环境打开）
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	router.NoRoute(handler.NewNotFoundHandler()) // 404处理器
 

@@ -29,6 +29,20 @@ func (r *UpdateRoomProfileRequest) Bind(ginContext *gin.Context) error {
 	return nil
 }
 
+// NewUpdateRoomProfileHandler 更新房间资料
+// @Summary      更新房间资料
+// @Description  更新指定房间的资料（名称、简介等），通常需要房主或管理员权限
+// @Tags         Profile
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      UpdateRoomProfileRequest  true  "更新房间资料请求体"
+// @Success      200      {object}  sharedHttp.ApiResponse    "更新成功"
+// @Failure      400      {object}  sharedHttp.ApiResponse    "请求参数错误"
+// @Failure      401      {object}  sharedHttp.ApiResponse    "未认证"
+// @Failure      404      {object}  sharedHttp.ApiResponse    "房间资料不存在"
+// @Failure      500      {object}  sharedHttp.ApiResponse    "服务器内部错误"
+// @Router       /profile/room [put]
 func NewUpdateRoomProfileHandler(useCase application.UpdateRoomProfileUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,

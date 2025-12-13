@@ -39,6 +39,19 @@ type ListRoomMessagesResponseData struct {
 	RoomMessages []*dto.RoomMessage `json:"room_messages,omitempty"`
 }
 
+// NewListRoomMessagesHandler 获取房间消息列表
+// @Summary      获取房间消息列表
+// @Description  获取当前登录用户所在房间的消息列表，可基于 base_id 游标和 limit 分页
+// @Tags         Chat
+// @Security     BearerAuth
+// @Produce      json
+// @Param        base_id  query     int    false "分页游标，返回该ID之前的消息"
+// @Param        limit    query     int    false "分页大小，默认20，最大100"
+// @Success      200      {object}  ListRoomMessagesResponseData "成功返回房间消息列表"
+// @Failure      400      {object}  sharedHttp.ApiResponse "请求参数错误"
+// @Failure      401      {object}  sharedHttp.ApiResponse "未认证"
+// @Failure      500      {object}  sharedHttp.ApiResponse "服务器内部错误"
+// @Router       /chat/room [get]
 func NewListRoomMessagesHandler(useCase application.ListRoomMessagesUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,

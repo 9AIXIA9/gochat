@@ -29,6 +29,17 @@ type GetUserProfileResponseData struct {
 	Profile *dto.UserProfile `json:"profile"`
 }
 
+// NewGetUserProfileHandler 获取用户资料
+// @Summary      获取用户资料
+// @Description  根据用户ID获取用户公开资料
+// @Tags         Profile
+// @Produce      json
+// @Param        user_id  path      int                         true  "用户ID"
+// @Success      200      {object}  GetUserProfileResponseData  "成功返回用户资料"
+// @Failure      400      {object}  sharedHttp.ApiResponse "请求参数错误"
+// @Failure      404      {object}  sharedHttp.ApiResponse "用户不存在"
+// @Failure      500      {object}  sharedHttp.ApiResponse "服务器内部错误"
+// @Router       /profile/user/{user_id} [get]
 func NewGetUserProfileHandler(useCase application.GetUserProfileUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,

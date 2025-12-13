@@ -32,6 +32,20 @@ func (r *UpdateUserProfileRequest) Bind(ginContext *gin.Context) error {
 	return nil
 }
 
+// NewUpdateUserProfileHandler 更新当前用户资料
+// @Summary      更新当前用户资料
+// @Description  更新当前登录用户的基础资料（昵称、邮箱、电话等）
+// @Tags         Profile
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      UpdateUserProfileRequest  true  "更新用户资料请求体"
+// @Success      200      {object}  sharedHttp.ApiResponse    "更新成功"
+// @Failure      400      {object}  sharedHttp.ApiResponse    "请求参数错误"
+// @Failure      401      {object}  sharedHttp.ApiResponse    "未认证"
+// @Failure      404      {object}  sharedHttp.ApiResponse    "用户资料不存在"
+// @Failure      500      {object}  sharedHttp.ApiResponse    "服务器内部错误"
+// @Router       /profile/me [put]
 func NewUpdateUserProfileHandler(useCase application.UpdateUserProfileUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,

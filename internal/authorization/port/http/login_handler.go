@@ -30,6 +30,17 @@ func (r *LoginRequest) Bind(ginContext *gin.Context) error {
 	return ginContext.ShouldBind(r)
 }
 
+// NewLoginHandler 用户登录
+// @Summary      用户登录
+// @Description  使用学号/账号和密码登录，成功后下发访问令牌与刷新令牌（刷新令牌存于 Cookie）
+// @Tags         Authorization
+// @Accept       json
+// @Produce      json
+// @Param        request  body      LoginRequest        true  "登录请求体"
+// @Success      200      {object}  LoginResponseData   "登录成功，返回访问令牌"
+// @Failure      400      {object}  sharedHttp.ApiResponse "请求参数错误或密码错误"
+// @Failure      500      {object}  sharedHttp.ApiResponse "服务器内部错误"
+// @Router       /authorization/login [post]
 func NewLoginHandler(useCase application.LoginUseCase, validator ginutils.Validator, cookieConfig *config.Cookie) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,

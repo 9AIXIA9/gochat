@@ -28,6 +28,18 @@ func (r *RefuseFriendRequestRequest) Bind(ginContext *gin.Context) error {
 	return nil
 }
 
+// NewRefuseFriendRequestHandler 拒绝好友请求
+// @Summary      拒绝好友请求
+// @Description  拒绝指定的好友请求
+// @Tags         Friendship
+// @Security     BearerAuth
+// @Produce      json
+// @Param        request_id  path      int                   true  "好友请求ID"
+// @Success      200         {object}  sharedHttp.ApiResponse "拒绝成功"
+// @Failure      400         {object}  sharedHttp.ApiResponse "请求参数错误或请求已处理"
+// @Failure      401         {object}  sharedHttp.ApiResponse "未认证"
+// @Failure      500         {object}  sharedHttp.ApiResponse "服务器内部错误"
+// @Router       /friendship/request/{request_id}/refuse [put]
 func NewRefuseFriendRequestHandler(useCase application.RefuseFriendRequestUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,

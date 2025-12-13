@@ -29,6 +29,19 @@ func (r *CreateRoomRequest) Bind(ginContext *gin.Context) error {
 	return nil
 }
 
+// NewCreateRoomHandler 创建房间
+// @Summary      创建房间
+// @Description  创建一个新的房间，当前登录用户将作为房主加入房间
+// @Tags         Roomship
+// @Security     BearerAuth
+// @Accept       json
+// @Produce      json
+// @Param        request  body      CreateRoomRequest       true  "创建房间请求体"
+// @Success      201      {object}  sharedHttp.ApiResponse  "创建成功"
+// @Failure      400      {object}  sharedHttp.ApiResponse  "请求参数错误"
+// @Failure      401      {object}  sharedHttp.ApiResponse  "未认证"
+// @Failure      500      {object}  sharedHttp.ApiResponse  "服务器内部错误"
+// @Router       /roomship/room [post]
 func NewCreateRoomHandler(useCase application.CreateRoomUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,

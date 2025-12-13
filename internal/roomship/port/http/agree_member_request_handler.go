@@ -28,6 +28,18 @@ func (r *AgreeMemberRequestRequest) Bind(ginContext *gin.Context) error {
 	return nil
 }
 
+// NewAgreeMemberRequestHandler 同意入群请求
+// @Summary      同意入群请求
+// @Description  同意指定房间成员请求，将对方加入房间
+// @Tags         Roomship
+// @Security     BearerAuth
+// @Produce      json
+// @Param        request_id  path      int                   true  "成员请求ID"
+// @Success      200         {object}  sharedHttp.ApiResponse "同意成功"
+// @Failure      400         {object}  sharedHttp.ApiResponse "请求参数错误或请求已处理/无权限"
+// @Failure      401         {object}  sharedHttp.ApiResponse "未认证"
+// @Failure      500         {object}  sharedHttp.ApiResponse "服务器内部错误"
+// @Router       /roomship/request/{request_id}/agree [put]
 func NewAgreeMemberRequestHandler(useCase application.AgreeMemberRequestUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,
