@@ -20,7 +20,7 @@ func NewRecoverMiddleware() gin.HandlerFunc {
 					zap.String("method", ginContext.Request.Method),
 					zap.String("path", ginContext.Request.URL.Path),
 				)
-				ginutils.Response(ginContext, http.ResponseServerError)
+				ginutils.Response(ginContext, http.CodeServerError)
 			}
 		}()
 

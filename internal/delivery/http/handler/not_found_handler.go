@@ -9,6 +9,6 @@ import (
 
 func NewNotFoundHandler() gin.HandlerFunc {
 	return func(ginContext *gin.Context) {
-		ginutils.Response(ginContext, http.NewApiResponse(http.CodeNotFound))
+		ginutils.Response(ginContext, http.CodeNotFound)
 	}
 }

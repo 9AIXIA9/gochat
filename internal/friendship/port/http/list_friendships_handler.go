@@ -52,17 +52,17 @@ func NewListFriendshipsHandler(useCase application.ListFriendshipsUseCase, valid
 			}
 		},
 		func(ginContext *gin.Context, output *application.ListFriendshipsOutput) {
-			ginutils.Response(ginContext, sharedHttp.NewApiResponseWithData(&ListFriendshipsResponseData{
+			ginutils.ResponseSuccessWithData(ginContext, &ListFriendshipsResponseData{
 				Friendships: dto.ToFriendshipDTOs(output.Friendships),
-			}))
+			})
 		},
 		func(ginContext *gin.Context, err error) {
 			switch {
 			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty"))
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "input is empty")
 			default:
 				zap.L().Error("ListFriendshipsHandler error", zap.Error(err))
-				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
+				ginutils.Response(ginContext, sharedHttp.CodeServerError)
 			}
 		},
 		5*time.Second,

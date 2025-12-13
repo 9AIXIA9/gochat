@@ -39,19 +39,19 @@ func NewListRoomMembersHandler(useCase application.ListRoomMembersUseCase, valid
 			}
 		},
 		func(ginContext *gin.Context, output *application.ListRoomMembersOutput) {
-			ginutils.Response(ginContext, sharedHttp.NewApiResponseWithData(&ListRoomMembersResponseData{
+			ginutils.ResponseSuccessWithData(ginContext, &ListRoomMembersResponseData{
 				Roomships: dto.ToRoomshipDTOs(output.Roomships),
-			}))
+			})
 		},
 		func(ginContext *gin.Context, err error) {
 			switch {
 			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty"))
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "input is empty")
 			case errors.Is(err, myErrors.ErrNotFound):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeNotFound, "room is not found"))
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeNotFound, "room is not found")
 			default:
 				zap.L().Error("ListRoomMembersHandler error", zap.Error(err))
-				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
+				ginutils.Response(ginContext, sharedHttp.CodeServerError)
 			}
 		},
 		5*time.Second,

@@ -51,17 +51,17 @@ func NewListSystemMessagesHandler(useCase application.ListSystemMessagesUseCase,
 			}
 		},
 		func(ginContext *gin.Context, output *application.ListSystemMessagesOutput) {
-			ginutils.Response(ginContext, sharedHttp.NewApiResponseWithData(&ListSystemMessagesResponseData{
+			ginutils.ResponseSuccessWithData(ginContext, &ListSystemMessagesResponseData{
 				SystemMessages: dto.ToSystemMessageDTOs(output.SystemMessages),
-			}))
+			})
 		},
 		func(ginContext *gin.Context, err error) {
 			switch {
 			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty"))
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "input is empty")
 			default:
 				zap.L().Error("ListSystemMessagesHandler error", zap.Error(err))
-				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
+				ginutils.Response(ginContext, sharedHttp.CodeServerError)
 			}
 		},
 		5*time.Second,

@@ -30,24 +30,24 @@ func AdaptUseCaseToHandler[
 		err := request.Bind(ginContext)
 		if err != nil {
 			zap.L().Error("bind request failed", zap.Error(err))
-			Response(ginContext, http.ResponseInvalidParam)
+			Response(ginContext, http.CodeInvalidParam)
 			return
 		}
 
 		message, err := validator.Validate(ginContext.Request.Context(), request)
 		if err != nil {
-			Response(ginContext, http.ResponseServerError)
+			Response(ginContext, http.CodeServerError)
 			return
 		}
 
 		if len(message) != 0 {
-			Response(ginContext, http.NewApiResponseWithMessage(http.CodeInvalidParam, message))
+			ResponseWithMessage(ginContext, http.CodeInvalidParam, message)
 			return
 		}
 
 		input := convertRequestToInput(request)
 		if err := input.Validate(); err != nil {
-			Response(ginContext, http.ResponseInvalidParam)
+			Response(ginContext, http.CodeInvalidParam)
 			return
 		}
 
@@ -93,7 +93,7 @@ func AdaptUseCaseToHandler[
 
 		select {
 		case <-ctx.Done():
-			Response(ginContext, http.ResponseTimeout)
+			Response(ginContext, http.CodeTimeout)
 			return
 		case err := <-errChan:
 			handleError(ginContext, err)

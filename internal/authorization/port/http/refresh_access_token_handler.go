@@ -42,7 +42,7 @@ func NewRefreshAccessTokenHandler(useCase application.RefreshAccessTokenUseCase,
 		},
 		func(ginContext *gin.Context, output *application.RefreshAccessTokenOutput) {
 			if time.Now().UTC().After(output.RefreshToken.ExpiredAt()) {
-				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
+				ginutils.Response(ginContext, sharedHttp.CodeServerError)
 				return
 			}
 			ginContext.SetCookie(
@@ -54,7 +54,12 @@ func NewRefreshAccessTokenHandler(useCase application.RefreshAccessTokenUseCase,
 				cookieConfig.Secure,
 				cookieConfig.HttpOnly,
 			)
-			ginutils.Response(ginContext, sharedHttp.NewApiResponseWithData(RefreshAccessTokenResponseData{AccessToken: output.AccessToken}))
+			ginutils.ResponseSuccessWithData(
+				ginContext,
+				RefreshAccessTokenResponseData{
+					AccessToken: output.AccessToken,
+				},
+			)
 		},
 		func(ginContext *gin.Context, err error) {
 			switch {
@@ -62,10 +67,10 @@ func NewRefreshAccessTokenHandler(useCase application.RefreshAccessTokenUseCase,
 				errors.Is(err, domain.ErrAccessTokenGenerated) ||
 				errors.Is(err, domain.ErrRefreshLimitExceeded) ||
 				errors.Is(err, myErrors.ErrNotFound):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "invalid refresh token"))
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "invalid refresh token")
 			default:
 				zap.L().Error("refresh access token handler failed", zap.Error(err))
-				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
+				ginutils.Response(ginContext, sharedHttp.CodeServerError)
 			}
 		},
 		5*time.Second,

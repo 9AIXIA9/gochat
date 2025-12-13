@@ -51,17 +51,17 @@ func NewListPrivateMessagesHandler(useCase application.ListPrivateMessagesUseCas
 			}
 		},
 		func(ginContext *gin.Context, output *application.ListPrivateMessagesOutput) {
-			ginutils.Response(ginContext, sharedHttp.NewApiResponseWithData(&ListPrivateMessagesResponseData{
+			ginutils.ResponseSuccessWithData(ginContext, &ListPrivateMessagesResponseData{
 				PrivateMessages: dto.ToPrivateMessageDTOs(output.PrivateMessages),
-			}))
+			})
 		},
 		func(ginContext *gin.Context, err error) {
 			switch {
 			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.Response(ginContext, sharedHttp.NewApiResponseWithMessage(sharedHttp.CodeInvalidParam, "input is empty"))
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "input is empty")
 			default:
 				zap.L().Error("ListPrivateMessageHandler error", zap.Error(err))
-				ginutils.Response(ginContext, sharedHttp.ResponseServerError)
+				ginutils.Response(ginContext, sharedHttp.CodeServerError)
 			}
 		},
 		5*time.Second,
