@@ -24,8 +24,7 @@ func TestRoomNumber_Validate(t *testing.T) {
 }
 
 func TestLoadRoom(t *testing.T) {
-	start := time.Now().UTC().
-		UTC()
+	start := time.Now().UTC()
 	room := domain.LoadRoom(
 		fixedRoomID,
 		fixedUserID,
@@ -56,8 +55,7 @@ func TestCreateRoom(t *testing.T) {
 	mockRoomNumberGenerator.EXPECT().Generate().Return(fixedRoomNumber).Times(1)
 	mockIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(1)
 
-	start := time.Now().UTC().
-		UTC()
+	start := time.Now().UTC()
 	room, err := domain.CreateRoom(
 		fixedUserID,
 		20,

@@ -10,8 +10,7 @@ import (
 
 func NewLoggerMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		start := time.Now().UTC().
-			UTC()
+		start := time.Now().UTC()
 		c.Next()
 		dur := time.Since(start)
 		span := trace.SpanFromContext(c.Request.Context())
