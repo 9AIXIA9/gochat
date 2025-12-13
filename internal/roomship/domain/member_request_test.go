@@ -106,8 +106,7 @@ func TestMemberRequest_Agree(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, domain.StateAgreed, mockRequest.State())
 	assert.Equal(t, fixedOperatorID, mockRequest.OperatorID())
-	assert.WithinDuration(t, time.Now().UTC().
-		UTC(), mockRequest.OperatedAt(), timeTolerance)
+	assert.WithinDuration(t, time.Now().UTC(), mockRequest.OperatedAt(), timeTolerance)
 
 	evs := mockRequest.GetEvents()
 	require.Len(t, evs, 1)
@@ -144,8 +143,7 @@ func TestMemberRequest_Refuse(t *testing.T) {
 	require.Equal(t, domain.StateRefused, mockRequest.State())
 	assert.Len(t, mockRequest.GetEvents(), 0)
 	assert.Equal(t, fixedOperatorID, mockRequest.OperatorID())
-	assert.WithinDuration(t, time.Now().UTC().
-		UTC(), mockRequest.OperatedAt(), timeTolerance)
+	assert.WithinDuration(t, time.Now().UTC(), mockRequest.OperatedAt(), timeTolerance)
 
 	err2 := mockRequest.Refuse(fixedOperatorID)
 	require.ErrorIs(t, err2, domain.ErrHandleNotPendingRequest)

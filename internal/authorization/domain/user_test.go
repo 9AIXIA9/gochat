@@ -13,8 +13,7 @@ import (
 )
 
 func TestLoadUser(t *testing.T) {
-	start := time.Now().UTC().
-		UTC()
+	start := time.Now().UTC()
 	user := domain.LoadUser(
 		fixedUserID,
 		fixedEmail,
@@ -56,8 +55,7 @@ func TestCreateUser(t *testing.T) {
 	assert.Equal(t, fixedEmail, user.Email())
 	assert.Equal(t, fixedUserNumber, user.Number())
 	assert.Equal(t, fixedPasswordEncrypted, user.PasswordEncrypted())
-	assert.WithinDuration(t, time.Now().UTC().
-		UTC(), user.SignedUpAt(), timeTolerance)
+	assert.WithinDuration(t, time.Now().UTC(), user.SignedUpAt(), timeTolerance)
 
 	evs := user.GetEvents()
 	require.Len(t, evs, 1)

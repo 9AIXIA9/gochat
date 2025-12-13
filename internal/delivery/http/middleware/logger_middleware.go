@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -10,8 +11,14 @@ import (
 
 func NewLoggerMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		start := time.Now().UTC().
-			UTC()
+		if strings.Contains(c.FullPath(), "/health_check") ||
+			strings.Contains(c.FullPath(), "/swagger") ||
+			strings.Contains(c.FullPath(), "/metrics") {
+			c.Next()
+			return
+		}
+
+		start := time.Now().UTC()
 		c.Next()
 		dur := time.Since(start)
 		span := trace.SpanFromContext(c.Request.Context())
