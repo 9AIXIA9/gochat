@@ -17,25 +17,20 @@ type ReadPrivateMessagesData struct {
 
 func NewReadPrivateMessagesHandler(
 	uc application.ReadPrivateMessagesUseCase,
-) websocket.HandlerFunc {
-	return func(ctx context.Context, data []byte) ([]byte, error) {
-		var reqData ReadPrivateMessagesData
-		if err := json.Unmarshal(data, &reqData); err != nil {
-			return nil, err
-		}
-
-		input := &application.ReadPrivateMessagesInput{
-			SenderID:    reqData.SenderID,
-			RecipientID: utils.GetUserID(ctx),
-		}
-
-		if err := input.Validate(); err != nil {
-			return nil, err
-		}
-
-		if _, err := uc.Execute(ctx, input); err != nil {
-			return nil, err
-		}
-		return nil, nil
-	}
+) websocket.Handler {
+	return websocket.AdaptUsecaseToHandler(
+		uc,
+		func(ctx context.Context, data []byte) (*application.ReadPrivateMessagesInput, error) {
+			var reqData ReadPrivateMessagesData
+			if err := json.Unmarshal(data, &reqData); err != nil {
+				return nil, err
+			}
+			return &application.ReadPrivateMessagesInput{
+				SenderID:    reqData.SenderID,
+				RecipientID: utils.GetUserID(ctx),
+			}, nil
+		},
+		nil,
+		nil,
+	)
 }
