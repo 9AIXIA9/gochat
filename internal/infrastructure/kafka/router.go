@@ -32,9 +32,9 @@ func (r *Router) NoRoute(h Handler, middlewares ...Middleware) {
 	r.notFoundHandler = wrapped
 }
 
-func (r *Router) Handle(topic event.Topic, h Handler, middlewares ...Middleware) {
+func (r *Router) EventHandle(topic event.Topic, h event.Handler, middlewares ...Middleware) {
 	// Apply route-level middlewares first, then global middlewares
-	wrapped := chainHandlers(h, middlewares)
+	wrapped := chainHandlers(WrapEventHandler(h), middlewares)
 	wrapped = chainHandlers(wrapped, r.middlewares)
 	r.handlers[topic] = wrapped
 }
