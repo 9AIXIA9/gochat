@@ -146,7 +146,7 @@ func (p *EventPublisher) getMessage(ev event.Event) *ckafka.Message {
 		Key:            []byte(ev.AggregateID().String()),
 		Headers: []ckafka.Header{
 			{
-				Key:   "event_id",
+				Key:   eventIDKey,
 				Value: []byte(ev.ID()),
 			},
 		},
@@ -159,7 +159,7 @@ func (p *EventPublisher) parseMessage(message *ckafka.Message) event.Event {
 	var id event.ID
 
 	for _, header := range message.Headers {
-		if header.Key == "event_id" {
+		if header.Key == eventIDKey {
 			id = event.ID(header.Value)
 			break
 		}
