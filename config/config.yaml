@@ -1,7 +1,9 @@
 Name: gochat
+Env: ${Env}
 Host: 0.0.0.0
 Port: 8888
 MachineNode: 1
+Timeout: ${REQUEST_TIMEOUT}
 
 Cookie:
   Domain: ${COOKIE_DOMAIN}
