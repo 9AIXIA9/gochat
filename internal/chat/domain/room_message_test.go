@@ -103,6 +103,27 @@ func TestCreateRoomMessage(t *testing.T) {
 	for _, id := range mockRecipients[5:] {
 		assert.Equal(t, domain.MessageStateUndelivered, message.State(id))
 	}
+
+	// 只有自己
+	mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1)
+
+	message, err = domain.CreateRoomMessage(
+		fixedRoomID,
+		fixedUserID,
+		[]kernel.UserID{fixedUserID},
+		"Hello to myself!",
+		mockMessageIDGenerator,
+		mockNotifier,
+	)
+	require.NoError(t, err)
+	require.NotNil(t, message)
+	assert.Equal(t, fixedMessageID, message.ID())
+	assert.Equal(t, fixedUserID, message.SenderID())
+	assert.Equal(t, fixedRoomID, message.RoomID())
+	assert.Equal(t, "Hello to myself!", message.Content())
+	assert.WithinDuration(t, start, message.SentAt(), timeTolerance)
+	assert.Empty(t, message.States())
+	assert.Empty(t, message.GetEvents())
 }
 
 func TestRoomMessage_Deliver(t *testing.T) {

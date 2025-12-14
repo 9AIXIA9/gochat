@@ -82,6 +82,5 @@ func NewRefreshAccessTokenHandler(useCase application.RefreshAccessTokenUseCase,
 				ginutils.Response(ginContext, sharedHttp.CodeServerError)
 			}
 		},
-		5*time.Second,
 	)
 }

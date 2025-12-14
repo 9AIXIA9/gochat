@@ -1,12 +1,8 @@
 package gin
 
 import (
-	"context"
-	"fmt"
 	"gochat/internal/shared/http"
 	"gochat/internal/shared/kernel"
-	"runtime"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -23,7 +19,6 @@ func AdaptUseCaseToHandler[
 	convertRequestToInput func(RequestPointer) Input,
 	handleOutput func(*gin.Context, Output),
 	handleError func(*gin.Context, error),
-	timeoutOptions ...time.Duration,
 ) gin.HandlerFunc {
 	return func(ginContext *gin.Context) {
 		var request RequestPointer = new(Request)
@@ -51,53 +46,18 @@ func AdaptUseCaseToHandler[
 			return
 		}
 
-		var ctx context.Context
-
-		if len(timeoutOptions) == 0 {
-			ctx = ginContext.Request.Context()
-		} else {
-			ctxWithTimeout, cancel := context.WithTimeout(ginContext.Request.Context(), timeoutOptions[0])
-			ctx = ctxWithTimeout
-			defer cancel()
+		output, err := useCase.Execute(ginContext.Request.Context(), input)
+		if err != nil {
+			if handleError != nil {
+				handleError(ginContext, err)
+			} else {
+				zap.L().Error("use case execute failed", zap.Error(err))
+				Response(ginContext, http.CodeServerError)
+			}
+			return
 		}
 
-		errChan := make(chan error, 1)
-		outputChan := make(chan Output, 1)
-		defer func() {
-			close(outputChan)
-			close(errChan)
-		}()
-
-		go func() {
-			defer func() {
-				if r := recover(); r != nil {
-					stack := make([]byte, 4096)
-					length := runtime.Stack(stack, false)
-					select {
-					case errChan <- fmt.Errorf("panic: %v\nstack: %s", r, stack[:length]):
-					case <-ctx.Done():
-					}
-				}
-			}()
-
-			output, err := useCase.Execute(ctx, input)
-			if err != nil {
-				select {
-				case errChan <- err:
-				case <-ctx.Done():
-				}
-				return
-			}
-			outputChan <- output
-		}()
-
-		select {
-		case <-ctx.Done():
-			Response(ginContext, http.CodeTimeout)
-			return
-		case err := <-errChan:
-			handleError(ginContext, err)
-		case output := <-outputChan:
+		if handleOutput != nil {
 			handleOutput(ginContext, output)
 		}
 	}

@@ -44,6 +44,21 @@ func CreateRoomMessage(
 	messageIDGenerator kernel.MessageIDGenerator,
 	notifier RoomMessageNotifier,
 ) (*RoomMessage, error) {
+	if len(recipientIDs) == 0 ||
+		(len(recipientIDs) == 1 && recipientIDs[0] == senderID) ||
+		recipientIDs == nil {
+		//不用通知任何人
+		return &RoomMessage{
+			id:           messageIDGenerator.Generate(),
+			senderID:     senderID,
+			states:       nil,
+			roomID:       roomID,
+			content:      content,
+			sentAt:       time.Now().UTC(),
+			eventManager: event.NewEventManager(),
+		}, nil
+	}
+
 	states := make(map[kernel.UserID]MessageState, len(recipientIDs))
 	for _, recipientID := range recipientIDs {
 		if recipientID != senderID {

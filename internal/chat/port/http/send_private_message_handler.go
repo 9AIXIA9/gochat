@@ -3,11 +3,11 @@ package http
 import (
 	"errors"
 	"gochat/internal/chat/application"
+	"gochat/internal/chat/domain"
 	ginutils "gochat/internal/infrastructure/gin"
 	myErrors "gochat/internal/shared/errors"
 	sharedHttp "gochat/internal/shared/http"
 	"gochat/internal/shared/kernel"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -58,11 +58,12 @@ func NewSendPrivateMessageHandler(useCase application.SendPrivateMessageUseCase,
 				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "input is empty")
 			case errors.Is(err, myErrors.ErrNotFound):
 				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "recipientID not found")
+			case errors.Is(err, domain.ErrNotFriends):
+				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "he is not your friends")
 			default:
 				zap.L().Error("send private message handler failed", zap.Error(err))
 				ginutils.Response(ginContext, sharedHttp.CodeServerError)
 			}
 		},
-		5*time.Second,
 	)
 }

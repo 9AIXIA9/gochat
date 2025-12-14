@@ -80,6 +80,5 @@ func NewLoginHandler(useCase application.LoginUseCase, validator ginutils.Valida
 				ginutils.Response(ginContext, sharedHttp.CodeServerError)
 			}
 		},
-		5*time.Second,
 	)
 }
