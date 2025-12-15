@@ -52,6 +52,7 @@ func (c *Client) WithOnClose(fn func()) *Client {
 func (c *Client) Start() {
 	go c.writePump()
 	go c.readPump()
+	// 移除额外的 heartbeat 写协程，避免并发写导致连接中断
 }
 
 func (c *Client) Close() {
@@ -81,6 +82,15 @@ func (c *Client) readPump() {
 	_ = c.conn.SetReadDeadline(time.Now().UTC().Add(pongWait))
 	c.conn.SetPongHandler(func(string) error {
 		return c.conn.SetReadDeadline(time.Now().UTC().Add(pongWait))
+	})
+
+	c.conn.SetCloseHandler(func(code int, text string) error {
+		zap.L().Debug(
+			"websocket client received close frame",
+			zap.Int("code", code),
+			zap.String("text", text),
+		)
+		return nil
 	})
 
 	for {
@@ -131,6 +141,7 @@ func (c *Client) writePump() {
 				return
 			}
 		case <-ticker.C:
+			// 统一在单写协程里发送 ping，避免并发写
 			_ = c.conn.SetWriteDeadline(time.Now().UTC().Add(writeWait))
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				return

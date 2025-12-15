@@ -100,13 +100,25 @@ func provideHttpRouter(
 	baseGroup.Use(
 		middleware.NewRateLimitMiddleware(redisClient, appConfig.RateLimit),
 		metrics.GinMiddleware(),
-		middleware.NewTimeoutMiddleware(appConfig.Timeout),
 	)
+
+	authorizationMiddleware := authHTTP.NewAuthorizationMiddleware(parseAccessToken)
 
 	// 遥测追踪中间件
 	if appConfig.Telemetry != nil && appConfig.Telemetry.Enabled && appConfig.Telemetry.TraceEnabled {
 		baseGroup.Use(middleware.NewTelemetryMiddleware(appConfig.Name))
 	}
+
+	// WebSocket路由
+	websocketGroup := baseGroup.Group("/ws")
+	websocketGroup.Use(authorizationMiddleware)
+	{
+		websocketGroup.GET("/", gin.WrapH(websocketHandler))
+	}
+
+	baseGroup.Use(
+		middleware.NewTimeoutMiddleware(appConfig.Timeout),
+	)
 
 	// 授权相关路由
 	authorizationGroup := baseGroup.Group("/authorization")
@@ -115,8 +127,6 @@ func provideHttpRouter(
 		authorizationGroup.POST("/login", authHTTP.NewLoginHandler(login, validator, appConfig.Cookie))
 		authorizationGroup.GET("/refresh_access_token", authHTTP.NewRefreshAccessTokenHandler(refreshAccessToken, validator, appConfig.Cookie))
 	}
-
-	authorizationMiddleware := authHTTP.NewAuthorizationMiddleware(parseAccessToken)
 
 	// 聊天相关路由
 	profileGroup := baseGroup.Group("/profile")
@@ -179,13 +189,6 @@ func provideHttpRouter(
 	notificationGroup.Use(authorizationMiddleware)
 	{
 		notificationGroup.GET("/system", notificationHTTP.NewListSystemMessagesHandler(listSystemMessages, validator))
-	}
-
-	// WebSocket路由
-	websocketGroup := baseGroup.Group("/ws")
-	websocketGroup.Use(authorizationMiddleware)
-	{
-		websocketGroup.GET("/", gin.WrapH(websocketHandler))
 	}
 
 	return router
