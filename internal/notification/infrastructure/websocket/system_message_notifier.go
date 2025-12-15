@@ -41,7 +41,7 @@ func (n *SystemMessageNotifier) Notify(message *domain.SystemMessage) error {
 	}
 
 	return n.manager.SendTo(message.RecipientID(), &websocket.Response{
-		Topic: NotifySystemMessageTopic,
-		Data:  data,
+		Topic:   NotifySystemMessageTopic,
+		Payload: data,
 	})
 }

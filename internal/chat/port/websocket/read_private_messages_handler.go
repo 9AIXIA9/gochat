@@ -3,8 +3,11 @@ package websocket
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"gochat/internal/chat/application"
 	"gochat/internal/infrastructure/websocket"
+	"gochat/internal/shared/api"
+	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 	"gochat/pkg/utils"
 )
@@ -12,25 +15,38 @@ import (
 const ReadPrivateMessagesTopic websocket.Topic = "chat.read_private_messages"
 
 type ReadPrivateMessagesData struct {
-	SenderID kernel.UserID `json:"sender_id" validate:"required"`
+	SenderID    kernel.UserID `json:"sender_id" validate:"required"`
+	RecipientID kernel.UserID `json:"-" validate:"required"`
 }
 
 func NewReadPrivateMessagesHandler(
 	uc application.ReadPrivateMessagesUseCase,
+	validator websocket.Validator,
 ) websocket.Handler {
 	return websocket.AdaptUsecaseToHandler(
 		uc,
-		func(ctx context.Context, data []byte) (*application.ReadPrivateMessagesInput, error) {
-			var reqData ReadPrivateMessagesData
-			if err := json.Unmarshal(data, &reqData); err != nil {
+		validator,
+		func(ctx context.Context, bytes []byte) (*ReadPrivateMessagesData, error) {
+			var data ReadPrivateMessagesData
+			if err := json.Unmarshal(bytes, &data); err != nil {
 				return nil, err
 			}
-			return &application.ReadPrivateMessagesInput{
-				SenderID:    reqData.SenderID,
-				RecipientID: utils.GetUserID(ctx),
-			}, nil
+			data.RecipientID = utils.GetUserID(ctx)
+			return &data, nil
 		},
-		nil,
-		nil,
+		func(data *ReadPrivateMessagesData) *application.ReadPrivateMessagesInput {
+			return &application.ReadPrivateMessagesInput{
+				SenderID:    data.SenderID,
+				RecipientID: data.RecipientID,
+			}
+		},
+		func(ctx context.Context, err error) *api.Response {
+			switch {
+			case errors.Is(err, myErrors.ErrNotFound):
+				return api.NewResponseWithMessage(api.CodeNotFound, "user is not found")
+			default:
+				return api.NewResponse(api.CodeServerError)
+			}
+		},
 	)
 }

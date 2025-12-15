@@ -2,18 +2,19 @@ package websocket
 
 import (
 	"context"
+	"gochat/internal/shared/api"
 )
 
 type Handler interface {
-	Handle(ctx context.Context, data []byte) ([]byte, error)
+	Handle(ctx context.Context, data []byte) *api.Response
 }
 
 // Middleware wraps a next Handler and returns a new Handler.
 type Middleware func(next Handler) Handler
 
-type HandlerFunc func(ctx context.Context, data []byte) ([]byte, error)
+type HandlerFunc func(ctx context.Context, data []byte) *api.Response
 
-func (f HandlerFunc) Handle(ctx context.Context, data []byte) ([]byte, error) {
+func (f HandlerFunc) Handle(ctx context.Context, data []byte) *api.Response {
 	return f(ctx, data)
 }
 

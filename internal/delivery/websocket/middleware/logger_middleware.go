@@ -2,10 +2,10 @@ package middleware
 
 import (
 	"context"
+	"gochat/internal/infrastructure/websocket"
+	sharedHttp "gochat/internal/shared/api"
 	"gochat/pkg/utils"
 	"time"
-
-	"gochat/internal/infrastructure/websocket"
 
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -14,11 +14,11 @@ import (
 // NewLoggerMiddleware returns a middleware that logs request latency and tracing info.
 func NewLoggerMiddleware() websocket.Middleware {
 	return func(next websocket.Handler) websocket.Handler {
-		return websocket.HandlerFunc(func(ctx context.Context, data []byte) ([]byte, error) {
+		return websocket.HandlerFunc(func(ctx context.Context, data []byte) *sharedHttp.Response {
 			start := time.Now().UTC()
 
 			// Call the next handler in the chain
-			resp, err := next.Handle(ctx, data)
+			resp := next.Handle(ctx, data)
 
 			dur := time.Since(start)
 			span := trace.SpanFromContext(ctx)
@@ -33,10 +33,9 @@ func NewLoggerMiddleware() websocket.Middleware {
 			zap.L().Info("websocket request completed", append(fields,
 				zap.String("user_id", utils.GetUserID(ctx).String()),
 				zap.String("topic", websocket.GetTopic(ctx).String()),
-				zap.Error(err),
 			)...)
 
-			return resp, err
+			return resp
 		})
 	}
 }

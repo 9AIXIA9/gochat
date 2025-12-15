@@ -43,7 +43,7 @@ func (n *PrivateMessageNotifier) Notify(message *domain.PrivateMessage) error {
 	}
 
 	return n.manager.SendTo(message.RecipientID(), &websocket.Response{
-		Topic: NotifyPrivateMessageTopic,
-		Data:  data,
+		Topic:   NotifyPrivateMessageTopic,
+		Payload: data,
 	})
 }

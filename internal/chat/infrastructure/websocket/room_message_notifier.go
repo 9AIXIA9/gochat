@@ -45,7 +45,7 @@ func (n *RoomMessageNotifier) Notify(message *domain.RoomMessage, recipients []k
 	}
 
 	return n.manager.Broadcast(recipients, &websocket.Response{
-		Topic: NotifyRoomMessageTopic,
-		Data:  data,
-	}), nil
+		Topic:   NotifyRoomMessageTopic,
+		Payload: data,
+	})
 }

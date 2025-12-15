@@ -3,18 +3,19 @@ package websocket
 import (
 	"context"
 	"encoding/json"
+	"gochat/internal/shared/api"
 
 	"go.uber.org/zap"
 )
 
 type Request struct {
-	Topic Topic           `json:"topic" validate:"required"`
-	Data  json.RawMessage `json:"data,omitempty"`
+	Topic   Topic           `json:"topic" validate:"required"`
+	Payload json.RawMessage `json:"payload,omitempty"`
 }
 
 type Response struct {
-	Topic Topic           `json:"topic" validate:"required"`
-	Data  json.RawMessage `json:"data,omitempty"`
+	Topic   Topic `json:"topic"`
+	Payload any   `json:"payload,omitempty"`
 }
 
 type Router struct {
@@ -50,29 +51,26 @@ func (r *Router) Handle(topic Topic, h Handler, middlewares ...Middleware) {
 	r.handlers[topic] = wrapped
 }
 
-func (r *Router) Route(ctx context.Context, request *Request) *Response {
+func (r *Router) Route(ctx context.Context, message []byte) *Response {
+	request := new(Request)
+	if err := json.Unmarshal(message, request); err != nil {
+		return &Response{
+			Payload: api.NewResponse(api.CodeInvalidParam),
+		}
+	}
+
 	msg, err := r.validator.Validate(ctx, request)
 	if err != nil {
-		data, mErr := json.Marshal(&ErrorData{Message: err.Error()})
-		if mErr != nil {
-			return nil
-		}
 		return &Response{
-			Topic: request.Topic,
-			Data:  data,
+			Topic:   request.Topic,
+			Payload: api.NewResponse(api.CodeServerError),
 		}
 	}
 
 	if len(msg) != 0 {
-		data, mErr := json.Marshal(&ErrorData{
-			Message: msg,
-		})
-		if mErr != nil {
-			return nil
-		}
 		return &Response{
-			Topic: request.Topic,
-			Data:  data,
+			Topic:   request.Topic,
+			Payload: api.NewResponseWithMessage(api.CodeInvalidParam, msg),
 		}
 	}
 
@@ -81,30 +79,16 @@ func (r *Router) Route(ctx context.Context, request *Request) *Response {
 		if r.notFound != nil {
 			h = r.notFound
 		} else {
-			zap.L().Debug("websocket: topic is not found", zap.String("topic", request.Topic.String()))
-			data, mErr := json.Marshal(&ErrorData{Message: "topic is not found"})
-			if mErr != nil {
-				return nil
-			}
+			zap.L().Warn("websocket: topic is not found", zap.String("topic", request.Topic.String()))
 			return &Response{
-				Topic: request.Topic,
-				Data:  data,
+				Topic:   request.Topic,
+				Payload: api.NewResponse(api.CodeNotFound),
 			}
 		}
 	}
 
-	ctx = SetTopic(ctx, request.Topic)
-
-	resp, err := h.Handle(ctx, request.Data)
-	if err != nil {
-		data, mErr := json.Marshal(&ErrorData{Message: err.Error()})
-		if mErr != nil {
-			return nil
-		}
-		resp = data
-	}
 	return &Response{
-		Topic: request.Topic,
-		Data:  resp,
+		Topic:   request.Topic,
+		Payload: h.Handle(SetTopic(ctx, request.Topic), request.Payload),
 	}
 }

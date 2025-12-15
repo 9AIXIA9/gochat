@@ -2,6 +2,7 @@ package websocket
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"sync"
 	"time"
@@ -13,9 +14,10 @@ import (
 )
 
 const (
-	writeWait  = 10 * time.Second
-	pongWait   = 60 * time.Second
-	pingPeriod = 50 * time.Second
+	// 建议：ping 间隔必须小于读超时（pongWait）
+	writeWait  = 2 * time.Second  // 每次写操作超时
+	pongWait   = 15 * time.Second // 期待下一次 pong 的最大间隔（读超时）
+	pingPeriod = 10 * time.Second // 发送 ping 的间隔，应严格小于 pongWait
 )
 
 type Client struct {
@@ -64,15 +66,7 @@ func (c *Client) Close() {
 	})
 }
 
-func (c *Client) SendResponse(resp *Response) error {
-	b, err := EncodeResponse(resp)
-	if err != nil {
-		return err
-	}
-	return c.send(b)
-}
-
-func (c *Client) send(b []byte) error {
+func (c *Client) Send(b []byte) error {
 	select {
 	case c.sendChan <- b:
 		return nil
@@ -106,30 +100,16 @@ func (c *Client) readPump() {
 			return
 		}
 
-		msg, err := DecodeMessage(message)
-		if err != nil {
-			zap.L().Debug("websocket decode message failed", zap.Error(err))
-			continue
-		}
-
-		switch msg.Type {
-		case PingType:
-			if b, err := EncodePong(); err == nil {
-				_ = c.send(b)
-			}
-		case RequestType:
-			req, err := DecodeRequest(msg.Payload)
+		resp := c.router.Route(c.ctx, message)
+		if resp != nil {
+			respBytes, err := json.Marshal(resp)
 			if err != nil {
-				zap.L().Debug("websocket decode request failed", zap.Error(err))
+				zap.L().Error("websocket client marshal response failed", zap.Error(err))
 				continue
 			}
-			resp := c.router.Route(c.ctx, req)
-
-			if resp != nil {
-				_ = c.SendResponse(resp)
+			if err := c.Send(respBytes); err != nil {
+				zap.L().Error("websocket client send response failed", zap.Error(err))
 			}
-		default:
-			zap.L().Debug("websocket client receive invalid message type", zap.String("type", string(msg.Type)))
 		}
 	}
 }
