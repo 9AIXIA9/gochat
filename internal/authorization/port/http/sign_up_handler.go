@@ -5,7 +5,7 @@ import (
 	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
 	ginutils "gochat/internal/infrastructure/gin"
-	sharedHttp "gochat/internal/shared/api"
+	"gochat/internal/shared/api"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 
@@ -34,9 +34,9 @@ type SignUpResponseData struct {
 // @Produce      json
 // @Param        request  body      SignUpRequest        true  "注册请求体"
 // @Success      201      {object}  SignUpResponseData   "注册成功，返回用户编号"
-// @Failure      400      {object}  sharedHttp.Response "请求参数错误或密码不合法"
-// @Failure      409      {object}  sharedHttp.Response "邮箱已被占用"
-// @Failure      500      {object}  sharedHttp.Response "服务器内部错误"
+// @Failure      400      {object}  api.Response "请求参数错误或密码不合法"
+// @Failure      409      {object}  api.Response "邮箱已被占用"
+// @Failure      500      {object}  api.Response "服务器内部错误"
 // @Router       /authorization/sign_up [post]
 func NewSignUpHandler(useCase application.SignUpUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
@@ -57,12 +57,12 @@ func NewSignUpHandler(useCase application.SignUpUseCase, validator ginutils.Vali
 				errors.Is(err, myErrors.ErrInvalidLength) ||
 				errors.Is(err, domain.ErrInvalidPassword) ||
 				errors.Is(err, myErrors.ErrInvalidFormat):
-				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "password is invalid")
+				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "password is invalid")
 			case errors.Is(err, myErrors.ErrDuplicatedKey):
-				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "the email address is used")
+				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "the email address is used")
 			default:
 				zap.L().Error("sign up handler failed", zap.Error(err))
-				ginutils.Response(ginContext, sharedHttp.CodeServerError)
+				ginutils.Response(ginContext, api.CodeServerError)
 			}
 		},
 	)

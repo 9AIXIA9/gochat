@@ -3,7 +3,7 @@ package middleware
 import (
 	"context"
 	"gochat/internal/infrastructure/websocket"
-	sharedHttp "gochat/internal/shared/api"
+	"gochat/internal/shared/api"
 	"gochat/pkg/utils"
 	"runtime/debug"
 
@@ -12,7 +12,7 @@ import (
 
 func NewRecoverMiddleware() websocket.Middleware {
 	return func(next websocket.Handler) websocket.Handler {
-		return websocket.HandlerFunc(func(ctx context.Context, data []byte) *sharedHttp.Response {
+		return websocket.HandlerFunc(func(ctx context.Context, data []byte) *api.Response {
 			defer func() {
 				if r := recover(); r != nil {
 					stack := string(debug.Stack())

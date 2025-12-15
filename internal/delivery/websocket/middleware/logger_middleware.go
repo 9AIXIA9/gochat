@@ -3,7 +3,7 @@ package middleware
 import (
 	"context"
 	"gochat/internal/infrastructure/websocket"
-	sharedHttp "gochat/internal/shared/api"
+	"gochat/internal/shared/api"
 	"gochat/pkg/utils"
 	"time"
 
@@ -14,7 +14,7 @@ import (
 // NewLoggerMiddleware returns a middleware that logs request latency and tracing info.
 func NewLoggerMiddleware() websocket.Middleware {
 	return func(next websocket.Handler) websocket.Handler {
-		return websocket.HandlerFunc(func(ctx context.Context, data []byte) *sharedHttp.Response {
+		return websocket.HandlerFunc(func(ctx context.Context, data []byte) *api.Response {
 			start := time.Now().UTC()
 
 			// Call the next handler in the chain

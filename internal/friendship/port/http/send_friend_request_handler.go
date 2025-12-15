@@ -5,7 +5,7 @@ import (
 	"gochat/internal/friendship/application"
 	"gochat/internal/friendship/domain"
 	ginutils "gochat/internal/infrastructure/gin"
-	sharedHttp "gochat/internal/shared/api"
+	"gochat/internal/shared/api"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 
@@ -33,10 +33,10 @@ func (r *SendFriendRequestRequest) Bind(ginContext *gin.Context) error {
 // @Accept       json
 // @Produce      json
 // @Param        request  body      SendFriendRequestRequest  true  "发送好友请求体"
-// @Success      201      {object}  sharedHttp.Response    "发送成功"
-// @Failure      400      {object}  sharedHttp.Response    "请求参数错误或业务校验失败"
-// @Failure      401      {object}  sharedHttp.Response    "未认证"
-// @Failure      500      {object}  sharedHttp.Response    "服务器内部错误"
+// @Success      201      {object}  api.Response    "发送成功"
+// @Failure      400      {object}  api.Response    "请求参数错误或业务校验失败"
+// @Failure      401      {object}  api.Response    "未认证"
+// @Failure      500      {object}  api.Response    "服务器内部错误"
 // @Router       /friendship/request [post]
 func NewSendFriendRequestHandler(useCase application.SendFriendRequestUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
@@ -55,18 +55,18 @@ func NewSendFriendRequestHandler(useCase application.SendFriendRequestUseCase, v
 		func(ginContext *gin.Context, err error) {
 			switch {
 			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "input is empty")
+				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "input is empty")
 			case errors.Is(err, domain.ErrAddYourselfAsFriend):
-				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "you cannot add yourself as a friend")
+				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "you cannot add yourself as a friend")
 			case errors.Is(err, domain.ErrAlreadyBeenFriends):
-				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "you are already friends")
+				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "you are already friends")
 			case errors.Is(err, domain.ErrFriendRequestExists):
-				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "friend request already sent")
+				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "friend request already sent")
 			case errors.Is(err, domain.ErrFriendRequestContentTooLong):
-				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "friend request content too long")
+				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "friend request content too long")
 			default:
 				zap.L().Error("SendFriendRequestHandler error", zap.Error(err))
-				ginutils.Response(ginContext, sharedHttp.CodeServerError)
+				ginutils.Response(ginContext, api.CodeServerError)
 			}
 		},
 	)

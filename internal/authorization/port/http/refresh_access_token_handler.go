@@ -6,7 +6,7 @@ import (
 	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
 	ginutils "gochat/internal/infrastructure/gin"
-	sharedHttp "gochat/internal/shared/api"
+	"gochat/internal/shared/api"
 	myErrors "gochat/internal/shared/errors"
 	"time"
 
@@ -37,8 +37,8 @@ func (r *RefreshAccessTokenRequest) Bind(ginContext *gin.Context) error {
 // @Tags         Authorization
 // @Produce      json
 // @Success      200  {object}  RefreshAccessTokenResponseData "刷新成功，返回新的访问令牌"
-// @Failure      400  {object}  sharedHttp.Response         "刷新令牌无效或已过期"
-// @Failure      500  {object}  sharedHttp.Response         "服务器内部错误"
+// @Failure      400  {object}  api.Response         "刷新令牌无效或已过期"
+// @Failure      500  {object}  api.Response         "服务器内部错误"
 // @Router       /authorization/refresh_access_token [get]
 func NewRefreshAccessTokenHandler(useCase application.RefreshAccessTokenUseCase, validator ginutils.Validator, cookieConfig *config.Cookie) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
@@ -51,7 +51,7 @@ func NewRefreshAccessTokenHandler(useCase application.RefreshAccessTokenUseCase,
 		},
 		func(ginContext *gin.Context, output *application.RefreshAccessTokenOutput) {
 			if time.Now().UTC().After(output.RefreshToken.ExpiredAt()) {
-				ginutils.Response(ginContext, sharedHttp.CodeServerError)
+				ginutils.Response(ginContext, api.CodeServerError)
 				return
 			}
 			ginContext.SetCookie(
@@ -76,10 +76,10 @@ func NewRefreshAccessTokenHandler(useCase application.RefreshAccessTokenUseCase,
 				errors.Is(err, domain.ErrAccessTokenGenerated) ||
 				errors.Is(err, domain.ErrRefreshLimitExceeded) ||
 				errors.Is(err, myErrors.ErrNotFound):
-				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "invalid refresh token")
+				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "invalid refresh token")
 			default:
 				zap.L().Error("refresh access token handler failed", zap.Error(err))
-				ginutils.Response(ginContext, sharedHttp.CodeServerError)
+				ginutils.Response(ginContext, api.CodeServerError)
 			}
 		},
 	)

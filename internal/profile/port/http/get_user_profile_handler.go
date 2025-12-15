@@ -5,7 +5,7 @@ import (
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/profile/application"
 	"gochat/internal/profile/dto"
-	sharedHttp "gochat/internal/shared/api"
+	"gochat/internal/shared/api"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 
@@ -35,9 +35,9 @@ type GetUserProfileResponseData struct {
 // @Produce      json
 // @Param        user_id  path      int                         true  "用户ID"
 // @Success      200      {object}  GetUserProfileResponseData  "成功返回用户资料"
-// @Failure      400      {object}  sharedHttp.Response "请求参数错误"
-// @Failure      404      {object}  sharedHttp.Response "用户不存在"
-// @Failure      500      {object}  sharedHttp.Response "服务器内部错误"
+// @Failure      400      {object}  api.Response "请求参数错误"
+// @Failure      404      {object}  api.Response "用户不存在"
+// @Failure      500      {object}  api.Response "服务器内部错误"
 // @Router       /profile/user/{user_id} [get]
 func NewGetUserProfileHandler(useCase application.GetUserProfileUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
@@ -56,12 +56,12 @@ func NewGetUserProfileHandler(useCase application.GetUserProfileUseCase, validat
 		func(ginContext *gin.Context, err error) {
 			switch {
 			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "input is empty")
+				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "input is empty")
 			case errors.Is(err, myErrors.ErrNotFound):
-				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeNotFound, "user is not found")
+				ginutils.ResponseWithMessage(ginContext, api.CodeNotFound, "user is not found")
 			default:
 				zap.L().Error("GetUserProfileHandler error", zap.Error(err))
-				ginutils.Response(ginContext, sharedHttp.CodeServerError)
+				ginutils.Response(ginContext, api.CodeServerError)
 			}
 		},
 	)

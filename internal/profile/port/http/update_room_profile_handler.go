@@ -4,7 +4,7 @@ import (
 	"errors"
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/profile/application"
-	sharedHttp "gochat/internal/shared/api"
+	"gochat/internal/shared/api"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 
@@ -36,11 +36,11 @@ func (r *UpdateRoomProfileRequest) Bind(ginContext *gin.Context) error {
 // @Accept       json
 // @Produce      json
 // @Param        request  body      UpdateRoomProfileRequest  true  "更新房间资料请求体"
-// @Success      200      {object}  sharedHttp.Response    "更新成功"
-// @Failure      400      {object}  sharedHttp.Response    "请求参数错误"
-// @Failure      401      {object}  sharedHttp.Response    "未认证"
-// @Failure      404      {object}  sharedHttp.Response    "房间资料不存在"
-// @Failure      500      {object}  sharedHttp.Response    "服务器内部错误"
+// @Success      200      {object}  api.Response    "更新成功"
+// @Failure      400      {object}  api.Response    "请求参数错误"
+// @Failure      401      {object}  api.Response    "未认证"
+// @Failure      404      {object}  api.Response    "房间资料不存在"
+// @Failure      500      {object}  api.Response    "服务器内部错误"
 // @Router       /profile/room [put]
 func NewUpdateRoomProfileHandler(useCase application.UpdateRoomProfileUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
@@ -60,12 +60,12 @@ func NewUpdateRoomProfileHandler(useCase application.UpdateRoomProfileUseCase, v
 		func(ginContext *gin.Context, err error) {
 			switch {
 			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "input is empty")
+				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "input is empty")
 			case errors.Is(err, myErrors.ErrNotFound):
-				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeNotFound, "room profile not found")
+				ginutils.ResponseWithMessage(ginContext, api.CodeNotFound, "room profile not found")
 			default:
 				zap.L().Error("UpdateRoomProfileHandler error", zap.Error(err))
-				ginutils.Response(ginContext, sharedHttp.CodeServerError)
+				ginutils.Response(ginContext, api.CodeServerError)
 			}
 		},
 	)

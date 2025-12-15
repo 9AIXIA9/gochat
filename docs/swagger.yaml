@@ -192,15 +192,7 @@ definitions:
       user_id:
         $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
     type: object
-  gochat_internal_shared_http.ApiResponse:
-    properties:
-      code:
-        $ref: '#/definitions/gochat_internal_shared_http.BusinessCode'
-      data: {}
-      message:
-        type: string
-    type: object
-  gochat_internal_shared_http.BusinessCode:
+  gochat_internal_shared_api.Code:
     enum:
     - 200
     - 500
@@ -216,6 +208,14 @@ definitions:
     - CodeInvalidParam
     - CodeInvalidToken
     - CodeNotFound
+  gochat_internal_shared_api.Response:
+    properties:
+      code:
+        $ref: '#/definitions/gochat_internal_shared_api.Code'
+      data: {}
+      message:
+        type: string
+    type: object
   gochat_internal_shared_kernel.Gender:
     enum:
     - 0
@@ -470,11 +470,11 @@ paths:
         "400":
           description: 请求参数错误或密码错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
       summary: 用户登录
       tags:
       - Authorization
@@ -491,11 +491,11 @@ paths:
         "400":
           description: 刷新令牌无效或已过期
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
       summary: 刷新访问令牌
       tags:
       - Authorization
@@ -521,15 +521,15 @@ paths:
         "400":
           description: 请求参数错误或密码不合法
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "409":
           description: 邮箱已被占用
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
       summary: 用户注册
       tags:
       - Authorization
@@ -555,15 +555,15 @@ paths:
         "400":
           description: 请求参数错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "401":
           description: 未认证
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
       - BearerAuth: []
       summary: 获取私聊消息列表
@@ -586,19 +586,19 @@ paths:
         "201":
           description: 发送成功
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "400":
           description: 请求参数错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "401":
           description: 未认证
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
       - BearerAuth: []
       summary: 发送私聊消息
@@ -626,15 +626,15 @@ paths:
         "400":
           description: 请求参数错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "401":
           description: 未认证
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
       - BearerAuth: []
       summary: 获取房间消息列表
@@ -657,19 +657,19 @@ paths:
         "201":
           description: 发送成功
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "400":
           description: 请求参数错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "401":
           description: 未认证
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
       - BearerAuth: []
       summary: 发送房间消息
@@ -697,15 +697,15 @@ paths:
         "400":
           description: 请求参数错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "401":
           description: 未认证
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
       - BearerAuth: []
       summary: 获取好友列表
@@ -733,15 +733,15 @@ paths:
         "400":
           description: 请求参数错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "401":
           description: 未认证
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
       - BearerAuth: []
       summary: 获取好友请求列表
@@ -764,19 +764,19 @@ paths:
         "201":
           description: 发送成功
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "400":
           description: 请求参数错误或业务校验失败
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "401":
           description: 未认证
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
       - BearerAuth: []
       summary: 发送好友请求
@@ -797,19 +797,19 @@ paths:
         "200":
           description: 同意成功
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "400":
           description: 请求参数错误或请求已处理
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "401":
           description: 未认证
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
       - BearerAuth: []
       summary: 同意好友请求
@@ -830,19 +830,19 @@ paths:
         "200":
           description: 拒绝成功
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "400":
           description: 请求参数错误或请求已处理
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "401":
           description: 未认证
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
       - BearerAuth: []
       summary: 拒绝好友请求
@@ -870,15 +870,15 @@ paths:
         "400":
           description: 请求参数错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "401":
           description: 未认证
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
       - BearerAuth: []
       summary: 获取系统通知列表
@@ -902,23 +902,23 @@ paths:
         "200":
           description: 更新成功
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "400":
           description: 请求参数错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "401":
           description: 未认证
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "404":
           description: 用户资料不存在
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
       - BearerAuth: []
       summary: 更新当前用户资料
@@ -942,23 +942,23 @@ paths:
         "200":
           description: 更新成功
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "400":
           description: 请求参数错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "401":
           description: 未认证
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "404":
           description: 房间资料不存在
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
       - BearerAuth: []
       summary: 更新房间资料
@@ -983,15 +983,15 @@ paths:
         "400":
           description: 请求参数错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "404":
           description: 房间不存在
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
       summary: 获取房间资料
       tags:
       - Profile
@@ -1014,15 +1014,15 @@ paths:
         "400":
           description: 请求参数错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "404":
           description: 用户不存在
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
       summary: 获取用户资料
       tags:
       - Profile
@@ -1048,15 +1048,15 @@ paths:
         "400":
           description: 请求参数错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "401":
           description: 未认证
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
       - BearerAuth: []
       summary: 获取房间关系列表
@@ -1084,15 +1084,15 @@ paths:
         "400":
           description: 请求参数错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "401":
           description: 未认证
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
       - BearerAuth: []
       summary: 获取房间成员请求列表
@@ -1115,19 +1115,19 @@ paths:
         "201":
           description: 发送成功
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "400":
           description: 请求参数错误或业务校验失败
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "401":
           description: 未认证
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
       - BearerAuth: []
       summary: 发送入群请求
@@ -1148,19 +1148,19 @@ paths:
         "200":
           description: 同意成功
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "400":
           description: 请求参数错误或请求已处理/无权限
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "401":
           description: 未认证
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
       - BearerAuth: []
       summary: 同意入群请求
@@ -1181,19 +1181,19 @@ paths:
         "200":
           description: 拒绝成功
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "400":
           description: 请求参数错误或请求已处理/无权限
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "401":
           description: 未认证
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
       - BearerAuth: []
       summary: 拒绝入群请求
@@ -1217,19 +1217,19 @@ paths:
         "201":
           description: 创建成功
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "400":
           description: 请求参数错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "401":
           description: 未认证
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
       - BearerAuth: []
       summary: 创建房间
@@ -1250,19 +1250,19 @@ paths:
         "200":
           description: 退出成功，若本身不在房间视为成功
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "400":
           description: 请求参数错误或房主不能直接退出
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "401":
           description: 未认证
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
       - BearerAuth: []
       summary: 退出房间
@@ -1286,15 +1286,15 @@ paths:
         "400":
           description: 请求参数错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "404":
           description: 房间不存在
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "500":
           description: 服务器内部错误
           schema:
-            $ref: '#/definitions/gochat_internal_shared_http.ApiResponse'
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
       summary: 获取房间成员列表
       tags:
       - Roomship

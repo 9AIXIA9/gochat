@@ -5,7 +5,7 @@ import (
 	"gochat/internal/chat/application"
 	"gochat/internal/chat/domain"
 	ginutils "gochat/internal/infrastructure/gin"
-	sharedHttp "gochat/internal/shared/api"
+	"gochat/internal/shared/api"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 
@@ -33,10 +33,10 @@ func (r *SendRoomMessageRequest) Bind(ginContext *gin.Context) error {
 // @Accept       json
 // @Produce      json
 // @Param        request  body      SendRoomMessageRequest     true  "发送房间消息请求体"
-// @Success      201      {object}  sharedHttp.Response     "发送成功"
-// @Failure      400      {object}  sharedHttp.Response     "请求参数错误"
-// @Failure      401      {object}  sharedHttp.Response     "未认证"
-// @Failure      500      {object}  sharedHttp.Response     "服务器内部错误"
+// @Success      201      {object}  api.Response     "发送成功"
+// @Failure      400      {object}  api.Response     "请求参数错误"
+// @Failure      401      {object}  api.Response     "未认证"
+// @Failure      500      {object}  api.Response     "服务器内部错误"
 // @Router       /chat/room [post]
 func NewSendRoomMessageHandler(useCase application.SendRoomMessageUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
@@ -55,16 +55,16 @@ func NewSendRoomMessageHandler(useCase application.SendRoomMessageUseCase, valid
 		func(ginContext *gin.Context, err error) {
 			switch {
 			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "input is empty")
+				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "input is empty")
 			case errors.Is(err, myErrors.ErrNotFound):
-				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "room not found")
+				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "room not found")
 			case errors.Is(err, domain.ErrNotMember):
-				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "not belong to this room")
+				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "not belong to this room")
 			case errors.Is(err, myErrors.ErrInvalidLength):
-				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "invalid length")
+				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "invalid length")
 			default:
 				zap.L().Error("send room message handler failed", zap.Error(err))
-				ginutils.Response(ginContext, sharedHttp.CodeServerError)
+				ginutils.Response(ginContext, api.CodeServerError)
 			}
 		},
 	)

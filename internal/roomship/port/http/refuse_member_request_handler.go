@@ -5,7 +5,7 @@ import (
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/roomship/application"
 	"gochat/internal/roomship/domain"
-	sharedHttp "gochat/internal/shared/api"
+	"gochat/internal/shared/api"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 
@@ -34,10 +34,10 @@ func (r *RefuseMemberRequestRequest) Bind(ginContext *gin.Context) error {
 // @Security     BearerAuth
 // @Produce      json
 // @Param        request_id  path      int                   true  "成员请求ID"
-// @Success      200         {object}  sharedHttp.Response "拒绝成功"
-// @Failure      400         {object}  sharedHttp.Response "请求参数错误或请求已处理/无权限"
-// @Failure      401         {object}  sharedHttp.Response "未认证"
-// @Failure      500         {object}  sharedHttp.Response "服务器内部错误"
+// @Success      200         {object}  api.Response "拒绝成功"
+// @Failure      400         {object}  api.Response "请求参数错误或请求已处理/无权限"
+// @Failure      401         {object}  api.Response "未认证"
+// @Failure      500         {object}  api.Response "服务器内部错误"
 // @Router       /roomship/request/{request_id}/refuse [put]
 func NewRefuseMemberRequestHandler(useCase application.RefuseMemberRequestUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
@@ -55,14 +55,14 @@ func NewRefuseMemberRequestHandler(useCase application.RefuseMemberRequestUseCas
 		func(ginContext *gin.Context, err error) {
 			switch {
 			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "input is empty")
+				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "input is empty")
 			case errors.Is(err, myErrors.ErrNotFound):
-				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "request is not found")
+				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "request is not found")
 			case errors.Is(err, domain.ErrNotAdmin):
-				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "you have no permission to refuse this request")
+				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "you have no permission to refuse this request")
 			default:
 				zap.L().Error("RefuseMemberRequestHandler error", zap.Error(err))
-				ginutils.Response(ginContext, sharedHttp.CodeServerError)
+				ginutils.Response(ginContext, api.CodeServerError)
 			}
 		},
 	)

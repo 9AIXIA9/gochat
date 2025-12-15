@@ -5,7 +5,7 @@ import (
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/roomship/application"
 	"gochat/internal/roomship/domain"
-	sharedHttp "gochat/internal/shared/api"
+	"gochat/internal/shared/api"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 
@@ -34,10 +34,10 @@ func (r *SendMemberRequestRequest) Bind(ginContext *gin.Context) error {
 // @Accept       json
 // @Produce      json
 // @Param        request  body      SendMemberRequestRequest  true  "发送入群请求体"
-// @Success      201      {object}  sharedHttp.Response    "发送成功"
-// @Failure      400      {object}  sharedHttp.Response    "请求参数错误或业务校验失败"
-// @Failure      401      {object}  sharedHttp.Response    "未认证"
-// @Failure      500      {object}  sharedHttp.Response    "服务器内部错误"
+// @Success      201      {object}  api.Response    "发送成功"
+// @Failure      400      {object}  api.Response    "请求参数错误或业务校验失败"
+// @Failure      401      {object}  api.Response    "未认证"
+// @Failure      500      {object}  api.Response    "服务器内部错误"
 // @Router       /roomship/request [post]
 func NewSendMemberRequestHandler(useCase application.SendMemberRequestUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
@@ -57,16 +57,16 @@ func NewSendMemberRequestHandler(useCase application.SendMemberRequestUseCase, v
 		func(ginContext *gin.Context, err error) {
 			switch {
 			case errors.Is(err, domain.ErrMemberRequestAlreadyExists):
-				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "you have already sent a member request to this room")
+				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "you have already sent a member request to this room")
 			case errors.Is(err, domain.ErrIsAlreadyMember):
-				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "you are already a member of this room")
+				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "you are already a member of this room")
 			case errors.Is(err, myErrors.ErrNotFound):
-				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "the room does not exist")
+				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "the room does not exist")
 			case errors.Is(err, domain.ErrInvalidPassword):
-				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "the password is incorrect")
+				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "the password is incorrect")
 			default:
 				zap.L().Error("SendMemberRequestHandler error", zap.Error(err))
-				ginutils.Response(ginContext, sharedHttp.CodeServerError)
+				ginutils.Response(ginContext, api.CodeServerError)
 			}
 		},
 	)
