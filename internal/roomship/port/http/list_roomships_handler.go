@@ -6,7 +6,7 @@ import (
 	"gochat/internal/roomship/application"
 	"gochat/internal/roomship/domain"
 	"gochat/internal/roomship/dto"
-	sharedHttp "gochat/internal/shared/api"
+	"gochat/internal/shared/api"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 
@@ -48,9 +48,9 @@ type ListRoomshipsResponseData struct {
 // @Param        base_id  query     int    false "分页游标，返回该ID之前的记录"
 // @Param        limit    query     int    false "分页大小，默认20，最大100"
 // @Success      200      {object}  ListRoomshipsResponseData "成功返回房间关系列表"
-// @Failure      400      {object}  sharedHttp.Response   "请求参数错误"
-// @Failure      401      {object}  sharedHttp.Response   "未认证"
-// @Failure      500      {object}  sharedHttp.Response   "服务器内部错误"
+// @Failure      400      {object}  api.Response   "请求参数错误"
+// @Failure      401      {object}  api.Response   "未认证"
+// @Failure      500      {object}  api.Response   "服务器内部错误"
 // @Router       /roomship/ [get]
 func NewListRoomshipsHandler(useCase application.ListRoomshipsUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
@@ -71,10 +71,10 @@ func NewListRoomshipsHandler(useCase application.ListRoomshipsUseCase, validator
 		func(ginContext *gin.Context, err error) {
 			switch {
 			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "input is empty")
+				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "input is empty")
 			default:
 				zap.L().Error("ListRoomshipsHandler error", zap.Error(err))
-				ginutils.Response(ginContext, sharedHttp.CodeServerError)
+				ginutils.Response(ginContext, api.CodeServerError)
 			}
 		},
 	)

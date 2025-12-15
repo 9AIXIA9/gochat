@@ -5,7 +5,7 @@ import (
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/roomship/application"
 	"gochat/internal/roomship/domain"
-	sharedHttp "gochat/internal/shared/api"
+	"gochat/internal/shared/api"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 
@@ -36,10 +36,10 @@ func (r *CreateRoomRequest) Bind(ginContext *gin.Context) error {
 // @Accept       json
 // @Produce      json
 // @Param        request  body      CreateRoomRequest       true  "创建房间请求体"
-// @Success      201      {object}  sharedHttp.Response  "创建成功"
-// @Failure      400      {object}  sharedHttp.Response  "请求参数错误"
-// @Failure      401      {object}  sharedHttp.Response  "未认证"
-// @Failure      500      {object}  sharedHttp.Response  "服务器内部错误"
+// @Success      201      {object}  api.Response  "创建成功"
+// @Failure      400      {object}  api.Response  "请求参数错误"
+// @Failure      401      {object}  api.Response  "未认证"
+// @Failure      500      {object}  api.Response  "服务器内部错误"
 // @Router       /roomship/room [post]
 func NewCreateRoomHandler(useCase application.CreateRoomUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
@@ -58,10 +58,10 @@ func NewCreateRoomHandler(useCase application.CreateRoomUseCase, validator ginut
 		func(ginContext *gin.Context, err error) {
 			switch {
 			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.ResponseWithMessage(ginContext, sharedHttp.CodeInvalidParam, "input is empty")
+				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "input is empty")
 			default:
 				zap.L().Error("CreateRoomHandler error", zap.Error(err))
-				ginutils.Response(ginContext, sharedHttp.CodeServerError)
+				ginutils.Response(ginContext, api.CodeServerError)
 			}
 		},
 	)
