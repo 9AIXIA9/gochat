@@ -133,4 +133,24 @@ func TestSendRoomMessageUseCase_Execute(t *testing.T) {
 		Content:  fixedContent,
 	})
 	require.ErrorIs(t, err, domain.ErrNotMember)
+
+	// 房间只有自己
+	singleRoomship := domain.LoadRoomship(
+		fixedRoomshipID,
+		fixedUserID,
+		fixedRoomID,
+	)
+	gomock.InOrder(
+		mockFinder.EXPECT().FindsByRoomID(nil, fixedRoomID).Return([]*domain.Roomship{
+			singleRoomship,
+		}, nil).Times(1),
+		mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1),
+		mockMessageCreator.EXPECT().Create(nil, gomock.Any()).Times(1),
+	)
+	_, err = useCase.Execute(nil, &application.SendRoomMessageInput{
+		SenderID: fixedUserID,
+		RoomID:   fixedRoomID,
+		Content:  fixedContent,
+	})
+	require.NoError(t, err)
 }

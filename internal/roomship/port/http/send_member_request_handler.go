@@ -5,10 +5,9 @@ import (
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/roomship/application"
 	"gochat/internal/roomship/domain"
+	sharedHttp "gochat/internal/shared/api"
 	myErrors "gochat/internal/shared/errors"
-	sharedHttp "gochat/internal/shared/http"
 	"gochat/internal/shared/kernel"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -35,10 +34,10 @@ func (r *SendMemberRequestRequest) Bind(ginContext *gin.Context) error {
 // @Accept       json
 // @Produce      json
 // @Param        request  body      SendMemberRequestRequest  true  "发送入群请求体"
-// @Success      201      {object}  sharedHttp.ApiResponse    "发送成功"
-// @Failure      400      {object}  sharedHttp.ApiResponse    "请求参数错误或业务校验失败"
-// @Failure      401      {object}  sharedHttp.ApiResponse    "未认证"
-// @Failure      500      {object}  sharedHttp.ApiResponse    "服务器内部错误"
+// @Success      201      {object}  sharedHttp.Response    "发送成功"
+// @Failure      400      {object}  sharedHttp.Response    "请求参数错误或业务校验失败"
+// @Failure      401      {object}  sharedHttp.Response    "未认证"
+// @Failure      500      {object}  sharedHttp.Response    "服务器内部错误"
 // @Router       /roomship/request [post]
 func NewSendMemberRequestHandler(useCase application.SendMemberRequestUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
@@ -70,6 +69,5 @@ func NewSendMemberRequestHandler(useCase application.SendMemberRequestUseCase, v
 				ginutils.Response(ginContext, sharedHttp.CodeServerError)
 			}
 		},
-		5*time.Second,
 	)
 }

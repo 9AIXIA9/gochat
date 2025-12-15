@@ -5,10 +5,9 @@ import (
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/roomship/application"
 	"gochat/internal/roomship/dto"
+	sharedHttp "gochat/internal/shared/api"
 	myErrors "gochat/internal/shared/errors"
-	sharedHttp "gochat/internal/shared/http"
 	"gochat/internal/shared/kernel"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -36,9 +35,9 @@ type ListRoomMembersResponseData struct {
 // @Produce      json
 // @Param        room_id  path      int                          true  "房间ID"
 // @Success      200      {object}  ListRoomMembersResponseData  "成功返回房间成员列表"
-// @Failure      400      {object}  sharedHttp.ApiResponse       "请求参数错误"
-// @Failure      404      {object}  sharedHttp.ApiResponse       "房间不存在"
-// @Failure      500      {object}  sharedHttp.ApiResponse       "服务器内部错误"
+// @Failure      400      {object}  sharedHttp.Response       "请求参数错误"
+// @Failure      404      {object}  sharedHttp.Response       "房间不存在"
+// @Failure      500      {object}  sharedHttp.Response       "服务器内部错误"
 // @Router       /roomship/room/{room_id} [get]
 func NewListRoomMembersHandler(useCase application.ListRoomMembersUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
@@ -65,6 +64,5 @@ func NewListRoomMembersHandler(useCase application.ListRoomMembersUseCase, valid
 				ginutils.Response(ginContext, sharedHttp.CodeServerError)
 			}
 		},
-		5*time.Second,
 	)
 }

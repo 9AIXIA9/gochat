@@ -2,10 +2,10 @@ package middleware
 
 import (
 	"context"
-	"time"
-
 	"gochat/internal/infrastructure/websocket"
+	sharedHttp "gochat/internal/shared/api"
 	"gochat/pkg/utils"
+	"time"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -15,10 +15,10 @@ import (
 func NewTelemetryMiddleware(serviceName string) websocket.Middleware {
 	tracer := otel.Tracer(serviceName + "/websocket")
 	return func(next websocket.Handler) websocket.Handler {
-		return websocket.HandlerFunc(func(ctx context.Context, data []byte) ([]byte, error) {
+		return websocket.HandlerFunc(func(ctx context.Context, data []byte) *sharedHttp.Response {
 			start := time.Now().UTC()
 			ctx, span := tracer.Start(ctx, websocket.GetTopic(ctx).String(), trace.WithSpanKind(trace.SpanKindServer))
-			resp, err := next.Handle(ctx, data)
+			resp := next.Handle(ctx, data)
 
 			dur := time.Since(start).Seconds()
 			span.SetAttributes(
@@ -26,11 +26,8 @@ func NewTelemetryMiddleware(serviceName string) websocket.Middleware {
 				attribute.String("websocket.user_id", utils.GetUserID(ctx).String()),
 				attribute.Float64("websocket.duration_seconds", dur),
 			)
-			if err != nil {
-				span.RecordError(err)
-			}
 			span.End()
-			return resp, err
+			return resp
 		})
 	}
 }

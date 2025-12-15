@@ -1,23 +1,22 @@
-package http
+package api
 
 import "net/http"
 
-// BusinessCode 为HTTP码进行补充说明
-type BusinessCode int
+type Code int
 
-const CodeSuccess BusinessCode = 200
+const CodeSuccess Code = 200
 
-const CodeServerError BusinessCode = 500
+const CodeServerError Code = 500
 
 // 业务错误
 const (
-	CodeTimeout BusinessCode = 400 + iota
+	CodeTimeout Code = 400 + iota
 	CodeInvalidParam
 	CodeInvalidToken
 	CodeNotFound
 )
 
-func (c BusinessCode) ToHTTPCode() int {
+func (c Code) ToHTTPCode() int {
 	switch c {
 	case CodeSuccess:
 		return http.StatusOK
@@ -37,7 +36,7 @@ func (c BusinessCode) ToHTTPCode() int {
 	}
 }
 
-func (c BusinessCode) String() string {
+func (c Code) String() string {
 	switch c {
 	case CodeSuccess:
 		return "success"

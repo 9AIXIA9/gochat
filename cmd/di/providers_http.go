@@ -3,9 +3,11 @@ package di
 import (
 	"fmt"
 	"gochat/docs"
+	"gochat/internal/application"
 	authApp "gochat/internal/authorization/application"
 	chatApp "gochat/internal/chat/application"
 	friendshipApp "gochat/internal/friendship/application"
+	"gochat/internal/infrastructure/websocket"
 	notificationApp "gochat/internal/notification/application"
 	profileApp "gochat/internal/profile/application"
 	roomshipApp "gochat/internal/roomship/application"
@@ -13,6 +15,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
+	gorillaWebsocket "github.com/gorilla/websocket"
 	"github.com/redis/go-redis/v9"
 
 	"gochat/config"
@@ -23,7 +26,6 @@ import (
 	friendshipHTTP "gochat/internal/friendship/port/http"
 	ginInfra "gochat/internal/infrastructure/gin"
 	"gochat/internal/infrastructure/prometheus"
-	"gochat/internal/infrastructure/websocket"
 	notificationHTTP "gochat/internal/notification/port/http"
 	profileHTTP "gochat/internal/profile/port/http"
 	roomshipHTTP "gochat/internal/roomship/port/http"
@@ -35,6 +37,7 @@ import (
 var HTTPSet = wire.NewSet(
 	provideHttpRouter,
 	provideHttpServer,
+	provideWebsocketHandler,
 )
 
 func provideHttpRouter(
@@ -67,45 +70,55 @@ func provideHttpRouter(
 	listSystemMessages notificationApp.ListSystemMessagesUseCase,
 	validator ginInfra.Validator,
 	redisClient *redis.Client,
-	websocketServer *websocket.Server,
+	websocketHandler *handler.WebsocketHandler,
 	metrics *prometheus.Metrics,
 ) *gin.Engine {
+	// 设置Gin模式
+	gin.SetMode(appConfig.Env)
+
 	// 初始化Gin路由器
 	router := gin.New()
 
 	// swagger base path 保持与路由前缀一致
 	docs.SwaggerInfo.BasePath = "/api/v1"
 
-	// 全局中间件栈
+	// 全局中间件
 	router.Use(
-		middleware.NewRecoverMiddleware(),            // 恢复中间件
-		middleware.NewLoggerMiddleware(),             // 日志中间件
-		middleware.NewCORSMiddleware(appConfig.CORS), // CORS中间件
+		middleware.NewRecoverMiddleware(),
+		middleware.NewLoggerMiddleware(),
+		middleware.NewCORSMiddleware(appConfig.CORS),
 	)
 
-	// Swagger 文档路由（可按需限制仅在非生产环境打开）
+	// 非业务路由
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
-	router.NoRoute(handler.NewNotFoundHandler()) // 404处理器
-
-	// 暴露Prometheus指标端点
+	router.NoRoute(handler.NewNotFoundHandler())
 	router.Any("/metrics", gin.WrapH(metrics.Handler()))
-
-	// 健康检查端点
 	router.Any("/health_check", handler.NewHealthCheckHandler())
 
-	// API路由分组 - 基础路径
+	// 业务路由
 	baseGroup := router.Group("/api/v1")
-
 	baseGroup.Use(
-		middleware.NewRateLimitMiddleware(redisClient, appConfig.RateLimit), // 限流中间件
-		metrics.GinMiddleware(), // Prometheus指标中间件
+		middleware.NewRateLimitMiddleware(redisClient, appConfig.RateLimit),
+		metrics.GinMiddleware(),
 	)
 
-	// 遥测追踪中间件（如果启用）
+	authorizationMiddleware := authHTTP.NewAuthorizationMiddleware(parseAccessToken)
+
+	// 遥测追踪中间件
 	if appConfig.Telemetry != nil && appConfig.Telemetry.Enabled && appConfig.Telemetry.TraceEnabled {
 		baseGroup.Use(middleware.NewTelemetryMiddleware(appConfig.Name))
 	}
+
+	// WebSocket路由
+	websocketGroup := baseGroup.Group("/ws")
+	websocketGroup.Use(authorizationMiddleware)
+	{
+		websocketGroup.GET("/", gin.WrapH(websocketHandler))
+	}
+
+	baseGroup.Use(
+		middleware.NewTimeoutMiddleware(appConfig.Timeout),
+	)
 
 	// 授权相关路由
 	authorizationGroup := baseGroup.Group("/authorization")
@@ -114,8 +127,6 @@ func provideHttpRouter(
 		authorizationGroup.POST("/login", authHTTP.NewLoginHandler(login, validator, appConfig.Cookie))
 		authorizationGroup.GET("/refresh_access_token", authHTTP.NewRefreshAccessTokenHandler(refreshAccessToken, validator, appConfig.Cookie))
 	}
-
-	authorizationMiddleware := authHTTP.NewAuthorizationMiddleware(parseAccessToken)
 
 	// 聊天相关路由
 	profileGroup := baseGroup.Group("/profile")
@@ -180,13 +191,6 @@ func provideHttpRouter(
 		notificationGroup.GET("/system", notificationHTTP.NewListSystemMessagesHandler(listSystemMessages, validator))
 	}
 
-	// WebSocket路由
-	websocketGroup := baseGroup.Group("/ws")
-	websocketGroup.Use(authorizationMiddleware)
-	{
-		websocketGroup.GET("/", gin.WrapH(websocketServer))
-	}
-
 	return router
 }
 
@@ -196,4 +200,18 @@ func provideHttpServer(appConfig *config.App, router *gin.Engine) *ginInfra.Serv
 		Handler: router,
 	}
 	return ginInfra.NewServer(router, srv)
+}
+
+func provideWebsocketHandler(
+	upgrader *gorillaWebsocket.Upgrader,
+	manager *websocket.Manager,
+	router *websocket.Router,
+	userSessionStartedUseCase application.UserSessionStartedUseCase,
+) *handler.WebsocketHandler {
+	return handler.NewWebsocketHandler(
+		upgrader,
+		manager,
+		router,
+		userSessionStartedUseCase,
+	)
 }

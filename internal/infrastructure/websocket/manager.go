@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"encoding/json"
 	myErrors "gochat/internal/shared/errors"
 	"sync"
 
@@ -73,11 +74,16 @@ func (m *Manager) UnregisterClient(target *Client) (id kernel.UserID, found bool
 }
 
 func (m *Manager) SendTo(id kernel.UserID, resp *Response) error {
+	respData, err := json.Marshal(resp)
+	if err != nil {
+		return err
+	}
+
 	m.mu.RLock()
 	c, ok := m.clients[id]
 	m.mu.RUnlock()
 	if ok {
-		if err := c.SendResponse(resp); err != nil {
+		if err := c.Send(respData); err != nil {
 			return err
 		}
 		return nil
@@ -85,19 +91,24 @@ func (m *Manager) SendTo(id kernel.UserID, resp *Response) error {
 	return myErrors.ErrNotFound
 }
 
-func (m *Manager) Broadcast(ids []kernel.UserID, resp *Response) []kernel.UserID {
+func (m *Manager) Broadcast(ids []kernel.UserID, resp *Response) ([]kernel.UserID, error) {
+	respData, err := json.Marshal(resp)
+	if err != nil {
+		return nil, err
+	}
+
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
 	idsSuccess := make([]kernel.UserID, 0, len(ids))
 	for _, id := range ids {
 		if c, ok := m.clients[id]; ok {
-			if err := c.SendResponse(resp); err != nil {
+			if err := c.Send(respData); err != nil {
 				continue
 			}
 			idsSuccess = append(idsSuccess, id)
 		}
 	}
 
-	return idsSuccess
+	return idsSuccess, nil
 }

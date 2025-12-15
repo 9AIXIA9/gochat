@@ -6,8 +6,8 @@ import (
 	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
 	ginutils "gochat/internal/infrastructure/gin"
+	sharedHttp "gochat/internal/shared/api"
 	myErrors "gochat/internal/shared/errors"
-	sharedHttp "gochat/internal/shared/http"
 	"gochat/internal/shared/kernel"
 	"time"
 
@@ -38,8 +38,8 @@ func (r *LoginRequest) Bind(ginContext *gin.Context) error {
 // @Produce      json
 // @Param        request  body      LoginRequest        true  "登录请求体"
 // @Success      200      {object}  LoginResponseData   "登录成功，返回访问令牌"
-// @Failure      400      {object}  sharedHttp.ApiResponse "请求参数错误或密码错误"
-// @Failure      500      {object}  sharedHttp.ApiResponse "服务器内部错误"
+// @Failure      400      {object}  sharedHttp.Response "请求参数错误或密码错误"
+// @Failure      500      {object}  sharedHttp.Response "服务器内部错误"
 // @Router       /authorization/login [post]
 func NewLoginHandler(useCase application.LoginUseCase, validator ginutils.Validator, cookieConfig *config.Cookie) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
@@ -80,6 +80,5 @@ func NewLoginHandler(useCase application.LoginUseCase, validator ginutils.Valida
 				ginutils.Response(ginContext, sharedHttp.CodeServerError)
 			}
 		},
-		5*time.Second,
 	)
 }

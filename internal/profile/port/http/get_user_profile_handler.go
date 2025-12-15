@@ -5,10 +5,9 @@ import (
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/profile/application"
 	"gochat/internal/profile/dto"
+	sharedHttp "gochat/internal/shared/api"
 	myErrors "gochat/internal/shared/errors"
-	sharedHttp "gochat/internal/shared/http"
 	"gochat/internal/shared/kernel"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -36,9 +35,9 @@ type GetUserProfileResponseData struct {
 // @Produce      json
 // @Param        user_id  path      int                         true  "用户ID"
 // @Success      200      {object}  GetUserProfileResponseData  "成功返回用户资料"
-// @Failure      400      {object}  sharedHttp.ApiResponse "请求参数错误"
-// @Failure      404      {object}  sharedHttp.ApiResponse "用户不存在"
-// @Failure      500      {object}  sharedHttp.ApiResponse "服务器内部错误"
+// @Failure      400      {object}  sharedHttp.Response "请求参数错误"
+// @Failure      404      {object}  sharedHttp.Response "用户不存在"
+// @Failure      500      {object}  sharedHttp.Response "服务器内部错误"
 // @Router       /profile/user/{user_id} [get]
 func NewGetUserProfileHandler(useCase application.GetUserProfileUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
@@ -65,6 +64,5 @@ func NewGetUserProfileHandler(useCase application.GetUserProfileUseCase, validat
 				ginutils.Response(ginContext, sharedHttp.CodeServerError)
 			}
 		},
-		5*time.Second,
 	)
 }

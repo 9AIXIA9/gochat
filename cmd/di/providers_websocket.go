@@ -2,7 +2,6 @@ package di
 
 import (
 	"gochat/config"
-	"gochat/internal/application"
 	chatApp "gochat/internal/chat/application"
 	chatWebsocket "gochat/internal/chat/port/websocket"
 	websocketDelivery "gochat/internal/delivery/websocket/handler"
@@ -17,7 +16,6 @@ var WebsocketSet = wire.NewSet(
 	provideWebsocketUpgrader,
 	provideWebsocketManager,
 	provideWebsocketRouter,
-	provideWebsocketServer,
 )
 
 func provideWebsocketUpgrader(appConfig *config.App) *gorillaWebsocket.Upgrader {
@@ -47,19 +45,10 @@ func provideWebsocketRouter(
 	router.NoRoute(websocketDelivery.NewNotFoundHandler())
 
 	{
-		router.Handle(chatWebsocket.SendPrivateMessageTopic, chatWebsocket.NewSendPrivateMessageHandler(chatSendPrivateMessage))
-		router.Handle(chatWebsocket.SendRoomMessageTopic, chatWebsocket.NewSendRoomMessageHandler(chatSendRoomMessage))
-		router.Handle(chatWebsocket.ReadPrivateMessagesTopic, chatWebsocket.NewReadPrivateMessagesHandler(chatReadPrivateMessages))
-		router.Handle(chatWebsocket.ReadRoomMessagesTopic, chatWebsocket.NewReadRoomMessagesHandler(chatReadRoomMessages))
+		router.Handle(chatWebsocket.SendPrivateMessageTopic, chatWebsocket.NewSendPrivateMessageHandler(chatSendPrivateMessage, validator))
+		router.Handle(chatWebsocket.SendRoomMessageTopic, chatWebsocket.NewSendRoomMessageHandler(chatSendRoomMessage, validator))
+		router.Handle(chatWebsocket.ReadPrivateMessagesTopic, chatWebsocket.NewReadPrivateMessagesHandler(chatReadPrivateMessages, validator))
+		router.Handle(chatWebsocket.ReadRoomMessagesTopic, chatWebsocket.NewReadRoomMessagesHandler(chatReadRoomMessages, validator))
 	}
 	return router
-}
-
-func provideWebsocketServer(
-	upgrader *gorillaWebsocket.Upgrader,
-	manager *websocket.Manager,
-	router *websocket.Router,
-	userSessionStartedUseCase application.UserSessionStartedUseCase,
-) *websocket.Server {
-	return websocket.NewServer(upgrader, manager, router, userSessionStartedUseCase)
 }

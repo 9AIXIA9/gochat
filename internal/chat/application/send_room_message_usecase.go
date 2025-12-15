@@ -64,6 +64,39 @@ func (uc *sendRoomMessageUseCase) Execute(ctx context.Context, input *SendRoomMe
 		return nil, err
 	}
 
+	if len(roomships) == 0 {
+		return nil, myErrors.ErrNotFound
+	}
+
+	message, err := uc.createRoomMessage(roomships, input)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := uc.messageCreator.Create(ctx, message); err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+func (uc *sendRoomMessageUseCase) createRoomMessage(roomships []*domain.Roomship, input *SendRoomMessageInput) (*domain.RoomMessage, error) {
+	// 房间内没有其他成员
+	if len(roomships) == 1 {
+		// 仅有自己
+		if roomships[0].UserID() == input.SenderID {
+			return domain.CreateRoomMessage(
+				input.RoomID,
+				input.SenderID,
+				nil,
+				input.Content,
+				uc.messageIDGenerator,
+				uc.notifier,
+			)
+		}
+		return nil, domain.ErrNotMember
+	}
+
 	var exist bool
 	recipientIDs := make([]kernel.UserID, 0, len(roomships)-1)
 	for _, roomship := range roomships {
@@ -78,7 +111,7 @@ func (uc *sendRoomMessageUseCase) Execute(ctx context.Context, input *SendRoomMe
 		return nil, domain.ErrNotMember
 	}
 
-	message, err := domain.CreateRoomMessage(
+	return domain.CreateRoomMessage(
 		input.RoomID,
 		input.SenderID,
 		recipientIDs,
@@ -86,13 +119,4 @@ func (uc *sendRoomMessageUseCase) Execute(ctx context.Context, input *SendRoomMe
 		uc.messageIDGenerator,
 		uc.notifier,
 	)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := uc.messageCreator.Create(ctx, message); err != nil {
-		return nil, err
-	}
-
-	return nil, nil
 }

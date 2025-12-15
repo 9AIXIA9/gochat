@@ -2,8 +2,8 @@ package middleware
 
 import (
 	"context"
-	"fmt"
 	"gochat/internal/infrastructure/websocket"
+	sharedHttp "gochat/internal/shared/api"
 	"gochat/pkg/utils"
 	"runtime/debug"
 
@@ -12,7 +12,7 @@ import (
 
 func NewRecoverMiddleware() websocket.Middleware {
 	return func(next websocket.Handler) websocket.Handler {
-		return websocket.HandlerFunc(func(ctx context.Context, data []byte) (resp []byte, err error) {
+		return websocket.HandlerFunc(func(ctx context.Context, data []byte) *sharedHttp.Response {
 			defer func() {
 				if r := recover(); r != nil {
 					stack := string(debug.Stack())
@@ -22,8 +22,6 @@ func NewRecoverMiddleware() websocket.Middleware {
 						zap.String("user_id", utils.GetUserID(ctx).String()),
 						zap.String("topic", websocket.GetTopic(ctx).String()),
 					)
-					// Return a safe, generic error to the client
-					err = fmt.Errorf("panic recovered: %v", r)
 				}
 			}()
 

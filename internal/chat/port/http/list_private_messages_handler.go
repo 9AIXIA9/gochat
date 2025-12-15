@@ -5,10 +5,9 @@ import (
 	"gochat/internal/chat/application"
 	"gochat/internal/chat/dto"
 	ginutils "gochat/internal/infrastructure/gin"
+	sharedHttp "gochat/internal/shared/api"
 	myErrors "gochat/internal/shared/errors"
-	sharedHttp "gochat/internal/shared/http"
 	"gochat/internal/shared/kernel"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -48,9 +47,9 @@ type ListPrivateMessagesResponseData struct {
 // @Param        base_id  query     int    false "分页游标，返回该ID之前的消息"
 // @Param        limit    query     int    false "分页大小，默认20，最大100"
 // @Success      200      {object}  ListPrivateMessagesResponseData "成功返回私聊消息列表"
-// @Failure      400      {object}  sharedHttp.ApiResponse "请求参数错误"
-// @Failure      401      {object}  sharedHttp.ApiResponse "未认证"
-// @Failure      500      {object}  sharedHttp.ApiResponse "服务器内部错误"
+// @Failure      400      {object}  sharedHttp.Response "请求参数错误"
+// @Failure      401      {object}  sharedHttp.Response "未认证"
+// @Failure      500      {object}  sharedHttp.Response "服务器内部错误"
 // @Router       /chat/private [get]
 func NewListPrivateMessagesHandler(useCase application.ListPrivateMessagesUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
@@ -77,6 +76,5 @@ func NewListPrivateMessagesHandler(useCase application.ListPrivateMessagesUseCas
 				ginutils.Response(ginContext, sharedHttp.CodeServerError)
 			}
 		},
-		5*time.Second,
 	)
 }

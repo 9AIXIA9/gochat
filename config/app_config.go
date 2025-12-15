@@ -14,14 +14,22 @@ import (
 	"gochat/internal/infrastructure/zap"
 	"gochat/internal/notification/infrastructure/gomail"
 	myErrors "gochat/internal/shared/errors"
+	"time"
+)
+
+const (
+	defaultTimeout = 10 * time.Second
+	defaultEnv     = "debug"
 )
 
 // App 应用程序配置结构
 type App struct {
-	Name        string `mapstructure:"Name"`
-	Host        string `mapstructure:"Host"`
-	Port        int    `mapstructure:"Port"`
-	MachineNode int64  `mapstructure:"MachineNode"`
+	Name        string        `mapstructure:"Name"`
+	Env         string        `mapstructure:"Env"`
+	Timeout     time.Duration `mapstructure:"Timeout"`
+	Host        string        `mapstructure:"Host"`
+	Port        int           `mapstructure:"Port"`
+	MachineNode int64         `mapstructure:"MachineNode"`
 
 	Cookie       *Cookie                     `mapstructure:"Cookie"`
 	CORS         *middleware.CORSConfig      `mapstructure:"CORS"`
@@ -42,6 +50,15 @@ func (c *App) Validate() error {
 	if c == nil {
 		return myErrors.ErrEmptyPointer
 	}
+
+	if c.Timeout == 0 {
+		c.Timeout = defaultTimeout
+	}
+
+	if len(c.Env) == 0 {
+		c.Env = defaultEnv
+	}
+
 	if c.Name == "" {
 		return fmt.Errorf("App.Name: %w", myErrors.ErrEmptyInput)
 	}
@@ -92,6 +109,5 @@ func (c *App) Validate() error {
 	if err := c.Telemetry.Validate(); err != nil {
 		return fmt.Errorf("App.Telemetry: %w", err)
 	}
-
 	return nil
 }
