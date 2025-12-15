@@ -5,8 +5,8 @@ import (
 	"gochat/internal/friendship/application"
 	"gochat/internal/friendship/domain"
 	ginutils "gochat/internal/infrastructure/gin"
+	sharedHttp "gochat/internal/shared/api"
 	myErrors "gochat/internal/shared/errors"
-	sharedHttp "gochat/internal/shared/http"
 	"gochat/internal/shared/kernel"
 
 	"github.com/gin-gonic/gin"
@@ -33,10 +33,10 @@ func (r *SendFriendRequestRequest) Bind(ginContext *gin.Context) error {
 // @Accept       json
 // @Produce      json
 // @Param        request  body      SendFriendRequestRequest  true  "发送好友请求体"
-// @Success      201      {object}  sharedHttp.ApiResponse    "发送成功"
-// @Failure      400      {object}  sharedHttp.ApiResponse    "请求参数错误或业务校验失败"
-// @Failure      401      {object}  sharedHttp.ApiResponse    "未认证"
-// @Failure      500      {object}  sharedHttp.ApiResponse    "服务器内部错误"
+// @Success      201      {object}  sharedHttp.Response    "发送成功"
+// @Failure      400      {object}  sharedHttp.Response    "请求参数错误或业务校验失败"
+// @Failure      401      {object}  sharedHttp.Response    "未认证"
+// @Failure      500      {object}  sharedHttp.Response    "服务器内部错误"
 // @Router       /friendship/request [post]
 func NewSendFriendRequestHandler(useCase application.SendFriendRequestUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(

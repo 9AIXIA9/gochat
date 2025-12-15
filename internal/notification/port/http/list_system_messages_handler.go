@@ -5,8 +5,8 @@ import (
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/notification/application"
 	"gochat/internal/notification/dto"
+	sharedHttp "gochat/internal/shared/api"
 	myErrors "gochat/internal/shared/errors"
-	sharedHttp "gochat/internal/shared/http"
 	"gochat/internal/shared/kernel"
 
 	"github.com/gin-gonic/gin"
@@ -47,9 +47,9 @@ type ListSystemMessagesResponseData struct {
 // @Param        base_id  query     int    false "分页游标，返回该ID之前的消息"
 // @Param        limit    query     int    false "分页大小，默认20，最大100"
 // @Success      200      {object}  ListSystemMessagesResponseData "成功返回系统通知列表"
-// @Failure      400      {object}  sharedHttp.ApiResponse        "请求参数错误"
-// @Failure      401      {object}  sharedHttp.ApiResponse        "未认证"
-// @Failure      500      {object}  sharedHttp.ApiResponse        "服务器内部错误"
+// @Failure      400      {object}  sharedHttp.Response        "请求参数错误"
+// @Failure      401      {object}  sharedHttp.Response        "未认证"
+// @Failure      500      {object}  sharedHttp.Response        "服务器内部错误"
 // @Router       /notification/system [get]
 func NewListSystemMessagesHandler(useCase application.ListSystemMessagesUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(

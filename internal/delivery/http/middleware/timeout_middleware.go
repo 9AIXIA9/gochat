@@ -2,7 +2,7 @@ package middleware
 
 import (
 	ginutils "gochat/internal/infrastructure/gin"
-	"gochat/internal/shared/http"
+	"gochat/internal/shared/api"
 	"time"
 
 	"github.com/gin-contrib/timeout"
@@ -13,7 +13,7 @@ func NewTimeoutMiddleware(duration time.Duration) gin.HandlerFunc {
 	return timeout.New(
 		timeout.WithTimeout(duration),
 		timeout.WithResponse(func(ginContext *gin.Context) {
-			ginutils.Response(ginContext, http.CodeTimeout)
+			ginutils.Response(ginContext, api.CodeTimeout)
 		}),
 	)
 }

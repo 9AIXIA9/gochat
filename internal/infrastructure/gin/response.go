@@ -1,47 +1,47 @@
 package gin
 
 import (
-	"gochat/internal/shared/http"
+	"gochat/internal/shared/api"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
-func Response(ginContext *gin.Context, code http.BusinessCode) {
+func Response(ginContext *gin.Context, code api.Code) {
 	switch code {
-	case http.CodeSuccess:
-		ginContext.JSON(http.CodeSuccess.ToHTTPCode(), http.ResponseSuccess)
-	case http.CodeServerError:
-		ginContext.JSON(http.CodeServerError.ToHTTPCode(), http.ResponseServerError)
-	case http.CodeTimeout:
-		ginContext.JSON(http.CodeTimeout.ToHTTPCode(), http.ResponseTimeout)
-	case http.CodeInvalidParam:
-		ginContext.JSON(http.CodeInvalidParam.ToHTTPCode(), http.ResponseInvalidParam)
-	case http.CodeInvalidToken:
-		ginContext.JSON(http.CodeInvalidToken.ToHTTPCode(), http.ResponseInvalidToken)
+	case api.CodeSuccess:
+		ginContext.JSON(api.CodeSuccess.ToHTTPCode(), api.ResponseSuccess)
+	case api.CodeServerError:
+		ginContext.JSON(api.CodeServerError.ToHTTPCode(), api.ResponseServerError)
+	case api.CodeTimeout:
+		ginContext.JSON(api.CodeTimeout.ToHTTPCode(), api.ResponseTimeout)
+	case api.CodeInvalidParam:
+		ginContext.JSON(api.CodeInvalidParam.ToHTTPCode(), api.ResponseInvalidParam)
+	case api.CodeInvalidToken:
+		ginContext.JSON(api.CodeInvalidToken.ToHTTPCode(), api.ResponseInvalidToken)
 	default:
 		zap.L().Debug("Unhandled business code", zap.Int("code", int(code)))
-		ginContext.JSON(code.ToHTTPCode(), http.NewApiResponse(code))
+		ginContext.JSON(code.ToHTTPCode(), api.NewResponse(code))
 	}
 }
 
 func ResponseSuccess(ginContext *gin.Context) {
 	ginContext.JSON(
-		http.CodeSuccess.ToHTTPCode(),
-		http.ResponseSuccess,
+		api.CodeSuccess.ToHTTPCode(),
+		api.ResponseSuccess,
 	)
 }
 
 func ResponseSuccessWithData(ginContext *gin.Context, data any) {
 	ginContext.JSON(
-		http.CodeSuccess.ToHTTPCode(),
-		http.NewApiResponseWithData(data),
+		api.CodeSuccess.ToHTTPCode(),
+		api.NewResponseWithData(data),
 	)
 }
 
-func ResponseWithMessage(ginContext *gin.Context, code http.BusinessCode, message string) {
+func ResponseWithMessage(ginContext *gin.Context, code api.Code, message string) {
 	ginContext.JSON(
 		code.ToHTTPCode(),
-		http.NewApiResponseWithMessage(code, message),
+		api.NewResponseWithMessage(code, message),
 	)
 }

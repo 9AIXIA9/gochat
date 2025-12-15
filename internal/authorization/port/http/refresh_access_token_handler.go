@@ -6,8 +6,8 @@ import (
 	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
 	ginutils "gochat/internal/infrastructure/gin"
+	sharedHttp "gochat/internal/shared/api"
 	myErrors "gochat/internal/shared/errors"
-	sharedHttp "gochat/internal/shared/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -37,8 +37,8 @@ func (r *RefreshAccessTokenRequest) Bind(ginContext *gin.Context) error {
 // @Tags         Authorization
 // @Produce      json
 // @Success      200  {object}  RefreshAccessTokenResponseData "刷新成功，返回新的访问令牌"
-// @Failure      400  {object}  sharedHttp.ApiResponse         "刷新令牌无效或已过期"
-// @Failure      500  {object}  sharedHttp.ApiResponse         "服务器内部错误"
+// @Failure      400  {object}  sharedHttp.Response         "刷新令牌无效或已过期"
+// @Failure      500  {object}  sharedHttp.Response         "服务器内部错误"
 // @Router       /authorization/refresh_access_token [get]
 func NewRefreshAccessTokenHandler(useCase application.RefreshAccessTokenUseCase, validator ginutils.Validator, cookieConfig *config.Cookie) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(

@@ -2,7 +2,7 @@ package middleware
 
 import (
 	ginutils "gochat/internal/infrastructure/gin"
-	"gochat/internal/shared/http"
+	"gochat/internal/shared/api"
 	"runtime/debug"
 
 	"github.com/gin-gonic/gin"
@@ -20,7 +20,7 @@ func NewRecoverMiddleware() gin.HandlerFunc {
 					zap.String("method", ginContext.Request.Method),
 					zap.String("path", ginContext.Request.URL.Path),
 				)
-				ginutils.Response(ginContext, http.CodeServerError)
+				ginutils.Response(ginContext, api.CodeServerError)
 			}
 		}()
 

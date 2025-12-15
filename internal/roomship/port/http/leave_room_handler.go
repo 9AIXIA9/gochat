@@ -5,8 +5,8 @@ import (
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/roomship/application"
 	"gochat/internal/roomship/domain"
+	sharedHttp "gochat/internal/shared/api"
 	myErrors "gochat/internal/shared/errors"
-	sharedHttp "gochat/internal/shared/http"
 	"gochat/internal/shared/kernel"
 
 	"github.com/gin-gonic/gin"
@@ -34,10 +34,10 @@ func (r *LeaveRoomRequest) Bind(ginContext *gin.Context) error {
 // @Security     BearerAuth
 // @Produce      json
 // @Param        room_id  path      int                   true  "房间ID"
-// @Success      200      {object}  sharedHttp.ApiResponse "退出成功，若本身不在房间视为成功"
-// @Failure      400      {object}  sharedHttp.ApiResponse "请求参数错误或房主不能直接退出"
-// @Failure      401      {object}  sharedHttp.ApiResponse "未认证"
-// @Failure      500      {object}  sharedHttp.ApiResponse "服务器内部错误"
+// @Success      200      {object}  sharedHttp.Response "退出成功，若本身不在房间视为成功"
+// @Failure      400      {object}  sharedHttp.Response "请求参数错误或房主不能直接退出"
+// @Failure      401      {object}  sharedHttp.Response "未认证"
+// @Failure      500      {object}  sharedHttp.Response "服务器内部错误"
 // @Router       /roomship/room/{room_id} [delete]
 func NewLeaveRoomHandler(useCase application.LeaveRoomUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
