@@ -2,7 +2,6 @@ package di
 
 import (
 	"gochat/config"
-	"gochat/internal/application"
 	chatApp "gochat/internal/chat/application"
 	chatWebsocket "gochat/internal/chat/port/websocket"
 	websocketDelivery "gochat/internal/delivery/websocket/handler"
@@ -17,7 +16,6 @@ var WebsocketSet = wire.NewSet(
 	provideWebsocketUpgrader,
 	provideWebsocketManager,
 	provideWebsocketRouter,
-	provideWebsocketServer,
 )
 
 func provideWebsocketUpgrader(appConfig *config.App) *gorillaWebsocket.Upgrader {
@@ -53,13 +51,4 @@ func provideWebsocketRouter(
 		router.Handle(chatWebsocket.ReadRoomMessagesTopic, chatWebsocket.NewReadRoomMessagesHandler(chatReadRoomMessages))
 	}
 	return router
-}
-
-func provideWebsocketServer(
-	upgrader *gorillaWebsocket.Upgrader,
-	manager *websocket.Manager,
-	router *websocket.Router,
-	userSessionStartedUseCase application.UserSessionStartedUseCase,
-) *websocket.Server {
-	return websocket.NewServer(upgrader, manager, router, userSessionStartedUseCase)
 }

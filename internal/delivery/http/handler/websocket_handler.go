@@ -1,7 +1,8 @@
-package websocket
+package handler
 
 import (
 	"gochat/internal/application"
+	websocketInfra "gochat/internal/infrastructure/websocket"
 	"gochat/pkg/utils"
 	"net/http"
 
@@ -9,20 +10,20 @@ import (
 	"go.uber.org/zap"
 )
 
-type Server struct {
+type WebsocketHandler struct {
 	upgrader                  *websocket.Upgrader
-	manager                   *Manager
-	router                    *Router
+	manager                   *websocketInfra.Manager
+	router                    *websocketInfra.Router
 	userSessionStartedUseCase application.UserSessionStartedUseCase
 }
 
-func NewServer(
+func NewWebsocketHandler(
 	upgrader *websocket.Upgrader,
-	manager *Manager,
-	router *Router,
+	manager *websocketInfra.Manager,
+	router *websocketInfra.Router,
 	userSessionStartedUseCase application.UserSessionStartedUseCase,
-) *Server {
-	return &Server{
+) *WebsocketHandler {
+	return &WebsocketHandler{
 		upgrader:                  upgrader,
 		manager:                   manager,
 		router:                    router,
@@ -30,7 +31,7 @@ func NewServer(
 	}
 }
 
-func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (s *WebsocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	userID := utils.GetUserID(r.Context())
 
 	conn, err := s.upgrader.Upgrade(w, r, nil)
@@ -43,7 +44,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client := NewClient(r.Context(), conn, s.router)
+	client := websocketInfra.NewClient(r.Context(), conn, s.router)
 	client.WithOnClose(func() {
 		// Unregister by pointer to avoid removing a newly registered client when replacing connections.
 		s.manager.UnregisterClient(client)
@@ -61,6 +62,5 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			zap.Error(err),
 		)
 	}
-
 	<-r.Context().Done()
 }

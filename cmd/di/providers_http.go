@@ -3,9 +3,11 @@ package di
 import (
 	"fmt"
 	"gochat/docs"
+	"gochat/internal/application"
 	authApp "gochat/internal/authorization/application"
 	chatApp "gochat/internal/chat/application"
 	friendshipApp "gochat/internal/friendship/application"
+	"gochat/internal/infrastructure/websocket"
 	notificationApp "gochat/internal/notification/application"
 	profileApp "gochat/internal/profile/application"
 	roomshipApp "gochat/internal/roomship/application"
@@ -13,6 +15,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
+	gorillaWebsocket "github.com/gorilla/websocket"
 	"github.com/redis/go-redis/v9"
 
 	"gochat/config"
@@ -23,7 +26,6 @@ import (
 	friendshipHTTP "gochat/internal/friendship/port/http"
 	ginInfra "gochat/internal/infrastructure/gin"
 	"gochat/internal/infrastructure/prometheus"
-	"gochat/internal/infrastructure/websocket"
 	notificationHTTP "gochat/internal/notification/port/http"
 	profileHTTP "gochat/internal/profile/port/http"
 	roomshipHTTP "gochat/internal/roomship/port/http"
@@ -35,6 +37,7 @@ import (
 var HTTPSet = wire.NewSet(
 	provideHttpRouter,
 	provideHttpServer,
+	provideWebsocketHandler,
 )
 
 func provideHttpRouter(
@@ -67,7 +70,7 @@ func provideHttpRouter(
 	listSystemMessages notificationApp.ListSystemMessagesUseCase,
 	validator ginInfra.Validator,
 	redisClient *redis.Client,
-	websocketServer *websocket.Server,
+	websocketHandler *handler.WebsocketHandler,
 	metrics *prometheus.Metrics,
 ) *gin.Engine {
 	// 设置Gin模式
@@ -182,7 +185,7 @@ func provideHttpRouter(
 	websocketGroup := baseGroup.Group("/ws")
 	websocketGroup.Use(authorizationMiddleware)
 	{
-		websocketGroup.GET("/", gin.WrapH(websocketServer))
+		websocketGroup.GET("/", gin.WrapH(websocketHandler))
 	}
 
 	return router
@@ -194,4 +197,18 @@ func provideHttpServer(appConfig *config.App, router *gin.Engine) *ginInfra.Serv
 		Handler: router,
 	}
 	return ginInfra.NewServer(router, srv)
+}
+
+func provideWebsocketHandler(
+	upgrader *gorillaWebsocket.Upgrader,
+	manager *websocket.Manager,
+	router *websocket.Router,
+	userSessionStartedUseCase application.UserSessionStartedUseCase,
+) *handler.WebsocketHandler {
+	return handler.NewWebsocketHandler(
+		upgrader,
+		manager,
+		router,
+		userSessionStartedUseCase,
+	)
 }

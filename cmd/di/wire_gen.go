@@ -179,10 +179,10 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	server := provideWebsocketServer(upgrader, manager, router, userSessionStartedUseCase)
+	websocketHandler := provideWebsocketHandler(upgrader, manager, router, userSessionStartedUseCase)
 	metrics := provideMetrics()
-	engine := provideHttpRouter(appConfig, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, getUserProfileUseCase, getRoomProfileUseCase, updateUserProfileUseCase, updateRoomProfileUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, listPrivateMessagesUseCase, listRoomMessagesUseCase, createRoomUseCase, listRoomMembersUseCase, sendMemberRequestUseCase, agreeMemberRequestUseCase, refuseMemberRequestUseCase, listMemberRequestsUseCase, listRoomshipsUseCase, leaveRoomUseCase, sendFriendRequestUseCase, agreeFriendRequestUseCase, refuseFriendRequestUseCase, listFriendshipsUseCase, listFriendRequestsUseCase, listSystemMessagesUseCase, validator, client, server, metrics)
-	ginServer := provideHttpServer(appConfig, engine)
+	engine := provideHttpRouter(appConfig, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, getUserProfileUseCase, getRoomProfileUseCase, updateUserProfileUseCase, updateRoomProfileUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, listPrivateMessagesUseCase, listRoomMessagesUseCase, createRoomUseCase, listRoomMembersUseCase, sendMemberRequestUseCase, agreeMemberRequestUseCase, refuseMemberRequestUseCase, listMemberRequestsUseCase, listRoomshipsUseCase, leaveRoomUseCase, sendFriendRequestUseCase, agreeFriendRequestUseCase, refuseFriendRequestUseCase, listFriendshipsUseCase, listFriendRequestsUseCase, listSystemMessagesUseCase, validator, client, websocketHandler, metrics)
+	server := provideHttpServer(appConfig, engine)
 	eventPublisher, err := provideKafkaPublisher(appConfig, eventRepository, metrics)
 	if err != nil {
 		return nil, err
@@ -305,7 +305,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	eventHandler := provideCanalBinlogReaderHandler(unpublishedEventsCreatedUseCase)
 	binlogReader := provideCanalBinlogReader(canal, eventHandler)
 	diDatabaseMigrated := provideDatabaseMigrated(db)
-	dependencies, err := BuildDependencies(ginServer, eventPublisher, consumer, binlogReader, emailNotifier, diEmailServiceAvailable, diKafkaTopicEnsured, diDatabaseMigrated)
+	dependencies, err := BuildDependencies(server, eventPublisher, consumer, binlogReader, emailNotifier, diEmailServiceAvailable, diKafkaTopicEnsured, diDatabaseMigrated)
 	if err != nil {
 		return nil, err
 	}
