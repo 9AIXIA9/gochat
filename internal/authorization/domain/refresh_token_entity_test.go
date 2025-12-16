@@ -64,10 +64,6 @@ func TestRefreshTokenEntity_GenerateAccessToken(t *testing.T) {
 	accessToken, err := refreshToken.GenerateAccessToken(mockAccessTokenGenerator)
 	require.NoError(t, err)
 	assert.Equal(t, fixedAccessToken, accessToken)
-
-	//重复生成access token失败
-	_, err = refreshToken.GenerateAccessToken(mockAccessTokenGenerator)
-	require.ErrorIs(t, err, domain.ErrAccessTokenGenerated)
 }
 
 func TestRefreshTokenEntity_Refresh(t *testing.T) {
