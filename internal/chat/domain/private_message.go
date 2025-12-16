@@ -43,6 +43,7 @@ func CreatePrivateMessage(
 	messageIDGenerator kernel.MessageIDGenerator,
 	notifier PrivateMessageNotifier,
 ) *PrivateMessage {
+	//TODO content 不能为空的校验缺少
 	message := &PrivateMessage{
 		id:           messageIDGenerator.Generate(),
 		senderID:     senderID,

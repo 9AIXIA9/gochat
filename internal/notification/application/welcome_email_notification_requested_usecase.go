@@ -18,7 +18,7 @@ type WelcomeEmailNotificationRequestedInput struct {
 
 func (r *WelcomeEmailNotificationRequestedInput) Validate() error {
 	if len(r.UserID) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "user id is empty")
 	}
 
 	if err := r.UserNumber.Validate(); err != nil {
