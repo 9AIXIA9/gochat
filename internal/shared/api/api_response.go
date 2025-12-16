@@ -11,7 +11,7 @@ var (
 type Response struct {
 	Code    Code   `json:"code"`
 	Message string `json:"message"`
-	Data    any    `json:"data,omitempty"`
+	Data    any    `json:"data,omitempty" swaggertype:"object"`
 }
 
 func NewResponse(code Code) *Response {

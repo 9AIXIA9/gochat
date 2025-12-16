@@ -1875,7 +1875,9 @@ const docTemplate = `{
                 "code": {
                     "$ref": "#/definitions/gochat_internal_shared_api.Code"
                 },
-                "data": {},
+                "data": {
+                    "type": "object"
+                },
                 "message": {
                     "type": "string"
                 }
