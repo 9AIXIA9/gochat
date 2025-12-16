@@ -27,7 +27,7 @@ func TestLoginInput_Validate(t *testing.T) {
 	}
 
 	err = inputWithEmptyPassword.Validate()
-	require.ErrorIs(t, err, myErrors.ErrInvalidLength)
+	require.Error(t, err)
 
 	inputWithEmptyNumber := &application.LoginInput{
 		Number:   "",

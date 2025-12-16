@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"gochat/internal/authorization/domain"
+	"gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 	"gochat/pkg/utils"
 )
@@ -38,7 +39,7 @@ func NewParseAccessTokenUseCase(accessTokenParser domain.AccessTokenParser) (Par
 func (uc *parseAccessTokenUseCase) Execute(_ context.Context, input *ParseAccessTokenInput) (*ParseAccessTokenOutput, error) {
 	userID, err := uc.accessTokenParser.Parse(input.AccessToken)
 	if err != nil {
-		return nil, domain.ErrInvalidAccessToken
+		return nil, errors.WrapBusiness(err, "invalid access token")
 	}
 	return &ParseAccessTokenOutput{UserID: userID}, nil
 }

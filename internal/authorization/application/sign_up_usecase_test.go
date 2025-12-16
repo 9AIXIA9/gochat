@@ -26,7 +26,7 @@ func TestSignUpInput_Validate(t *testing.T) {
 	}
 
 	err = inputWithEmptyPassword.Validate()
-	require.ErrorIs(t, err, myErrors.ErrInvalidLength)
+	require.Error(t, err)
 
 	inputWithEmptyEmail := &application.SignUpInput{
 		Email:    "",

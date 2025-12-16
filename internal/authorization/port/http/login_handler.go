@@ -1,7 +1,6 @@
 package http
 
 import (
-	"errors"
 	"gochat/config"
 	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
@@ -68,15 +67,10 @@ func NewLoginHandler(useCase application.LoginUseCase, validator ginutils.Valida
 			ginutils.ResponseSuccessWithData(ginContext, &LoginResponseData{AccessToken: output.AccessToken})
 		},
 		func(ginContext *gin.Context, err error) {
-			switch {
-			case errors.Is(err, domain.ErrEmptyPassword) ||
-				errors.Is(err, myErrors.ErrInvalidLength) ||
-				errors.Is(err, domain.ErrInvalidPassword) ||
-				errors.Is(err, myErrors.ErrInvalidNumber) ||
-				errors.Is(err, myErrors.ErrNotFound):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "password is invalid")
-			default:
-				zap.L().Error("login handler failed", zap.Error(err))
+			if myErrors.IsBusinessError(err) {
+				ginutils.ResponseWithMessage(ginContext, api.CodeSuccess, err.Error())
+			} else {
+				zap.L().Error("LoginHandler failed", zap.Error(err))
 				ginutils.Response(ginContext, api.CodeServerError)
 			}
 		},

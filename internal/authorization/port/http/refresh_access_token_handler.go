@@ -1,7 +1,6 @@
 package http
 
 import (
-	"errors"
 	"gochat/config"
 	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
@@ -71,12 +70,10 @@ func NewRefreshAccessTokenHandler(useCase application.RefreshAccessTokenUseCase,
 			)
 		},
 		func(ginContext *gin.Context, err error) {
-			switch {
-			case errors.Is(err, myErrors.ErrNotFound) ||
-				errors.Is(err, domain.ErrInvalidRefreshToken):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "invalid refresh token")
-			default:
-				zap.L().Error("refresh access token handler failed", zap.Error(err))
+			if myErrors.IsBusinessError(err) {
+				ginutils.ResponseWithMessage(ginContext, api.CodeSuccess, err.Error())
+			} else {
+				zap.L().Error("RefreshAccessToken failed", zap.Error(err))
 				ginutils.Response(ginContext, api.CodeServerError)
 			}
 		},

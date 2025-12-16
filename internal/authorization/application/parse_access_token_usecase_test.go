@@ -23,7 +23,7 @@ func TestParseAccessTokenInput_Validate(t *testing.T) {
 	}
 
 	err = inputWithEmptyAccessToken.Validate()
-	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
+	require.Error(t, err)
 }
 
 func TestNewParseAccessTokenUseCase(t *testing.T) {

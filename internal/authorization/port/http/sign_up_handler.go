@@ -1,7 +1,6 @@
 package http
 
 import (
-	"errors"
 	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
 	ginutils "gochat/internal/infrastructure/gin"
@@ -51,17 +50,12 @@ func NewSignUpHandler(useCase application.SignUpUseCase, validator ginutils.Vali
 		func(ginContext *gin.Context, output *application.SignUpOutput) {
 			ginutils.ResponseSuccessWithData(ginContext, &SignUpResponseData{UserNumber: output.UserNumber})
 		},
+		//TODO 后续放入adapter
 		func(ginContext *gin.Context, err error) {
-			switch {
-			case errors.Is(err, domain.ErrEmptyPassword) ||
-				errors.Is(err, myErrors.ErrInvalidLength) ||
-				errors.Is(err, domain.ErrInvalidPassword) ||
-				errors.Is(err, myErrors.ErrInvalidFormat):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "password is invalid")
-			case errors.Is(err, myErrors.ErrDuplicatedKey):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "the email address is used")
-			default:
-				zap.L().Error("sign up handler failed", zap.Error(err))
+			if myErrors.IsBusinessError(err) {
+				ginutils.ResponseWithMessage(ginContext, api.CodeSuccess, err.Error())
+			} else {
+				zap.L().Error("SignUpHandler failed", zap.Error(err))
 				ginutils.Response(ginContext, api.CodeServerError)
 			}
 		},

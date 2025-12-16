@@ -2,7 +2,6 @@ package domain_test
 
 import (
 	"gochat/internal/authorization/domain"
-	myErrors "gochat/internal/shared/errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -18,7 +17,6 @@ func TestAccessToken_Validate(t *testing.T) {
 	invalidToken := domain.AccessToken("")
 	err = invalidToken.Validate()
 	require.Error(t, err)
-	require.Equal(t, err, myErrors.ErrEmptyInput)
 }
 
 func TestRefreshToken_Validate(t *testing.T) {
@@ -31,5 +29,4 @@ func TestRefreshToken_Validate(t *testing.T) {
 	invalidToken := domain.RefreshToken("")
 	err = invalidToken.Validate()
 	require.Error(t, err)
-	require.Equal(t, err, myErrors.ErrEmptyInput)
 }

@@ -25,7 +25,7 @@ func TestRefreshAccessTokenInput_Validate(t *testing.T) {
 	}
 
 	err = inputWithEmptyRefreshToken.Validate()
-	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
+	require.Error(t, err)
 }
 
 func TestNewRefreshAccessTokenUseCase(t *testing.T) {

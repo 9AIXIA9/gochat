@@ -96,7 +96,7 @@ func TestRefreshTokenEntity_Refresh(t *testing.T) {
 		fixedRefreshCount,
 	)
 	err = expiredToken.Refresh(mockRefreshTokenGenerator)
-	require.ErrorIs(t, err, domain.ErrInvalidRefreshToken)
+	require.Error(t, err)
 
 	//超过刷新次数失败
 	limitToken := domain.LoadRefreshToken(
@@ -106,7 +106,7 @@ func TestRefreshTokenEntity_Refresh(t *testing.T) {
 		maxRefreshCount,
 	)
 	err = limitToken.Refresh(mockRefreshTokenGenerator)
-	require.ErrorIs(t, err, domain.ErrInvalidRefreshToken)
+	require.Error(t, err)
 }
 
 func TestRefreshTokenEntity_CanBeRefreshed(t *testing.T) {
@@ -128,7 +128,7 @@ func TestRefreshTokenEntity_CanBeRefreshed(t *testing.T) {
 		fixedRefreshCount,
 	)
 	err = expiredToken.CanBeRefreshed()
-	require.ErrorIs(t, err, domain.ErrInvalidRefreshToken)
+	require.Error(t, err)
 
 	//超过刷新次数失败
 	limitToken := domain.LoadRefreshToken(
@@ -138,5 +138,5 @@ func TestRefreshTokenEntity_CanBeRefreshed(t *testing.T) {
 		maxRefreshCount,
 	)
 	err = limitToken.CanBeRefreshed()
-	require.ErrorIs(t, err, domain.ErrInvalidRefreshToken)
+	require.Error(t, err)
 }
