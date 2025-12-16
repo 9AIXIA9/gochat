@@ -17,7 +17,7 @@ type ReadPrivateMessagesInput struct {
 
 func (r *ReadPrivateMessagesInput) Validate() error {
 	if len(r.SenderID) == 0 || len(r.RecipientID) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.NewBusiness("sender ID and recipient ID cannot be empty")
 	}
 
 	return nil

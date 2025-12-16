@@ -54,6 +54,7 @@ func AdaptUseCaseToHandler[
 				zap.L().Error("http handler failed", zap.Error(err))
 				Response(ginContext, api.CodeServerError)
 			}
+			return
 		}
 
 		if handleOutput != nil {

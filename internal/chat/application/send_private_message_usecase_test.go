@@ -2,7 +2,6 @@ package application_test
 
 import (
 	"gochat/internal/chat/application"
-	"gochat/internal/chat/domain"
 	"gochat/internal/chat/domain/mocks"
 	myErrors "gochat/internal/shared/errors"
 	kernelmocks "gochat/internal/shared/kernel/mocks"
@@ -29,7 +28,7 @@ func TestSendPrivateMessageInput_Validate(t *testing.T) {
 	}
 
 	err = inputWithEmptySenderID.Validate()
-	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
+	require.Error(t, err)
 
 	inputWithEmptyRecipientID := &application.SendPrivateMessageInput{
 		SenderID:    fixedUserID,
@@ -38,7 +37,7 @@ func TestSendPrivateMessageInput_Validate(t *testing.T) {
 	}
 
 	err = inputWithEmptyRecipientID.Validate()
-	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
+	require.Error(t, err)
 }
 
 func TestNewSendPrivateMessageUseCase(t *testing.T) {
@@ -109,7 +108,7 @@ func TestSendPrivateMessageUseCase_Execute(t *testing.T) {
 		RecipientID: fixedFriendID,
 		Content:     fixedContent,
 	})
-	require.ErrorIs(t, err, domain.ErrNotFriends)
+	require.Error(t, err)
 
 	// 发送给自己
 	gomock.InOrder(

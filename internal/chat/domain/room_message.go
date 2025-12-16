@@ -43,7 +43,7 @@ func CreateRoomMessage(
 	content string,
 	messageIDGenerator kernel.MessageIDGenerator,
 	notifier RoomMessageNotifier,
-) (*RoomMessage, error) {
+) *RoomMessage {
 	if len(recipientIDs) == 0 ||
 		(len(recipientIDs) == 1 && recipientIDs[0] == senderID) ||
 		recipientIDs == nil {
@@ -56,7 +56,7 @@ func CreateRoomMessage(
 			content:      content,
 			sentAt:       time.Now().UTC(),
 			eventManager: event.NewEventManager(),
-		}, nil
+		}
 	}
 
 	states := make(map[kernel.UserID]MessageState, len(recipientIDs))
@@ -78,14 +78,14 @@ func CreateRoomMessage(
 
 	ids, err := notifier.Notify(message, recipientIDs)
 	if err != nil {
-		return message, nil
+		return message
 	}
 
 	for _, id := range ids {
 		message.states[id] = MessageStateDelivered
 	}
 
-	return message, nil
+	return message
 }
 
 func (m *RoomMessage) Deliver(

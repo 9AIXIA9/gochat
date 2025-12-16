@@ -84,8 +84,6 @@ func provideKafkaProducer(appConf *config.App) (*ckafka.Producer, error) {
 func provideRetryJudge() retryJudge {
 	return func(err error) bool {
 		if errors.Is(err, myErrors.ErrNotFound) ||
-			errors.Is(err, chatDomain.ErrNotFriends) ||
-			errors.Is(err, chatDomain.ErrNotMember) ||
 			errors.Is(err, friendshipDomain.ErrFriendRequestNotAgreed) ||
 			errors.Is(err, roomshipDomain.ErrNotAdmin) ||
 			errors.Is(err, myErrors.ErrChanIsFull) {

@@ -16,7 +16,7 @@ type RoomCreatedInput struct {
 
 func (r *RoomCreatedInput) Validate() error {
 	if len(r.RoomID) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.NewBusiness("room id is required")
 	}
 
 	return nil

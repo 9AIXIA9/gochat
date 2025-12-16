@@ -42,7 +42,7 @@ func CreatePrivateMessage(
 	content string,
 	messageIDGenerator kernel.MessageIDGenerator,
 	notifier PrivateMessageNotifier,
-) (*PrivateMessage, error) {
+) *PrivateMessage {
 	message := &PrivateMessage{
 		id:           messageIDGenerator.Generate(),
 		senderID:     senderID,
@@ -55,16 +55,16 @@ func CreatePrivateMessage(
 
 	if recipientID == senderID {
 		message.state = MessageStateDelivered
-		return message, nil
+		return message
 	}
 
 	if err := notifier.Notify(message); err != nil {
-		return message, nil
+		return message
 	}
 
 	message.state = MessageStateDelivered
 
-	return message, nil
+	return message
 }
 
 func (m *PrivateMessage) Deliver(

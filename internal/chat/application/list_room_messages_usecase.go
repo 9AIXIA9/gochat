@@ -23,7 +23,7 @@ type ListRoomMessagesInput struct {
 
 func (r *ListRoomMessagesInput) Validate() error {
 	if len(r.UserID) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.NewBusiness("user_id is required")
 	}
 
 	return nil
