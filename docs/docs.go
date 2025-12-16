@@ -51,7 +51,19 @@ const docTemplate = `{
                     "200": {
                         "description": "登录成功，返回访问令牌",
                         "schema": {
-                            "$ref": "#/definitions/internal_authorization_port_http.LoginResponseData"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_authorization_port_http.LoginResponseData"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -83,7 +95,19 @@ const docTemplate = `{
                     "200": {
                         "description": "刷新成功，返回新的访问令牌",
                         "schema": {
-                            "$ref": "#/definitions/internal_authorization_port_http.RefreshAccessTokenResponseData"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_authorization_port_http.RefreshAccessTokenResponseData"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -129,7 +153,19 @@ const docTemplate = `{
                     "201": {
                         "description": "注册成功，返回用户编号",
                         "schema": {
-                            "$ref": "#/definitions/internal_authorization_port_http.SignUpResponseData"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_authorization_port_http.SignUpResponseData"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -180,7 +216,19 @@ const docTemplate = `{
                     "200": {
                         "description": "成功返回私聊消息列表",
                         "schema": {
-                            "$ref": "#/definitions/internal_chat_port_http.ListPrivateMessagesResponseData"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_chat_port_http.ListPrivateMessagesResponseData"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -295,7 +343,19 @@ const docTemplate = `{
                     "200": {
                         "description": "成功返回房间消息列表",
                         "schema": {
-                            "$ref": "#/definitions/internal_chat_port_http.ListRoomMessagesResponseData"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_chat_port_http.ListRoomMessagesResponseData"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -410,7 +470,19 @@ const docTemplate = `{
                     "200": {
                         "description": "成功返回好友列表",
                         "schema": {
-                            "$ref": "#/definitions/internal_friendship_port_http.ListFriendshipsResponseData"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_friendship_port_http.ListFriendshipsResponseData"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -470,7 +542,19 @@ const docTemplate = `{
                     "200": {
                         "description": "成功返回好友请求列表",
                         "schema": {
-                            "$ref": "#/definitions/internal_friendship_port_http.ListFriendRequestsResponseData"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_friendship_port_http.ListFriendRequestsResponseData"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -695,7 +779,19 @@ const docTemplate = `{
                     "200": {
                         "description": "成功返回系统通知列表",
                         "schema": {
-                            "$ref": "#/definitions/internal_notification_port_http.ListSystemMessagesResponseData"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_notification_port_http.ListSystemMessagesResponseData"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -871,7 +967,19 @@ const docTemplate = `{
                     "200": {
                         "description": "成功返回房间资料",
                         "schema": {
-                            "$ref": "#/definitions/internal_profile_port_http.GetRoomProfileResponseData"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_profile_port_http.GetRoomProfileResponseData"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -921,7 +1029,19 @@ const docTemplate = `{
                     "200": {
                         "description": "成功返回用户资料",
                         "schema": {
-                            "$ref": "#/definitions/internal_profile_port_http.GetUserProfileResponseData"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_profile_port_http.GetUserProfileResponseData"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -981,7 +1101,19 @@ const docTemplate = `{
                     "200": {
                         "description": "成功返回房间关系列表",
                         "schema": {
-                            "$ref": "#/definitions/internal_roomship_port_http.ListRoomshipsResponseData"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_roomship_port_http.ListRoomshipsResponseData"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1041,7 +1173,19 @@ const docTemplate = `{
                     "200": {
                         "description": "成功返回成员请求列表",
                         "schema": {
-                            "$ref": "#/definitions/internal_roomship_port_http.ListMemberRequestsResponseData"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_roomship_port_http.ListMemberRequestsResponseData"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1313,7 +1457,19 @@ const docTemplate = `{
                     "200": {
                         "description": "成功返回房间成员列表",
                         "schema": {
-                            "$ref": "#/definitions/internal_roomship_port_http.ListRoomMembersResponseData"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_roomship_port_http.ListRoomMembersResponseData"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {

@@ -466,7 +466,12 @@ paths:
         "200":
           description: 登录成功，返回访问令牌
           schema:
-            $ref: '#/definitions/internal_authorization_port_http.LoginResponseData'
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_authorization_port_http.LoginResponseData'
+              type: object
         "400":
           description: 请求参数错误或密码错误
           schema:
@@ -487,7 +492,12 @@ paths:
         "200":
           description: 刷新成功，返回新的访问令牌
           schema:
-            $ref: '#/definitions/internal_authorization_port_http.RefreshAccessTokenResponseData'
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_authorization_port_http.RefreshAccessTokenResponseData'
+              type: object
         "400":
           description: 刷新令牌无效或已过期
           schema:
@@ -517,7 +527,12 @@ paths:
         "201":
           description: 注册成功，返回用户编号
           schema:
-            $ref: '#/definitions/internal_authorization_port_http.SignUpResponseData'
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_authorization_port_http.SignUpResponseData'
+              type: object
         "400":
           description: 请求参数错误或密码不合法
           schema:
@@ -547,7 +562,12 @@ paths:
         "200":
           description: 成功返回私聊消息列表
           schema:
-            $ref: '#/definitions/internal_chat_port_http.ListPrivateMessagesResponseData'
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_chat_port_http.ListPrivateMessagesResponseData'
+              type: object
         "400":
           description: 请求参数错误
           schema:
@@ -620,7 +640,12 @@ paths:
         "200":
           description: 成功返回房间消息列表
           schema:
-            $ref: '#/definitions/internal_chat_port_http.ListRoomMessagesResponseData'
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_chat_port_http.ListRoomMessagesResponseData'
+              type: object
         "400":
           description: 请求参数错误
           schema:
@@ -693,7 +718,12 @@ paths:
         "200":
           description: 成功返回好友列表
           schema:
-            $ref: '#/definitions/internal_friendship_port_http.ListFriendshipsResponseData'
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_friendship_port_http.ListFriendshipsResponseData'
+              type: object
         "400":
           description: 请求参数错误
           schema:
@@ -731,7 +761,12 @@ paths:
         "200":
           description: 成功返回好友请求列表
           schema:
-            $ref: '#/definitions/internal_friendship_port_http.ListFriendRequestsResponseData'
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_friendship_port_http.ListFriendRequestsResponseData'
+              type: object
         "400":
           description: 请求参数错误
           schema:
@@ -874,7 +909,12 @@ paths:
         "200":
           description: 成功返回系统通知列表
           schema:
-            $ref: '#/definitions/internal_notification_port_http.ListSystemMessagesResponseData'
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_notification_port_http.ListSystemMessagesResponseData'
+              type: object
         "400":
           description: 请求参数错误
           schema:
@@ -989,7 +1029,12 @@ paths:
         "200":
           description: 成功返回房间资料
           schema:
-            $ref: '#/definitions/internal_profile_port_http.GetRoomProfileResponseData'
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_profile_port_http.GetRoomProfileResponseData'
+              type: object
         "400":
           description: 请求参数错误
           schema:
@@ -1022,7 +1067,12 @@ paths:
         "200":
           description: 成功返回用户资料
           schema:
-            $ref: '#/definitions/internal_profile_port_http.GetUserProfileResponseData'
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_profile_port_http.GetUserProfileResponseData'
+              type: object
         "400":
           description: 请求参数错误
           schema:
@@ -1058,7 +1108,12 @@ paths:
         "200":
           description: 成功返回房间关系列表
           schema:
-            $ref: '#/definitions/internal_roomship_port_http.ListRoomshipsResponseData'
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_roomship_port_http.ListRoomshipsResponseData'
+              type: object
         "400":
           description: 请求参数错误
           schema:
@@ -1096,7 +1151,12 @@ paths:
         "200":
           description: 成功返回成员请求列表
           schema:
-            $ref: '#/definitions/internal_roomship_port_http.ListMemberRequestsResponseData'
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_roomship_port_http.ListMemberRequestsResponseData'
+              type: object
         "400":
           description: 请求参数错误
           schema:
@@ -1306,7 +1366,12 @@ paths:
         "200":
           description: 成功返回房间成员列表
           schema:
-            $ref: '#/definitions/internal_roomship_port_http.ListRoomMembersResponseData'
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_roomship_port_http.ListRoomMembersResponseData'
+              type: object
         "400":
           description: 请求参数错误
           schema:
