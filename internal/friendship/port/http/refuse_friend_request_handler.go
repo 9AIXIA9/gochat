@@ -33,7 +33,7 @@ func (r *RefuseFriendRequestRequest) Bind(ginContext *gin.Context) error {
 // @Tags         Friendship
 // @Security     BearerAuth
 // @Produce      json
-// @Param        request_id  path      int                   true  "好友请求ID"
+// @Param        request_id  path      kernel.OperationID                   true  "好友请求ID"
 // @Success      200         {object}  api.Response "拒绝成功"
 // @Failure      400         {object}  api.Response "请求参数错误或请求已处理"
 // @Failure      401         {object}  api.Response "未认证"

@@ -45,7 +45,7 @@ type ListRoomshipsResponseData struct {
 // @Tags         Roomship
 // @Security     BearerAuth
 // @Produce      json
-// @Param        base_id  query     int    false "分页游标，返回该ID之前的记录"
+// @Param        base_id  query       domain.RoomshipID     false "分页游标，返回该ID之前的记录"
 // @Param        limit    query     int    false "分页大小，默认20，最大100"
 // @Success      200      {object}  ListRoomshipsResponseData "成功返回房间关系列表"
 // @Failure      400      {object}  api.Response   "请求参数错误"

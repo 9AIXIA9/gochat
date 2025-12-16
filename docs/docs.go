@@ -171,12 +171,6 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "分页游标，返回该ID之前的消息",
-                        "name": "base_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
                         "description": "分页大小，默认20，最大100",
                         "name": "limit",
                         "in": "query"
@@ -282,7 +276,10 @@ const docTemplate = `{
                 "summary": "获取房间消息列表",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
                         "description": "分页游标，返回该ID之前的消息",
                         "name": "base_id",
                         "in": "query"
@@ -394,7 +391,10 @@ const docTemplate = `{
                 "summary": "获取好友列表",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
                         "description": "分页游标，返回该ID之前的记录",
                         "name": "base_id",
                         "in": "query"
@@ -451,7 +451,10 @@ const docTemplate = `{
                 "summary": "获取好友请求列表",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
                         "description": "分页游标，返回该ID之前的记录",
                         "name": "base_id",
                         "in": "query"
@@ -563,7 +566,10 @@ const docTemplate = `{
                 "summary": "同意好友请求",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
                         "description": "好友请求ID",
                         "name": "request_id",
                         "in": "path",
@@ -615,7 +621,10 @@ const docTemplate = `{
                 "summary": "拒绝好友请求",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
                         "description": "好友请求ID",
                         "name": "request_id",
                         "in": "path",
@@ -667,7 +676,10 @@ const docTemplate = `{
                 "summary": "获取系统通知列表",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
                         "description": "分页游标，返回该ID之前的消息",
                         "name": "base_id",
                         "in": "query"
@@ -845,7 +857,10 @@ const docTemplate = `{
                 "summary": "获取房间资料",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
                         "description": "房间ID",
                         "name": "room_id",
                         "in": "path",
@@ -892,7 +907,10 @@ const docTemplate = `{
                 "summary": "获取用户资料",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
                         "description": "用户ID",
                         "name": "user_id",
                         "in": "path",
@@ -944,7 +962,10 @@ const docTemplate = `{
                 "summary": "获取房间关系列表",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
                         "description": "分页游标，返回该ID之前的记录",
                         "name": "base_id",
                         "in": "query"
@@ -1001,7 +1022,10 @@ const docTemplate = `{
                 "summary": "获取房间成员请求列表",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
                         "description": "分页游标，返回该ID之前的记录",
                         "name": "base_id",
                         "in": "query"
@@ -1113,7 +1137,10 @@ const docTemplate = `{
                 "summary": "同意入群请求",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
                         "description": "成员请求ID",
                         "name": "request_id",
                         "in": "path",
@@ -1165,7 +1192,10 @@ const docTemplate = `{
                 "summary": "拒绝入群请求",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
                         "description": "成员请求ID",
                         "name": "request_id",
                         "in": "path",
@@ -1269,7 +1299,10 @@ const docTemplate = `{
                 "summary": "获取房间成员列表",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
                         "description": "房间ID",
                         "name": "room_id",
                         "in": "path",
@@ -1319,7 +1352,10 @@ const docTemplate = `{
                 "summary": "退出房间",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
                         "description": "房间ID",
                         "name": "room_id",
                         "in": "path",

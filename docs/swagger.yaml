@@ -537,10 +537,6 @@ paths:
     get:
       description: 获取当前登录用户的私聊消息列表，可基于 base_id 游标和 limit 分页
       parameters:
-      - description: 分页游标，返回该ID之前的消息
-        in: query
-        name: base_id
-        type: integer
       - description: 分页大小，默认20，最大100
         in: query
         name: limit
@@ -609,9 +605,11 @@ paths:
       description: 获取当前登录用户所在房间的消息列表，可基于 base_id 游标和 limit 分页
       parameters:
       - description: 分页游标，返回该ID之前的消息
+        enum:
+        - ""
         in: query
         name: base_id
-        type: integer
+        type: string
       - description: 分页大小，默认20，最大100
         in: query
         name: limit
@@ -680,9 +678,11 @@ paths:
       description: 获取当前登录用户的好友关系列表，可基于 base_id 游标和 limit 分页
       parameters:
       - description: 分页游标，返回该ID之前的记录
+        enum:
+        - ""
         in: query
         name: base_id
-        type: integer
+        type: string
       - description: 分页大小，默认20，最大100
         in: query
         name: limit
@@ -716,9 +716,11 @@ paths:
       description: 获取当前登录用户相关的好友请求列表，可基于 base_id 游标和 limit 分页
       parameters:
       - description: 分页游标，返回该ID之前的记录
+        enum:
+        - ""
         in: query
         name: base_id
-        type: integer
+        type: string
       - description: 分页大小，默认20，最大100
         in: query
         name: limit
@@ -787,10 +789,12 @@ paths:
       description: 同意指定的好友请求，将对方加入好友列表
       parameters:
       - description: 好友请求ID
+        enum:
+        - ""
         in: path
         name: request_id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -820,10 +824,12 @@ paths:
       description: 拒绝指定的好友请求
       parameters:
       - description: 好友请求ID
+        enum:
+        - ""
         in: path
         name: request_id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -853,9 +859,11 @@ paths:
       description: 获取当前登录用户的系统通知列表，可基于 base_id 游标和 limit 分页
       parameters:
       - description: 分页游标，返回该ID之前的消息
+        enum:
+        - ""
         in: query
         name: base_id
-        type: integer
+        type: string
       - description: 分页大小，默认20，最大100
         in: query
         name: limit
@@ -969,10 +977,12 @@ paths:
       description: 根据房间ID获取房间公开资料
       parameters:
       - description: 房间ID
+        enum:
+        - ""
         in: path
         name: room_id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -1000,10 +1010,12 @@ paths:
       description: 根据用户ID获取用户公开资料
       parameters:
       - description: 用户ID
+        enum:
+        - ""
         in: path
         name: user_id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -1031,9 +1043,11 @@ paths:
       description: 获取当前登录用户加入的房间关系列表，可基于 base_id 游标和 limit 分页
       parameters:
       - description: 分页游标，返回该ID之前的记录
+        enum:
+        - ""
         in: query
         name: base_id
-        type: integer
+        type: string
       - description: 分页大小，默认20，最大100
         in: query
         name: limit
@@ -1067,9 +1081,11 @@ paths:
       description: 获取当前登录用户相关的房间成员请求列表，可基于 base_id 游标和 limit 分页
       parameters:
       - description: 分页游标，返回该ID之前的记录
+        enum:
+        - ""
         in: query
         name: base_id
-        type: integer
+        type: string
       - description: 分页大小，默认20，最大100
         in: query
         name: limit
@@ -1138,10 +1154,12 @@ paths:
       description: 同意指定房间成员请求，将对方加入房间
       parameters:
       - description: 成员请求ID
+        enum:
+        - ""
         in: path
         name: request_id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -1171,10 +1189,12 @@ paths:
       description: 拒绝指定房间成员请求
       parameters:
       - description: 成员请求ID
+        enum:
+        - ""
         in: path
         name: request_id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -1240,10 +1260,12 @@ paths:
       description: 当前登录用户退出指定房间
       parameters:
       - description: 房间ID
+        enum:
+        - ""
         in: path
         name: room_id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -1272,10 +1294,12 @@ paths:
       description: 根据房间ID获取房间成员列表
       parameters:
       - description: 房间ID
+        enum:
+        - ""
         in: path
         name: room_id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
