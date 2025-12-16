@@ -44,9 +44,9 @@ type ListSystemMessagesResponseData struct {
 // @Tags         Notification
 // @Security     BearerAuth
 // @Produce      json
-// @Param        base_id  query     int    false "分页游标，返回该ID之前的消息"
+// @Param        base_id  query     kernel.MessageID    false "分页游标，返回该ID之前的消息"
 // @Param        limit    query     int    false "分页大小，默认20，最大100"
-// @Success      200      {object}  ListSystemMessagesResponseData "成功返回系统通知列表"
+// @Success      200      {object}  api.Response{data=ListSystemMessagesResponseData} "成功返回系统通知列表"
 // @Failure      400      {object}  api.Response        "请求参数错误"
 // @Failure      401      {object}  api.Response        "未认证"
 // @Failure      500      {object}  api.Response        "服务器内部错误"

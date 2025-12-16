@@ -37,7 +37,7 @@ func (r *LoginRequest) Bind(ginContext *gin.Context) error {
 // @Accept       json
 // @Produce      json
 // @Param        request  body      LoginRequest        true  "登录请求体"
-// @Success      200      {object}  LoginResponseData   "登录成功，返回访问令牌"
+// @Success      200      {object}  api.Response{data=LoginResponseData}   "登录成功，返回访问令牌"
 // @Failure      400      {object}  api.Response "请求参数错误或密码错误"
 // @Failure      500      {object}  api.Response "服务器内部错误"
 // @Router       /authorization/login [post]

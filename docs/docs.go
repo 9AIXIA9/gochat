@@ -51,7 +51,19 @@ const docTemplate = `{
                     "200": {
                         "description": "登录成功，返回访问令牌",
                         "schema": {
-                            "$ref": "#/definitions/internal_authorization_port_http.LoginResponseData"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_authorization_port_http.LoginResponseData"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -83,7 +95,19 @@ const docTemplate = `{
                     "200": {
                         "description": "刷新成功，返回新的访问令牌",
                         "schema": {
-                            "$ref": "#/definitions/internal_authorization_port_http.RefreshAccessTokenResponseData"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_authorization_port_http.RefreshAccessTokenResponseData"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -129,7 +153,19 @@ const docTemplate = `{
                     "201": {
                         "description": "注册成功，返回用户编号",
                         "schema": {
-                            "$ref": "#/definitions/internal_authorization_port_http.SignUpResponseData"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_authorization_port_http.SignUpResponseData"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -171,12 +207,6 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "分页游标，返回该ID之前的消息",
-                        "name": "base_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
                         "description": "分页大小，默认20，最大100",
                         "name": "limit",
                         "in": "query"
@@ -186,7 +216,19 @@ const docTemplate = `{
                     "200": {
                         "description": "成功返回私聊消息列表",
                         "schema": {
-                            "$ref": "#/definitions/internal_chat_port_http.ListPrivateMessagesResponseData"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_chat_port_http.ListPrivateMessagesResponseData"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -282,7 +324,10 @@ const docTemplate = `{
                 "summary": "获取房间消息列表",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
                         "description": "分页游标，返回该ID之前的消息",
                         "name": "base_id",
                         "in": "query"
@@ -298,7 +343,19 @@ const docTemplate = `{
                     "200": {
                         "description": "成功返回房间消息列表",
                         "schema": {
-                            "$ref": "#/definitions/internal_chat_port_http.ListRoomMessagesResponseData"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_chat_port_http.ListRoomMessagesResponseData"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -394,7 +451,10 @@ const docTemplate = `{
                 "summary": "获取好友列表",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
                         "description": "分页游标，返回该ID之前的记录",
                         "name": "base_id",
                         "in": "query"
@@ -410,7 +470,19 @@ const docTemplate = `{
                     "200": {
                         "description": "成功返回好友列表",
                         "schema": {
-                            "$ref": "#/definitions/internal_friendship_port_http.ListFriendshipsResponseData"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_friendship_port_http.ListFriendshipsResponseData"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -451,7 +523,10 @@ const docTemplate = `{
                 "summary": "获取好友请求列表",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
                         "description": "分页游标，返回该ID之前的记录",
                         "name": "base_id",
                         "in": "query"
@@ -467,7 +542,19 @@ const docTemplate = `{
                     "200": {
                         "description": "成功返回好友请求列表",
                         "schema": {
-                            "$ref": "#/definitions/internal_friendship_port_http.ListFriendRequestsResponseData"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_friendship_port_http.ListFriendRequestsResponseData"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -563,7 +650,10 @@ const docTemplate = `{
                 "summary": "同意好友请求",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
                         "description": "好友请求ID",
                         "name": "request_id",
                         "in": "path",
@@ -615,7 +705,10 @@ const docTemplate = `{
                 "summary": "拒绝好友请求",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
                         "description": "好友请求ID",
                         "name": "request_id",
                         "in": "path",
@@ -667,7 +760,10 @@ const docTemplate = `{
                 "summary": "获取系统通知列表",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
                         "description": "分页游标，返回该ID之前的消息",
                         "name": "base_id",
                         "in": "query"
@@ -683,7 +779,19 @@ const docTemplate = `{
                     "200": {
                         "description": "成功返回系统通知列表",
                         "schema": {
-                            "$ref": "#/definitions/internal_notification_port_http.ListSystemMessagesResponseData"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_notification_port_http.ListSystemMessagesResponseData"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -845,7 +953,10 @@ const docTemplate = `{
                 "summary": "获取房间资料",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
                         "description": "房间ID",
                         "name": "room_id",
                         "in": "path",
@@ -856,7 +967,19 @@ const docTemplate = `{
                     "200": {
                         "description": "成功返回房间资料",
                         "schema": {
-                            "$ref": "#/definitions/internal_profile_port_http.GetRoomProfileResponseData"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_profile_port_http.GetRoomProfileResponseData"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -892,7 +1015,10 @@ const docTemplate = `{
                 "summary": "获取用户资料",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
                         "description": "用户ID",
                         "name": "user_id",
                         "in": "path",
@@ -903,7 +1029,19 @@ const docTemplate = `{
                     "200": {
                         "description": "成功返回用户资料",
                         "schema": {
-                            "$ref": "#/definitions/internal_profile_port_http.GetUserProfileResponseData"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_profile_port_http.GetUserProfileResponseData"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -944,7 +1082,10 @@ const docTemplate = `{
                 "summary": "获取房间关系列表",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
                         "description": "分页游标，返回该ID之前的记录",
                         "name": "base_id",
                         "in": "query"
@@ -960,7 +1101,19 @@ const docTemplate = `{
                     "200": {
                         "description": "成功返回房间关系列表",
                         "schema": {
-                            "$ref": "#/definitions/internal_roomship_port_http.ListRoomshipsResponseData"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_roomship_port_http.ListRoomshipsResponseData"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1001,7 +1154,10 @@ const docTemplate = `{
                 "summary": "获取房间成员请求列表",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
                         "description": "分页游标，返回该ID之前的记录",
                         "name": "base_id",
                         "in": "query"
@@ -1017,7 +1173,19 @@ const docTemplate = `{
                     "200": {
                         "description": "成功返回成员请求列表",
                         "schema": {
-                            "$ref": "#/definitions/internal_roomship_port_http.ListMemberRequestsResponseData"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_roomship_port_http.ListMemberRequestsResponseData"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1113,7 +1281,10 @@ const docTemplate = `{
                 "summary": "同意入群请求",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
                         "description": "成员请求ID",
                         "name": "request_id",
                         "in": "path",
@@ -1165,7 +1336,10 @@ const docTemplate = `{
                 "summary": "拒绝入群请求",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
                         "description": "成员请求ID",
                         "name": "request_id",
                         "in": "path",
@@ -1269,7 +1443,10 @@ const docTemplate = `{
                 "summary": "获取房间成员列表",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
                         "description": "房间ID",
                         "name": "room_id",
                         "in": "path",
@@ -1280,7 +1457,19 @@ const docTemplate = `{
                     "200": {
                         "description": "成功返回房间成员列表",
                         "schema": {
-                            "$ref": "#/definitions/internal_roomship_port_http.ListRoomMembersResponseData"
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_roomship_port_http.ListRoomMembersResponseData"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1319,7 +1508,10 @@ const docTemplate = `{
                 "summary": "退出房间",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
                         "description": "房间ID",
                         "name": "room_id",
                         "in": "path",
@@ -1683,7 +1875,9 @@ const docTemplate = `{
                 "code": {
                     "$ref": "#/definitions/gochat_internal_shared_api.Code"
                 },
-                "data": {},
+                "data": {
+                    "type": "object"
+                },
                 "message": {
                     "type": "string"
                 }

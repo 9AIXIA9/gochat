@@ -33,8 +33,8 @@ type GetRoomProfileResponseData struct {
 // @Description  根据房间ID获取房间公开资料
 // @Tags         Profile
 // @Produce      json
-// @Param        room_id  path      int                        true  "房间ID"
-// @Success      200      {object}  GetRoomProfileResponseData "成功返回房间资料"
+// @Param        room_id  path      kernel.RoomID                        true  "房间ID"
+// @Success      200      {object}  api.Response{data=GetRoomProfileResponseData} "成功返回房间资料"
 // @Failure      400      {object}  api.Response "请求参数错误"
 // @Failure      404      {object}  api.Response "房间不存在"
 // @Failure      500      {object}  api.Response "服务器内部错误"

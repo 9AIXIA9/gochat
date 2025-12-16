@@ -212,7 +212,8 @@ definitions:
     properties:
       code:
         $ref: '#/definitions/gochat_internal_shared_api.Code'
-      data: {}
+      data:
+        type: object
       message:
         type: string
     type: object
@@ -466,7 +467,12 @@ paths:
         "200":
           description: 登录成功，返回访问令牌
           schema:
-            $ref: '#/definitions/internal_authorization_port_http.LoginResponseData'
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_authorization_port_http.LoginResponseData'
+              type: object
         "400":
           description: 请求参数错误或密码错误
           schema:
@@ -487,7 +493,12 @@ paths:
         "200":
           description: 刷新成功，返回新的访问令牌
           schema:
-            $ref: '#/definitions/internal_authorization_port_http.RefreshAccessTokenResponseData'
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_authorization_port_http.RefreshAccessTokenResponseData'
+              type: object
         "400":
           description: 刷新令牌无效或已过期
           schema:
@@ -517,7 +528,12 @@ paths:
         "201":
           description: 注册成功，返回用户编号
           schema:
-            $ref: '#/definitions/internal_authorization_port_http.SignUpResponseData'
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_authorization_port_http.SignUpResponseData'
+              type: object
         "400":
           description: 请求参数错误或密码不合法
           schema:
@@ -537,10 +553,6 @@ paths:
     get:
       description: 获取当前登录用户的私聊消息列表，可基于 base_id 游标和 limit 分页
       parameters:
-      - description: 分页游标，返回该ID之前的消息
-        in: query
-        name: base_id
-        type: integer
       - description: 分页大小，默认20，最大100
         in: query
         name: limit
@@ -551,7 +563,12 @@ paths:
         "200":
           description: 成功返回私聊消息列表
           schema:
-            $ref: '#/definitions/internal_chat_port_http.ListPrivateMessagesResponseData'
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_chat_port_http.ListPrivateMessagesResponseData'
+              type: object
         "400":
           description: 请求参数错误
           schema:
@@ -609,9 +626,11 @@ paths:
       description: 获取当前登录用户所在房间的消息列表，可基于 base_id 游标和 limit 分页
       parameters:
       - description: 分页游标，返回该ID之前的消息
+        enum:
+        - ""
         in: query
         name: base_id
-        type: integer
+        type: string
       - description: 分页大小，默认20，最大100
         in: query
         name: limit
@@ -622,7 +641,12 @@ paths:
         "200":
           description: 成功返回房间消息列表
           schema:
-            $ref: '#/definitions/internal_chat_port_http.ListRoomMessagesResponseData'
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_chat_port_http.ListRoomMessagesResponseData'
+              type: object
         "400":
           description: 请求参数错误
           schema:
@@ -680,9 +704,11 @@ paths:
       description: 获取当前登录用户的好友关系列表，可基于 base_id 游标和 limit 分页
       parameters:
       - description: 分页游标，返回该ID之前的记录
+        enum:
+        - ""
         in: query
         name: base_id
-        type: integer
+        type: string
       - description: 分页大小，默认20，最大100
         in: query
         name: limit
@@ -693,7 +719,12 @@ paths:
         "200":
           description: 成功返回好友列表
           schema:
-            $ref: '#/definitions/internal_friendship_port_http.ListFriendshipsResponseData'
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_friendship_port_http.ListFriendshipsResponseData'
+              type: object
         "400":
           description: 请求参数错误
           schema:
@@ -716,9 +747,11 @@ paths:
       description: 获取当前登录用户相关的好友请求列表，可基于 base_id 游标和 limit 分页
       parameters:
       - description: 分页游标，返回该ID之前的记录
+        enum:
+        - ""
         in: query
         name: base_id
-        type: integer
+        type: string
       - description: 分页大小，默认20，最大100
         in: query
         name: limit
@@ -729,7 +762,12 @@ paths:
         "200":
           description: 成功返回好友请求列表
           schema:
-            $ref: '#/definitions/internal_friendship_port_http.ListFriendRequestsResponseData'
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_friendship_port_http.ListFriendRequestsResponseData'
+              type: object
         "400":
           description: 请求参数错误
           schema:
@@ -787,10 +825,12 @@ paths:
       description: 同意指定的好友请求，将对方加入好友列表
       parameters:
       - description: 好友请求ID
+        enum:
+        - ""
         in: path
         name: request_id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -820,10 +860,12 @@ paths:
       description: 拒绝指定的好友请求
       parameters:
       - description: 好友请求ID
+        enum:
+        - ""
         in: path
         name: request_id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -853,9 +895,11 @@ paths:
       description: 获取当前登录用户的系统通知列表，可基于 base_id 游标和 limit 分页
       parameters:
       - description: 分页游标，返回该ID之前的消息
+        enum:
+        - ""
         in: query
         name: base_id
-        type: integer
+        type: string
       - description: 分页大小，默认20，最大100
         in: query
         name: limit
@@ -866,7 +910,12 @@ paths:
         "200":
           description: 成功返回系统通知列表
           schema:
-            $ref: '#/definitions/internal_notification_port_http.ListSystemMessagesResponseData'
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_notification_port_http.ListSystemMessagesResponseData'
+              type: object
         "400":
           description: 请求参数错误
           schema:
@@ -969,17 +1018,24 @@ paths:
       description: 根据房间ID获取房间公开资料
       parameters:
       - description: 房间ID
+        enum:
+        - ""
         in: path
         name: room_id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: 成功返回房间资料
           schema:
-            $ref: '#/definitions/internal_profile_port_http.GetRoomProfileResponseData'
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_profile_port_http.GetRoomProfileResponseData'
+              type: object
         "400":
           description: 请求参数错误
           schema:
@@ -1000,17 +1056,24 @@ paths:
       description: 根据用户ID获取用户公开资料
       parameters:
       - description: 用户ID
+        enum:
+        - ""
         in: path
         name: user_id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: 成功返回用户资料
           schema:
-            $ref: '#/definitions/internal_profile_port_http.GetUserProfileResponseData'
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_profile_port_http.GetUserProfileResponseData'
+              type: object
         "400":
           description: 请求参数错误
           schema:
@@ -1031,9 +1094,11 @@ paths:
       description: 获取当前登录用户加入的房间关系列表，可基于 base_id 游标和 limit 分页
       parameters:
       - description: 分页游标，返回该ID之前的记录
+        enum:
+        - ""
         in: query
         name: base_id
-        type: integer
+        type: string
       - description: 分页大小，默认20，最大100
         in: query
         name: limit
@@ -1044,7 +1109,12 @@ paths:
         "200":
           description: 成功返回房间关系列表
           schema:
-            $ref: '#/definitions/internal_roomship_port_http.ListRoomshipsResponseData'
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_roomship_port_http.ListRoomshipsResponseData'
+              type: object
         "400":
           description: 请求参数错误
           schema:
@@ -1067,9 +1137,11 @@ paths:
       description: 获取当前登录用户相关的房间成员请求列表，可基于 base_id 游标和 limit 分页
       parameters:
       - description: 分页游标，返回该ID之前的记录
+        enum:
+        - ""
         in: query
         name: base_id
-        type: integer
+        type: string
       - description: 分页大小，默认20，最大100
         in: query
         name: limit
@@ -1080,7 +1152,12 @@ paths:
         "200":
           description: 成功返回成员请求列表
           schema:
-            $ref: '#/definitions/internal_roomship_port_http.ListMemberRequestsResponseData'
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_roomship_port_http.ListMemberRequestsResponseData'
+              type: object
         "400":
           description: 请求参数错误
           schema:
@@ -1138,10 +1215,12 @@ paths:
       description: 同意指定房间成员请求，将对方加入房间
       parameters:
       - description: 成员请求ID
+        enum:
+        - ""
         in: path
         name: request_id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -1171,10 +1250,12 @@ paths:
       description: 拒绝指定房间成员请求
       parameters:
       - description: 成员请求ID
+        enum:
+        - ""
         in: path
         name: request_id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -1240,10 +1321,12 @@ paths:
       description: 当前登录用户退出指定房间
       parameters:
       - description: 房间ID
+        enum:
+        - ""
         in: path
         name: room_id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -1272,17 +1355,24 @@ paths:
       description: 根据房间ID获取房间成员列表
       parameters:
       - description: 房间ID
+        enum:
+        - ""
         in: path
         name: room_id
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: 成功返回房间成员列表
           schema:
-            $ref: '#/definitions/internal_roomship_port_http.ListRoomMembersResponseData'
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_roomship_port_http.ListRoomMembersResponseData'
+              type: object
         "400":
           description: 请求参数错误
           schema:
