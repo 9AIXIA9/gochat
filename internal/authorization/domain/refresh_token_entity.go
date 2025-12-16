@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 	"time"
 )
@@ -73,7 +72,7 @@ func (t *RefreshTokenEntity) Refresh(
 
 func (t *RefreshTokenEntity) CanBeRefreshed() error {
 	if time.Now().UTC().After(t.expiredAt) || refreshTokenMaxRefreshCount <= t.refreshCount {
-		return errors.NewBusiness("invalid refresh token")
+		return ErrInvalidRefreshToken
 	}
 	return nil
 }

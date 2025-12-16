@@ -26,7 +26,7 @@ func TestUserCreatedInput_Validate(t *testing.T) {
 	}
 
 	err = inputWithEmptyUserID.Validate()
-	require.Error(t, err)
+	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
 }
 
 func TestNewUserCreatedUseCase(t *testing.T) {

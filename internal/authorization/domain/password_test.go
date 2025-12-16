@@ -4,6 +4,7 @@ import (
 	"errors"
 	"gochat/internal/authorization/domain"
 	"gochat/internal/authorization/domain/mocks"
+	myErrors "gochat/internal/shared/errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -59,10 +60,10 @@ func TestPassword_Validate(t *testing.T) {
 	// Test too short password
 	shortPassword := domain.Password("short")
 	err = shortPassword.Validate()
-	require.Error(t, err)
+	require.ErrorIs(t, err, myErrors.ErrInvalidLength)
 
 	// Test too long password
 	longPassword := domain.Password("this-password-is-was-too-long-to-be-valid")
 	err = longPassword.Validate()
-	require.Error(t, err)
+	require.ErrorIs(t, err, myErrors.ErrInvalidLength)
 }
