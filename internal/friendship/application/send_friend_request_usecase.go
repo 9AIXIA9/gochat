@@ -19,7 +19,7 @@ type SendFriendRequestInput struct {
 
 func (r *SendFriendRequestInput) Validate() error {
 	if len(r.FromID) == 0 || len(r.ToID) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "user ids can't be empty")
 	}
 
 	return nil

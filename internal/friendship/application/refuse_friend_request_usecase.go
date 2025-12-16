@@ -17,7 +17,7 @@ type RefuseFriendRequestInput struct {
 
 func (r *RefuseFriendRequestInput) Validate() error {
 	if len(r.RequestID) == 0 || len(r.UserID) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "user id and request id can't be empty")
 	}
 
 	return nil
