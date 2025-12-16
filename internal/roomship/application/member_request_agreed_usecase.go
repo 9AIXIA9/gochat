@@ -18,7 +18,7 @@ type MemberRequestAgreedInput struct {
 
 func (r *MemberRequestAgreedInput) Validate() error {
 	if len(r.RequestID) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "request id is empty")
 	}
 
 	return nil

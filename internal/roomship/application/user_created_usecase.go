@@ -16,7 +16,7 @@ type UserCreatedInput struct {
 
 func (r *UserCreatedInput) Validate() error {
 	if len(r.UserID) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "user id is empty")
 	}
 
 	return nil

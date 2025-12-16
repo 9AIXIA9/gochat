@@ -17,7 +17,7 @@ type LeaveRoomInput struct {
 
 func (r *LeaveRoomInput) Validate() error {
 	if len(r.UserID) == 0 || len(r.RoomID) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "user id or room id is empty")
 	}
 	return nil
 }
