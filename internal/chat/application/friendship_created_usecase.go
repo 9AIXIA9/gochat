@@ -18,7 +18,7 @@ type FriendshipCreatedInput struct {
 
 func (r *FriendshipCreatedInput) Validate() error {
 	if len(r.ID) == 0 || len(r.UserID1) == 0 || len(r.UserID2) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.NewBusiness("friendship ID and user IDs cannot be empty")
 	}
 
 	return nil

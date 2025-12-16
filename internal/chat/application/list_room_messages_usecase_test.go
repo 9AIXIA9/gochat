@@ -73,7 +73,7 @@ func TestListRoomMessagesInput_Validate(t *testing.T) {
 	}
 
 	err = inputWithEmptyUserID.Validate()
-	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
+	require.Error(t, err)
 }
 
 func TestNewListRoomMessagesUseCase(t *testing.T) {

@@ -17,7 +17,7 @@ type ReadRoomMessagesInput struct {
 
 func (r *ReadRoomMessagesInput) Validate() error {
 	if len(r.UserID) == 0 || len(r.RoomID) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.NewBusiness("user ID and room ID cannot be empty")
 	}
 
 	return nil

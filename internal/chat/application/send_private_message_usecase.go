@@ -20,10 +20,10 @@ type SendPrivateMessageInput struct {
 
 func (i *SendPrivateMessageInput) Validate() error {
 	if len(i.Content) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.NewBusiness("content is empty")
 	}
 	if len(i.SenderID) == 0 || len(i.RecipientID) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.NewBusiness("sender ID or recipient ID is empty")
 	}
 	return nil
 }
@@ -65,20 +65,17 @@ func (uc *sendPrivateMessageUseCase) Execute(ctx context.Context, input *SendPri
 		}
 
 		if !exist {
-			return nil, domain.ErrNotFriends
+			return nil, myErrors.NewBusiness("users are not friends")
 		}
 	}
 
-	message, err := domain.CreatePrivateMessage(
+	message := domain.CreatePrivateMessage(
 		input.RecipientID,
 		input.SenderID,
 		input.Content,
 		uc.messageIDGenerator,
 		uc.notifier,
 	)
-	if err != nil {
-		return nil, err
-	}
 
 	if err := uc.messageCreator.Create(ctx, message); err != nil {
 		return nil, err

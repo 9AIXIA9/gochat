@@ -42,7 +42,7 @@ func TestCreatePrivateMessage(t *testing.T) {
 	mockNotifier.EXPECT().Notify(gomock.Any()).Return(nil).Times(1)
 
 	start := time.Now().UTC()
-	message, err := domain.CreatePrivateMessage(
+	message := domain.CreatePrivateMessage(
 		fixedFriendID,
 		fixedUserID,
 		"Hello, Friend!",
@@ -50,7 +50,6 @@ func TestCreatePrivateMessage(t *testing.T) {
 		mockNotifier,
 	)
 
-	require.NoError(t, err)
 	require.NotNil(t, message)
 	assert.Equal(t, fixedMessageID, message.ID())
 	assert.Equal(t, fixedUserID, message.SenderID())
@@ -64,7 +63,7 @@ func TestCreatePrivateMessage(t *testing.T) {
 	mockNotifier.EXPECT().Notify(gomock.Any()).Return(errors.New("test")).Times(1)
 
 	start = time.Now().UTC()
-	messageWithFailedDeliver, err := domain.CreatePrivateMessage(
+	messageWithFailedDeliver := domain.CreatePrivateMessage(
 		fixedFriendID,
 		fixedUserID,
 		"Hello, Friend!",
@@ -72,7 +71,6 @@ func TestCreatePrivateMessage(t *testing.T) {
 		mockNotifier,
 	)
 
-	require.NoError(t, err)
 	require.NotNil(t, messageWithFailedDeliver)
 	assert.Equal(t, fixedMessageID, messageWithFailedDeliver.ID())
 	assert.Equal(t, fixedUserID, messageWithFailedDeliver.SenderID())
@@ -85,7 +83,7 @@ func TestCreatePrivateMessage(t *testing.T) {
 	mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1)
 
 	start = time.Now().UTC()
-	messageToSelf, err := domain.CreatePrivateMessage(
+	messageToSelf := domain.CreatePrivateMessage(
 		fixedUserID,
 		fixedUserID,
 		"Hello, Self!",
@@ -93,7 +91,6 @@ func TestCreatePrivateMessage(t *testing.T) {
 		mockNotifier,
 	)
 
-	require.NoError(t, err)
 	require.NotNil(t, messageToSelf)
 	assert.Equal(t, fixedMessageID, messageToSelf.ID())
 	assert.Equal(t, fixedUserID, messageToSelf.SenderID())

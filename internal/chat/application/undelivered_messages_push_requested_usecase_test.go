@@ -29,7 +29,7 @@ func TestUndeliveredMessagesPushRequestedInput_Validate(t *testing.T) {
 	}
 
 	err = inputWithEmptyUserID.Validate()
-	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
+	require.Error(t, err)
 }
 
 func TestNewUndeliveredMessagesPushRequestedUseCase(t *testing.T) {

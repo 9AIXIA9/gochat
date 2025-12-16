@@ -23,7 +23,7 @@ func TestRoomCreatedInput_Validate(t *testing.T) {
 	}
 
 	err = inputWithEmptyRoomID.Validate()
-	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
+	require.Error(t, err)
 }
 
 func TestNewRoomCreatedUseCase(t *testing.T) {

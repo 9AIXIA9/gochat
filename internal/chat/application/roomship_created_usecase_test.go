@@ -27,7 +27,7 @@ func TestRoomshipCreatedInput_Validate(t *testing.T) {
 	}
 
 	err = inputWithEmptyRoomshipID.Validate()
-	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
+	require.Error(t, err)
 
 	inputWithEmptyUserID := &application.RoomshipCreatedInput{
 		ID:     fixedRoomshipID,
@@ -36,7 +36,7 @@ func TestRoomshipCreatedInput_Validate(t *testing.T) {
 	}
 
 	err = inputWithEmptyUserID.Validate()
-	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
+	require.Error(t, err)
 
 	inputWithEmptyRoomID := &application.RoomshipCreatedInput{
 		ID:     fixedRoomshipID,
@@ -45,7 +45,7 @@ func TestRoomshipCreatedInput_Validate(t *testing.T) {
 	}
 
 	err = inputWithEmptyRoomID.Validate()
-	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
+	require.Error(t, err)
 }
 
 func TestNewRoomshipCreatedUseCase(t *testing.T) {

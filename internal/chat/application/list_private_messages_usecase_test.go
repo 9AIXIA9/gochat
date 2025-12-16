@@ -72,7 +72,7 @@ func TestListPrivateMessagesInput_Validate(t *testing.T) {
 	}
 
 	err = inputWithEmptyUserID.Validate()
-	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
+	require.Error(t, err)
 }
 
 func TestNewListPrivateMessagesUseCase(t *testing.T) {

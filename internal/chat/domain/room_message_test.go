@@ -59,7 +59,7 @@ func TestCreateRoomMessage(t *testing.T) {
 	mockNotifier.EXPECT().Notify(gomock.Any(), mockRecipients).Return(mockRecipients, nil).Times(1)
 
 	start := time.Now().UTC()
-	message, err := domain.CreateRoomMessage(
+	message := domain.CreateRoomMessage(
 		fixedRoomID,
 		fixedUserID,
 		mockRecipients,
@@ -68,7 +68,6 @@ func TestCreateRoomMessage(t *testing.T) {
 		mockNotifier,
 	)
 
-	require.NoError(t, err)
 	require.NotNil(t, message)
 	assert.Equal(t, fixedMessageID, message.ID())
 	assert.Equal(t, fixedUserID, message.SenderID())
@@ -85,7 +84,7 @@ func TestCreateRoomMessage(t *testing.T) {
 	mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1)
 	mockNotifier.EXPECT().Notify(gomock.Any(), mockRecipients).Return(mockSuccessIDs, nil).Times(1)
 
-	message, err = domain.CreateRoomMessage(
+	message = domain.CreateRoomMessage(
 		fixedRoomID,
 		fixedUserID,
 		mockRecipients,
@@ -94,7 +93,6 @@ func TestCreateRoomMessage(t *testing.T) {
 		mockNotifier,
 	)
 
-	require.NoError(t, err)
 	require.NotNil(t, message)
 
 	for _, id := range mockSuccessIDs {
@@ -107,7 +105,7 @@ func TestCreateRoomMessage(t *testing.T) {
 	// 只有自己
 	mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1)
 
-	message, err = domain.CreateRoomMessage(
+	message = domain.CreateRoomMessage(
 		fixedRoomID,
 		fixedUserID,
 		[]kernel.UserID{fixedUserID},
@@ -115,7 +113,6 @@ func TestCreateRoomMessage(t *testing.T) {
 		mockMessageIDGenerator,
 		mockNotifier,
 	)
-	require.NoError(t, err)
 	require.NotNil(t, message)
 	assert.Equal(t, fixedMessageID, message.ID())
 	assert.Equal(t, fixedUserID, message.SenderID())
