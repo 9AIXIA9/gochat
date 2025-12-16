@@ -71,12 +71,8 @@ func (t *RefreshTokenEntity) Refresh(
 }
 
 func (t *RefreshTokenEntity) CanBeRefreshed() error {
-	if refreshTokenMaxRefreshCount <= t.refreshCount {
-		return ErrRefreshLimitExceeded
-	}
-
-	if time.Now().UTC().After(t.expiredAt) {
-		return ErrRefreshTokenExpired
+	if time.Now().UTC().After(t.expiredAt) || refreshTokenMaxRefreshCount <= t.refreshCount {
+		return ErrInvalidRefreshToken
 	}
 	return nil
 }

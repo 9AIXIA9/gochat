@@ -72,10 +72,8 @@ func NewRefreshAccessTokenHandler(useCase application.RefreshAccessTokenUseCase,
 		},
 		func(ginContext *gin.Context, err error) {
 			switch {
-			case errors.Is(err, domain.ErrRefreshTokenExpired) ||
-				errors.Is(err, domain.ErrAccessTokenGenerated) ||
-				errors.Is(err, domain.ErrRefreshLimitExceeded) ||
-				errors.Is(err, myErrors.ErrNotFound):
+			case errors.Is(err, myErrors.ErrNotFound) ||
+				errors.Is(err, domain.ErrInvalidRefreshToken):
 				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "invalid refresh token")
 			default:
 				zap.L().Error("refresh access token handler failed", zap.Error(err))
