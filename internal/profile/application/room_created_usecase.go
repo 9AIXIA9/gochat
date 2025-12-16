@@ -18,7 +18,7 @@ type RoomCreatedInput struct {
 
 func (r *RoomCreatedInput) Validate() error {
 	if len(r.RoomID) == 0 || r.CreatedAt.IsZero() {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "room id or created time is empty")
 	}
 
 	return nil

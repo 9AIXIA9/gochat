@@ -19,11 +19,11 @@ type UpdateRoomProfileInput struct {
 
 func (r *UpdateRoomProfileInput) Validate() error {
 	if len(r.RoomID) == 0 || len(r.UserID) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "user id or room id is empty")
 	}
 
 	if len(r.Name) == 0 && len(r.Introduction) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "everything is empty")
 	}
 
 	return nil

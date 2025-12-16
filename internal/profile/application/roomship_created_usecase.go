@@ -19,7 +19,7 @@ type RoomshipCreatedInput struct {
 
 func (r *RoomshipCreatedInput) Validate() error {
 	if len(r.ID) == 0 || len(r.UserID) == 0 || len(r.RoomID) == 0 || len(r.Role) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "roomship id, user id, room id or role is empty")
 	}
 
 	return nil

@@ -19,7 +19,7 @@ type UserCreatedInput struct {
 
 func (r *UserCreatedInput) Validate() error {
 	if len(r.UserID) == 0 || r.SignedUpAt.IsZero() {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "user id or signed up time is empty")
 	}
 
 	if err := r.Email.Validate(); err != nil {

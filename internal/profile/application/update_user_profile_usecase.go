@@ -22,7 +22,7 @@ type UpdateUserProfileInput struct {
 
 func (r *UpdateUserProfileInput) Validate() error {
 	if len(r.UserID) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "user id is empty")
 	}
 	if len(r.Email) == 0 &&
 		len(r.PhoneNumber) == 0 &&
@@ -30,7 +30,7 @@ func (r *UpdateUserProfileInput) Validate() error {
 		len(r.Address) == 0 &&
 		len(r.Sign) == 0 &&
 		r.Gender == kernel.UnknownGender {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "everything is empty")
 	}
 
 	return nil
