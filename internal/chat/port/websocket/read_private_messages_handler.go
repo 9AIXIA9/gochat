@@ -3,11 +3,8 @@ package websocket
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"gochat/internal/chat/application"
 	"gochat/internal/infrastructure/websocket"
-	"gochat/internal/shared/api"
-	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 	"gochat/pkg/utils"
 )
@@ -38,14 +35,6 @@ func NewReadPrivateMessagesHandler(
 			return &application.ReadPrivateMessagesInput{
 				SenderID:    data.SenderID,
 				RecipientID: data.RecipientID,
-			}
-		},
-		func(ctx context.Context, err error) *api.Response {
-			switch {
-			case errors.Is(err, myErrors.ErrNotFound):
-				return api.NewResponseWithMessage(api.CodeNotFound, "user is not found")
-			default:
-				return api.NewResponse(api.CodeServerError)
 			}
 		},
 	)
