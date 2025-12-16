@@ -6,12 +6,10 @@ import (
 	"gochat/internal/authorization/domain"
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/shared/api"
-	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 const RefreshTokenCookieKey = "refresh_token"
@@ -65,14 +63,6 @@ func NewLoginHandler(useCase application.LoginUseCase, validator ginutils.Valida
 				cookieConfig.HttpOnly,
 			)
 			ginutils.ResponseSuccessWithData(ginContext, &LoginResponseData{AccessToken: output.AccessToken})
-		},
-		func(ginContext *gin.Context, err error) {
-			if myErrors.IsBusinessError(err) {
-				ginutils.ResponseWithMessage(ginContext, api.CodeSuccess, err.Error())
-			} else {
-				zap.L().Error("LoginHandler failed", zap.Error(err))
-				ginutils.Response(ginContext, api.CodeServerError)
-			}
 		},
 	)
 }

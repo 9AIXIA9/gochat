@@ -1,16 +1,11 @@
 package http
 
 import (
-	"errors"
 	"gochat/internal/chat/application"
-	"gochat/internal/chat/domain"
 	ginutils "gochat/internal/infrastructure/gin"
-	"gochat/internal/shared/api"
-	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 type SendRoomMessageRequest struct {
@@ -51,21 +46,6 @@ func NewSendRoomMessageHandler(useCase application.SendRoomMessageUseCase, valid
 		},
 		func(ginContext *gin.Context, _ *kernel.NoOutput) {
 			ginutils.ResponseSuccess(ginContext)
-		},
-		func(ginContext *gin.Context, err error) {
-			switch {
-			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "input is empty")
-			case errors.Is(err, myErrors.ErrNotFound):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "room not found")
-			case errors.Is(err, domain.ErrNotMember):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "not belong to this room")
-			case errors.Is(err, myErrors.ErrInvalidLength):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "invalid length")
-			default:
-				zap.L().Error("send room message handler failed", zap.Error(err))
-				ginutils.Response(ginContext, api.CodeServerError)
-			}
 		},
 	)
 }

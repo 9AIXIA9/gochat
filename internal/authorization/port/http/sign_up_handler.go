@@ -4,12 +4,9 @@ import (
 	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
 	ginutils "gochat/internal/infrastructure/gin"
-	"gochat/internal/shared/api"
-	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 type SignUpRequest struct {
@@ -49,15 +46,6 @@ func NewSignUpHandler(useCase application.SignUpUseCase, validator ginutils.Vali
 		},
 		func(ginContext *gin.Context, output *application.SignUpOutput) {
 			ginutils.ResponseSuccessWithData(ginContext, &SignUpResponseData{UserNumber: output.UserNumber})
-		},
-		//TODO 后续放入adapter
-		func(ginContext *gin.Context, err error) {
-			if myErrors.IsBusinessError(err) {
-				ginutils.ResponseWithMessage(ginContext, api.CodeSuccess, err.Error())
-			} else {
-				zap.L().Error("SignUpHandler failed", zap.Error(err))
-				ginutils.Response(ginContext, api.CodeServerError)
-			}
 		},
 	)
 }

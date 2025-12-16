@@ -1,16 +1,12 @@
 package http
 
 import (
-	"errors"
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/roomship/application"
 	"gochat/internal/roomship/dto"
-	"gochat/internal/shared/api"
-	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 const defaultMemberRequestsLimit = 20
@@ -66,15 +62,6 @@ func NewListMemberRequestsHandler(useCase application.ListMemberRequestsUseCase,
 			ginutils.ResponseSuccessWithData(ginContext, &ListMemberRequestsResponseData{
 				Requests: dto.ToMemberRequestDTOs(output.Requests),
 			})
-		},
-		func(ginContext *gin.Context, err error) {
-			switch {
-			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "input is empty")
-			default:
-				zap.L().Error("ListMemberRequestsHandler error", zap.Error(err))
-				ginutils.Response(ginContext, api.CodeServerError)
-			}
 		},
 	)
 }

@@ -6,11 +6,9 @@ import (
 	"gochat/internal/authorization/domain"
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/shared/api"
-	myErrors "gochat/internal/shared/errors"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 type RefreshAccessTokenRequest struct {
@@ -68,14 +66,6 @@ func NewRefreshAccessTokenHandler(useCase application.RefreshAccessTokenUseCase,
 					AccessToken: output.AccessToken,
 				},
 			)
-		},
-		func(ginContext *gin.Context, err error) {
-			if myErrors.IsBusinessError(err) {
-				ginutils.ResponseWithMessage(ginContext, api.CodeSuccess, err.Error())
-			} else {
-				zap.L().Error("RefreshAccessToken failed", zap.Error(err))
-				ginutils.Response(ginContext, api.CodeServerError)
-			}
 		},
 	)
 }

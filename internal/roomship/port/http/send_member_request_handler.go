@@ -1,16 +1,12 @@
 package http
 
 import (
-	"errors"
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/roomship/application"
 	"gochat/internal/roomship/domain"
-	"gochat/internal/shared/api"
-	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 type SendMemberRequestRequest struct {
@@ -53,21 +49,6 @@ func NewSendMemberRequestHandler(useCase application.SendMemberRequestUseCase, v
 		},
 		func(ginContext *gin.Context, _ *kernel.NoOutput) {
 			ginutils.ResponseSuccess(ginContext)
-		},
-		func(ginContext *gin.Context, err error) {
-			switch {
-			case errors.Is(err, domain.ErrMemberRequestAlreadyExists):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "you have already sent a member request to this room")
-			case errors.Is(err, domain.ErrIsAlreadyMember):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "you are already a member of this room")
-			case errors.Is(err, myErrors.ErrNotFound):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "the room does not exist")
-			case errors.Is(err, domain.ErrInvalidPassword):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "the password is incorrect")
-			default:
-				zap.L().Error("SendMemberRequestHandler error", zap.Error(err))
-				ginutils.Response(ginContext, api.CodeServerError)
-			}
 		},
 	)
 }

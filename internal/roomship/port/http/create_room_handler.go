@@ -1,16 +1,12 @@
 package http
 
 import (
-	"errors"
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/roomship/application"
 	"gochat/internal/roomship/domain"
-	"gochat/internal/shared/api"
-	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 type CreateRoomRequest struct {
@@ -54,15 +50,6 @@ func NewCreateRoomHandler(useCase application.CreateRoomUseCase, validator ginut
 		},
 		func(ginContext *gin.Context, _ *kernel.NoOutput) {
 			ginutils.ResponseSuccess(ginContext)
-		},
-		func(ginContext *gin.Context, err error) {
-			switch {
-			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "input is empty")
-			default:
-				zap.L().Error("CreateRoomHandler error", zap.Error(err))
-				ginutils.Response(ginContext, api.CodeServerError)
-			}
 		},
 	)
 }

@@ -1,16 +1,12 @@
 package http
 
 import (
-	"errors"
 	"gochat/internal/friendship/application"
 	"gochat/internal/friendship/dto"
 	ginutils "gochat/internal/infrastructure/gin"
-	"gochat/internal/shared/api"
-	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 const defaultFriendRequestsLimit = 20
@@ -66,15 +62,6 @@ func NewListFriendRequestsHandler(useCase application.ListFriendRequestsUseCase,
 			ginutils.ResponseSuccessWithData(ginContext, &ListFriendRequestsResponseData{
 				Requests: dto.ToFriendRequestDTOs(output.Requests),
 			})
-		},
-		func(ginContext *gin.Context, err error) {
-			switch {
-			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "input is empty")
-			default:
-				zap.L().Error("ListFriendRequestsHandler error", zap.Error(err))
-				ginutils.Response(ginContext, api.CodeServerError)
-			}
 		},
 	)
 }
