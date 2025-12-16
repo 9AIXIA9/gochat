@@ -42,14 +42,14 @@ func TestCreatePrivateMessage(t *testing.T) {
 	mockNotifier.EXPECT().Notify(gomock.Any()).Return(nil).Times(1)
 
 	start := time.Now().UTC()
-	message := domain.CreatePrivateMessage(
+	message, err := domain.CreatePrivateMessage(
 		fixedFriendID,
 		fixedUserID,
 		"Hello, Friend!",
 		mockMessageIDGenerator,
 		mockNotifier,
 	)
-
+	require.NoError(t, err)
 	require.NotNil(t, message)
 	assert.Equal(t, fixedMessageID, message.ID())
 	assert.Equal(t, fixedUserID, message.SenderID())
@@ -58,19 +58,30 @@ func TestCreatePrivateMessage(t *testing.T) {
 	assert.Equal(t, domain.MessageStateDelivered, message.State())
 	assert.WithinDuration(t, start, message.SentAt(), timeTolerance)
 
+	// content 为空
+	message, err = domain.CreatePrivateMessage(
+		fixedFriendID,
+		fixedUserID,
+		"",
+		mockMessageIDGenerator,
+		mockNotifier,
+	)
+	require.ErrorIs(t, err, domain.ErrEmptyMessageContent)
+	require.Nil(t, message)
+
 	// 发送失败
 	mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1)
 	mockNotifier.EXPECT().Notify(gomock.Any()).Return(errors.New("test")).Times(1)
 
 	start = time.Now().UTC()
-	messageWithFailedDeliver := domain.CreatePrivateMessage(
+	messageWithFailedDeliver, err := domain.CreatePrivateMessage(
 		fixedFriendID,
 		fixedUserID,
 		"Hello, Friend!",
 		mockMessageIDGenerator,
 		mockNotifier,
 	)
-
+	require.NoError(t, err)
 	require.NotNil(t, messageWithFailedDeliver)
 	assert.Equal(t, fixedMessageID, messageWithFailedDeliver.ID())
 	assert.Equal(t, fixedUserID, messageWithFailedDeliver.SenderID())
@@ -83,14 +94,14 @@ func TestCreatePrivateMessage(t *testing.T) {
 	mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1)
 
 	start = time.Now().UTC()
-	messageToSelf := domain.CreatePrivateMessage(
+	messageToSelf, err := domain.CreatePrivateMessage(
 		fixedUserID,
 		fixedUserID,
 		"Hello, Self!",
 		mockMessageIDGenerator,
 		mockNotifier,
 	)
-
+	require.NoError(t, err)
 	require.NotNil(t, messageToSelf)
 	assert.Equal(t, fixedMessageID, messageToSelf.ID())
 	assert.Equal(t, fixedUserID, messageToSelf.SenderID())

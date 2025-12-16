@@ -59,7 +59,7 @@ func TestCreateRoomMessage(t *testing.T) {
 	mockNotifier.EXPECT().Notify(gomock.Any(), mockRecipients).Return(mockRecipients, nil).Times(1)
 
 	start := time.Now().UTC()
-	message := domain.CreateRoomMessage(
+	message, err := domain.CreateRoomMessage(
 		fixedRoomID,
 		fixedUserID,
 		mockRecipients,
@@ -67,7 +67,7 @@ func TestCreateRoomMessage(t *testing.T) {
 		mockMessageIDGenerator,
 		mockNotifier,
 	)
-
+	require.NoError(t, err)
 	require.NotNil(t, message)
 	assert.Equal(t, fixedMessageID, message.ID())
 	assert.Equal(t, fixedUserID, message.SenderID())
@@ -79,12 +79,24 @@ func TestCreateRoomMessage(t *testing.T) {
 		assert.Equal(t, domain.MessageStateDelivered, state)
 	}
 
+	// content 为空
+	message, err = domain.CreateRoomMessage(
+		fixedRoomID,
+		fixedUserID,
+		mockRecipients,
+		"",
+		mockMessageIDGenerator,
+		mockNotifier,
+	)
+	require.ErrorIs(t, err, domain.ErrEmptyMessageContent)
+	require.Nil(t, message)
+
 	// 部分未成功
 	mockSuccessIDs := mockRecipients[:5]
 	mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1)
 	mockNotifier.EXPECT().Notify(gomock.Any(), mockRecipients).Return(mockSuccessIDs, nil).Times(1)
 
-	message = domain.CreateRoomMessage(
+	message, err = domain.CreateRoomMessage(
 		fixedRoomID,
 		fixedUserID,
 		mockRecipients,
@@ -92,7 +104,7 @@ func TestCreateRoomMessage(t *testing.T) {
 		mockMessageIDGenerator,
 		mockNotifier,
 	)
-
+	require.NoError(t, err)
 	require.NotNil(t, message)
 
 	for _, id := range mockSuccessIDs {
@@ -105,7 +117,7 @@ func TestCreateRoomMessage(t *testing.T) {
 	// 只有自己
 	mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1)
 
-	message = domain.CreateRoomMessage(
+	message, err = domain.CreateRoomMessage(
 		fixedRoomID,
 		fixedUserID,
 		[]kernel.UserID{fixedUserID},
@@ -113,6 +125,7 @@ func TestCreateRoomMessage(t *testing.T) {
 		mockMessageIDGenerator,
 		mockNotifier,
 	)
+	require.NoError(t, err)
 	require.NotNil(t, message)
 	assert.Equal(t, fixedMessageID, message.ID())
 	assert.Equal(t, fixedUserID, message.SenderID())

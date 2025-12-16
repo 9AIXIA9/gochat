@@ -92,7 +92,7 @@ func (uc *sendRoomMessageUseCase) createRoomMessage(roomships []*domain.Roomship
 				input.Content,
 				uc.messageIDGenerator,
 				uc.notifier,
-			), nil
+			)
 		}
 		return nil, domain.ErrNotMember
 	}
@@ -118,5 +118,5 @@ func (uc *sendRoomMessageUseCase) createRoomMessage(roomships []*domain.Roomship
 		input.Content,
 		uc.messageIDGenerator,
 		uc.notifier,
-	), nil
+	)
 }

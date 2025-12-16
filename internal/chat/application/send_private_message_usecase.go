@@ -69,13 +69,16 @@ func (uc *sendPrivateMessageUseCase) Execute(ctx context.Context, input *SendPri
 		}
 	}
 
-	message := domain.CreatePrivateMessage(
+	message, err := domain.CreatePrivateMessage(
 		input.RecipientID,
 		input.SenderID,
 		input.Content,
 		uc.messageIDGenerator,
 		uc.notifier,
 	)
+	if err != nil {
+		return nil, err
+	}
 
 	if err := uc.messageCreator.Create(ctx, message); err != nil {
 		return nil, err

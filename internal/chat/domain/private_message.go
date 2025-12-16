@@ -42,8 +42,11 @@ func CreatePrivateMessage(
 	content string,
 	messageIDGenerator kernel.MessageIDGenerator,
 	notifier PrivateMessageNotifier,
-) *PrivateMessage {
-	//TODO content 不能为空的校验缺少
+) (*PrivateMessage, error) {
+	if len(content) == 0 {
+		return nil, ErrEmptyMessageContent
+	}
+
 	message := &PrivateMessage{
 		id:           messageIDGenerator.Generate(),
 		senderID:     senderID,
@@ -56,16 +59,16 @@ func CreatePrivateMessage(
 
 	if recipientID == senderID {
 		message.state = MessageStateDelivered
-		return message
+		return message, nil
 	}
 
 	if err := notifier.Notify(message); err != nil {
-		return message
+		return message, nil
 	}
 
 	message.state = MessageStateDelivered
 
-	return message
+	return message, nil
 }
 
 func (m *PrivateMessage) Deliver(
