@@ -23,7 +23,7 @@ type ListPrivateMessagesInput struct {
 
 func (r *ListPrivateMessagesInput) Validate() error {
 	if len(r.UserID) == 0 {
-		return myErrors.NewBusiness("user ID cannot be empty")
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "user id can't be empty")
 	}
 
 	return nil

@@ -26,7 +26,7 @@ func TestReadPrivateMessagesInput_Validate(t *testing.T) {
 	}
 
 	err = inputWithEmptySenderID.Validate()
-	require.Error(t, err)
+	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
 
 	inputWithEmptyRecipientID := &application.ReadPrivateMessagesInput{
 		SenderID:    fixedFriendID,
@@ -34,7 +34,7 @@ func TestReadPrivateMessagesInput_Validate(t *testing.T) {
 	}
 
 	err = inputWithEmptyRecipientID.Validate()
-	require.Error(t, err)
+	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
 }
 
 func TestNewReadPrivateMessagesUseCase(t *testing.T) {

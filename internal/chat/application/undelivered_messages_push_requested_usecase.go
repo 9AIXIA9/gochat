@@ -18,7 +18,7 @@ type UndeliveredMessagesPushRequestedInput struct {
 
 func (r *UndeliveredMessagesPushRequestedInput) Validate() error {
 	if len(r.UserID) == 0 {
-		return myErrors.NewBusiness("user id is empty")
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "user id can't be empty")
 	}
 
 	return nil

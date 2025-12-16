@@ -33,7 +33,7 @@ func TestSendRoomMessageInput_Validate(t *testing.T) {
 	}
 
 	err = inputWithEmptySenderID.Validate()
-	require.Error(t, err)
+	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
 
 	inputWithEmptyRecipientID := &application.SendRoomMessageInput{
 		SenderID: fixedUserID,
@@ -42,7 +42,7 @@ func TestSendRoomMessageInput_Validate(t *testing.T) {
 	}
 
 	err = inputWithEmptyRecipientID.Validate()
-	require.Error(t, err)
+	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
 }
 
 func TestNewSendRoomMessageUseCase(t *testing.T) {
@@ -132,7 +132,7 @@ func TestSendRoomMessageUseCase_Execute(t *testing.T) {
 		RoomID:   fixedRoomID,
 		Content:  fixedContent,
 	})
-	require.Error(t, err)
+	require.ErrorIs(t, err, domain.ErrNotMember)
 
 	// 房间只有自己
 	singleRoomship := domain.LoadRoomship(

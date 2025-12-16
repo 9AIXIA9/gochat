@@ -20,10 +20,10 @@ type SendPrivateMessageInput struct {
 
 func (i *SendPrivateMessageInput) Validate() error {
 	if len(i.Content) == 0 {
-		return myErrors.NewBusiness("content is empty")
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "content can't be empty")
 	}
 	if len(i.SenderID) == 0 || len(i.RecipientID) == 0 {
-		return myErrors.NewBusiness("sender ID or recipient ID is empty")
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "user ids can't be empty")
 	}
 	return nil
 }
@@ -65,7 +65,7 @@ func (uc *sendPrivateMessageUseCase) Execute(ctx context.Context, input *SendPri
 		}
 
 		if !exist {
-			return nil, myErrors.NewBusiness("users are not friends")
+			return nil, domain.ErrNotFriends
 		}
 	}
 

@@ -27,7 +27,7 @@ func TestFriendshipCreatedInput_Validate(t *testing.T) {
 	}
 
 	err = inputWithEmptyFriendshipID.Validate()
-	require.Error(t, err)
+	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
 
 	inputWithEmptyUserID := &application.FriendshipCreatedInput{
 		ID:      fixedFriendshipID,
@@ -36,7 +36,7 @@ func TestFriendshipCreatedInput_Validate(t *testing.T) {
 	}
 
 	err = inputWithEmptyUserID.Validate()
-	require.Error(t, err)
+	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
 
 	inputWithEmptyUserID = &application.FriendshipCreatedInput{
 		ID:      fixedFriendshipID,
@@ -45,7 +45,7 @@ func TestFriendshipCreatedInput_Validate(t *testing.T) {
 	}
 
 	err = inputWithEmptyUserID.Validate()
-	require.Error(t, err)
+	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
 }
 
 func TestNewFriendshipCreatedUseCase(t *testing.T) {

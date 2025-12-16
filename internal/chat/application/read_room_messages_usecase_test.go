@@ -26,7 +26,7 @@ func TestReadRoomMessagesInput_Validate(t *testing.T) {
 	}
 
 	err = inputWithEmptyUserID.Validate()
-	require.Error(t, err)
+	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
 
 	inputWithEmptyRoomID := &application.ReadRoomMessagesInput{
 		UserID: fixedUserID,
@@ -34,7 +34,7 @@ func TestReadRoomMessagesInput_Validate(t *testing.T) {
 	}
 
 	err = inputWithEmptyRoomID.Validate()
-	require.Error(t, err)
+	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
 }
 
 func TestNewReadRoomMessagesUseCase(t *testing.T) {

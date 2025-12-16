@@ -20,10 +20,10 @@ type SendRoomMessageInput struct {
 
 func (i *SendRoomMessageInput) Validate() error {
 	if len(i.Content) == 0 {
-		return myErrors.NewBusiness("message content cannot be empty")
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "content can't be empty")
 	}
 	if len(i.SenderID) == 0 || len(i.RoomID) == 0 {
-		return myErrors.NewBusiness("invalid sender or room ID")
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "user id and room id can't be empty")
 	}
 	return nil
 }
@@ -65,7 +65,7 @@ func (uc *sendRoomMessageUseCase) Execute(ctx context.Context, input *SendRoomMe
 	}
 
 	if len(roomships) == 0 {
-		return nil, myErrors.NewBusiness("room not found")
+		return nil, myErrors.ErrNotFound
 	}
 
 	message, err := uc.createRoomMessage(roomships, input)
@@ -94,7 +94,7 @@ func (uc *sendRoomMessageUseCase) createRoomMessage(roomships []*domain.Roomship
 				uc.notifier,
 			), nil
 		}
-		return nil, myErrors.NewBusiness("you are not a member of the room")
+		return nil, domain.ErrNotMember
 	}
 
 	var exist bool
@@ -108,7 +108,7 @@ func (uc *sendRoomMessageUseCase) createRoomMessage(roomships []*domain.Roomship
 	}
 
 	if !exist {
-		return nil, myErrors.NewBusiness("you are not a member of the room")
+		return nil, domain.ErrNotMember
 	}
 
 	return domain.CreateRoomMessage(
