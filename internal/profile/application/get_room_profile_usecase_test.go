@@ -76,4 +76,11 @@ func TestGetRoomProfileUseCase_Execute(t *testing.T) {
 		RoomID: fixedRoomID,
 	})
 	require.NoError(t, err)
+
+	// 不存在该档案
+	mockProfileFinder.EXPECT().FindByID(nil, fixedRoomID).Return(nil, myErrors.ErrNotFound).Times(1)
+	_, err = useCase.Execute(nil, &application.GetRoomProfileInput{
+		RoomID: fixedRoomID,
+	})
+	require.ErrorContains(t, err, "room profile not found")
 }

@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	"gochat/internal/profile/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
@@ -61,6 +62,9 @@ func NewUpdateUserProfileUseCase(
 func (uc *updateUserProfileUseCase) Execute(ctx context.Context, input *UpdateUserProfileInput) (*kernel.NoOutput, error) {
 	profile, err := uc.finder.FindByID(ctx, input.UserID)
 	if err != nil {
+		if errors.Is(err, myErrors.ErrNotFound) {
+			return nil, myErrors.WrapBusiness(err, "user profile not found")
+		}
 		return nil, err
 	}
 

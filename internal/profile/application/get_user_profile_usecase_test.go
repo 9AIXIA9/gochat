@@ -80,4 +80,11 @@ func TestGetUserProfileUseCase_Execute(t *testing.T) {
 		UserID: fixedUserID,
 	})
 	require.NoError(t, err)
+
+	// 不存在该档案
+	mockProfileFinder.EXPECT().FindByID(nil, fixedUserID).Return(nil, myErrors.ErrNotFound).Times(1)
+	_, err = useCase.Execute(nil, &application.GetUserProfileInput{
+		UserID: fixedUserID,
+	})
+	require.ErrorContains(t, err, "user profile not found")
 }

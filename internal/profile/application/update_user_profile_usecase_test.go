@@ -109,4 +109,13 @@ func TestUpdateUserProfileUseCase_Execute(t *testing.T) {
 		Sign:        fixedSign,
 	})
 	require.NoError(t, err)
+
+	// 不存在该档案
+	finder.EXPECT().FindByID(nil, fixedUserID).Return(nil, myErrors.ErrNotFound).Times(1)
+
+	_, err = useCase.Execute(nil, &application.UpdateUserProfileInput{
+		UserID: fixedUserID,
+		Name:   fixedName,
+	})
+	require.ErrorContains(t, err, "user profile not found")
 }

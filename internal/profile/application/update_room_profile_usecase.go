@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	"gochat/internal/profile/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
@@ -59,6 +60,9 @@ func (uc *updateRoomProfileUseCase) Execute(ctx context.Context, input *UpdateRo
 	//确认权限
 	roomship, err := uc.roomshipFinder.FindByUserIDAndRoomID(ctx, input.UserID, input.RoomID)
 	if err != nil {
+		if errors.Is(err, myErrors.ErrNotFound) {
+			return nil, domain.ErrNoPermission
+		}
 		return nil, err
 	}
 
@@ -68,6 +72,9 @@ func (uc *updateRoomProfileUseCase) Execute(ctx context.Context, input *UpdateRo
 
 	profile, err := uc.profileFinder.FindByID(ctx, input.RoomID)
 	if err != nil {
+		if errors.Is(err, myErrors.ErrNotFound) {
+			return nil, myErrors.WrapBusiness(err, "room profile not found")
+		}
 		return nil, err
 	}
 

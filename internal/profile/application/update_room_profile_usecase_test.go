@@ -136,4 +136,31 @@ func TestUpdateRoomProfileUseCase_Execute(t *testing.T) {
 		Introduction: fixedIntroduction,
 	})
 	require.ErrorIs(t, err, domain.ErrNoPermission)
+
+	//不在该房间
+	mockRoomshipFinder.EXPECT().FindByUserIDAndRoomID(nil, fixedUserID, fixedRoomID).Return(nil, myErrors.ErrNotFound).Times(1)
+	_, err = useCase.Execute(nil, &application.UpdateRoomProfileInput{
+		UserID:       fixedUserID,
+		RoomID:       fixedRoomID,
+		Name:         fixedName,
+		Introduction: fixedIntroduction,
+	})
+	require.ErrorIs(t, err, domain.ErrNoPermission)
+
+	// 不存在该档案
+	mockRoomshipFinder.EXPECT().FindByUserIDAndRoomID(nil, fixedUserID, fixedRoomID).Return(domain.LoadRoomship(
+		fixedRoomshipID,
+		fixedUserID,
+		fixedRoomID,
+		domain.OwnerRole,
+	), nil).Times(1)
+	mockProfileFinder.EXPECT().FindByID(nil, fixedRoomID).Return(nil, myErrors.ErrNotFound).Times(1)
+
+	_, err = useCase.Execute(nil, &application.UpdateRoomProfileInput{
+		UserID:       fixedUserID,
+		RoomID:       fixedRoomID,
+		Name:         fixedName,
+		Introduction: fixedIntroduction,
+	})
+	require.ErrorContains(t, err, "room profile not found")
 }

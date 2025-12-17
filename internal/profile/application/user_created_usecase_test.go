@@ -98,4 +98,16 @@ func TestUserCreatedUseCase_Execute(t *testing.T) {
 		SignedUpAt: time.Now().UTC(),
 	})
 	require.NoError(t, err)
+
+	// 重复创建
+	gomock.InOrder(
+		mockUserSaver.EXPECT().Save(nil, gomock.Any()).Return(nil).Times(1),
+		mockProfileCreator.EXPECT().Create(nil, gomock.Any()).Return(myErrors.ErrDuplicatedKey).Times(1),
+	)
+	_, err = useCase.Execute(nil, &application.UserCreatedInput{
+		UserID:     fixedUserID,
+		Email:      fixedEmail,
+		SignedUpAt: time.Now().UTC(),
+	})
+	require.NoError(t, err)
 }
