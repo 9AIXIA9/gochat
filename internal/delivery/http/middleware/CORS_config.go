@@ -20,7 +20,7 @@ func (c *CORSConfig) Validate() error {
 		return myErrors.ErrEmptyPointer
 	}
 	if c.MaxAge < 0 {
-		return fmt.Errorf("%w: NewCORSMiddleware.MaxAge must be >= 0, got %s", myErrors.ErrInvalidNumber, c.MaxAge)
+		return fmt.Errorf("%w: CORSConfig.MaxAge must be >= 0, got %s", myErrors.ErrInvalidNumber, c.MaxAge)
 	}
 	return nil
 }
