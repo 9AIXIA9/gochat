@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	"gochat/internal/roomship/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
@@ -55,11 +56,17 @@ func NewAgreeMemberRequestUseCase(
 func (uc *agreeMemberRequestUseCase) Execute(ctx context.Context, input *AgreeMemberRequestInput) (*kernel.NoOutput, error) {
 	req, err := uc.requestFinder.FindByID(ctx, input.RequestID)
 	if err != nil {
+		if errors.Is(err, myErrors.ErrNotFound) {
+			return nil, myErrors.WrapBusiness(err, "member request not found")
+		}
 		return nil, err
 	}
 
 	roomship, err := uc.roomshipFinder.FindByUserIDAndRoomID(ctx, input.UserID, req.RoomID())
 	if err != nil {
+		if errors.Is(err, myErrors.ErrNotFound) {
+			return nil, domain.ErrNotAdmin
+		}
 		return nil, err
 	}
 

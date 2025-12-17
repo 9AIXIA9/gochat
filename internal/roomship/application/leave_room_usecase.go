@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	"gochat/internal/roomship/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
@@ -52,6 +53,9 @@ func NewLeaveRoomUseCase(
 func (uc *leaveRoomUseCase) Execute(ctx context.Context, input *LeaveRoomInput) (*kernel.NoOutput, error) {
 	roomship, err := uc.roomshipFinder.FindByUserIDAndRoomID(ctx, input.UserID, input.RoomID)
 	if err != nil {
+		if errors.Is(err, myErrors.ErrNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 

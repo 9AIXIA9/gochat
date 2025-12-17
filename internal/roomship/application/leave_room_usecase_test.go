@@ -132,4 +132,15 @@ func TestLeaveRoomUseCase_Execute(t *testing.T) {
 		RoomID: fixedRoomID,
 	})
 	require.NoError(t, err)
+
+	// 退出时房间关系不存在
+	gomock.InOrder(
+		mockRoomshipFinder.EXPECT().FindByUserIDAndRoomID(nil, fixedUserID, fixedRoomID).Return(nil, myErrors.ErrNotFound).Times(1),
+	)
+
+	_, err = useCase.Execute(nil, &application.LeaveRoomInput{
+		UserID: fixedUserID,
+		RoomID: fixedRoomID,
+	})
+	require.NoError(t, err)
 }
