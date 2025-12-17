@@ -108,4 +108,12 @@ func TestLoginUseCase_Execute(t *testing.T) {
 		Password: fixedPassword,
 	})
 	require.NoError(t, err)
+
+	// 用户不存在
+	mockUserFinder.EXPECT().FindByNumber(nil, fixedUserNumber).Return(nil, myErrors.ErrNotFound).Times(1)
+	_, err = useCase.Execute(nil, &application.LoginInput{
+		Number:   fixedUserNumber,
+		Password: fixedPassword,
+	})
+	require.ErrorIs(t, err, domain.ErrInvalidPassword)
 }

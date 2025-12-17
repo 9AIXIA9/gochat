@@ -91,4 +91,11 @@ func TestRefreshAccessTokenUseCase_Execute(t *testing.T) {
 		RefreshToken: fixedRefreshToken,
 	})
 	require.NoError(t, err)
+
+	// refresh token 不存在
+	mockRefreshTokenFinder.EXPECT().FindByToken(nil, fixedRefreshToken).Return(nil, myErrors.ErrNotFound).Times(1)
+	_, err = useCase.Execute(nil, &application.RefreshAccessTokenInput{
+		RefreshToken: fixedRefreshToken,
+	})
+	require.ErrorIs(t, err, domain.ErrInvalidRefreshToken)
 }
