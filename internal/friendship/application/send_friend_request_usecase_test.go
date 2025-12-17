@@ -139,4 +139,20 @@ func TestSendFriendRequestUseCase_Execute(t *testing.T) {
 		Content: fixedContent,
 	})
 	require.ErrorIs(t, err, domain.ErrFriendRequestExists)
+
+	// 创建时因为重复而失败
+	gomock.InOrder(
+		mockFriendshipExisterByUserID.EXPECT().ExistByUserID(nil, fixedUserID, fixedToID).Return(false, nil),
+		mockFriendRequestExisterByUserIDAndState.EXPECT().ExistByUserIDAndState(nil, fixedUserID, fixedToID, domain.StatePending).Return(false, nil),
+		mockOperationIDGenerator.EXPECT().Generate().Return(fixedOperationID),
+		mockIDGenerator.EXPECT().Generate().Return(fixedEventID),
+		mockFriendRequestCreator.EXPECT().Create(nil, gomock.Any()).Return(myErrors.ErrDuplicatedKey).Times(1),
+	)
+
+	_, err = useCase.Execute(nil, &application.SendFriendRequestInput{
+		FromID:  fixedUserID,
+		ToID:    fixedToID,
+		Content: fixedContent,
+	})
+	require.ErrorIs(t, err, domain.ErrFriendRequestExists)
 }
