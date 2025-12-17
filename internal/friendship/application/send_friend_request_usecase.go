@@ -7,6 +7,8 @@ import (
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"gochat/pkg/utils"
+
+	"github.com/go-faster/errors"
 )
 
 type SendFriendRequestUseCase kernel.UseCase[*SendFriendRequestInput, *kernel.NoOutput]
@@ -84,6 +86,9 @@ func (uc *sendFriendRequestUseCase) Execute(ctx context.Context, input *SendFrie
 	}
 
 	if err := uc.friendRequestCreator.Create(ctx, req); err != nil {
+		if errors.Is(err, myErrors.ErrDuplicatedKey) {
+			return nil, domain.ErrFriendRequestExists
+		}
 		return nil, err
 	}
 
