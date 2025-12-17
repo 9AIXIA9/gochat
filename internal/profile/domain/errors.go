@@ -1,7 +1,9 @@
 package domain
 
-import "errors"
+import (
+	myErrors "gochat/internal/shared/errors"
+)
 
 var (
-	ErrNoPermission = errors.New("no permission")
+	ErrNoPermission = myErrors.NewBusiness("no permission")
 )

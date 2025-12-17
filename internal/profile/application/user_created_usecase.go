@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	"gochat/internal/profile/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
@@ -19,7 +20,7 @@ type UserCreatedInput struct {
 
 func (r *UserCreatedInput) Validate() error {
 	if len(r.UserID) == 0 || r.SignedUpAt.IsZero() {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "user id or signed up time is empty")
 	}
 
 	if err := r.Email.Validate(); err != nil {
@@ -63,6 +64,9 @@ func (uc *userCreatedUseCase) Execute(ctx context.Context, input *UserCreatedInp
 	)
 
 	if err := uc.profileCreator.Create(ctx, profile); err != nil {
+		if errors.Is(err, myErrors.ErrDuplicatedKey) {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return nil, nil

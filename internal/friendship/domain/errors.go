@@ -1,13 +1,15 @@
 package domain
 
-import "errors"
+import (
+	myErrors "gochat/internal/shared/errors"
+)
 
 var (
-	ErrAddYourselfAsFriend         = errors.New("add yourself as a friend")
-	ErrAlreadyBeenFriends          = errors.New("already been friends")
-	ErrFriendRequestExists         = errors.New("friend request already exists")
-	ErrFriendRequestNotForUser     = errors.New("friend request not for user")
-	ErrFriendRequestHasBeenHandled = errors.New("friend request has been handled")
-	ErrFriendRequestContentTooLong = errors.New("friend request content too long")
-	ErrFriendRequestNotAgreed      = errors.New("friend request not agreed")
+	ErrAddYourselfAsFriend         = myErrors.NewBusiness("add yourself as a friend")
+	ErrAlreadyBeenFriends          = myErrors.NewBusiness("already been friends")
+	ErrFriendRequestExists         = myErrors.NewBusiness("friend request already exists")
+	ErrFriendRequestNotForUser     = myErrors.NewBusiness("friend request not for user")
+	ErrFriendRequestHasBeenHandled = myErrors.NewBusiness("friend request has been handled")
+	ErrFriendRequestContentTooLong = myErrors.NewBusiness("friend request content too long")
+	ErrFriendRequestNotAgreed      = myErrors.NewBusiness("friend request is not agreed")
 )

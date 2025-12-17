@@ -20,10 +20,10 @@ type SendRoomMessageInput struct {
 
 func (i *SendRoomMessageInput) Validate() error {
 	if len(i.Content) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "content can't be empty")
 	}
 	if len(i.SenderID) == 0 || len(i.RoomID) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "user id and room id can't be empty")
 	}
 	return nil
 }

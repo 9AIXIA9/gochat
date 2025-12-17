@@ -26,7 +26,7 @@ func (e PasswordEncrypted) String() string {
 
 func (p Password) Validate() error {
 	if l := len(p); l > passwordMaxLength {
-		return errors.ErrInvalidLength
+		return errors.WrapBusiness(errors.ErrInvalidLength, "password length exceeds maximum:%d", passwordMaxLength)
 	}
 	return nil
 }

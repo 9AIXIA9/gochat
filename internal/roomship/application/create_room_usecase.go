@@ -24,7 +24,7 @@ func (r *CreateRoomInput) Validate() error {
 		return err
 	}
 	if len(r.UserID) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "user id is empty")
 	}
 	if r.MaxMemberCount < 2 {
 		r.MaxMemberCount = defaultMemberCount

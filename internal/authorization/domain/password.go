@@ -26,15 +26,17 @@ func (e PasswordEncrypted) String() string {
 }
 
 func (p Password) Validate() error {
-	if l := len(p); l < passwordMinLength || l > passwordMaxLength {
-		return errors.ErrInvalidLength
+	if l := len(p); l < passwordMinLength {
+		return errors.WrapBusiness(errors.ErrInvalidLength, "password too short: min %d", passwordMinLength)
+	} else if l > passwordMaxLength {
+		return errors.WrapBusiness(errors.ErrInvalidLength, "password too long: max %d", passwordMaxLength)
 	}
 	return nil
 }
 
 func (p Password) Encrypt(encryptor Encryptor) (PasswordEncrypted, error) {
 	if len(p) == 0 {
-		return "", ErrEmptyPassword
+		return "", errors.WrapBusiness(errors.ErrEmptyInput, "password is empty")
 	}
 	encrypted, err := encryptor.Encrypt(p.String())
 	if err != nil {

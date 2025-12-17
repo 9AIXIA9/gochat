@@ -16,7 +16,6 @@ type RefreshTokenEntity struct {
 	token        RefreshToken
 	expiredAt    time.Time
 	refreshCount int
-	generated    bool
 }
 
 func LoadRefreshToken(
@@ -30,7 +29,6 @@ func LoadRefreshToken(
 		token:        token,
 		expiredAt:    expiredAt,
 		refreshCount: refreshCount,
-		generated:    true,
 	}
 }
 
@@ -47,17 +45,12 @@ func CreateRefreshToken(
 		token:        token,
 		expiredAt:    time.Now().UTC().Add(refreshTokenValidityDuration),
 		refreshCount: 0,
-		generated:    false,
 	}, nil
 }
 
 func (t *RefreshTokenEntity) GenerateAccessToken(
 	accessTokenGenerator AccessTokenGenerator,
 ) (AccessToken, error) {
-	if t.generated || time.Now().UTC().After(t.expiredAt) {
-		return "", ErrAccessTokenGenerated
-	}
-	t.generated = true
 	return accessTokenGenerator.Generate(t.userID)
 }
 
@@ -74,17 +67,12 @@ func (t *RefreshTokenEntity) Refresh(
 	t.token = newToken
 	t.refreshCount++
 	t.expiredAt = t.expiredAt.Add(refreshExtendedDuration)
-	t.generated = false
 	return nil
 }
 
 func (t *RefreshTokenEntity) CanBeRefreshed() error {
-	if refreshTokenMaxRefreshCount <= t.refreshCount {
-		return ErrRefreshLimitExceeded
-	}
-
-	if time.Now().UTC().After(t.expiredAt) {
-		return ErrRefreshTokenExpired
+	if time.Now().UTC().After(t.expiredAt) || refreshTokenMaxRefreshCount <= t.refreshCount {
+		return ErrInvalidRefreshToken
 	}
 	return nil
 }

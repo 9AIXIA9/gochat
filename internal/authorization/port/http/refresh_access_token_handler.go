@@ -1,17 +1,14 @@
 package http
 
 import (
-	"errors"
 	"gochat/config"
 	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/shared/api"
-	myErrors "gochat/internal/shared/errors"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 type RefreshAccessTokenRequest struct {
@@ -69,18 +66,6 @@ func NewRefreshAccessTokenHandler(useCase application.RefreshAccessTokenUseCase,
 					AccessToken: output.AccessToken,
 				},
 			)
-		},
-		func(ginContext *gin.Context, err error) {
-			switch {
-			case errors.Is(err, domain.ErrRefreshTokenExpired) ||
-				errors.Is(err, domain.ErrAccessTokenGenerated) ||
-				errors.Is(err, domain.ErrRefreshLimitExceeded) ||
-				errors.Is(err, myErrors.ErrNotFound):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "invalid refresh token")
-			default:
-				zap.L().Error("refresh access token handler failed", zap.Error(err))
-				ginutils.Response(ginContext, api.CodeServerError)
-			}
 		},
 	)
 }

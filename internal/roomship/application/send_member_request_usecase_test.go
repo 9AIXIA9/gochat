@@ -181,4 +181,24 @@ func TestSendMemberRequestUseCase_Execute(t *testing.T) {
 	})
 
 	require.ErrorIs(t, err, domain.ErrMemberRequestAlreadyExists)
+
+	// 创建时请求已存在
+	gomock.InOrder(
+		mockMemberRequestExister.EXPECT().ExistByUserIDAndRoomIDAndState(nil, fixedUserID, fixedRoomID, domain.StatePending).Return(false, nil),
+		mockRoomshipExister.EXPECT().ExistByUserIDAndRoomID(nil, fixedUserID, fixedRoomID).Return(false, nil),
+		mockFinder.EXPECT().FindByID(nil, fixedRoomID).Return(mockRoom, nil),
+		mockComparator.EXPECT().Compare(fixedPasswordEncrypted.String(), fixedPassword.String()).Return(nil),
+		mockOperationIDGenerator.EXPECT().Generate().Return(fixedOperationID),
+		mockEventIDGenerator.EXPECT().Generate().Return(fixedEventID),
+		mockCreator.EXPECT().Create(nil, gomock.Any()).Return(domain.ErrMemberRequestAlreadyExists),
+	)
+
+	_, err = useCase.Execute(nil, &application.SendMemberRequestInput{
+		UserID:   fixedUserID,
+		RoomID:   fixedRoomID,
+		Content:  fixedContent,
+		Password: fixedPassword,
+	})
+
+	require.ErrorIs(t, err, domain.ErrMemberRequestAlreadyExists)
 }

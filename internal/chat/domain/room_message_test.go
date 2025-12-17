@@ -67,7 +67,6 @@ func TestCreateRoomMessage(t *testing.T) {
 		mockMessageIDGenerator,
 		mockNotifier,
 	)
-
 	require.NoError(t, err)
 	require.NotNil(t, message)
 	assert.Equal(t, fixedMessageID, message.ID())
@@ -79,6 +78,18 @@ func TestCreateRoomMessage(t *testing.T) {
 	for _, state := range message.States() {
 		assert.Equal(t, domain.MessageStateDelivered, state)
 	}
+
+	// content 为空
+	message, err = domain.CreateRoomMessage(
+		fixedRoomID,
+		fixedUserID,
+		mockRecipients,
+		"",
+		mockMessageIDGenerator,
+		mockNotifier,
+	)
+	require.ErrorIs(t, err, domain.ErrEmptyMessageContent)
+	require.Nil(t, message)
 
 	// 部分未成功
 	mockSuccessIDs := mockRecipients[:5]
@@ -93,7 +104,6 @@ func TestCreateRoomMessage(t *testing.T) {
 		mockMessageIDGenerator,
 		mockNotifier,
 	)
-
 	require.NoError(t, err)
 	require.NotNil(t, message)
 

@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	"gochat/internal/profile/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
@@ -18,7 +19,7 @@ type RoomCreatedInput struct {
 
 func (r *RoomCreatedInput) Validate() error {
 	if len(r.RoomID) == 0 || r.CreatedAt.IsZero() {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "room id or created time is empty")
 	}
 
 	return nil
@@ -57,6 +58,9 @@ func (uc *roomCreatedUseCase) Execute(ctx context.Context, input *RoomCreatedInp
 	)
 
 	if err := uc.creator.Create(ctx, profile); err != nil {
+		if errors.Is(err, myErrors.ErrDuplicatedKey) {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return nil, nil

@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	"gochat/internal/profile/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
@@ -16,7 +17,7 @@ type GetUserProfileInput struct {
 
 func (r *GetUserProfileInput) Validate() error {
 	if len(r.UserID) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "user id is empty")
 	}
 	return nil
 }
@@ -46,6 +47,9 @@ func NewGetUserProfileUseCase(
 func (uc *getUserProfileUseCase) Execute(ctx context.Context, input *GetUserProfileInput) (*GetUserProfileOutput, error) {
 	profile, err := uc.finder.FindByID(ctx, input.UserID)
 	if err != nil {
+		if errors.Is(err, myErrors.ErrNotFound) {
+			return nil, myErrors.WrapBusiness(err, "user profile not found")
+		}
 		return nil, err
 	}
 

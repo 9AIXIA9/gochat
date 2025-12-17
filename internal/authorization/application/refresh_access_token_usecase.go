@@ -1,7 +1,9 @@
 package application
 
 import (
+	"errors"
 	"gochat/internal/authorization/domain"
+	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 	"gochat/pkg/utils"
 
@@ -55,6 +57,9 @@ func NewRefreshAccessTokenUseCase(
 func (uc *refreshAccessTokenUseCase) Execute(ctx context.Context, input *RefreshAccessTokenInput) (*RefreshAccessTokenOutput, error) {
 	refreshToken, err := uc.refreshTokenFinder.FindByToken(ctx, input.RefreshToken)
 	if err != nil {
+		if errors.Is(err, myErrors.ErrNotFound) {
+			return nil, domain.ErrInvalidRefreshToken
+		}
 		return nil, err
 	}
 

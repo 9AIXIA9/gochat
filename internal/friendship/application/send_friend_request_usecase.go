@@ -7,6 +7,8 @@ import (
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"gochat/pkg/utils"
+
+	"github.com/go-faster/errors"
 )
 
 type SendFriendRequestUseCase kernel.UseCase[*SendFriendRequestInput, *kernel.NoOutput]
@@ -19,7 +21,7 @@ type SendFriendRequestInput struct {
 
 func (r *SendFriendRequestInput) Validate() error {
 	if len(r.FromID) == 0 || len(r.ToID) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "user ids can't be empty")
 	}
 
 	return nil
@@ -84,6 +86,9 @@ func (uc *sendFriendRequestUseCase) Execute(ctx context.Context, input *SendFrie
 	}
 
 	if err := uc.friendRequestCreator.Create(ctx, req); err != nil {
+		if errors.Is(err, myErrors.ErrDuplicatedKey) {
+			return nil, domain.ErrFriendRequestExists
+		}
 		return nil, err
 	}
 

@@ -18,7 +18,7 @@ type FriendRequestCreatedInput struct {
 
 func (r *FriendRequestCreatedInput) Validate() error {
 	if len(r.RequestID) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "request id can't be empty")
 	}
 
 	return nil

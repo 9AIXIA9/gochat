@@ -1,18 +1,15 @@
 package http
 
 import (
-	"errors"
 	"gochat/config"
 	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/shared/api"
-	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 const RefreshTokenCookieKey = "refresh_token"
@@ -66,19 +63,6 @@ func NewLoginHandler(useCase application.LoginUseCase, validator ginutils.Valida
 				cookieConfig.HttpOnly,
 			)
 			ginutils.ResponseSuccessWithData(ginContext, &LoginResponseData{AccessToken: output.AccessToken})
-		},
-		func(ginContext *gin.Context, err error) {
-			switch {
-			case errors.Is(err, domain.ErrEmptyPassword) ||
-				errors.Is(err, myErrors.ErrInvalidLength) ||
-				errors.Is(err, domain.ErrInvalidPassword) ||
-				errors.Is(err, myErrors.ErrInvalidNumber) ||
-				errors.Is(err, myErrors.ErrNotFound):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "password is invalid")
-			default:
-				zap.L().Error("login handler failed", zap.Error(err))
-				ginutils.Response(ginContext, api.CodeServerError)
-			}
 		},
 	)
 }

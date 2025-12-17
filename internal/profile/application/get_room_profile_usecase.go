@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	"gochat/internal/profile/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
@@ -16,7 +17,7 @@ type GetRoomProfileInput struct {
 
 func (r *GetRoomProfileInput) Validate() error {
 	if len(r.RoomID) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "room id is empty")
 	}
 	return nil
 }
@@ -46,6 +47,9 @@ func NewGetRoomProfileUseCase(
 func (uc *getRoomProfileUseCase) Execute(ctx context.Context, input *GetRoomProfileInput) (*GetRoomProfileOutput, error) {
 	profile, err := uc.finder.FindByID(ctx, input.RoomID)
 	if err != nil {
+		if errors.Is(err, myErrors.ErrNotFound) {
+			return nil, myErrors.WrapBusiness(err, "room profile not found")
+		}
 		return nil, err
 	}
 

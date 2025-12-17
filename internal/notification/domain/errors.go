@@ -1,7 +1,9 @@
 package domain
 
-import "errors"
+import (
+	myErrors "gochat/internal/shared/errors"
+)
 
 var (
-	ErrEmptyContent = errors.New("message content cannot be empty")
+	ErrEmptyContent = myErrors.NewBusiness("message content cannot be empty")
 )

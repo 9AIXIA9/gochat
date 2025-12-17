@@ -1,16 +1,11 @@
 package http
 
 import (
-	"errors"
 	"gochat/internal/friendship/application"
-	"gochat/internal/friendship/domain"
 	ginutils "gochat/internal/infrastructure/gin"
-	"gochat/internal/shared/api"
-	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 type RefuseFriendRequestRequest struct {
@@ -51,21 +46,6 @@ func NewRefuseFriendRequestHandler(useCase application.RefuseFriendRequestUseCas
 		},
 		func(ginContext *gin.Context, _ *kernel.NoOutput) {
 			ginutils.ResponseSuccess(ginContext)
-		},
-		func(ginContext *gin.Context, err error) {
-			switch {
-			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "input is empty")
-			case errors.Is(err, myErrors.ErrNotFound):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "friend request not found")
-			case errors.Is(err, domain.ErrFriendRequestNotForUser):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "friend request not for this user")
-			case errors.Is(err, domain.ErrFriendRequestHasBeenHandled):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "friend request has been handled")
-			default:
-				zap.L().Error("RefuseFriendRequestHandler error", zap.Error(err))
-				ginutils.Response(ginContext, api.CodeServerError)
-			}
 		},
 	)
 }

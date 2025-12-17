@@ -2,6 +2,7 @@ package gin
 
 import (
 	"gochat/internal/shared/api"
+	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 
 	"github.com/gin-gonic/gin"
@@ -18,7 +19,6 @@ func AdaptUseCaseToHandler[
 	validator Validator,
 	convertRequestToInput func(RequestPointer) Input,
 	handleOutput func(*gin.Context, Output),
-	handleError func(*gin.Context, error),
 ) gin.HandlerFunc {
 	return func(ginContext *gin.Context) {
 		var request RequestPointer = new(Request)
@@ -48,10 +48,10 @@ func AdaptUseCaseToHandler[
 
 		output, err := useCase.Execute(ginContext.Request.Context(), input)
 		if err != nil {
-			if handleError != nil {
-				handleError(ginContext, err)
+			if myErrors.IsBusinessError(err) {
+				ResponseWithMessage(ginContext, api.CodeSuccess, err.Error())
 			} else {
-				zap.L().Error("use case execute failed", zap.Error(err))
+				zap.L().Error("http handler failed", zap.Error(err))
 				Response(ginContext, api.CodeServerError)
 			}
 			return

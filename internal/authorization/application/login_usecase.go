@@ -2,7 +2,9 @@ package application
 
 import (
 	"context"
+	"errors"
 	"gochat/internal/authorization/domain"
+	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 	"gochat/pkg/utils"
 )
@@ -62,6 +64,9 @@ func NewLoginUseCase(
 func (uc *loginUseCase) Execute(ctx context.Context, input *LoginInput) (*LoginOutput, error) {
 	user, err := uc.userFinder.FindByNumber(ctx, input.Number)
 	if err != nil {
+		if errors.Is(err, myErrors.ErrNotFound) {
+			return nil, domain.ErrInvalidPassword
+		}
 		return nil, err
 	}
 

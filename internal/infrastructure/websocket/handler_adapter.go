@@ -3,7 +3,11 @@ package websocket
 import (
 	"context"
 	"gochat/internal/shared/api"
+	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/utils"
+
+	"go.uber.org/zap"
 )
 
 func AdaptUsecaseToHandler[
@@ -15,7 +19,6 @@ func AdaptUsecaseToHandler[
 	validator Validator,
 	bindRequestData func(context.Context, []byte) (RequestData, error),
 	mapInput func(RequestData) Input,
-	handleError func(context.Context, error) *api.Response,
 ) Handler {
 	return HandlerFunc(func(ctx context.Context, data []byte) *api.Response {
 		reqData, err := bindRequestData(ctx, data)
@@ -40,9 +43,15 @@ func AdaptUsecaseToHandler[
 
 		output, err := usecase.Execute(ctx, input)
 		if err != nil {
-			if handleError != nil {
-				return handleError(ctx, err)
+			if myErrors.IsBusinessError(err) {
+				return api.NewResponseWithMessage(api.CodeSuccess, err.Error())
 			}
+			zap.L().Error(
+				"websocket usecase execute failed",
+				zap.String("user_id", utils.GetUserID(ctx).String()),
+				zap.String("topic", GetTopic(ctx).String()),
+				zap.Error(err),
+			)
 			return api.NewResponse(api.CodeServerError)
 		}
 		return api.NewResponseWithData(output)

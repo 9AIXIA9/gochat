@@ -2,7 +2,9 @@ package application
 
 import (
 	"context"
+	"errors"
 	"gochat/internal/authorization/domain"
+	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"gochat/pkg/utils"
@@ -78,6 +80,9 @@ func (uc *signUpUseCase) Execute(ctx context.Context, input *SignUpInput) (*Sign
 
 	err = uc.userCreator.Create(ctx, user)
 	if err != nil {
+		if errors.Is(err, myErrors.ErrDuplicatedKey) {
+			return nil, myErrors.WrapBusiness(err, "email is already used")
+		}
 		return nil, err
 	}
 	return &SignUpOutput{UserNumber: user.Number()}, nil

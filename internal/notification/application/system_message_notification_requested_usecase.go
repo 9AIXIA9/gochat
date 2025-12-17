@@ -16,8 +16,12 @@ type SystemMessageNotificationRequestedInput struct {
 }
 
 func (r *SystemMessageNotificationRequestedInput) Validate() error {
-	if len(r.RecipientID) == 0 || len(r.Content) == 0 {
-		return myErrors.ErrEmptyInput
+	if len(r.RecipientID) == 0 {
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "recipient id is empty")
+	}
+
+	if len(r.Content) == 0 {
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "content is empty")
 	}
 
 	return nil

@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	"gochat/internal/profile/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
@@ -22,7 +23,7 @@ type UpdateUserProfileInput struct {
 
 func (r *UpdateUserProfileInput) Validate() error {
 	if len(r.UserID) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "user id is empty")
 	}
 	if len(r.Email) == 0 &&
 		len(r.PhoneNumber) == 0 &&
@@ -30,7 +31,7 @@ func (r *UpdateUserProfileInput) Validate() error {
 		len(r.Address) == 0 &&
 		len(r.Sign) == 0 &&
 		r.Gender == kernel.UnknownGender {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "everything is empty")
 	}
 
 	return nil
@@ -61,6 +62,9 @@ func NewUpdateUserProfileUseCase(
 func (uc *updateUserProfileUseCase) Execute(ctx context.Context, input *UpdateUserProfileInput) (*kernel.NoOutput, error) {
 	profile, err := uc.finder.FindByID(ctx, input.UserID)
 	if err != nil {
+		if errors.Is(err, myErrors.ErrNotFound) {
+			return nil, myErrors.WrapBusiness(err, "user profile not found")
+		}
 		return nil, err
 	}
 

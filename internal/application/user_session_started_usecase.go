@@ -18,7 +18,7 @@ type UserSessionStartedInput struct {
 
 func (r *UserSessionStartedInput) Validate() error {
 	if len(r.UserID) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "UserID cannot be empty")
 	}
 	return nil
 }

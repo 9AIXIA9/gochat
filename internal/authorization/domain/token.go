@@ -11,7 +11,7 @@ type (
 
 func (t AccessToken) Validate() error {
 	if len(t) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "access token is empty")
 	}
 	return nil
 }
@@ -22,7 +22,7 @@ func (t AccessToken) String() string {
 
 func (t RefreshToken) Validate() error {
 	if len(t) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "refresh token is empty")
 	}
 	return nil
 }

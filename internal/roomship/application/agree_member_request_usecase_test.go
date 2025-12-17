@@ -139,4 +139,27 @@ func TestAgreeMemberRequestUseCase_Execute(t *testing.T) {
 		RequestID: fixedOperationID,
 	})
 	require.ErrorIs(t, err, domain.ErrNotAdmin)
+
+	// 申请不存在
+	gomock.InOrder(
+		mockMemberRequestFinderByRequestID.EXPECT().FindByID(nil, fixedOperationID).Return(nil, myErrors.ErrNotFound),
+	)
+
+	_, err = useCase.Execute(nil, &application.AgreeMemberRequestInput{
+		UserID:    fixedUserID,
+		RequestID: fixedOperationID,
+	})
+	require.ErrorContains(t, err, "member request not found")
+
+	// 不在房间中
+	gomock.InOrder(
+		mockMemberRequestFinderByRequestID.EXPECT().FindByID(nil, fixedOperationID).Return(mockRequest, nil),
+		mockRoomshipFinder.EXPECT().FindByUserIDAndRoomID(nil, fixedUserID, fixedRoomID).Return(nil, myErrors.ErrNotFound),
+	)
+
+	_, err = useCase.Execute(nil, &application.AgreeMemberRequestInput{
+		UserID:    fixedUserID,
+		RequestID: fixedOperationID,
+	})
+	require.ErrorIs(t, err, domain.ErrNotAdmin)
 }

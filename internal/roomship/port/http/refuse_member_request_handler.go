@@ -1,16 +1,11 @@
 package http
 
 import (
-	"errors"
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/roomship/application"
-	"gochat/internal/roomship/domain"
-	"gochat/internal/shared/api"
-	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 type RefuseMemberRequestRequest struct {
@@ -51,19 +46,6 @@ func NewRefuseMemberRequestHandler(useCase application.RefuseMemberRequestUseCas
 		},
 		func(ginContext *gin.Context, _ *kernel.NoOutput) {
 			ginutils.ResponseSuccess(ginContext)
-		},
-		func(ginContext *gin.Context, err error) {
-			switch {
-			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "input is empty")
-			case errors.Is(err, myErrors.ErrNotFound):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "request is not found")
-			case errors.Is(err, domain.ErrNotAdmin):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "you have no permission to refuse this request")
-			default:
-				zap.L().Error("RefuseMemberRequestHandler error", zap.Error(err))
-				ginutils.Response(ginContext, api.CodeServerError)
-			}
 		},
 	)
 }

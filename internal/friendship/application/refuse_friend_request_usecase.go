@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	"gochat/internal/friendship/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
@@ -17,7 +18,7 @@ type RefuseFriendRequestInput struct {
 
 func (r *RefuseFriendRequestInput) Validate() error {
 	if len(r.RequestID) == 0 || len(r.UserID) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "user id and request id can't be empty")
 	}
 
 	return nil
@@ -46,6 +47,9 @@ func NewRefuseFriendRequestUseCase(
 func (uc *refuseFriendRequestUseCase) Execute(ctx context.Context, input *RefuseFriendRequestInput) (*kernel.NoOutput, error) {
 	req, err := uc.friendRequestFinderByRequestID.FindByID(ctx, input.RequestID)
 	if err != nil {
+		if errors.Is(err, myErrors.ErrNotFound) {
+			return nil, myErrors.WrapBusiness(err, "request doesn't exist")
+		}
 		return nil, err
 	}
 

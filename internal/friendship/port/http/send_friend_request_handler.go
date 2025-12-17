@@ -1,16 +1,11 @@
 package http
 
 import (
-	"errors"
 	"gochat/internal/friendship/application"
-	"gochat/internal/friendship/domain"
 	ginutils "gochat/internal/infrastructure/gin"
-	"gochat/internal/shared/api"
-	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 type SendFriendRequestRequest struct {
@@ -51,23 +46,6 @@ func NewSendFriendRequestHandler(useCase application.SendFriendRequestUseCase, v
 		},
 		func(ginContext *gin.Context, _ *kernel.NoOutput) {
 			ginutils.ResponseSuccess(ginContext)
-		},
-		func(ginContext *gin.Context, err error) {
-			switch {
-			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "input is empty")
-			case errors.Is(err, domain.ErrAddYourselfAsFriend):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "you cannot add yourself as a friend")
-			case errors.Is(err, domain.ErrAlreadyBeenFriends):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "you are already friends")
-			case errors.Is(err, domain.ErrFriendRequestExists):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "friend request already sent")
-			case errors.Is(err, domain.ErrFriendRequestContentTooLong):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "friend request content too long")
-			default:
-				zap.L().Error("SendFriendRequestHandler error", zap.Error(err))
-				ginutils.Response(ginContext, api.CodeServerError)
-			}
 		},
 	)
 }

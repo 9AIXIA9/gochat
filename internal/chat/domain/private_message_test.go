@@ -49,7 +49,6 @@ func TestCreatePrivateMessage(t *testing.T) {
 		mockMessageIDGenerator,
 		mockNotifier,
 	)
-
 	require.NoError(t, err)
 	require.NotNil(t, message)
 	assert.Equal(t, fixedMessageID, message.ID())
@@ -58,6 +57,17 @@ func TestCreatePrivateMessage(t *testing.T) {
 	assert.Equal(t, "Hello, Friend!", message.Content())
 	assert.Equal(t, domain.MessageStateDelivered, message.State())
 	assert.WithinDuration(t, start, message.SentAt(), timeTolerance)
+
+	// content 为空
+	message, err = domain.CreatePrivateMessage(
+		fixedFriendID,
+		fixedUserID,
+		"",
+		mockMessageIDGenerator,
+		mockNotifier,
+	)
+	require.ErrorIs(t, err, domain.ErrEmptyMessageContent)
+	require.Nil(t, message)
 
 	// 发送失败
 	mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1)
@@ -71,7 +81,6 @@ func TestCreatePrivateMessage(t *testing.T) {
 		mockMessageIDGenerator,
 		mockNotifier,
 	)
-
 	require.NoError(t, err)
 	require.NotNil(t, messageWithFailedDeliver)
 	assert.Equal(t, fixedMessageID, messageWithFailedDeliver.ID())
@@ -92,7 +101,6 @@ func TestCreatePrivateMessage(t *testing.T) {
 		mockMessageIDGenerator,
 		mockNotifier,
 	)
-
 	require.NoError(t, err)
 	require.NotNil(t, messageToSelf)
 	assert.Equal(t, fixedMessageID, messageToSelf.ID())

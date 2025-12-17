@@ -64,10 +64,6 @@ func TestRefreshTokenEntity_GenerateAccessToken(t *testing.T) {
 	accessToken, err := refreshToken.GenerateAccessToken(mockAccessTokenGenerator)
 	require.NoError(t, err)
 	assert.Equal(t, fixedAccessToken, accessToken)
-
-	//重复生成access token失败
-	_, err = refreshToken.GenerateAccessToken(mockAccessTokenGenerator)
-	require.ErrorIs(t, err, domain.ErrAccessTokenGenerated)
 }
 
 func TestRefreshTokenEntity_Refresh(t *testing.T) {
@@ -100,7 +96,7 @@ func TestRefreshTokenEntity_Refresh(t *testing.T) {
 		fixedRefreshCount,
 	)
 	err = expiredToken.Refresh(mockRefreshTokenGenerator)
-	require.ErrorIs(t, err, domain.ErrRefreshTokenExpired)
+	require.ErrorIs(t, err, domain.ErrInvalidRefreshToken)
 
 	//超过刷新次数失败
 	limitToken := domain.LoadRefreshToken(
@@ -110,7 +106,7 @@ func TestRefreshTokenEntity_Refresh(t *testing.T) {
 		maxRefreshCount,
 	)
 	err = limitToken.Refresh(mockRefreshTokenGenerator)
-	require.ErrorIs(t, err, domain.ErrRefreshLimitExceeded)
+	require.ErrorIs(t, err, domain.ErrInvalidRefreshToken)
 }
 
 func TestRefreshTokenEntity_CanBeRefreshed(t *testing.T) {
@@ -132,7 +128,7 @@ func TestRefreshTokenEntity_CanBeRefreshed(t *testing.T) {
 		fixedRefreshCount,
 	)
 	err = expiredToken.CanBeRefreshed()
-	require.ErrorIs(t, err, domain.ErrRefreshTokenExpired)
+	require.ErrorIs(t, err, domain.ErrInvalidRefreshToken)
 
 	//超过刷新次数失败
 	limitToken := domain.LoadRefreshToken(
@@ -142,5 +138,5 @@ func TestRefreshTokenEntity_CanBeRefreshed(t *testing.T) {
 		maxRefreshCount,
 	)
 	err = limitToken.CanBeRefreshed()
-	require.ErrorIs(t, err, domain.ErrRefreshLimitExceeded)
+	require.ErrorIs(t, err, domain.ErrInvalidRefreshToken)
 }

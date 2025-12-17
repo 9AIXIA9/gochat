@@ -99,4 +99,18 @@ func TestSignUpUseCase_Execute(t *testing.T) {
 		Password: fixedPassword,
 	})
 	require.NoError(t, err)
+
+	// 邮件已注册
+	gomock.InOrder(
+		mockEncryptor.EXPECT().Encrypt(fixedPassword.String()).Return(fixedEncryptedPassword.String(), nil).Times(1),
+		mockUserIDGenerator.EXPECT().Generate().Return(fixedUserID).Times(1),
+		mockNumberGenerator.EXPECT().Generate().Return(fixedUserNumber).Times(1),
+		mockEventIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(1),
+		mockUserCreator.EXPECT().Create(nil, gomock.Any()).Return(myErrors.ErrDuplicatedKey).Times(1),
+	)
+	_, err = useCase.Execute(nil, &application.SignUpInput{
+		Email:    fixedEmail,
+		Password: fixedPassword,
+	})
+	require.ErrorContains(t, err, "email is already used")
 }

@@ -43,6 +43,10 @@ func CreatePrivateMessage(
 	messageIDGenerator kernel.MessageIDGenerator,
 	notifier PrivateMessageNotifier,
 ) (*PrivateMessage, error) {
+	if len(content) == 0 {
+		return nil, ErrEmptyMessageContent
+	}
+
 	message := &PrivateMessage{
 		id:           messageIDGenerator.Generate(),
 		senderID:     senderID,

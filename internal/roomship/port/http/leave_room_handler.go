@@ -1,16 +1,11 @@
 package http
 
 import (
-	"errors"
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/roomship/application"
-	"gochat/internal/roomship/domain"
-	"gochat/internal/shared/api"
-	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 type LeaveRoomRequest struct {
@@ -51,19 +46,6 @@ func NewLeaveRoomHandler(useCase application.LeaveRoomUseCase, validator ginutil
 		},
 		func(ginContext *gin.Context, _ *kernel.NoOutput) {
 			ginutils.ResponseSuccess(ginContext)
-		},
-		func(ginContext *gin.Context, err error) {
-			switch {
-			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "input is empty")
-			case errors.Is(err, domain.ErrOwnerCantLeave):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "owner can't leave the room")
-			case errors.Is(err, myErrors.ErrNotFound):
-				ginutils.ResponseSuccess(ginContext)
-			default:
-				zap.L().Error("LeaveRoomHandler error", zap.Error(err))
-				ginutils.Response(ginContext, api.CodeServerError)
-			}
 		},
 	)
 }

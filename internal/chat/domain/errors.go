@@ -1,8 +1,11 @@
 package domain
 
-import "errors"
+import (
+	myErrors "gochat/internal/shared/errors"
+)
 
 var (
-	ErrNotFriends = errors.New("users are not friends")
-	ErrNotMember  = errors.New("user is not a member of the room")
+	ErrEmptyMessageContent = myErrors.NewBusiness("message content cannot be empty")
+	ErrNotFriends          = myErrors.NewBusiness("users are not friends")
+	ErrNotMember           = myErrors.NewBusiness("user is not a member of the room")
 )

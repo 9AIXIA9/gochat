@@ -1,17 +1,13 @@
 package http
 
 import (
-	"errors"
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/roomship/application"
 	"gochat/internal/roomship/domain"
 	"gochat/internal/roomship/dto"
-	"gochat/internal/shared/api"
-	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 const defaultRoomshipsLimit = 20
@@ -67,15 +63,6 @@ func NewListRoomshipsHandler(useCase application.ListRoomshipsUseCase, validator
 			ginutils.ResponseSuccessWithData(ginContext, &ListRoomshipsResponseData{
 				Roomships: dto.ToRoomshipDTOs(output.Roomships),
 			})
-		},
-		func(ginContext *gin.Context, err error) {
-			switch {
-			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "input is empty")
-			default:
-				zap.L().Error("ListRoomshipsHandler error", zap.Error(err))
-				ginutils.Response(ginContext, api.CodeServerError)
-			}
 		},
 	)
 }

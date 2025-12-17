@@ -137,4 +137,12 @@ func TestAgreeFriendRequestUseCase_Execute(t *testing.T) {
 		RequestID: fixedOperationID,
 	})
 	require.ErrorIs(t, err, domain.ErrFriendRequestHasBeenHandled)
+
+	// 未查询到此请求
+	mockFriendRequestFinderByRequestID.EXPECT().FindByID(nil, fixedOperationID).Return(nil, myErrors.ErrNotFound).Times(1)
+	_, err = useCase.Execute(nil, &application.AgreeFriendRequestInput{
+		UserID:    fixedUserID,
+		RequestID: fixedOperationID,
+	})
+	require.ErrorContains(t, err, "request doesn't exist")
 }

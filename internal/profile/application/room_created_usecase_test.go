@@ -84,4 +84,15 @@ func TestRoomCreatedUseCase_Execute(t *testing.T) {
 		RoomID: fixedRoomID,
 	})
 	require.NoError(t, err)
+
+	// 重复创建
+	gomock.InOrder(
+		mockRoomSaver.EXPECT().Save(nil, gomock.Any()).Return(nil).Times(1),
+		mockCreator.EXPECT().Create(nil, gomock.Any()).Return(myErrors.ErrDuplicatedKey).Times(1),
+	)
+
+	_, err = useCase.Execute(nil, &application.RoomCreatedInput{
+		RoomID: fixedRoomID,
+	})
+	require.NoError(t, err)
 }

@@ -16,7 +16,7 @@ type ListRoomMembersInput struct {
 
 func (r *ListRoomMembersInput) Validate() error {
 	if len(r.RoomID) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "room id is empty")
 	}
 
 	return nil

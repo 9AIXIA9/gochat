@@ -1,16 +1,12 @@
 package http
 
 import (
-	"errors"
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/profile/application"
 	"gochat/internal/profile/dto"
-	"gochat/internal/shared/api"
-	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 type GetRoomProfileRequest struct {
@@ -52,17 +48,6 @@ func NewGetRoomProfileHandler(useCase application.GetRoomProfileUseCase, validat
 			ginutils.ResponseSuccessWithData(ginContext, &GetRoomProfileResponseData{
 				Profile: dto.ToRoomProfileDTO(output.Profile),
 			})
-		},
-		func(ginContext *gin.Context, err error) {
-			switch {
-			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "input is empty")
-			case errors.Is(err, myErrors.ErrNotFound):
-				ginutils.ResponseWithMessage(ginContext, api.CodeNotFound, "room is not found")
-			default:
-				zap.L().Error("GetRoomProfileHandler error", zap.Error(err))
-				ginutils.Response(ginContext, api.CodeServerError)
-			}
 		},
 	)
 }

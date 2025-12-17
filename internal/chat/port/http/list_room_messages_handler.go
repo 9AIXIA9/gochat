@@ -1,16 +1,12 @@
 package http
 
 import (
-	"errors"
 	"gochat/internal/chat/application"
 	"gochat/internal/chat/dto"
 	ginutils "gochat/internal/infrastructure/gin"
-	"gochat/internal/shared/api"
-	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 const defaultRoomMessagesLimit = 20
@@ -66,15 +62,6 @@ func NewListRoomMessagesHandler(useCase application.ListRoomMessagesUseCase, val
 			ginutils.ResponseSuccessWithData(ginContext, &ListRoomMessagesResponseData{
 				RoomMessages: dto.ToRoomMessageDTOs(output.RoomMessages),
 			})
-		},
-		func(ginContext *gin.Context, err error) {
-			switch {
-			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "input is empty")
-			default:
-				zap.L().Error("ListRoomMessageHandler error", zap.Error(err))
-				ginutils.Response(ginContext, api.CodeServerError)
-			}
 		},
 	)
 }

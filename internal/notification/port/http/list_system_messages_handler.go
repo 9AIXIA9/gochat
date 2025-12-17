@@ -1,16 +1,12 @@
 package http
 
 import (
-	"errors"
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/notification/application"
 	"gochat/internal/notification/dto"
-	"gochat/internal/shared/api"
-	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 const defaultSystemMessagesLimit = 20
@@ -66,15 +62,6 @@ func NewListSystemMessagesHandler(useCase application.ListSystemMessagesUseCase,
 			ginutils.ResponseSuccessWithData(ginContext, &ListSystemMessagesResponseData{
 				SystemMessages: dto.ToSystemMessageDTOs(output.SystemMessages),
 			})
-		},
-		func(ginContext *gin.Context, err error) {
-			switch {
-			case errors.Is(err, myErrors.ErrEmptyInput):
-				ginutils.ResponseWithMessage(ginContext, api.CodeInvalidParam, "input is empty")
-			default:
-				zap.L().Error("ListSystemMessagesHandler error", zap.Error(err))
-				ginutils.Response(ginContext, api.CodeServerError)
-			}
 		},
 	)
 }

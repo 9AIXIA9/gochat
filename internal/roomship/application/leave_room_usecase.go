@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	"gochat/internal/roomship/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
@@ -17,7 +18,7 @@ type LeaveRoomInput struct {
 
 func (r *LeaveRoomInput) Validate() error {
 	if len(r.UserID) == 0 || len(r.RoomID) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "user id or room id is empty")
 	}
 	return nil
 }
@@ -52,6 +53,9 @@ func NewLeaveRoomUseCase(
 func (uc *leaveRoomUseCase) Execute(ctx context.Context, input *LeaveRoomInput) (*kernel.NoOutput, error) {
 	roomship, err := uc.roomshipFinder.FindByUserIDAndRoomID(ctx, input.UserID, input.RoomID)
 	if err != nil {
+		if errors.Is(err, myErrors.ErrNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 

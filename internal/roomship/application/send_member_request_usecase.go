@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"errors"
 	"gochat/internal/roomship/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
@@ -20,7 +21,7 @@ type SendMemberRequestInput struct {
 
 func (r *SendMemberRequestInput) Validate() error {
 	if len(r.UserID) == 0 || len(r.RoomID) == 0 {
-		return myErrors.ErrEmptyInput
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "user id or room id is empty")
 	}
 	return nil
 }
@@ -106,8 +107,10 @@ func (uc *sendMemberRequestUseCase) Execute(ctx context.Context, input *SendMemb
 	}
 
 	if err := uc.creator.Create(ctx, req); err != nil {
+		if errors.Is(err, myErrors.ErrDuplicatedKey) {
+			return nil, domain.ErrMemberRequestAlreadyExists
+		}
 		return nil, err
 	}
-
 	return nil, nil
 }
