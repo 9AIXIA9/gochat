@@ -1,7 +1,6 @@
 package websocket
 
 import (
-	"encoding/json"
 	"gochat/internal/chat/domain"
 	"gochat/internal/infrastructure/websocket"
 	"gochat/internal/shared/kernel"
@@ -12,7 +11,7 @@ var _ domain.PrivateMessageNotifier = (*PrivateMessageNotifier)(nil)
 
 const NotifyPrivateMessageTopic websocket.Topic = "chat.notify_private_message"
 
-type NotifyPrivateMessageResponseData struct {
+type NotifyPrivateMessageBody struct {
 	ID       kernel.MessageID    `json:"id"`
 	SenderID kernel.UserID       `json:"sender_id"`
 	State    domain.MessageState `json:"state"`
@@ -29,21 +28,14 @@ func NewPrivateMessageNotifier(manager *websocket.Manager) *PrivateMessageNotifi
 }
 
 func (n *PrivateMessageNotifier) Notify(message *domain.PrivateMessage) error {
-	responseData := &NotifyPrivateMessageResponseData{
-		ID:       message.ID(),
-		SenderID: message.SenderID(),
-		State:    message.State(),
-		Content:  message.Content(),
-		SentAt:   message.SentAt(),
-	}
-
-	data, err := json.Marshal(responseData)
-	if err != nil {
-		return err
-	}
-
-	return n.manager.SendTo(message.RecipientID(), &websocket.Response{
-		Topic:   NotifyPrivateMessageTopic,
-		Payload: data,
+	return n.manager.SendTo(message.RecipientID(), &websocket.Message{
+		Topic: NotifyPrivateMessageTopic,
+		Body: &NotifyPrivateMessageBody{
+			ID:       message.ID(),
+			SenderID: message.SenderID(),
+			State:    message.State(),
+			Content:  message.Content(),
+			SentAt:   message.SentAt(),
+		},
 	})
 }

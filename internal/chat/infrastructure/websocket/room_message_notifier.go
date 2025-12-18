@@ -1,7 +1,6 @@
 package websocket
 
 import (
-	"encoding/json"
 	"gochat/internal/chat/domain"
 	"gochat/internal/infrastructure/websocket"
 	"gochat/internal/shared/kernel"
@@ -12,7 +11,7 @@ var _ domain.RoomMessageNotifier = (*RoomMessageNotifier)(nil)
 
 const NotifyRoomMessageTopic websocket.Topic = "chat.notify_room_message"
 
-type NotifyRoomMessageResponseData struct {
+type NotifyRoomMessageBody struct {
 	ID       kernel.MessageID                      `json:"id"`
 	SenderID kernel.UserID                         `json:"sender_id"`
 	RoomID   kernel.RoomID                         `json:"room_id"`
@@ -30,22 +29,15 @@ func NewRoomMessageNotifier(manager *websocket.Manager) *RoomMessageNotifier {
 }
 
 func (n *RoomMessageNotifier) Notify(message *domain.RoomMessage, recipients []kernel.UserID) ([]kernel.UserID, error) {
-	responseData := &NotifyRoomMessageResponseData{
-		ID:       message.ID(),
-		SenderID: message.SenderID(),
-		RoomID:   message.RoomID(),
-		States:   message.States(),
-		Content:  message.Content(),
-		SentAt:   message.SentAt(),
-	}
-
-	data, err := json.Marshal(responseData)
-	if err != nil {
-		return nil, err
-	}
-
-	return n.manager.Broadcast(recipients, &websocket.Response{
-		Topic:   NotifyRoomMessageTopic,
-		Payload: data,
+	return n.manager.Broadcast(recipients, &websocket.Message{
+		Topic: NotifyRoomMessageTopic,
+		Body: &NotifyRoomMessageBody{
+			ID:       message.ID(),
+			SenderID: message.SenderID(),
+			RoomID:   message.RoomID(),
+			States:   message.States(),
+			Content:  message.Content(),
+			SentAt:   message.SentAt(),
+		},
 	})
 }

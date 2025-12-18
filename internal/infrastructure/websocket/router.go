@@ -13,11 +13,6 @@ type Request struct {
 	Payload json.RawMessage `json:"payload,omitempty"`
 }
 
-type Response struct {
-	Topic   Topic `json:"topic"`
-	Payload any   `json:"payload,omitempty"`
-}
-
 type Router struct {
 	validator   Validator
 	handlers    map[Topic]Handler
@@ -51,26 +46,26 @@ func (r *Router) Handle(topic Topic, h Handler, middlewares ...Middleware) {
 	r.handlers[topic] = wrapped
 }
 
-func (r *Router) Route(ctx context.Context, message []byte) *Response {
+func (r *Router) Route(ctx context.Context, payload []byte) *Message {
 	request := new(Request)
-	if err := json.Unmarshal(message, request); err != nil {
-		return &Response{
-			Payload: api.NewResponse(api.CodeInvalidParam),
+	if err := json.Unmarshal(payload, request); err != nil {
+		return &Message{
+			Body: api.NewResponse(api.CodeInvalidParam),
 		}
 	}
 
 	msg, err := r.validator.Validate(ctx, request)
 	if err != nil {
-		return &Response{
-			Topic:   request.Topic,
-			Payload: api.NewResponse(api.CodeServerError),
+		return &Message{
+			Topic: request.Topic,
+			Body:  api.NewResponse(api.CodeServerError),
 		}
 	}
 
 	if len(msg) != 0 {
-		return &Response{
-			Topic:   request.Topic,
-			Payload: api.NewResponseWithMessage(api.CodeInvalidParam, msg),
+		return &Message{
+			Topic: request.Topic,
+			Body:  api.NewResponseWithMessage(api.CodeInvalidParam, msg),
 		}
 	}
 
@@ -80,15 +75,15 @@ func (r *Router) Route(ctx context.Context, message []byte) *Response {
 			h = r.notFound
 		} else {
 			zap.L().Warn("websocket: topic is not found", zap.String("topic", request.Topic.String()))
-			return &Response{
-				Topic:   request.Topic,
-				Payload: api.NewResponse(api.CodeNotFound),
+			return &Message{
+				Topic: request.Topic,
+				Body:  api.NewResponse(api.CodeNotFound),
 			}
 		}
 	}
 
-	return &Response{
-		Topic:   request.Topic,
-		Payload: h.Handle(SetTopic(ctx, request.Topic), request.Payload),
+	return &Message{
+		Topic: request.Topic,
+		Body:  h.Handle(SetTopic(ctx, request.Topic), request.Payload),
 	}
 }
