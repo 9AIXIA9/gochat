@@ -8,11 +8,6 @@ import (
 	"go.uber.org/zap"
 )
 
-type Request struct {
-	Topic   Topic           `json:"topic" validate:"required"`
-	Payload json.RawMessage `json:"payload,omitempty"`
-}
-
 type Router struct {
 	validator   Validator
 	handlers    map[Topic]Handler
