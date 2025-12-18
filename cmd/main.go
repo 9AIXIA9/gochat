@@ -67,8 +67,13 @@ func main() {
 	//启动各个组件
 	dependencies.EmailNotifier.Start()
 	dependencies.KafkaEventPublisher.Start()
-	if err := dependencies.KafkaConsumer.Start(); err != nil {
-		zap.L().Fatal("start kafka event subscriber failed", zap.Error(err))
+	for _, c := range dependencies.KafkaConsumers {
+		if c == nil { // safety
+			continue
+		}
+		if err := c.Start(); err != nil {
+			zap.L().Fatal("start kafka event subscriber failed", zap.Error(err))
+		}
 	}
 	dependencies.BinlogReader.Start()
 	dependencies.HttpServer.Start()
@@ -89,7 +94,11 @@ func main() {
 
 	dependencies.EmailNotifier.Close()
 	dependencies.KafkaEventPublisher.Close()
-	dependencies.KafkaConsumer.Close()
+	for i := len(dependencies.KafkaConsumers) - 1; i >= 0; i-- {
+		if dependencies.KafkaConsumers[i] != nil {
+			dependencies.KafkaConsumers[i].Close()
+		}
+	}
 	dependencies.BinlogReader.Close()
 
 	if closeOtel != nil {

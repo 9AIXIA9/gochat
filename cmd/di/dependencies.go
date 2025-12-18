@@ -10,7 +10,7 @@ import (
 type Dependencies struct {
 	HttpServer          *ginutils.Server
 	KafkaEventPublisher *kafkautil.EventPublisher
-	KafkaConsumer       *kafkautil.Consumer
+	KafkaConsumers      []*kafkautil.Consumer
 	BinlogReader        *canalUtil.BinlogReader
 	EmailNotifier       *gomailUtil.EmailNotifier
 }
@@ -18,19 +18,31 @@ type Dependencies struct {
 func BuildDependencies(
 	httpServer *ginutils.Server,
 	kafkaPublisher *kafkautil.EventPublisher,
-	kafkaConsumer *kafkautil.Consumer,
+	// per-context consumers (distinct types for Wire)
+	authConsumer AuthKafkaConsumer,
+	profileConsumer ProfileKafkaConsumer,
+	chatConsumer ChatKafkaConsumer,
+	notificationConsumer NotificationKafkaConsumer,
+	roomshipConsumer RoomshipKafkaConsumer,
+	friendshipConsumer FriendshipKafkaConsumer,
 	binlogReader *canalUtil.BinlogReader,
 	emailNotifier *gomailUtil.EmailNotifier,
 	_ emailServiceAvailable,
-	_ kafkaTopicEnsured,
 	_ databaseMigrated,
 ) (*Dependencies, error) {
 	deps := &Dependencies{
 		HttpServer:          httpServer,
 		KafkaEventPublisher: kafkaPublisher,
-		KafkaConsumer:       kafkaConsumer,
-		BinlogReader:        binlogReader,
-		EmailNotifier:       emailNotifier,
+		KafkaConsumers: []*kafkautil.Consumer{
+			authConsumer,
+			profileConsumer,
+			chatConsumer,
+			notificationConsumer,
+			roomshipConsumer,
+			friendshipConsumer,
+		},
+		BinlogReader:  binlogReader,
+		EmailNotifier: emailNotifier,
 	}
 	return deps, nil
 }
