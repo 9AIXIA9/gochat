@@ -2,7 +2,6 @@ package di
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"gochat/config"
 	authApp "gochat/internal/authorization/application"
@@ -26,7 +25,6 @@ import (
 	roomshipApp "gochat/internal/roomship/application"
 	roomshipDomain "gochat/internal/roomship/domain"
 	roomshipEvent "gochat/internal/roomship/port/event"
-	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 
 	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
@@ -36,13 +34,11 @@ import (
 
 type (
 	kafkaTopicEnsured bool
-	retryJudge        func(error) bool
 )
 
 var KafkaSet = wire.NewSet(
 	provideTopicsEnsured,
 	provideKafkaRouter,
-	provideRetryJudge,
 	provideKafkaConsumer,
 	provideKafkaProducer,
 )
@@ -52,7 +48,6 @@ func provideKafkaConsumer(
 	router *kafkaInfra.Router,
 	reproducer *ckafka.Producer,
 	eventRepo event.Repository,
-	retrier retryJudge,
 ) (*kafkaInfra.Consumer, error) {
 	consumer, err := kafkaInfra.NewConsumer(appConfig.Kafka, router)
 	if err != nil {
@@ -61,10 +56,7 @@ func provideKafkaConsumer(
 
 	consumer.SetErrorHandler(
 		handler.NewLoggerErrorHandler(),
-		middleware.NewRetryErrorMiddleware(
-			reproducer,
-			retrier,
-		),
+		middleware.NewRetryErrorMiddleware(reproducer),
 		middleware.NewDeadLetterErrorMiddleware(
 			eventRepo,
 		),
@@ -79,18 +71,6 @@ func provideKafkaProducer(appConf *config.App) (*ckafka.Producer, error) {
 		return nil, fmt.Errorf("failed to create Kafka producer: %w", err)
 	}
 	return producer, nil
-}
-
-func provideRetryJudge() retryJudge {
-	return func(err error) bool {
-		if errors.Is(err, myErrors.ErrNotFound) ||
-			errors.Is(err, friendshipDomain.ErrFriendRequestNotAgreed) ||
-			errors.Is(err, roomshipDomain.ErrNotAdmin) ||
-			errors.Is(err, myErrors.ErrChanIsFull) {
-			return true
-		}
-		return false
-	}
 }
 
 // TODO 各上下文 分开订阅 添加中间件

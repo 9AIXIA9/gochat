@@ -18,20 +18,9 @@ const (
 
 func NewRetryErrorMiddleware(
 	producer *ckafka.Producer,
-	isRetriableError func(error) bool,
 ) kafka.ErrorMiddleware {
-	if isRetriableError == nil {
-		isRetriableError = func(err error) bool {
-			return false
-		}
-	}
 	return func(next kafka.ErrorHandler) kafka.ErrorHandler {
 		return kafka.ErrorHandlerFunc(func(ctx context.Context, err error, message *ckafka.Message) {
-			if !isRetriableError(err) {
-				next.Handle(ctx, err, message)
-				return
-			}
-
 			//进行重试
 			var retry int
 			found := false

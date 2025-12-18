@@ -289,8 +289,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	diRetryJudge := provideRetryJudge()
-	consumer, err := provideKafkaConsumer(appConfig, kafkaRouter, producer, eventRepository, diRetryJudge)
+	consumer, err := provideKafkaConsumer(appConfig, kafkaRouter, producer, eventRepository)
 	if err != nil {
 		return nil, err
 	}
