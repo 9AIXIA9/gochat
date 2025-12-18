@@ -26,6 +26,9 @@ func NewTelemetryMiddleware(serviceName string) websocket.Middleware {
 				attribute.String("websocket.user_id", utils.GetUserID(ctx).String()),
 				attribute.Float64("websocket.duration_seconds", dur),
 			)
+			if err := utils.GetError(ctx); err != nil {
+				span.RecordError(err)
+			}
 			span.End()
 			return resp
 		})
