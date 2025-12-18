@@ -42,6 +42,11 @@ func provideWebsocketRouter(
 		middleware.NewTelemetryMiddleware(appConfig.Name),
 	)
 
+	if appConfig.Breaker != nil {
+		appConfig.Breaker.Name = appConfig.Name + "_websocket_circuit_breaker"
+		router.Use(middleware.NewCircuitBreakMiddleware(appConfig.Breaker))
+	}
+
 	router.NoRoute(websocketDelivery.NewNotFoundHandler())
 
 	{

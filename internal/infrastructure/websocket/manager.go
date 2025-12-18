@@ -73,8 +73,8 @@ func (m *Manager) UnregisterClient(target *Client) (id kernel.UserID, found bool
 	return
 }
 
-func (m *Manager) SendTo(id kernel.UserID, resp *Response) error {
-	respData, err := json.Marshal(resp)
+func (m *Manager) SendTo(id kernel.UserID, msg *Message) error {
+	msgBytes, err := json.Marshal(msg)
 	if err != nil {
 		return err
 	}
@@ -83,7 +83,7 @@ func (m *Manager) SendTo(id kernel.UserID, resp *Response) error {
 	c, ok := m.clients[id]
 	m.mu.RUnlock()
 	if ok {
-		if err := c.Send(respData); err != nil {
+		if err := c.Send(msgBytes); err != nil {
 			return err
 		}
 		return nil
@@ -91,8 +91,8 @@ func (m *Manager) SendTo(id kernel.UserID, resp *Response) error {
 	return myErrors.ErrNotFound
 }
 
-func (m *Manager) Broadcast(ids []kernel.UserID, resp *Response) ([]kernel.UserID, error) {
-	respData, err := json.Marshal(resp)
+func (m *Manager) Broadcast(ids []kernel.UserID, msg *Message) ([]kernel.UserID, error) {
+	msgBytes, err := json.Marshal(msg)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func (m *Manager) Broadcast(ids []kernel.UserID, resp *Response) ([]kernel.UserI
 	idsSuccess := make([]kernel.UserID, 0, len(ids))
 	for _, id := range ids {
 		if c, ok := m.clients[id]; ok {
-			if err := c.Send(respData); err != nil {
+			if err := c.Send(msgBytes); err != nil {
 				continue
 			}
 			idsSuccess = append(idsSuccess, id)

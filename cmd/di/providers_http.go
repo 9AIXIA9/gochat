@@ -17,6 +17,7 @@ import (
 	"github.com/google/wire"
 	gorillaWebsocket "github.com/gorilla/websocket"
 	"github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
 
 	"gochat/config"
 	authHTTP "gochat/internal/authorization/port/http"
@@ -107,6 +108,13 @@ func provideHttpRouter(
 	// 遥测追踪中间件
 	if appConfig.Telemetry != nil && appConfig.Telemetry.Enabled && appConfig.Telemetry.TraceEnabled {
 		baseGroup.Use(middleware.NewTelemetryMiddleware(appConfig.Name))
+	}
+
+	// 断路器中间件
+	if appConfig.Breaker != nil {
+		zap.L().Info("Enable Circuit Breaker Middleware")
+		appConfig.Breaker.Name = appConfig.Name + "_http_circuit_breaker"
+		baseGroup.Use(middleware.NewCircuitBreakMiddleware(appConfig.Breaker))
 	}
 
 	// WebSocket路由

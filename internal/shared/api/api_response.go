@@ -1,11 +1,12 @@
 package api
 
 var (
-	ResponseSuccess      = NewResponse(CodeSuccess)
-	ResponseServerError  = NewResponse(CodeServerError)
-	ResponseTimeout      = NewResponse(CodeTimeout)
-	ResponseInvalidToken = NewResponse(CodeInvalidToken)
-	ResponseInvalidParam = NewResponse(CodeInvalidParam)
+	ResponseSuccess            = NewResponse(CodeSuccess)
+	ResponseServerError        = NewResponse(CodeServerError)
+	ResponseTimeout            = NewResponse(CodeTimeout)
+	ResponseInvalidToken       = NewResponse(CodeInvalidToken)
+	ResponseInvalidParam       = NewResponse(CodeInvalidParam)
+	ResponseServiceUnavailable = NewResponse(CodeServiceUnavailable)
 )
 
 type Response struct {

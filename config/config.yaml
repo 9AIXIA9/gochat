@@ -92,3 +92,11 @@ Telemetry:
   OTLPEndpoint: ${TELEMETRY_OTLP_HOST}:${TELEMETRY_OTLP_PORT}
   ServiceVersion: ${TELEMETRY_SERVICE_VERSION}
   Environment: ${TELEMETRY_ENVIRONMENT}
+
+Breaker:
+  MaxRequests: 5
+  Interval: 60s
+  Timeout: 30s
+  BucketPeriod: 1m
+  ErrorRate: 0.50
+  ErrorThreshold: 20

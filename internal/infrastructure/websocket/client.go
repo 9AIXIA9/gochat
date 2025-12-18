@@ -110,15 +110,15 @@ func (c *Client) readPump() {
 			return
 		}
 
-		resp := c.router.Route(c.ctx, message)
-		if resp != nil {
-			respBytes, err := json.Marshal(resp)
+		msg := c.router.Route(c.ctx, message)
+		if msg != nil {
+			msgBytes, err := json.Marshal(msg)
 			if err != nil {
-				zap.L().Error("websocket client marshal response failed", zap.Error(err))
+				zap.L().Error("websocket client marshal message failed", zap.Error(err))
 				continue
 			}
-			if err := c.Send(respBytes); err != nil {
-				zap.L().Error("websocket client send response failed", zap.Error(err))
+			if err := c.Send(msgBytes); err != nil {
+				zap.L().Error("websocket client send message failed", zap.Error(err))
 			}
 		}
 	}

@@ -6,6 +6,7 @@ import (
 	"gochat/internal/authorization/infrastructure/jwt"
 	"gochat/internal/delivery/http/middleware"
 	"gochat/internal/infrastructure/bcrypt"
+	"gochat/internal/infrastructure/breaker"
 	"gochat/internal/infrastructure/canal"
 	"gochat/internal/infrastructure/gorm"
 	"gochat/internal/infrastructure/kafka"
@@ -44,6 +45,7 @@ type App struct {
 	BinlogReader *canal.BinlogReaderConfig   `mapstructure:"BinlogReader"`
 	Email        *gomail.EmailNotifierConfig `mapstructure:"Email"`
 	Telemetry    *otel.TelemetryConfig       `mapstructure:"Telemetry"`
+	Breaker      *breaker.Config             `mapstructure:"Breaker"`
 }
 
 func (c *App) Validate() error {
@@ -108,6 +110,9 @@ func (c *App) Validate() error {
 	}
 	if err := c.Telemetry.Validate(); err != nil {
 		return fmt.Errorf("App.Telemetry: %w", err)
+	}
+	if err := c.Breaker.Validate(); err != nil {
+		return fmt.Errorf("App.Breaker: %w", err)
 	}
 	return nil
 }

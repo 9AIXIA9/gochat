@@ -14,6 +14,7 @@ const (
 	CodeInvalidParam
 	CodeInvalidToken
 	CodeNotFound
+	CodeServiceUnavailable
 )
 
 func (c Code) ToHTTPCode() int {
@@ -30,7 +31,8 @@ func (c Code) ToHTTPCode() int {
 		return http.StatusUnauthorized
 	case CodeNotFound:
 		return http.StatusNotFound
-
+	case CodeServiceUnavailable:
+		return http.StatusServiceUnavailable
 	default:
 		return http.StatusInternalServerError
 	}
@@ -48,6 +50,11 @@ func (c Code) String() string {
 		return "request timeout"
 	case CodeNotFound:
 		return "not found"
+	case CodeServiceUnavailable:
+		return "service unavailable"
+	case CodeServerError:
+		return "server error"
+
 	default:
 		return "unknown error"
 	}
