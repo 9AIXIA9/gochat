@@ -46,6 +46,7 @@ func AdaptUsecaseToHandler[
 			if myErrors.IsBusinessError(err) {
 				return api.NewResponseWithMessage(api.CodeSuccess, err.Error())
 			}
+			ctx = utils.SetError(ctx, err)
 			zap.L().Error(
 				"websocket usecase execute failed",
 				zap.String("user_id", utils.GetUserID(ctx).String()),

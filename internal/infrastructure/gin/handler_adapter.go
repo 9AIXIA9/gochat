@@ -51,7 +51,11 @@ func AdaptUseCaseToHandler[
 			if myErrors.IsBusinessError(err) {
 				ResponseWithMessage(ginContext, api.CodeSuccess, err.Error())
 			} else {
-				zap.L().Error("http handler failed", zap.Error(err))
+				zap.L().Error(
+					"http handler failed",
+					zap.String("path", ginContext.FullPath()),
+					zap.Error(err),
+				)
 				Response(ginContext, api.CodeServerError)
 			}
 			return
