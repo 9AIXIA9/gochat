@@ -39,7 +39,6 @@ func provideWebsocketRouter(
 	router.Use(
 		middleware.NewLoggerMiddleware(),
 		middleware.NewRecoverMiddleware(),
-		middleware.NewTelemetryMiddleware(appConfig.Name),
 	)
 
 	if appConfig.Breaker != nil {

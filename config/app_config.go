@@ -10,7 +10,6 @@ import (
 	"gochat/internal/infrastructure/canal"
 	"gochat/internal/infrastructure/gorm"
 	"gochat/internal/infrastructure/kafka"
-	"gochat/internal/infrastructure/otel"
 	"gochat/internal/infrastructure/redis"
 	"gochat/internal/infrastructure/zap"
 	"gochat/internal/notification/infrastructure/gomail"
@@ -44,7 +43,6 @@ type App struct {
 	RateLimit    *middleware.RateLimitConfig `mapstructure:"RateLimit"`
 	BinlogReader *canal.BinlogReaderConfig   `mapstructure:"BinlogReader"`
 	Email        *gomail.EmailNotifierConfig `mapstructure:"Email"`
-	Telemetry    *otel.TelemetryConfig       `mapstructure:"Telemetry"`
 	Breaker      *breaker.Config             `mapstructure:"Breaker"`
 }
 
@@ -107,9 +105,6 @@ func (c *App) Validate() error {
 	}
 	if err := c.BinlogReader.Validate(); err != nil {
 		return fmt.Errorf("App.BinlogReader: %w", err)
-	}
-	if err := c.Telemetry.Validate(); err != nil {
-		return fmt.Errorf("App.Telemetry: %w", err)
 	}
 	if err := c.Breaker.Validate(); err != nil {
 		return fmt.Errorf("App.Breaker: %w", err)

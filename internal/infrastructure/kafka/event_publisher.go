@@ -7,7 +7,6 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"gochat/internal/infrastructure/prometheus"
 	"gochat/internal/shared/event"
 
 	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
@@ -19,7 +18,6 @@ var _ event.Publisher = (*EventPublisher)(nil)
 type EventPublisher struct {
 	publishResultChan chan ckafka.Event
 	producer          *ckafka.Producer
-	metrics           *prometheus.Metrics
 	onDelivered       func(event.ID) error
 	onFailed          func(ev event.Event, reason error) error
 
@@ -29,7 +27,6 @@ type EventPublisher struct {
 
 func NewEventPublisher(
 	config *Config,
-	metrics *prometheus.Metrics,
 	onDelivered func(event.ID) error,
 	onFailed func(ev event.Event, reason error) error,
 ) (*EventPublisher, error) {
@@ -55,7 +52,6 @@ func NewEventPublisher(
 	return &EventPublisher{
 		publishResultChan: make(chan ckafka.Event, 512),
 		producer:          producer,
-		metrics:           metrics,
 		onDelivered:       onDelivered,
 		onFailed:          onFailed,
 	}, nil
@@ -71,9 +67,6 @@ func (p *EventPublisher) Publish(ev event.Event) error {
 	}
 	message := p.getMessage(ev)
 	if err := p.producer.Produce(message, p.publishResultChan); err != nil {
-		if p.metrics != nil {
-			p.metrics.KafkaProduced.WithLabelValues(*message.TopicPartition.Topic, "error").Inc()
-		}
 		_ = p.onFailed(ev, err) // 入队失败释放 processing，并留给回调写死信
 		zap.L().Error("produce message failed", zap.Error(err))
 		return err
@@ -86,10 +79,6 @@ func (p *EventPublisher) processPublishingResponse() {
 		switch message := result.(type) {
 		case *ckafka.Message:
 			if err := message.TopicPartition.Error; err != nil {
-				// 送达失败：标记未处理并记录
-				if p.metrics != nil {
-					p.metrics.KafkaProduced.WithLabelValues(*message.TopicPartition.Topic, "error").Inc()
-				}
 				_ = p.onFailed(p.parseMessage(message), err)
 				continue
 			}
@@ -100,8 +89,6 @@ func (p *EventPublisher) processPublishingResponse() {
 					zap.String("event_id", message.Opaque.(event.ID).String()),
 					zap.Error(err),
 				)
-			} else if p.metrics != nil {
-				p.metrics.KafkaProduced.WithLabelValues(*message.TopicPartition.Topic, "success").Inc()
 			}
 		case ckafka.Error:
 			zap.L().Error("kafka producer error", zap.Error(message))

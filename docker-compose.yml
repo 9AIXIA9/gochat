@@ -87,60 +87,6 @@ services:
       timeout: 5s
       retries: 30
 
-  prometheus:
-    image: prom/prometheus:v2.54.1
-    container_name: gochat-prometheus
-    restart: unless-stopped
-    depends_on:
-      app:
-        condition: service_started
-    ports:
-      - '${PROMETHEUS_HOST_PORT:-9090}:9090'
-    volumes:
-      - ./config/service/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus-data:/prometheus
-    command: [
-      "--config.file=/etc/prometheus/prometheus.yml",
-      "--storage.tsdb.path=/prometheus",
-      "--storage.tsdb.retention.time=15d",
-      "--web.enable-lifecycle"
-    ]
-    healthcheck:
-      test: [ "CMD", "wget", "-qO-", "http://localhost:9090/-/ready" ]
-      interval: 10s
-      timeout: 5s
-      retries: 30
-    environment:
-      TZ: ${TZ:-Asia/Shanghai}
-  grafana:
-    image: grafana/grafana:11.2.0
-    container_name: gochat-grafana
-    depends_on:
-      prometheus:
-        condition: service_started
-    ports:
-      - '${GRAFANA_HOST_PORT:-3000}:3000'
-    volumes:
-      - ./config/service/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
-      - ./config/service/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
-      - ./config/service/grafana/dashboards:/etc/grafana/dashboards:ro
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - TZ=${TZ:-Asia/Shanghai}
-    restart: unless-stopped
-
-  jaeger:
-    image: jaegertracing/all-in-one:1.57
-    container_name: gochat-jaeger
-    environment:
-      - COLLECTOR_OTLP_ENABLED=true
-      - TZ=${TZ:-Asia/Shanghai}
-    ports:
-      - "16686:16686"        # UI
-      - "14268:14268"        # HTTP collector
-      - "4318:4318"          # OTLP HTTP
-    restart: unless-stopped
   app:
     build:
       context: .
@@ -176,7 +122,4 @@ volumes:
     name: gochat-redis-data
   kafka-data:
     name: gochat-kafka-data
-    driver: local
-  prometheus-data:
-    name: gochat-prometheus-data
     driver: local

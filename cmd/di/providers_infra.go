@@ -17,7 +17,6 @@ import (
 	gormInfra "gochat/internal/infrastructure/gorm"
 	kafkautil "gochat/internal/infrastructure/kafka"
 	"gochat/internal/infrastructure/persistence/repository"
-	"gochat/internal/infrastructure/prometheus"
 	redisInfra "gochat/internal/infrastructure/redis"
 	"gochat/internal/infrastructure/uuid"
 	validatorInfra "gochat/internal/infrastructure/validator"
@@ -45,7 +44,6 @@ var InfraSet = wire.NewSet(
 	provideRedis,
 	provideKafkaPublisher,
 	provideValidator,
-	provideMetrics,
 	// Generators & managers (concrete providers)
 	provideEventIDGenerator,
 	provideAuthorizationUserIDGenerator,
@@ -104,8 +102,6 @@ func provideRedis(appConfig *config.App) (*redis.Client, error) {
 }
 
 func provideValidator() (*validatorInfra.Validator, error) { return validatorInfra.NewValidator() }
-
-func provideMetrics() *prometheus.Metrics { return prometheus.NewMetrics(nil) }
 
 func provideEventIDGenerator() *uuid.EventIDGenerator {
 	return uuid.NewEventIDGenerator()
@@ -166,10 +162,9 @@ func providePrivateMessageNotifier(manager *websocket.Manager) *chatWebsocket.Pr
 func provideRoomMessageNotifier(manager *websocket.Manager) *chatWebsocket.RoomMessageNotifier {
 	return chatWebsocket.NewRoomMessageNotifier(manager)
 }
-func provideKafkaPublisher(appConfig *config.App, eventRepo *repository.EventRepository, metrics *prometheus.Metrics) (*kafkautil.EventPublisher, error) {
+func provideKafkaPublisher(appConfig *config.App, eventRepo *repository.EventRepository) (*kafkautil.EventPublisher, error) {
 	return kafkautil.NewEventPublisher(
 		appConfig.Kafka,
-		metrics,
 		func(id event.ID) error {
 			return eventRepo.MarkAsPublishedAndNotProcessing(context.Background(), id)
 		},

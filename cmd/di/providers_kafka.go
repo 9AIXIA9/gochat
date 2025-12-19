@@ -96,7 +96,6 @@ func buildKafkaConsumer(
 	router.Use(
 		middleware.NewLoggerMiddleware(),
 		middleware.NewRecoverMiddleware(),
-		middleware.NewTelemetryMiddleware(appConfig.Name),
 	)
 	register(router)
 

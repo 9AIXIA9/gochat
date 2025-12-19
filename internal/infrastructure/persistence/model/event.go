@@ -13,8 +13,7 @@ type Event struct {
 	Published   bool        `gorm:"not null;default:false;index"`
 	Processing  bool        `gorm:"not null;default:false;index"`
 	Payload     []byte
-
-	CreatedAt time.Time
+	CreatedAt   time.Time
 }
 
 func (e *Event) TableName() string {
