@@ -1,21 +1,31 @@
 services:
   mysql:
     image: mysql:8.0.40
+    hostname: mysql
     container_name: gochat-mysql
-    env_file:
-      - config/service/.env.db
     environment:
       TZ: ${TZ:-Asia/Shanghai}
+      # MySQL 容器内部环境变量
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: gochat
+      MYSQL_USER: gochat_app
+      MYSQL_PASSWORD: gochat
+      # 初始化脚本使用的变量
+      BINLOG_USER: binlog
+      BINLOG_PASSWORD: binlog
     command: [
       "mysqld",
       "--default-authentication-plugin=mysql_native_password",
+      "--character-set-server=utf8mb4",
+      "--collation-server=utf8mb4_unicode_ci",
       "--binlog-format=ROW",
       "--server-id=1",
       "--gtid-mode=ON",
       "--enforce-gtid-consistency=ON",
       "--log-bin=mysql-bin",
       "--binlog-row-image=FULL",
-      "--binlog_expire_logs_seconds=604800"
+      "--binlog_expire_logs_seconds=604800",  # 7天
+      "--binlog_row_metadata=MINIMAL"  #减少 Binlog大小
     ]
     ports:
       - '${MYSQL_HOST_PORT:-13306}:3306'
@@ -32,10 +42,12 @@ services:
   redis:
     image: redis:7.0-alpine
     container_name: gochat-redis
-    env_file:
-      - config/service/.env.redis
+    hostname: redis
     environment:
       TZ: ${TZ:-Asia/Shanghai}
+      REDIS_ROOT_PASSWORD: root
+      REDIS_USER: gochat_app
+      REDIS_PASSWORD: gochat
     # 使用 ACL 文件定义用户/权限
     command: [ "sh", "-lc", "exec redis-server --appendonly yes --aclfile /etc/redis/users.acl" ]
     ports:
@@ -44,41 +56,27 @@ services:
       - redis-data:/data
       - ./deployment/redis_init/init_users.acl:/etc/redis/users.acl:ro
     healthcheck:
-      # 默认用户仅允许 ping/info；密码来自 .env.redis 中的 REDIS_ROOT_PASSWORD
+      # 默认用户仅允许 ping/info 密码来自环境中
       test: [ "CMD-SHELL", "redis-cli -a \"$REDIS_ROOT_PASSWORD\" ping || exit 1" ]
       interval: 5s
       timeout: 3s
       retries: 20
 
-  broker:
+  kafka:
     image: apache/kafka-native:4.1.0
-    hostname: kafka-dev
-    container_name: kafka-dev
-    user: '0:0'
+    container_name: gochat-kafka
+    hostname: kafka
     ports:
-      # 将宿主机端口映射到容器内 EXTERNAL 监听端口 9092
-      - '${KAFKA_HOST_PORT:-9092}:9092'
-    env_file:
-      - config/service/.env.kafka
+      - '9092:9092'  # 外部访问端口
     environment:
-      TZ: ${TZ:-Asia/Shanghai}
-      KAFKA_OPTS: "-Duser.timezone=${TZ:-Asia/Shanghai}"
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_NODE_ID: 1
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-dev:29093
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:29093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
 
-      # 监听器配置需动态组合宿主机IP和端口，保留在environment中
-      KAFKA_ADVERTISED_LISTENERS: >-
-        PLAINTEXT://broker:19092,
-        EXTERNAL://localhost:${KAFKA_HOST_PORT:-9092}
-      KAFKA_LISTENERS: >-
-        CONTROLLER://:29093,
-        PLAINTEXT://:19092,
-        EXTERNAL://:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: >-
-        CONTROLLER:PLAINTEXT,
-        PLAINTEXT:PLAINTEXT,
-        EXTERNAL:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     volumes:
       - kafka-data:/var/lib/kafka/data
     healthcheck:
@@ -88,16 +86,17 @@ services:
       retries: 30
 
   app:
+    hostname: app
+    container_name: gochat-backend
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: gochat-backend
     depends_on:
       mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
-      broker:
+      kafka:
         condition: service_healthy
     restart: unless-stopped
     env_file:
