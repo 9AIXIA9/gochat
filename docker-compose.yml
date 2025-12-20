@@ -80,14 +80,14 @@ services:
     volumes:
       - kafka-data:/var/lib/kafka/data
     healthcheck:
-      test: [ "CMD-SHELL", "ps | grep -q '[k]afka.Kafka' || exit 1" ]
+      test: [ "CMD-SHELL", "nc -z localhost 9092 && nc -z localhost 29093 || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 30
 
   app:
-    hostname: app
     container_name: gochat-backend
+    hostname: app
     build:
       context: .
       dockerfile: Dockerfile
