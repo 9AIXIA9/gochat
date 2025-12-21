@@ -12,7 +12,6 @@ import (
 	profileApp "gochat/internal/profile/application"
 	roomshipApp "gochat/internal/roomship/application"
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
@@ -73,18 +72,7 @@ func provideHttpRouter(
 	redisClient *redis.Client,
 	websocketHandler *handler.WebsocketHandler,
 ) *gin.Engine {
-	// 设置Gin模式，兼容 dev/production 等别名
-	switch strings.ToLower(appConfig.Env) {
-	case "dev", "development", "debug":
-		gin.SetMode(gin.DebugMode)
-	case "prod", "production", "release":
-		gin.SetMode(gin.ReleaseMode)
-	case gin.TestMode:
-		gin.SetMode(gin.TestMode)
-	default:
-		gin.SetMode(gin.DebugMode)
-		zap.L().Warn("unknown gin mode, fallback to debug", zap.String("env", appConfig.Env))
-	}
+	ginInfra.SetGlobalEnv(appConfig.Env)
 
 	// 初始化Gin路由器
 	router := gin.New()
