@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -10,19 +9,18 @@ import (
 
 func NewLoggerMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if strings.Contains(c.FullPath(), "/health_check") ||
-			strings.Contains(c.FullPath(), "/swagger") {
-			c.Next()
-			return
-		}
-
 		start := time.Now().UTC()
 		c.Next()
 		dur := time.Since(start)
+		path := c.FullPath()
+		if path == "" {
+			path = c.Request.URL.Path
+		}
 		zap.L().Info(
 			"request completed",
 			zap.String("method", c.Request.Method),
-			zap.String("path", c.FullPath()),
+			zap.String("path", path),
+			zap.String("query", c.Request.URL.RawQuery),
 			zap.Int("status", c.Writer.Status()),
 			zap.Duration("latency", dur),
 			zap.Error(c.Errors.Last()),
