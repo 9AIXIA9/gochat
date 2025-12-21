@@ -436,7 +436,7 @@ definitions:
     required:
     - room_id
     type: object
-host: localhost:8888
+host: localhost:8080
 info:
   contact:
     email: support@example.com

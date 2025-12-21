@@ -1,7 +1,7 @@
 Name: gochat
 Env: ${Env}
 Host: 0.0.0.0
-Port: 8888
+Port: 8080
 MachineNode: 1
 Timeout: ${REQUEST_TIMEOUT}
 
