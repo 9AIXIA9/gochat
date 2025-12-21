@@ -6,6 +6,7 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/plugin/opentelemetry/tracing"
 )
 
 func ConnectToMysql(config *MysqlConfig) (*gorm.DB, error) {
@@ -32,6 +33,9 @@ func ConnectToMysql(config *MysqlConfig) (*gorm.DB, error) {
 			}
 		}()
 		return nil, fmt.Errorf("connect to mysql failed,err:%w", err)
+	}
+	if err := db.Use(tracing.NewPlugin()); err != nil {
+		return nil, fmt.Errorf("register gorm otel plugin failed: %w", err)
 	}
 	return db, nil
 }
