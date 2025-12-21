@@ -7,6 +7,7 @@ var (
 	ResponseInvalidToken       = NewResponse(CodeInvalidToken)
 	ResponseInvalidParam       = NewResponse(CodeInvalidParam)
 	ResponseServiceUnavailable = NewResponse(CodeServiceUnavailable)
+	ResponseNotFound           = NewResponse(CodeNotFound)
 )
 
 type Response struct {
