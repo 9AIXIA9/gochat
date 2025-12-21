@@ -320,8 +320,12 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	}
 	eventHandler := provideCanalBinlogReaderHandler(unpublishedEventsCreatedUseCase)
 	binlogReader := provideCanalBinlogReader(canal, eventHandler)
+	otelShutdown, err := provideObservability(appConfig)
+	if err != nil {
+		return nil, err
+	}
 	diDatabaseMigrated := provideDatabaseMigrated(db)
-	dependencies, err := BuildDependencies(server, eventPublisher, authKafkaConsumer, profileKafkaConsumer, chatKafkaConsumer, notificationKafkaConsumer, roomshipKafkaConsumer, friendshipKafkaConsumer, binlogReader, emailNotifier, diEmailServiceAvailable, diDatabaseMigrated)
+	dependencies, err := BuildDependencies(server, eventPublisher, authKafkaConsumer, profileKafkaConsumer, chatKafkaConsumer, notificationKafkaConsumer, roomshipKafkaConsumer, friendshipKafkaConsumer, binlogReader, emailNotifier, otelShutdown, diEmailServiceAvailable, diDatabaseMigrated)
 	if err != nil {
 		return nil, err
 	}

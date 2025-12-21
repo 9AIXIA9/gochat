@@ -91,3 +91,9 @@ Breaker:
   BucketPeriod: 1m
   ErrorRate: 0.50
   ErrorThreshold: 20
+
+OTEL:
+  Endpoint: ${OTEL_ENDPOINT}
+  ServiceName: ${OTEL_SERVICE_NAME}
+  Environment: ${Env}
+  Insecure: true

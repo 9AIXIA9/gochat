@@ -10,6 +10,7 @@ import (
 	"gochat/internal/infrastructure/canal"
 	"gochat/internal/infrastructure/gorm"
 	"gochat/internal/infrastructure/kafka"
+	"gochat/internal/infrastructure/otel"
 	"gochat/internal/infrastructure/redis"
 	"gochat/internal/infrastructure/zap"
 	"gochat/internal/notification/infrastructure/gomail"
@@ -44,6 +45,7 @@ type App struct {
 	BinlogReader *canal.BinlogReaderConfig   `mapstructure:"BinlogReader"`
 	Email        *gomail.EmailNotifierConfig `mapstructure:"Email"`
 	Breaker      *breaker.Config             `mapstructure:"Breaker"`
+	OTEL         *otel.Config                `mapstructure:"OTEL"`
 }
 
 func (c *App) Validate() error {
@@ -108,6 +110,15 @@ func (c *App) Validate() error {
 	}
 	if err := c.Breaker.Validate(); err != nil {
 		return fmt.Errorf("App.Breaker: %w", err)
+	}
+	// OTEL is optional; validate only if provided
+	if c.OTEL != nil {
+		if c.OTEL.Endpoint == "" {
+			return fmt.Errorf("App.OTEL.Endpoint: %w", myErrors.ErrEmptyInput)
+		}
+		if c.OTEL.ServiceName == "" {
+			return fmt.Errorf("App.OTEL.ServiceName: %w", myErrors.ErrEmptyInput)
+		}
 	}
 	return nil
 }

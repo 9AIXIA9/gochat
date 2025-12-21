@@ -95,5 +95,11 @@ func main() {
 	}
 	dependencies.BinlogReader.Close()
 
+	if dependencies.OTELShutdown != nil {
+		if err := dependencies.OTELShutdown(ctx); err != nil {
+			zap.L().Error("shutdown otel failed", zap.Error(err))
+		}
+	}
+
 	zap.L().Info("server exited properly")
 }

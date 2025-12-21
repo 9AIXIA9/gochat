@@ -16,6 +16,7 @@ import (
 	ginutils "gochat/internal/infrastructure/gin"
 	gormInfra "gochat/internal/infrastructure/gorm"
 	kafkautil "gochat/internal/infrastructure/kafka"
+	infraotel "gochat/internal/infrastructure/otel"
 	"gochat/internal/infrastructure/persistence/repository"
 	redisInfra "gochat/internal/infrastructure/redis"
 	"gochat/internal/infrastructure/uuid"
@@ -37,9 +38,13 @@ import (
 	"gorm.io/gorm"
 )
 
-type emailServiceAvailable bool
+type (
+	emailServiceAvailable bool
+	OTELShutdown          func(context.Context) error
+)
 
 var InfraSet = wire.NewSet(
+	provideObservability,
 	provideMysql,
 	provideRedis,
 	provideKafkaPublisher,
@@ -93,6 +98,13 @@ var InfraSet = wire.NewSet(
 	wire.Bind(new(notificationDomain.WelcomeEmailNotifier), new(*gomailInfra.EmailNotifier)),
 	wire.Bind(new(notificationDomain.SystemMessageNotifier), new(*notificationWebsocket.SystemMessageNotifier)),
 )
+
+func provideObservability(cfg *config.App) (OTELShutdown, error) {
+	if cfg.OTEL == nil {
+		return func(context.Context) error { return nil }, nil
+	}
+	return infraotel.Init(cfg.OTEL)
+}
 
 func provideMysql(appConfig *config.App) (*gorm.DB, error) {
 	return gormInfra.ConnectToMysql(appConfig.Mysql)
