@@ -3,6 +3,7 @@ package http
 import (
 	"gochat/internal/friendship/application"
 	ginutils "gochat/internal/infrastructure/gin"
+	_ "gochat/internal/shared/api"
 	"gochat/internal/shared/kernel"
 
 	"github.com/gin-gonic/gin"

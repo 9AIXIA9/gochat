@@ -1858,7 +1858,8 @@ const docTemplate = `{
                 400,
                 401,
                 402,
-                403
+                403,
+                404
             ],
             "x-enum-varnames": [
                 "CodeSuccess",
@@ -1866,7 +1867,8 @@ const docTemplate = `{
                 "CodeTimeout",
                 "CodeInvalidParam",
                 "CodeInvalidToken",
-                "CodeNotFound"
+                "CodeNotFound",
+                "CodeServiceUnavailable"
             ]
         },
         "gochat_internal_shared_api.Response": {

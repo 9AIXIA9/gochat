@@ -200,6 +200,7 @@ definitions:
     - 401
     - 402
     - 403
+    - 404
     type: integer
     x-enum-varnames:
     - CodeSuccess
@@ -208,6 +209,7 @@ definitions:
     - CodeInvalidParam
     - CodeInvalidToken
     - CodeNotFound
+    - CodeServiceUnavailable
   gochat_internal_shared_api.Response:
     properties:
       code:

@@ -5,6 +5,8 @@ import (
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/shared/kernel"
 
+	_ "gochat/internal/shared/api"
+
 	"github.com/gin-gonic/gin"
 )
 
