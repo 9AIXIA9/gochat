@@ -17,6 +17,7 @@ import (
 	"github.com/google/wire"
 	gorillaWebsocket "github.com/gorilla/websocket"
 	"github.com/redis/go-redis/v9"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"go.uber.org/zap"
 
 	"gochat/config"
@@ -76,6 +77,9 @@ func provideHttpRouter(
 
 	// 初始化Gin路由器
 	router := gin.New()
+
+	// 链路追踪中间件）
+	router.Use(otelgin.Middleware(appConfig.Name))
 
 	// swagger base path 保持与路由前缀一致
 	docs.SwaggerInfo.BasePath = "/api/v1"
