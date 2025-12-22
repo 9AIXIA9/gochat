@@ -31,8 +31,7 @@ func provideWebsocketRouter(
 	validator websocket.Validator,
 	chatSendPrivateMessage chatApp.SendPrivateMessageUseCase,
 	chatSendRoomMessage chatApp.SendRoomMessageUseCase,
-	chatReadPrivateMessages chatApp.ReadPrivateMessagesUseCase,
-	chatReadRoomMessages chatApp.ReadRoomMessagesUseCase,
+
 ) *websocket.Router {
 	router := websocket.NewRouter(validator)
 
@@ -52,8 +51,6 @@ func provideWebsocketRouter(
 	{
 		router.Handle(chatWebsocket.SendPrivateMessageTopic, chatWebsocket.NewSendPrivateMessageHandler(chatSendPrivateMessage, validator))
 		router.Handle(chatWebsocket.SendRoomMessageTopic, chatWebsocket.NewSendRoomMessageHandler(chatSendRoomMessage, validator))
-		router.Handle(chatWebsocket.ReadPrivateMessagesTopic, chatWebsocket.NewReadPrivateMessagesHandler(chatReadPrivateMessages, validator))
-		router.Handle(chatWebsocket.ReadRoomMessagesTopic, chatWebsocket.NewReadRoomMessagesHandler(chatReadRoomMessages, validator))
 	}
 	return router
 }
