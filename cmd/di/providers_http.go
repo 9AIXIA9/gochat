@@ -53,6 +53,8 @@ func provideHttpRouter(
 	updateRoomProfile profileApp.UpdateRoomProfileUseCase,
 	sendPrivateMessage chatApp.SendPrivateMessageUseCase,
 	sendRoomMessage chatApp.SendRoomMessageUseCase,
+	readPrivateMessages chatApp.ReadPrivateMessagesUseCase,
+	readRoomMessages chatApp.ReadRoomMessagesUseCase,
 	listPrivateMessages chatApp.ListPrivateMessagesUseCase,
 	listRoomMessages chatApp.ListRoomMessagesUseCase,
 	createRoom roomshipApp.CreateRoomUseCase,
@@ -151,6 +153,8 @@ func provideHttpRouter(
 		chatGroup.GET("/room", chatHTTP.NewListRoomMessagesHandler(listRoomMessages, validator))
 		chatGroup.POST("/private", chatHTTP.NewSendPrivateMessageHandler(sendPrivateMessage, validator))
 		chatGroup.POST("/room", chatHTTP.NewSendRoomMessageHandler(sendRoomMessage, validator))
+		chatGroup.PUT("/private/read", chatHTTP.NewReadPrivateMessagesHandler(readPrivateMessages, validator))
+		chatGroup.PUT("/room/read", chatHTTP.NewReadRoomMessagesHandler(readRoomMessages, validator))
 	}
 
 	// 房间功能路由

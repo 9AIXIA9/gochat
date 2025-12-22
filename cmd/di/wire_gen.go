@@ -85,6 +85,14 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
+	readPrivateMessagesUseCase, err := provideChatReadPrivateMessagesUseCase(privateMessageRepository)
+	if err != nil {
+		return nil, err
+	}
+	readRoomMessagesUseCase, err := provideChatReadRoomMessagesUseCase(roomMessageRepository)
+	if err != nil {
+		return nil, err
+	}
 	listPrivateMessagesUseCase, err := provideListPrivateMessagesUseCase(privateMessageRepository)
 	if err != nil {
 		return nil, err
@@ -166,21 +174,13 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 		return nil, err
 	}
 	upgrader := provideWebsocketUpgrader(appConfig)
-	readPrivateMessagesUseCase, err := provideChatReadPrivateMessagesUseCase(privateMessageRepository)
-	if err != nil {
-		return nil, err
-	}
-	readRoomMessagesUseCase, err := provideChatReadRoomMessagesUseCase(roomMessageRepository)
-	if err != nil {
-		return nil, err
-	}
-	router := provideWebsocketRouter(appConfig, validator, sendPrivateMessageUseCase, sendRoomMessageUseCase, readPrivateMessagesUseCase, readRoomMessagesUseCase)
+	router := provideWebsocketRouter(appConfig, validator, sendPrivateMessageUseCase, sendRoomMessageUseCase)
 	userSessionStartedUseCase, err := provideWebsocketUserSessionStartedUseCase(eventIDGenerator, eventRepository)
 	if err != nil {
 		return nil, err
 	}
 	websocketHandler := provideWebsocketHandler(upgrader, manager, router, userSessionStartedUseCase)
-	engine := provideHttpRouter(appConfig, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, getUserProfileUseCase, getRoomProfileUseCase, updateUserProfileUseCase, updateRoomProfileUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, listPrivateMessagesUseCase, listRoomMessagesUseCase, createRoomUseCase, listRoomMembersUseCase, sendMemberRequestUseCase, agreeMemberRequestUseCase, refuseMemberRequestUseCase, listMemberRequestsUseCase, listRoomshipsUseCase, leaveRoomUseCase, sendFriendRequestUseCase, agreeFriendRequestUseCase, refuseFriendRequestUseCase, listFriendshipsUseCase, listFriendRequestsUseCase, listSystemMessagesUseCase, validator, client, websocketHandler)
+	engine := provideHttpRouter(appConfig, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, getUserProfileUseCase, getRoomProfileUseCase, updateUserProfileUseCase, updateRoomProfileUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, readPrivateMessagesUseCase, readRoomMessagesUseCase, listPrivateMessagesUseCase, listRoomMessagesUseCase, createRoomUseCase, listRoomMembersUseCase, sendMemberRequestUseCase, agreeMemberRequestUseCase, refuseMemberRequestUseCase, listMemberRequestsUseCase, listRoomshipsUseCase, leaveRoomUseCase, sendFriendRequestUseCase, agreeFriendRequestUseCase, refuseFriendRequestUseCase, listFriendshipsUseCase, listFriendRequestsUseCase, listSystemMessagesUseCase, validator, client, websocketHandler)
 	server := provideHttpServer(appConfig, engine)
 	eventPublisher, err := provideKafkaPublisher(appConfig, eventRepository)
 	if err != nil {
