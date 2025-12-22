@@ -14,6 +14,7 @@ type Event struct {
 	Processing  bool        `gorm:"not null;default:false;index"`
 	Payload     []byte
 	CreatedAt   time.Time
+	PublishedAt *time.Time
 }
 
 func (e *Event) TableName() string {

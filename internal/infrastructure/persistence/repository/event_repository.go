@@ -5,6 +5,7 @@ import (
 	gormutils "gochat/internal/infrastructure/gorm"
 	"gochat/internal/infrastructure/persistence/model"
 	"gochat/internal/shared/event"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -68,8 +69,9 @@ func (repo *EventRepository) ListUnpublishedEvents(ctx context.Context) ([]event
 
 func (repo *EventRepository) MarkAsPublishedAndNotProcessing(ctx context.Context, ID event.ID) error {
 	return gormutils.TranslateError(repo.db.WithContext(ctx).Model(&model.Event{}).Where("id = ?", ID).Updates(map[string]interface{}{
-		"published":  true,
-		"processing": false,
+		"published":    true,
+		"processing":   false,
+		"published_at": time.Now().UTC(),
 	}).Error)
 }
 
@@ -81,7 +83,10 @@ func (repo *EventRepository) CreateDeadLetter(ctx context.Context, e event.Event
 	if e == nil {
 		return nil
 	}
-	return gormutils.TranslateError(repo.db.WithContext(ctx).Create(repo.toDeadLetter(e, reason)).Error)
+	return gormutils.TranslateError(repo.db.
+		WithContext(ctx).
+		Create(repo.toDeadLetter(e, reason)).
+		Error)
 }
 
 func (repo *EventRepository) toModel(e event.Event) *model.Event {
@@ -111,7 +116,13 @@ func (repo *EventRepository) toEvent(model *model.Event) event.Event {
 	if model == nil {
 		return nil
 	}
-	return event.LoadStandardEvent(model.ID, model.AggregateID, model.CreatedAt, model.Topic, model.Payload)
+	return event.LoadStandardEvent(
+		model.ID,
+		model.AggregateID,
+		model.CreatedAt,
+		model.Topic,
+		model.Payload,
+	)
 }
 
 func (repo *EventRepository) toEvents(models []*model.Event) []event.Event {
@@ -127,15 +138,7 @@ func (repo *EventRepository) toEvents(models []*model.Event) []event.Event {
 
 func (repo *EventRepository) toDeadLetter(e event.Event, reason error) *model.DeadLetter {
 	return &model.DeadLetter{
-		Event: &model.Event{
-			ID:          e.ID(),
-			AggregateID: e.AggregateID(),
-			Topic:       e.Topic(),
-			Published:   false,
-			Processing:  false,
-			Payload:     e.Payload(),
-			CreatedAt:   e.OccurredAt(),
-		},
+		Event:  repo.toModel(e),
 		Reason: reason.Error(),
 	}
 }
