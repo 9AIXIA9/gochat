@@ -1,6 +1,7 @@
 package application_test
 
 import (
+	"context"
 	"fmt"
 	"gochat/internal/application"
 	myErrors "gochat/internal/shared/errors"
@@ -8,6 +9,7 @@ import (
 	eventMock "gochat/internal/shared/event/mocks"
 	"gochat/internal/shared/kernel"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -66,18 +68,26 @@ func TestUnpublishedEventsCreatedUseCase_Execute(t *testing.T) {
 	}
 
 	gomock.InOrder(
-		mockLister.EXPECT().ListUnpublishedEvents(nil).Return(mockEvents, nil),
-		mockPublisher.EXPECT().Publish(gomock.Any()).Times(fixedEventLen).Return(nil),
+		mockLister.EXPECT().ListUnpublishedEvents(context.Background(), time.Minute).Return(mockEvents, nil),
+		mockPublisher.EXPECT().Publish(gomock.Any(), gomock.Any()).Times(fixedEventLen).Return(nil),
 	)
 
-	_, err = useCase.Execute(nil, nil)
+	_, err = useCase.Execute(context.Background(), nil)
 	require.NoError(t, err)
 
 	//无事件情况
 	gomock.InOrder(
-		mockLister.EXPECT().ListUnpublishedEvents(nil).Return([]event.Event{}, nil),
+		mockLister.EXPECT().ListUnpublishedEvents(context.Background(), time.Minute).Return([]event.Event{}, nil),
 	)
 
-	_, err = useCase.Execute(nil, nil)
+	_, err = useCase.Execute(context.Background(), nil)
+	require.NoError(t, err)
+
+	// 超时情况
+	gomock.InOrder(
+		mockLister.EXPECT().ListUnpublishedEvents(context.Background(), time.Minute).Return(mockEvents, nil),
+		mockPublisher.EXPECT().Publish(gomock.Any(), gomock.Any()).Return(context.DeadlineExceeded),
+	)
+	_, err = useCase.Execute(context.Background(), nil)
 	require.NoError(t, err)
 }

@@ -17,7 +17,6 @@ import (
 	gormInfra "gochat/internal/infrastructure/gorm"
 	kafkautil "gochat/internal/infrastructure/kafka"
 	infraotel "gochat/internal/infrastructure/otel"
-	"gochat/internal/infrastructure/persistence/repository"
 	redisInfra "gochat/internal/infrastructure/redis"
 	"gochat/internal/infrastructure/uuid"
 	validatorInfra "gochat/internal/infrastructure/validator"
@@ -174,19 +173,11 @@ func providePrivateMessageNotifier(manager *websocket.Manager) *chatWebsocket.Pr
 func provideRoomMessageNotifier(manager *websocket.Manager) *chatWebsocket.RoomMessageNotifier {
 	return chatWebsocket.NewRoomMessageNotifier(manager)
 }
-func provideKafkaPublisher(appConfig *config.App, eventRepo *repository.EventRepository) (*kafkautil.EventPublisher, error) {
+func provideKafkaPublisher(appConfig *config.App, eventRepo event.Repository) (*kafkautil.EventPublisher, error) {
 	return kafkautil.NewEventPublisher(
 		appConfig.Kafka,
 		func(id event.ID) error {
-			return eventRepo.MarkAsPublishedAndNotProcessing(context.Background(), id)
-		},
-		func(ev event.Event, reason error) error {
-			if err := eventRepo.MarkAsNotProcessing(context.Background(), ev.ID()); err != nil {
-				if err := eventRepo.CreateDeadLetter(context.Background(), ev, reason); err != nil {
-					return err
-				}
-			}
-			return nil
+			return eventRepo.MarkAsPublished(context.Background(), id)
 		},
 	)
 }

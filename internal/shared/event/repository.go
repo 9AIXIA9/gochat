@@ -1,13 +1,15 @@
 //go:generate mockgen -source=repository.go -destination=./mocks/mock_repository.go -package=mocks
 package event
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 type Repository interface {
 	UnpublishedEventsCreator
 	UnpublishedEventsLister
-	PublishedAndNotProcessingMarker
-	NotProcessingMarker
+	PublishedMarker
 	DeadLetterCreator
 }
 
@@ -16,15 +18,11 @@ type UnpublishedEventsCreator interface {
 }
 
 type UnpublishedEventsLister interface {
-	ListUnpublishedEvents(ctx context.Context) ([]Event, error)
+	ListUnpublishedEvents(ctx context.Context, lease time.Duration) ([]Event, error)
 }
 
-type PublishedAndNotProcessingMarker interface {
-	MarkAsPublishedAndNotProcessing(ctx context.Context, ID ID) error
-}
-
-type NotProcessingMarker interface {
-	MarkAsNotProcessing(ctx context.Context, ID ID) error
+type PublishedMarker interface {
+	MarkAsPublished(ctx context.Context, ID ID) error
 }
 
 type DeadLetterCreator interface {

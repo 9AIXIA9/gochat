@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"context"
 	"fmt"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
@@ -19,7 +20,6 @@ type EventPublisher struct {
 	publishResultChan chan ckafka.Event
 	producer          *ckafka.Producer
 	onDelivered       func(event.ID) error
-	onFailed          func(ev event.Event, reason error) error
 
 	wg     sync.WaitGroup
 	closed atomic.Bool
@@ -28,14 +28,9 @@ type EventPublisher struct {
 func NewEventPublisher(
 	config *Config,
 	onDelivered func(event.ID) error,
-	onFailed func(ev event.Event, reason error) error,
 ) (*EventPublisher, error) {
 	if onDelivered == nil {
 		return nil, fmt.Errorf("%w: onDelivered is nil", myErrors.ErrEmptyPointer)
-	}
-
-	if onFailed == nil {
-		return nil, fmt.Errorf("%w: onFailed is nil", myErrors.ErrEmptyPointer)
 	}
 
 	producer, err := ckafka.NewProducer(getProducerConfigMap(config))
@@ -53,11 +48,10 @@ func NewEventPublisher(
 		publishResultChan: make(chan ckafka.Event, 512),
 		producer:          producer,
 		onDelivered:       onDelivered,
-		onFailed:          onFailed,
 	}, nil
 }
 
-func (p *EventPublisher) Publish(ev event.Event) error {
+func (p *EventPublisher) Publish(ctx context.Context, ev event.Event) error {
 	if ev == nil {
 		return myErrors.ErrEmptyPointer
 	}
@@ -65,11 +59,18 @@ func (p *EventPublisher) Publish(ev event.Event) error {
 	if p.closed.Load() {
 		return myErrors.ErrHasBeenClosed
 	}
+
 	message := p.getMessage(ev)
-	if err := p.producer.Produce(message, p.publishResultChan); err != nil {
-		_ = p.onFailed(ev, err) // 入队失败释放 processing，并留给回调写死信
-		zap.L().Error("produce message failed", zap.Error(err))
-		return err
+
+	// 超时检测
+	select {
+	case <-ctx.Done():
+		return fmt.Errorf("publish event timeout: %w", ctx.Err())
+	default:
+		if err := p.producer.Produce(message, p.publishResultChan); err != nil {
+			zap.L().Error("produce message failed", zap.Error(err))
+			return err
+		}
 	}
 	return nil
 }
@@ -79,7 +80,6 @@ func (p *EventPublisher) processPublishingResponse() {
 		switch message := result.(type) {
 		case *ckafka.Message:
 			if err := message.TopicPartition.Error; err != nil {
-				_ = p.onFailed(p.parseMessage(message), err)
 				continue
 			}
 			// 送达成功：标记已发布并释放处理标记

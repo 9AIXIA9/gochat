@@ -38,11 +38,15 @@ func (repo *EventRepository) CreateUnpublishedEvents(ctx context.Context, evs []
 	return nil
 }
 
-func (repo *EventRepository) ListUnpublishedEvents(ctx context.Context) ([]event.Event, error) {
+func (repo *EventRepository) ListUnpublishedEvents(ctx context.Context, lease time.Duration) ([]event.Event, error) {
 	var models []*model.Event
 
 	if err := repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Where("published = ? AND processing = ?", false, false).Find(&models).Error; err != nil {
+		// Select unpublished and not processing events
+		if err := tx.Where("published = ? AND processing_until IS NOT NULL AND processing_until < ?",
+			false, time.Now().UTC()).
+			Find(&models).
+			Error; err != nil {
 			return gormutils.TranslateError(err)
 		}
 
@@ -55,8 +59,9 @@ func (repo *EventRepository) ListUnpublishedEvents(ctx context.Context) ([]event
 			ids = append(ids, m.ID)
 		}
 
+		// 添加租约时间
 		if err := tx.Model(&model.Event{}).Where("id IN ?", ids).Updates(map[string]interface{}{
-			"processing": true,
+			"processing_until": time.Now().UTC().Add(lease),
 		}).Error; err != nil {
 			return gormutils.TranslateError(err)
 		}
@@ -67,16 +72,11 @@ func (repo *EventRepository) ListUnpublishedEvents(ctx context.Context) ([]event
 	return repo.toEvents(models), nil
 }
 
-func (repo *EventRepository) MarkAsPublishedAndNotProcessing(ctx context.Context, ID event.ID) error {
+func (repo *EventRepository) MarkAsPublished(ctx context.Context, ID event.ID) error {
 	return gormutils.TranslateError(repo.db.WithContext(ctx).Model(&model.Event{}).Where("id = ?", ID).Updates(map[string]interface{}{
 		"published":    true,
-		"processing":   false,
 		"published_at": time.Now().UTC(),
 	}).Error)
-}
-
-func (repo *EventRepository) MarkAsNotProcessing(ctx context.Context, ID event.ID) error {
-	return gormutils.TranslateError(repo.db.WithContext(ctx).Model(&model.Event{}).Where("id = ?", ID).Update("processing", false).Error)
 }
 
 func (repo *EventRepository) CreateDeadLetter(ctx context.Context, e event.Event, reason error) error {
@@ -91,13 +91,14 @@ func (repo *EventRepository) CreateDeadLetter(ctx context.Context, e event.Event
 
 func (repo *EventRepository) toModel(e event.Event) *model.Event {
 	return &model.Event{
-		ID:          e.ID(),
-		AggregateID: e.AggregateID(),
-		Topic:       e.Topic(),
-		Published:   false,
-		Processing:  false,
-		Payload:     e.Payload(),
-		CreatedAt:   e.OccurredAt(),
+		ID:              e.ID(),
+		AggregateID:     e.AggregateID(),
+		Topic:           e.Topic(),
+		Published:       false,
+		ProcessingUntil: time.Now().UTC(),
+		Payload:         e.Payload(),
+		CreatedAt:       e.OccurredAt(),
+		PublishedAt:     nil,
 	}
 }
 
