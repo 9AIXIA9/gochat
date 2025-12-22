@@ -42,6 +42,30 @@ func (m *MockEvent) EXPECT() *MockEventMockRecorder {
 	return m.recorder
 }
 
+// AddHeader mocks base method.
+func (m *MockEvent) AddHeader(key, value string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "AddHeader", key, value)
+}
+
+// AddHeader indicates an expected call of AddHeader.
+func (mr *MockEventMockRecorder) AddHeader(key, value any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddHeader", reflect.TypeOf((*MockEvent)(nil).AddHeader), key, value)
+}
+
+// AddHeaders mocks base method.
+func (m *MockEvent) AddHeaders(headers map[string]string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "AddHeaders", headers)
+}
+
+// AddHeaders indicates an expected call of AddHeaders.
+func (mr *MockEventMockRecorder) AddHeaders(headers any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddHeaders", reflect.TypeOf((*MockEvent)(nil).AddHeaders), headers)
+}
+
 // AggregateID mocks base method.
 func (m *MockEvent) AggregateID() kernel.ID {
 	m.ctrl.T.Helper()
@@ -54,6 +78,20 @@ func (m *MockEvent) AggregateID() kernel.ID {
 func (mr *MockEventMockRecorder) AggregateID() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AggregateID", reflect.TypeOf((*MockEvent)(nil).AggregateID))
+}
+
+// Headers mocks base method.
+func (m *MockEvent) Headers() map[string]string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Headers")
+	ret0, _ := ret[0].(map[string]string)
+	return ret0
+}
+
+// Headers indicates an expected call of Headers.
+func (mr *MockEventMockRecorder) Headers() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Headers", reflect.TypeOf((*MockEvent)(nil).Headers))
 }
 
 // ID mocks base method.
@@ -136,6 +174,30 @@ func (m *MockSpecificEvent) EXPECT() *MockSpecificEventMockRecorder {
 	return m.recorder
 }
 
+// AddHeader mocks base method.
+func (m *MockSpecificEvent) AddHeader(key, value string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "AddHeader", key, value)
+}
+
+// AddHeader indicates an expected call of AddHeader.
+func (mr *MockSpecificEventMockRecorder) AddHeader(key, value any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddHeader", reflect.TypeOf((*MockSpecificEvent)(nil).AddHeader), key, value)
+}
+
+// AddHeaders mocks base method.
+func (m *MockSpecificEvent) AddHeaders(headers map[string]string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "AddHeaders", headers)
+}
+
+// AddHeaders indicates an expected call of AddHeaders.
+func (mr *MockSpecificEventMockRecorder) AddHeaders(headers any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddHeaders", reflect.TypeOf((*MockSpecificEvent)(nil).AddHeaders), headers)
+}
+
 // AggregateID mocks base method.
 func (m *MockSpecificEvent) AggregateID() kernel.ID {
 	m.ctrl.T.Helper()
@@ -148,6 +210,20 @@ func (m *MockSpecificEvent) AggregateID() kernel.ID {
 func (mr *MockSpecificEventMockRecorder) AggregateID() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AggregateID", reflect.TypeOf((*MockSpecificEvent)(nil).AggregateID))
+}
+
+// Headers mocks base method.
+func (m *MockSpecificEvent) Headers() map[string]string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Headers")
+	ret0, _ := ret[0].(map[string]string)
+	return ret0
+}
+
+// Headers indicates an expected call of Headers.
+func (mr *MockSpecificEventMockRecorder) Headers() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Headers", reflect.TypeOf((*MockSpecificEvent)(nil).Headers))
 }
 
 // ID mocks base method.

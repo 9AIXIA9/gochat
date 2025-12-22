@@ -47,5 +47,6 @@ func convertMessageToEvent(message *ckafka.Message) event.Event {
 		message.Timestamp,
 		event.Topic(*message.TopicPartition.Topic),
 		message.Value,
+		nil,
 	)
 }

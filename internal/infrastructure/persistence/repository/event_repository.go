@@ -123,6 +123,7 @@ func (repo *EventRepository) toEvent(model *model.Event) event.Event {
 		model.CreatedAt,
 		model.Topic,
 		model.Payload,
+		nil,
 	)
 }
 
