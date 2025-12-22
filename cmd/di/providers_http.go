@@ -141,6 +141,7 @@ func provideHttpRouter(
 
 	profileGroup.Use(authorizationMiddleware)
 	{
+		profileGroup.GET("/me", profileHTTP.NewGetMyProfileHandler(getUserProfile, validator))
 		profileGroup.PUT("/me", profileHTTP.NewUpdateUserProfileHandler(updateUserProfile, validator))
 		profileGroup.PUT("/room", profileHTTP.NewUpdateRoomProfileHandler(updateRoomProfile, validator))
 	}

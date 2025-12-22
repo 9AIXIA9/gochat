@@ -304,6 +304,20 @@ definitions:
           $ref: '#/definitions/gochat_internal_chat_dto.RoomMessage'
         type: array
     type: object
+  internal_chat_port_http.ReadPrivateMessagesRequest:
+    properties:
+      sender_id:
+        $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
+    required:
+    - sender_id
+    type: object
+  internal_chat_port_http.ReadRoomMessagesRequest:
+    properties:
+      room_id:
+        $ref: '#/definitions/gochat_internal_shared_kernel.RoomID'
+    required:
+    - room_id
+    type: object
   internal_chat_port_http.SendPrivateMessageRequest:
     properties:
       content:
@@ -357,6 +371,11 @@ definitions:
         items:
           $ref: '#/definitions/gochat_internal_notification_dto.SystemMessage'
         type: array
+    type: object
+  internal_profile_port_http.GetMyProfileResponseData:
+    properties:
+      profile:
+        $ref: '#/definitions/gochat_internal_profile_dto.UserProfile'
     type: object
   internal_profile_port_http.GetRoomProfileResponseData:
     properties:
