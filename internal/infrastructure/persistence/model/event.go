@@ -13,6 +13,7 @@ type Event struct {
 	Published       bool        `gorm:"not null;default:false;index"`
 	ProcessingUntil time.Time   `gorm:"index"`
 	Payload         []byte
+	Headers         []byte
 	CreatedAt       time.Time
 	PublishedAt     *time.Time
 }

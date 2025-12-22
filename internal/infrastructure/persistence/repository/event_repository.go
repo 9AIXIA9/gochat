@@ -2,11 +2,14 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	gormutils "gochat/internal/infrastructure/gorm"
 	"gochat/internal/infrastructure/persistence/model"
 	"gochat/internal/shared/event"
 	"time"
 
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
 	"gorm.io/gorm"
 )
 
@@ -27,12 +30,21 @@ func (repo *EventRepository) CreateUnpublishedEvents(ctx context.Context, evs []
 		return nil
 	}
 
+	for _, ev := range evs {
+		setEventTrace(ctx, ev)
+	}
+
 	tx := gormutils.GetTransaction(ctx)
 	if tx == nil {
 		tx = repo.db
 	}
 
-	if err := gormutils.TranslateError(tx.WithContext(ctx).Create(repo.toModels(evs)).Error); err != nil {
+	evModel, err := repo.toModels(evs)
+	if err != nil {
+		return err
+	}
+
+	if err := gormutils.TranslateError(tx.WithContext(ctx).Create(evModel).Error); err != nil {
 		return err
 	}
 	return nil
@@ -69,7 +81,7 @@ func (repo *EventRepository) ListUnpublishedEvents(ctx context.Context, lease ti
 	}); err != nil {
 		return nil, err
 	}
-	return repo.toEvents(models), nil
+	return repo.toEvents(models)
 }
 
 func (repo *EventRepository) MarkAsPublished(ctx context.Context, ID event.ID) error {
@@ -83,13 +95,24 @@ func (repo *EventRepository) CreateDeadLetter(ctx context.Context, e event.Event
 	if e == nil {
 		return nil
 	}
+	deadLetter, err := repo.toDeadLetter(e, reason)
+	if err != nil {
+		return err
+	}
+
 	return gormutils.TranslateError(repo.db.
 		WithContext(ctx).
-		Create(repo.toDeadLetter(e, reason)).
+		Create(deadLetter).
 		Error)
 }
 
-func (repo *EventRepository) toModel(e event.Event) *model.Event {
+func (repo *EventRepository) toModel(e event.Event) (*model.Event, error) {
+	headers := e.Headers()
+	data, err := json.Marshal(&headers)
+	if err != nil {
+		return nil, err
+	}
+
 	return &model.Event{
 		ID:              e.ID(),
 		AggregateID:     e.AggregateID(),
@@ -97,50 +120,87 @@ func (repo *EventRepository) toModel(e event.Event) *model.Event {
 		Published:       false,
 		ProcessingUntil: time.Now().UTC(),
 		Payload:         e.Payload(),
+		Headers:         data,
 		CreatedAt:       e.OccurredAt(),
 		PublishedAt:     nil,
-	}
+	}, nil
 }
 
-func (repo *EventRepository) toModels(evs []event.Event) []*model.Event {
+func (repo *EventRepository) toModels(evs []event.Event) ([]*model.Event, error) {
 	if len(evs) == 0 {
-		return nil
+		return nil, nil
 	}
 	models := make([]*model.Event, 0, len(evs))
 	for _, e := range evs {
-		models = append(models, repo.toModel(e))
+		modelEv, err := repo.toModel(e)
+		if err != nil {
+			return nil, err
+		}
+		models = append(models, modelEv)
 	}
-	return models
+	return models, nil
 }
 
-func (repo *EventRepository) toEvent(model *model.Event) event.Event {
+func (repo *EventRepository) toEvent(model *model.Event) (event.Event, error) {
 	if model == nil {
-		return nil
+		return nil, nil
 	}
+
+	if model.Headers == nil {
+		return event.LoadStandardEvent(
+			model.ID,
+			model.AggregateID,
+			model.CreatedAt,
+			model.Topic,
+			model.Payload,
+			nil,
+		), nil
+	}
+
+	var headers map[string]string
+	if err := json.Unmarshal(model.Headers, &headers); err != nil {
+		return nil, err
+	}
+
 	return event.LoadStandardEvent(
 		model.ID,
 		model.AggregateID,
 		model.CreatedAt,
 		model.Topic,
 		model.Payload,
-		nil,
-	)
+		headers,
+	), nil
 }
 
-func (repo *EventRepository) toEvents(models []*model.Event) []event.Event {
+func (repo *EventRepository) toEvents(models []*model.Event) ([]event.Event, error) {
 	if len(models) == 0 {
-		return nil
+		return nil, nil
 	}
 	evs := make([]event.Event, 0, len(models))
 	for _, m := range models {
-		evs = append(evs, repo.toEvent(m))
+		ev, err := repo.toEvent(m)
+		if err != nil {
+			return nil, err
+		}
+		evs = append(evs, ev)
 	}
-	return evs
+	return evs, nil
 }
 
-func (repo *EventRepository) toDeadLetter(e event.Event, reason error) *model.DeadLetter {
-	return &model.DeadLetter{
-		Event:  repo.toModel(e),
-		Reason: reason.Error(),
+func (repo *EventRepository) toDeadLetter(e event.Event, reason error) (*model.DeadLetter, error) {
+	evModel, err := repo.toModel(e)
+	if err != nil {
+		return nil, err
 	}
+	return &model.DeadLetter{
+		Event:  evModel,
+		Reason: reason.Error(),
+	}, nil
+}
+
+func setEventTrace(ctx context.Context, ev event.Event) {
+	carrier := propagation.MapCarrier{}
+	otel.GetTextMapPropagator().Inject(ctx, carrier)
+
+	ev.AddHeaders(carrier)
 }
