@@ -107,6 +107,24 @@ func (repo *EventRepository) toModels(evs []event.Event) []*model.Event {
 	return models
 }
 
+func (repo *EventRepository) toEvent(model *model.Event) event.Event {
+	if model == nil {
+		return nil
+	}
+	return event.LoadStandardEvent(model.ID, model.AggregateID, model.CreatedAt, model.Topic, model.Payload)
+}
+
+func (repo *EventRepository) toEvents(models []*model.Event) []event.Event {
+	if len(models) == 0 {
+		return nil
+	}
+	evs := make([]event.Event, 0, len(models))
+	for _, m := range models {
+		evs = append(evs, repo.toEvent(m))
+	}
+	return evs
+}
+
 func (repo *EventRepository) toDeadLetter(e event.Event, reason error) *model.DeadLetter {
 	return &model.DeadLetter{
 		Event: &model.Event{
@@ -120,15 +138,4 @@ func (repo *EventRepository) toDeadLetter(e event.Event, reason error) *model.De
 		},
 		Reason: reason.Error(),
 	}
-}
-
-func (repo *EventRepository) toEvents(models []*model.Event) []event.Event {
-	if len(models) == 0 {
-		return nil
-	}
-	events := make([]event.Event, 0, len(models))
-	for _, m := range models {
-		events = append(events, event.LoadStandardEvent(m.ID, m.AggregateID, m.CreatedAt, m.Topic, m.Payload))
-	}
-	return events
 }
