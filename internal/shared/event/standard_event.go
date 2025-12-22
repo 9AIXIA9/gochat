@@ -13,6 +13,7 @@ type StandardEvent struct {
 	occurredAt  time.Time //UTC
 	topic       Topic
 	payload     []byte
+	headers     map[string]string
 }
 
 func LoadStandardEvent(
@@ -21,6 +22,7 @@ func LoadStandardEvent(
 	occurredAt time.Time,
 	topic Topic,
 	payload []byte,
+	headers map[string]string,
 ) *StandardEvent {
 	return &StandardEvent{
 		id:          id,
@@ -28,6 +30,7 @@ func LoadStandardEvent(
 		occurredAt:  occurredAt,
 		topic:       topic,
 		payload:     payload,
+		headers:     headers,
 	}
 }
 
@@ -41,6 +44,7 @@ func LoadStandardEventFromEvent(e Event) *StandardEvent {
 		occurredAt:  e.OccurredAt(),
 		topic:       e.Topic(),
 		payload:     e.Payload(),
+		headers:     e.Headers(),
 	}
 }
 
@@ -56,6 +60,22 @@ func NewStandardEvent(
 		occurredAt:  time.Now().UTC(),
 		topic:       topic,
 		payload:     payload,
+	}
+}
+
+func (e *StandardEvent) AddHeader(key string, value string) {
+	if e.headers == nil {
+		e.headers = make(map[string]string)
+	}
+	e.headers[key] = value
+}
+
+func (e *StandardEvent) AddHeaders(headers map[string]string) {
+	if e.headers == nil {
+		e.headers = make(map[string]string)
+	}
+	for k, v := range headers {
+		e.headers[k] = v
 	}
 }
 
@@ -77,4 +97,8 @@ func (e *StandardEvent) OccurredAt() time.Time {
 
 func (e *StandardEvent) Payload() []byte {
 	return e.payload
+}
+
+func (e *StandardEvent) Headers() map[string]string {
+	return e.headers
 }

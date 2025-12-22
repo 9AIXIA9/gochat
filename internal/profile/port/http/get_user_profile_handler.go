@@ -6,6 +6,8 @@ import (
 	"gochat/internal/profile/dto"
 	"gochat/internal/shared/kernel"
 
+	_ "gochat/internal/shared/api"
+
 	"github.com/gin-gonic/gin"
 )
 

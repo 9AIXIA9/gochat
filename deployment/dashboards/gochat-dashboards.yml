@@ -1,13 +1,11 @@
-# nonk8s
 apiVersion: 1
 
 providers:
-  - name: 'GoChat Dashboards'
+  - name: 'default'
     orgId: 1
     folder: ''
     type: file
     disableDeletion: false
-    updateIntervalSeconds: 10
+    editable: true
     options:
-      path: /etc/grafana/dashboards
-
+      path: /etc/grafana/provisioning/dashboards

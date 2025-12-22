@@ -18,7 +18,7 @@
 
 - **HTTP 升级路由**：`GET /api/v1/ws/`
 - **完整 URL 示例**：
-  - 本地开发：`ws://localhost:8888/api/v1/ws/`
+  - 本地开发：`ws://localhost:8080/api/v1/ws/`
 - **HTTP 方法**：`GET`
 - **鉴权方式**：
   - 使用与 HTTP API 相同的 Bearer Token：
@@ -32,7 +32,7 @@
 前端示例（以浏览器为例）：
 
 ```js
-const ws = new WebSocket("ws://localhost:8888/api/v1/ws/");
+const ws = new WebSocket("ws://localhost:8080/api/v1/ws/");
 
 ws.onopen = () => {
   console.log("WS connected");

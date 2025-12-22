@@ -1,7 +1,7 @@
 Name: gochat
 Env: ${Env}
 Host: 0.0.0.0
-Port: 8888
+Port: 8080
 MachineNode: 1
 Timeout: ${REQUEST_TIMEOUT}
 
@@ -84,15 +84,6 @@ Kafka:
   GroupID: ${KAFKA_GROUP_ID}
   AutoOffsetReset: ${KAFKA_AUTO_OFFSET_RESET}
 
-Telemetry:
-  TelemetryEnabled: ${TELEMETRY_ENABLED}
-  TraceEnabled: ${TELEMETRY_TRACE_ENABLED}
-  MetricsEnabled: ${TELEMETRY_METRICS_ENABLED}
-  SampleRatio: ${TELEMETRY_SAMPLE_RATIO}
-  OTLPEndpoint: ${TELEMETRY_OTLP_HOST}:${TELEMETRY_OTLP_PORT}
-  ServiceVersion: ${TELEMETRY_SERVICE_VERSION}
-  Environment: ${TELEMETRY_ENVIRONMENT}
-
 Breaker:
   MaxRequests: 5
   Interval: 60s
@@ -100,3 +91,9 @@ Breaker:
   BucketPeriod: 1m
   ErrorRate: 0.50
   ErrorThreshold: 20
+
+OTEL:
+  Endpoint: ${OTEL_ENDPOINT}
+  ServiceName: ${OTEL_SERVICE_NAME}
+  Environment: ${Env}
+  Insecure: true

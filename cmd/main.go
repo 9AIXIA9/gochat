@@ -6,7 +6,7 @@
 // @contact.email   support@example.com
 // @license.name    MIT
 // @license.url     https://opensource.org/licenses/MIT
-// @host            localhost:8888
+// @host            localhost:8080
 // @BasePath        /api/v1
 // @securityDefinitions.apikey BearerAuth
 // @in              header
@@ -18,7 +18,6 @@ import (
 	"flag"
 	"gochat/cmd/di"
 	"gochat/internal/infrastructure/godotenv"
-	otelInfra "gochat/internal/infrastructure/otel"
 	"gochat/internal/infrastructure/viper"
 	zaputils "gochat/internal/infrastructure/zap"
 	"log"
@@ -46,11 +45,6 @@ func main() {
 	conf, err := viper.LoadConfigFile(*path)
 	if err != nil {
 		log.Fatalf("load config file failed,err:%v", err)
-	}
-
-	closeOtel, teleErr := otelInfra.Initialize(context.Background(), conf.Name, conf.Telemetry)
-	if teleErr != nil {
-		zap.L().Warn("initialize telemetry failed", zap.Error(teleErr))
 	}
 
 	if err := zaputils.Initialize(conf.Logger); err != nil {
@@ -101,9 +95,9 @@ func main() {
 	}
 	dependencies.BinlogReader.Close()
 
-	if closeOtel != nil {
-		if err := closeOtel(ctx); err != nil {
-			zap.L().Error("shutdown telemetry failed", zap.Error(err))
+	if dependencies.OTELShutdown != nil {
+		if err := dependencies.OTELShutdown(ctx); err != nil {
+			zap.L().Error("shutdown otel failed", zap.Error(err))
 		}
 	}
 

@@ -7,6 +7,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"go.uber.org/zap"
 )
 
@@ -44,8 +46,18 @@ func (s *WebsocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client := websocketInfra.NewClient(r.Context(), conn, s.router)
+	// Start a connection-level span based on the HTTP request context
+	tracer := otel.Tracer("websocket.connection")
+	ctxConn, span := tracer.Start(r.Context(), "websocket.connection")
+	span.SetAttributes(
+		attribute.String("enduser.id", userID.String()),
+		attribute.String("net.peer.ip", r.RemoteAddr),
+		attribute.String("http.target", r.URL.Path),
+	)
+
+	client := websocketInfra.NewClient(ctxConn, conn, s.router)
 	client.WithOnClose(func() {
+		span.End()
 		// Unregister by pointer to avoid removing a newly registered client when replacing connections.
 		s.manager.UnregisterClient(client)
 	})

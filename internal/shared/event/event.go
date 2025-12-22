@@ -24,6 +24,9 @@ type Event interface {
 	Topic() Topic
 	OccurredAt() time.Time
 	Payload() []byte
+	Headers() map[string]string
+	AddHeader(key string, value string)
+	AddHeaders(headers map[string]string)
 }
 
 type SpecificEvent interface {

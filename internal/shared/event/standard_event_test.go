@@ -21,12 +21,17 @@ const (
 )
 
 func TestLoadStandardEvent(t *testing.T) {
+	headers := map[string]string{
+		"header1": "value1",
+		"header2": "value2",
+	}
 	ev := event.LoadStandardEvent(
 		fixedEventID,
 		fixedAggregateID,
 		time.Now().UTC(),
 		fixedTopic,
 		[]byte(fixedPayload),
+		headers,
 	)
 	require.NotNil(t, ev)
 	assert.WithinDuration(t, time.Now().UTC(), ev.OccurredAt(), timeTolerance)
@@ -34,6 +39,7 @@ func TestLoadStandardEvent(t *testing.T) {
 	assert.Equal(t, fixedAggregateID, ev.AggregateID())
 	assert.Equal(t, fixedTopic, ev.Topic())
 	assert.Equal(t, []byte(fixedPayload), ev.Payload())
+	assert.Equal(t, headers, ev.Headers())
 }
 
 func TestLoadStandardEventFromEvent(t *testing.T) {
@@ -44,11 +50,14 @@ func TestLoadStandardEventFromEvent(t *testing.T) {
 	fixedOccurredAt := time.Now().UTC()
 
 	mockEv := mocks.NewMockEvent(ctrl)
-	mockEv.EXPECT().ID().Return(fixedEventID).Times(1)
-	mockEv.EXPECT().AggregateID().Return(fixedAggregateID).Times(1)
-	mockEv.EXPECT().OccurredAt().Return(fixedOccurredAt).Times(1)
-	mockEv.EXPECT().Topic().Return(fixedTopic).Times(1)
-	mockEv.EXPECT().Payload().Return([]byte(fixedPayload)).Times(1)
+	gomock.InOrder(
+		mockEv.EXPECT().ID().Return(fixedEventID).Times(1),
+		mockEv.EXPECT().AggregateID().Return(fixedAggregateID).Times(1),
+		mockEv.EXPECT().OccurredAt().Return(fixedOccurredAt).Times(1),
+		mockEv.EXPECT().Topic().Return(fixedTopic).Times(1),
+		mockEv.EXPECT().Payload().Return([]byte(fixedPayload)).Times(1),
+		mockEv.EXPECT().Headers().Return(map[string]string{}).Times(1),
+	)
 
 	standardEv := event.LoadStandardEventFromEvent(mockEv)
 	require.NotNil(t, standardEv)
@@ -88,4 +97,43 @@ func TestNewStandardEvent(t *testing.T) {
 	assert.WithinDuration(t, time.Now().UTC(), ev.OccurredAt(), timeTolerance)
 	assert.Equal(t, fixedTopic, ev.Topic())
 	assert.Equal(t, []byte(fixedPayload), ev.Payload())
+}
+
+func TestStandardEvent_AddHeader(t *testing.T) {
+	ev := event.LoadStandardEvent(
+		fixedEventID,
+		fixedAggregateID,
+		time.Now().UTC(),
+		fixedTopic,
+		[]byte(fixedPayload),
+		nil,
+	)
+
+	ev.AddHeader("key1", "value1")
+	assert.Equal(t, "value1", ev.Headers()["key1"])
+
+	ev.AddHeader("key2", "value2")
+	assert.Equal(t, "value2", ev.Headers()["key2"])
+}
+
+func TestStandardEvent_AddHeaders(t *testing.T) {
+	ev := event.LoadStandardEvent(
+		fixedEventID,
+		fixedAggregateID,
+		time.Now().UTC(),
+		fixedTopic,
+		[]byte(fixedPayload),
+		nil,
+	)
+
+	headersToAdd := map[string]string{
+		"key1": "value1",
+		"key2": "value2",
+	}
+
+	ev.AddHeaders(headersToAdd)
+
+	for k, v := range headersToAdd {
+		assert.Equal(t, v, ev.Headers()[k])
+	}
 }

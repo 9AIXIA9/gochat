@@ -1,13 +1,12 @@
 package kafka
 
 import (
+	"context"
 	"fmt"
 	myErrors "gochat/internal/shared/errors"
-	"gochat/internal/shared/kernel"
 	"sync"
 	"sync/atomic"
 
-	"gochat/internal/infrastructure/prometheus"
 	"gochat/internal/shared/event"
 
 	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
@@ -19,9 +18,7 @@ var _ event.Publisher = (*EventPublisher)(nil)
 type EventPublisher struct {
 	publishResultChan chan ckafka.Event
 	producer          *ckafka.Producer
-	metrics           *prometheus.Metrics
 	onDelivered       func(event.ID) error
-	onFailed          func(ev event.Event, reason error) error
 
 	wg     sync.WaitGroup
 	closed atomic.Bool
@@ -29,16 +26,10 @@ type EventPublisher struct {
 
 func NewEventPublisher(
 	config *Config,
-	metrics *prometheus.Metrics,
 	onDelivered func(event.ID) error,
-	onFailed func(ev event.Event, reason error) error,
 ) (*EventPublisher, error) {
 	if onDelivered == nil {
 		return nil, fmt.Errorf("%w: onDelivered is nil", myErrors.ErrEmptyPointer)
-	}
-
-	if onFailed == nil {
-		return nil, fmt.Errorf("%w: onFailed is nil", myErrors.ErrEmptyPointer)
 	}
 
 	producer, err := ckafka.NewProducer(getProducerConfigMap(config))
@@ -55,13 +46,11 @@ func NewEventPublisher(
 	return &EventPublisher{
 		publishResultChan: make(chan ckafka.Event, 512),
 		producer:          producer,
-		metrics:           metrics,
 		onDelivered:       onDelivered,
-		onFailed:          onFailed,
 	}, nil
 }
 
-func (p *EventPublisher) Publish(ev event.Event) error {
+func (p *EventPublisher) Publish(ctx context.Context, ev event.Event) error {
 	if ev == nil {
 		return myErrors.ErrEmptyPointer
 	}
@@ -69,14 +58,18 @@ func (p *EventPublisher) Publish(ev event.Event) error {
 	if p.closed.Load() {
 		return myErrors.ErrHasBeenClosed
 	}
-	message := p.getMessage(ev)
-	if err := p.producer.Produce(message, p.publishResultChan); err != nil {
-		if p.metrics != nil {
-			p.metrics.KafkaProduced.WithLabelValues(*message.TopicPartition.Topic, "error").Inc()
+
+	message := toMessage(ev)
+
+	// 超时检测
+	select {
+	case <-ctx.Done():
+		return fmt.Errorf("publish event timeout: %w", ctx.Err())
+	default:
+		if err := p.producer.Produce(message, p.publishResultChan); err != nil {
+			zap.L().Error("produce message failed", zap.Error(err))
+			return err
 		}
-		_ = p.onFailed(ev, err) // 入队失败释放 processing，并留给回调写死信
-		zap.L().Error("produce message failed", zap.Error(err))
-		return err
 	}
 	return nil
 }
@@ -86,11 +79,6 @@ func (p *EventPublisher) processPublishingResponse() {
 		switch message := result.(type) {
 		case *ckafka.Message:
 			if err := message.TopicPartition.Error; err != nil {
-				// 送达失败：标记未处理并记录
-				if p.metrics != nil {
-					p.metrics.KafkaProduced.WithLabelValues(*message.TopicPartition.Topic, "error").Inc()
-				}
-				_ = p.onFailed(p.parseMessage(message), err)
 				continue
 			}
 			// 送达成功：标记已发布并释放处理标记
@@ -100,8 +88,6 @@ func (p *EventPublisher) processPublishingResponse() {
 					zap.String("event_id", message.Opaque.(event.ID).String()),
 					zap.Error(err),
 				)
-			} else if p.metrics != nil {
-				p.metrics.KafkaProduced.WithLabelValues(*message.TopicPartition.Topic, "success").Inc()
 			}
 		case ckafka.Error:
 			zap.L().Error("kafka producer error", zap.Error(message))
@@ -137,47 +123,32 @@ func (p *EventPublisher) Close() {
 	p.producer.Close()
 }
 
-func (p *EventPublisher) getMessage(ev event.Event) *ckafka.Message {
+func toMessage(ev event.Event) *ckafka.Message {
 	topic := ev.Topic().String()
-	m := &ckafka.Message{
-		TopicPartition: ckafka.TopicPartition{Topic: &topic, Partition: ckafka.PartitionAny},
-		Value:          ev.Payload(),
-		Timestamp:      ev.OccurredAt(),
-		Key:            []byte(ev.AggregateID().String()),
-		Headers: []ckafka.Header{
-			{
-				Key:   eventIDKey,
-				Value: []byte(ev.ID()),
-			},
+
+	headers := []ckafka.Header{
+		{
+			Key:   eventIDKey,
+			Value: []byte(ev.ID()),
 		},
-		Opaque: ev.ID(), // 回调 识别消息
-	}
-	return m
-}
-
-func (p *EventPublisher) parseMessage(message *ckafka.Message) event.Event {
-	var id event.ID
-
-	for _, header := range message.Headers {
-		if header.Key == eventIDKey {
-			id = event.ID(header.Value)
-			break
-		}
 	}
 
-	if len(id) == 0 {
-		idInOpaque, ok := message.Opaque.(event.ID)
-		if !ok {
-			zap.L().Warn("Failed to parse event ID from kafka message")
-		}
-		id = idInOpaque
+	for key, value := range ev.Headers() {
+		headers = append(headers, ckafka.Header{
+			Key:   key,
+			Value: []byte(value),
+		})
 	}
 
-	return event.LoadStandardEvent(
-		id,
-		kernel.ID(message.Key),
-		message.Timestamp,
-		event.Topic(*message.TopicPartition.Topic),
-		message.Value,
-	)
+	return &ckafka.Message{
+		TopicPartition: ckafka.TopicPartition{
+			Topic:     &topic,
+			Partition: ckafka.PartitionAny,
+		},
+		Value:     ev.Payload(),
+		Timestamp: ev.OccurredAt(),
+		Key:       []byte(ev.AggregateID().String()),
+		Headers:   headers,
+		Opaque:    ev.ID(), // 回调 识别消息
+	}
 }

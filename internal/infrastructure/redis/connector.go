@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/redis/go-redis/extra/redisotel/v9" // 添加这行
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
@@ -15,6 +16,10 @@ func ConnectToRedis(config *Config) (*redis.Client, error) {
 		Password: config.Password,
 		DB:       config.Database,
 	})
+
+	if err := redisotel.InstrumentTracing(rdb); err != nil {
+		return nil, fmt.Errorf("instrument redis client failed, err:%w", err)
+	}
 
 	_, err := rdb.Ping(context.Background()).Result()
 	if err != nil {

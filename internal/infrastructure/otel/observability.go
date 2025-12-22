@@ -5,27 +5,38 @@ import (
 	"time"
 
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.18.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	"google.golang.org/grpc"
 )
 
-// Initialize sets up tracing according to Telemetry config. Metrics reuse existing prometheus implementation.
-func Initialize(ctx context.Context, serviceName string, conf *TelemetryConfig) (func(context.Context) error, error) {
-	exp, err := otlptracehttp.New(ctx, otlptracehttp.WithEndpoint(conf.OTLPEndpoint), otlptracehttp.WithInsecure())
+// Init sets up OpenTelemetry tracer provider and global propagator.
+// Returns a shutdown function to flush and cleanup providers.
+func Init(conf *Config) (func(context.Context) error, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	opts := []otlptracegrpc.Option{
+		otlptracegrpc.WithEndpoint(conf.Endpoint),
+	}
+	if conf.Insecure {
+		opts = append(opts, otlptracegrpc.WithInsecure())
+	} else {
+		opts = append(opts, otlptracegrpc.WithDialOption(grpc.WithBlock()))
+	}
+
+	exporter, err := otlptracegrpc.New(ctx, opts...)
 	if err != nil {
 		return nil, err
 	}
 
-	sampler := sdktrace.ParentBased(sdktrace.TraceIDRatioBased(conf.SampleRatio))
-
 	res, err := resource.New(ctx,
 		resource.WithAttributes(
-			semconv.ServiceName(serviceName),
-			semconv.ServiceVersion(conf.ServiceVersion),
-			attribute.String("deployment.environment", conf.Environment),
+			semconv.ServiceName(conf.ServiceName),
+			semconv.DeploymentEnvironment(conf.Environment),
 		),
 	)
 	if err != nil {
@@ -33,10 +44,20 @@ func Initialize(ctx context.Context, serviceName string, conf *TelemetryConfig) 
 	}
 
 	tp := sdktrace.NewTracerProvider(
-		sdktrace.WithSampler(sampler),
+		sdktrace.WithBatcher(exporter),
 		sdktrace.WithResource(res),
-		sdktrace.WithBatcher(exp, sdktrace.WithBatchTimeout(5*time.Second)),
 	)
+
 	otel.SetTracerProvider(tp)
-	return tp.Shutdown, nil
+	otel.SetTextMapPropagator(propagation.TraceContext{})
+
+	shutdown := func(ctx context.Context) error {
+		err1 := tp.Shutdown(ctx)
+		err2 := exporter.Shutdown(ctx)
+		if err1 != nil {
+			return err1
+		}
+		return err2
+	}
+	return shutdown, nil
 }

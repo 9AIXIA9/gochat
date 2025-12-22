@@ -1,42 +1,50 @@
 services:
   mysql:
     image: mysql:8.0.40
+    hostname: mysql
     container_name: gochat-mysql
-    env_file:
-      - config/service/.env.db
     environment:
       TZ: ${TZ:-Asia/Shanghai}
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: gochat
+      MYSQL_USER: gochat_app
+      MYSQL_PASSWORD: gochat
+      BINLOG_USER: binlog
+      BINLOG_PASSWORD: binlog
     command: [
       "mysqld",
       "--default-authentication-plugin=mysql_native_password",
+      "--character-set-server=utf8mb4",
+      "--collation-server=utf8mb4_unicode_ci",
       "--binlog-format=ROW",
       "--server-id=1",
       "--gtid-mode=ON",
       "--enforce-gtid-consistency=ON",
       "--log-bin=mysql-bin",
       "--binlog-row-image=FULL",
-      "--binlog_expire_logs_seconds=604800"
+      "--binlog_expire_logs_seconds=604800",
+      "--binlog_row_metadata=MINIMAL"
     ]
     ports:
       - '${MYSQL_HOST_PORT:-13306}:3306'
     volumes:
       - mysql-data:/var/lib/mysql
-      # Ensure first-time initialization runs our user/grant setup
       - ./deployment/mysql-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      # 使用应用用户进行健康检查，避免使用 root
       test: [ "CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u$MYSQL_USER -p$MYSQL_PASSWORD || exit 1" ]
       interval: 5s
       timeout: 3s
       retries: 20
+
   redis:
     image: redis:7.0-alpine
     container_name: gochat-redis
-    env_file:
-      - config/service/.env.redis
+    hostname: redis
     environment:
       TZ: ${TZ:-Asia/Shanghai}
-    # 使用 ACL 文件定义用户/权限
+      REDIS_ROOT_PASSWORD: root
+      REDIS_USER: gochat_app
+      REDIS_PASSWORD: gochat
     command: [ "sh", "-lc", "exec redis-server --appendonly yes --aclfile /etc/redis/users.acl" ]
     ports:
       - '${REDIS_HOST_PORT:-16379}:6379'
@@ -44,114 +52,129 @@ services:
       - redis-data:/data
       - ./deployment/redis_init/init_users.acl:/etc/redis/users.acl:ro
     healthcheck:
-      # 默认用户仅允许 ping/info；密码来自 .env.redis 中的 REDIS_ROOT_PASSWORD
       test: [ "CMD-SHELL", "redis-cli -a \"$REDIS_ROOT_PASSWORD\" ping || exit 1" ]
       interval: 5s
       timeout: 3s
       retries: 20
 
-  broker:
+  kafka:
     image: apache/kafka-native:4.1.0
-    hostname: kafka-dev
-    container_name: kafka-dev
-    user: '0:0'
+    container_name: gochat-kafka
+    hostname: kafka
     ports:
-      # 将宿主机端口映射到容器内 EXTERNAL 监听端口 9092
-      - '${KAFKA_HOST_PORT:-9092}:9092'
-    env_file:
-      - config/service/.env.kafka
+      - '${KAFKA_PORT:-9092}:9092'
+      - '19092:19092'
     environment:
-      TZ: ${TZ:-Asia/Shanghai}
-      KAFKA_OPTS: "-Duser.timezone=${TZ:-Asia/Shanghai}"
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_NODE_ID: 1
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-dev:29093
-
-      # 监听器配置需动态组合宿主机IP和端口，保留在environment中
-      KAFKA_ADVERTISED_LISTENERS: >-
-        PLAINTEXT://broker:19092,
-        EXTERNAL://localhost:${KAFKA_HOST_PORT:-9092}
-      KAFKA_LISTENERS: >-
-        CONTROLLER://:29093,
-        PLAINTEXT://:19092,
-        EXTERNAL://:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: >-
-        CONTROLLER:PLAINTEXT,
-        PLAINTEXT:PLAINTEXT,
-        EXTERNAL:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+      KAFKA_LISTENERS: PLAINTEXT://:9092,PLAINTEXT_HOST://:19092,CONTROLLER://:29093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:19092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     volumes:
       - kafka-data:/var/lib/kafka/data
     healthcheck:
-      test: [ "CMD-SHELL", "ps | grep -q '[k]afka.Kafka' || exit 1" ]
+      test: [ "CMD-SHELL", "nc -z localhost 9092 && nc -z localhost 29093 || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 30
 
-  prometheus:
-    image: prom/prometheus:v2.54.1
-    container_name: gochat-prometheus
-    restart: unless-stopped
-    depends_on:
-      app:
-        condition: service_started
+  #  OpenTelemetry Collector - 遥测数据收集器
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.142.0
+    container_name: gochat-otel-collector
+    hostname: otel-collector
+    command: [ "--config=/etc/otel-collector-config.yaml" ]
     ports:
-      - '${PROMETHEUS_HOST_PORT:-9090}:9090'
+      - "4317:4317"  # OTLP gRPC
+      - "4318:4318"  # OTLP HTTP
+      - "8888:8888"  # 内部指标端口
+      - "8889:8889"  # Prometheus metrics endpoint
     volumes:
-      - ./config/service/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus-data:/prometheus
-    command: [
-      "--config.file=/etc/prometheus/prometheus.yml",
-      "--storage.tsdb.path=/prometheus",
-      "--storage.tsdb.retention.time=15d",
-      "--web.enable-lifecycle"
-    ]
-    healthcheck:
-      test: [ "CMD", "wget", "-qO-", "http://localhost:9090/-/ready" ]
-      interval: 10s
-      timeout: 5s
-      retries: 30
-    environment:
-      TZ: ${TZ:-Asia/Shanghai}
-  grafana:
-    image: grafana/grafana:11.2.0
-    container_name: gochat-grafana
+      - ./deployment/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
     depends_on:
-      prometheus:
-        condition: service_started
-    ports:
-      - '${GRAFANA_HOST_PORT:-3000}:3000'
-    volumes:
-      - ./config/service/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
-      - ./config/service/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
-      - ./config/service/grafana/dashboards:/etc/grafana/dashboards:ro
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - TZ=${TZ:-Asia/Shanghai}
-    restart: unless-stopped
+      - jaeger
+      - prometheus
 
+  # Jaeger - 分布式追踪
   jaeger:
     image: jaegertracing/all-in-one:1.57
     container_name: gochat-jaeger
+    hostname: jaeger
     environment:
-      - COLLECTOR_OTLP_ENABLED=true
-      - TZ=${TZ:-Asia/Shanghai}
+      COLLECTOR_OTLP_ENABLED: "true"
+      LOG_LEVEL: "info"
     ports:
-      - "16686:16686"        # UI
-      - "14268:14268"        # HTTP collector
-      - "4318:4318"          # OTLP HTTP
-    restart: unless-stopped
+      - "16686:16686"  # Jaeger UI
+      - "14250:14250"  # model.proto
+      - "14268:14268"  # HTTP接收
+      - "9411:9411"    # Zipkin兼容端点
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:14269" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # Prometheus - 指标存储
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: gochat-prometheus
+    hostname: prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    volumes:
+      - prometheus-data:/prometheus
+      - ./deployment/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./deployment/prometheus-alerts.yml:/etc/prometheus/alerts.yml:ro
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:9090/-/healthy" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # Grafana - 数据可视化
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: gochat-grafana
+    hostname: grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./deployment/grafana-dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./deployment/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   app:
+    container_name: gochat-backend
+    hostname: app
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: gochat-backend
     depends_on:
       mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
-      broker:
+      kafka:
         condition: service_healthy
     restart: unless-stopped
     env_file:
@@ -159,13 +182,12 @@ services:
     environment:
       TZ: ${TZ:-Asia/Shanghai}
     ports:
-      - '${APP_HOST_PORT:-8888}:8888'
+      - '${APP_HOST_PORT:-8080}:8080'
     volumes:
       - ./config/config.yaml:/app/config/config.yaml:ro
       - ./certs:/app/certs:ro
       - ./logs:/app/logs
     command: [ "/app/server", "-config", "./config/config.yaml" ]
-
 
 volumes:
   mysql-data:
@@ -179,4 +201,5 @@ volumes:
     driver: local
   prometheus-data:
     name: gochat-prometheus-data
-    driver: local
+  grafana-data:
+    name: gochat-grafana-data

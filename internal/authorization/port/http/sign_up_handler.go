@@ -4,6 +4,7 @@ import (
 	"gochat/internal/authorization/application"
 	"gochat/internal/authorization/domain"
 	ginutils "gochat/internal/infrastructure/gin"
+	_ "gochat/internal/shared/api"
 	"gochat/internal/shared/kernel"
 
 	"github.com/gin-gonic/gin"

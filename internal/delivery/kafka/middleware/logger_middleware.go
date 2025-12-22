@@ -6,11 +6,10 @@ import (
 	"time"
 
 	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
-// NewLoggerMiddleware returns a middleware that logs request latency and tracing info.
+// NewLoggerMiddleware returns a middleware that logs request latency
 func NewLoggerMiddleware() kafka.Middleware {
 	return func(next kafka.Handler) kafka.Handler {
 		return kafka.HandlerFunc(func(ctx context.Context, message *ckafka.Message) error {
@@ -20,20 +19,12 @@ func NewLoggerMiddleware() kafka.Middleware {
 			err := next.Handle(ctx, message)
 
 			dur := time.Since(start)
-			span := trace.SpanFromContext(ctx)
-			fields := []zap.Field{zap.Duration("latency", dur)}
-			if span != nil && span.SpanContext().IsValid() {
-				fields = append(fields,
-					zap.String("trace_id", span.SpanContext().TraceID().String()),
-					zap.String("span_id", span.SpanContext().SpanID().String()),
-				)
-			}
-
-			zap.L().Info("kafka event completed", append(fields,
+			zap.L().Info(
+				"request completed",
 				zap.String("topic", *message.TopicPartition.Topic),
+				zap.Duration("latency", dur),
 				zap.Error(err),
-			)...)
-
+			)
 			return err
 		})
 	}

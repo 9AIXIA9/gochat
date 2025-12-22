@@ -14,7 +14,7 @@
         },
         "version": "1.0"
     },
-    "host": "localhost:8888",
+    "host": "localhost:8080",
     "basePath": "/api/v1",
     "paths": {
         "/authorization/login": {
@@ -1852,7 +1852,8 @@
                 400,
                 401,
                 402,
-                403
+                403,
+                404
             ],
             "x-enum-varnames": [
                 "CodeSuccess",
@@ -1860,7 +1861,8 @@
                 "CodeTimeout",
                 "CodeInvalidParam",
                 "CodeInvalidToken",
-                "CodeNotFound"
+                "CodeNotFound",
+                "CodeServiceUnavailable"
             ]
         },
         "gochat_internal_shared_api.Response": {

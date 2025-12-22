@@ -17,6 +17,7 @@ import (
 	"github.com/google/wire"
 	gorillaWebsocket "github.com/gorilla/websocket"
 	"github.com/redis/go-redis/v9"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"go.uber.org/zap"
 
 	"gochat/config"
@@ -26,7 +27,6 @@ import (
 	"gochat/internal/delivery/http/middleware"
 	friendshipHTTP "gochat/internal/friendship/port/http"
 	ginInfra "gochat/internal/infrastructure/gin"
-	"gochat/internal/infrastructure/prometheus"
 	notificationHTTP "gochat/internal/notification/port/http"
 	profileHTTP "gochat/internal/profile/port/http"
 	roomshipHTTP "gochat/internal/roomship/port/http"
@@ -72,13 +72,14 @@ func provideHttpRouter(
 	validator ginInfra.Validator,
 	redisClient *redis.Client,
 	websocketHandler *handler.WebsocketHandler,
-	metrics *prometheus.Metrics,
 ) *gin.Engine {
-	// 设置Gin模式
-	gin.SetMode(appConfig.Env)
+	ginInfra.SetGlobalEnv(appConfig.Env)
 
 	// 初始化Gin路由器
 	router := gin.New()
+
+	// 链路追踪中间件）
+	router.Use(otelgin.Middleware(appConfig.Name))
 
 	// swagger base path 保持与路由前缀一致
 	docs.SwaggerInfo.BasePath = "/api/v1"
@@ -93,22 +94,15 @@ func provideHttpRouter(
 	// 非业务路由
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router.NoRoute(handler.NewNotFoundHandler())
-	router.Any("/metrics", gin.WrapH(metrics.Handler()))
 	router.Any("/health_check", handler.NewHealthCheckHandler())
 
 	// 业务路由
 	baseGroup := router.Group("/api/v1")
 	baseGroup.Use(
 		middleware.NewRateLimitMiddleware(redisClient, appConfig.RateLimit),
-		metrics.GinMiddleware(),
 	)
 
 	authorizationMiddleware := authHTTP.NewAuthorizationMiddleware(parseAccessToken)
-
-	// 遥测追踪中间件
-	if appConfig.Telemetry != nil && appConfig.Telemetry.Enabled && appConfig.Telemetry.TraceEnabled {
-		baseGroup.Use(middleware.NewTelemetryMiddleware(appConfig.Name))
-	}
 
 	// 断路器中间件
 	if appConfig.Breaker != nil {

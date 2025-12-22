@@ -1858,7 +1858,8 @@ const docTemplate = `{
                 400,
                 401,
                 402,
-                403
+                403,
+                404
             ],
             "x-enum-varnames": [
                 "CodeSuccess",
@@ -1866,7 +1867,8 @@ const docTemplate = `{
                 "CodeTimeout",
                 "CodeInvalidParam",
                 "CodeInvalidToken",
-                "CodeNotFound"
+                "CodeNotFound",
+                "CodeServiceUnavailable"
             ]
         },
         "gochat_internal_shared_api.Response": {
@@ -2226,7 +2228,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8888",
+	Host:             "localhost:8080",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "GoChat Backend API",

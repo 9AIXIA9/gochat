@@ -13,6 +13,7 @@ type Dependencies struct {
 	KafkaConsumers      []*kafkautil.Consumer
 	BinlogReader        *canalUtil.BinlogReader
 	EmailNotifier       *gomailUtil.EmailNotifier
+	OTELShutdown        OTELShutdown
 }
 
 func BuildDependencies(
@@ -27,6 +28,7 @@ func BuildDependencies(
 	friendshipConsumer FriendshipKafkaConsumer,
 	binlogReader *canalUtil.BinlogReader,
 	emailNotifier *gomailUtil.EmailNotifier,
+	OTELShutdown OTELShutdown,
 	_ emailServiceAvailable,
 	_ databaseMigrated,
 ) (*Dependencies, error) {
@@ -43,6 +45,7 @@ func BuildDependencies(
 		},
 		BinlogReader:  binlogReader,
 		EmailNotifier: emailNotifier,
+		OTELShutdown:  OTELShutdown,
 	}
 	return deps, nil
 }

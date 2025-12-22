@@ -1,4 +1,3 @@
-# nonk8s
 apiVersion: 1
 
 datasources:
@@ -7,8 +6,4 @@ datasources:
     access: proxy
     url: http://prometheus:9090
     isDefault: true
-    jsonData:
-      timeInterval: 15s
-    version: 1
     editable: true
-

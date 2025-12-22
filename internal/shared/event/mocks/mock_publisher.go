@@ -10,6 +10,7 @@
 package mocks
 
 import (
+	context "context"
 	event "gochat/internal/shared/event"
 	reflect "reflect"
 
@@ -41,15 +42,15 @@ func (m *MockPublisher) EXPECT() *MockPublisherMockRecorder {
 }
 
 // Publish mocks base method.
-func (m *MockPublisher) Publish(event event.Event) error {
+func (m *MockPublisher) Publish(ctx context.Context, event event.Event) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Publish", event)
+	ret := m.ctrl.Call(m, "Publish", ctx, event)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Publish indicates an expected call of Publish.
-func (mr *MockPublisherMockRecorder) Publish(event any) *gomock.Call {
+func (mr *MockPublisherMockRecorder) Publish(ctx, event any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Publish", reflect.TypeOf((*MockPublisher)(nil).Publish), event)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Publish", reflect.TypeOf((*MockPublisher)(nil).Publish), ctx, event)
 }

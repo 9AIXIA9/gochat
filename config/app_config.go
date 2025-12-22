@@ -44,8 +44,8 @@ type App struct {
 	RateLimit    *middleware.RateLimitConfig `mapstructure:"RateLimit"`
 	BinlogReader *canal.BinlogReaderConfig   `mapstructure:"BinlogReader"`
 	Email        *gomail.EmailNotifierConfig `mapstructure:"Email"`
-	Telemetry    *otel.TelemetryConfig       `mapstructure:"Telemetry"`
 	Breaker      *breaker.Config             `mapstructure:"Breaker"`
+	OTEL         *otel.Config                `mapstructure:"OTEL"`
 }
 
 func (c *App) Validate() error {
@@ -108,11 +108,17 @@ func (c *App) Validate() error {
 	if err := c.BinlogReader.Validate(); err != nil {
 		return fmt.Errorf("App.BinlogReader: %w", err)
 	}
-	if err := c.Telemetry.Validate(); err != nil {
-		return fmt.Errorf("App.Telemetry: %w", err)
-	}
 	if err := c.Breaker.Validate(); err != nil {
 		return fmt.Errorf("App.Breaker: %w", err)
+	}
+	// OTEL is optional; validate only if provided
+	if c.OTEL != nil {
+		if c.OTEL.Endpoint == "" {
+			return fmt.Errorf("App.OTEL.Endpoint: %w", myErrors.ErrEmptyInput)
+		}
+		if c.OTEL.ServiceName == "" {
+			return fmt.Errorf("App.OTEL.ServiceName: %w", myErrors.ErrEmptyInput)
+		}
 	}
 	return nil
 }

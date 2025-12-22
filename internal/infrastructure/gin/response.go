@@ -21,6 +21,8 @@ func Response(ginContext *gin.Context, code api.Code) {
 		ginContext.JSON(api.CodeInvalidToken.ToHTTPCode(), api.ResponseInvalidToken)
 	case api.CodeServiceUnavailable:
 		ginContext.JSON(api.CodeServiceUnavailable.ToHTTPCode(), api.ResponseServiceUnavailable)
+	case api.CodeNotFound:
+		ginContext.JSON(api.CodeNotFound.ToHTTPCode(), api.ResponseNotFound)
 	default:
 		zap.L().Debug("Unhandled business code", zap.Int("code", int(code)))
 		ginContext.JSON(code.ToHTTPCode(), api.NewResponse(code))

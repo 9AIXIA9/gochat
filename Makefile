@@ -1,15 +1,12 @@
 # Makefile for GoChat backend on Windows (requires GNU make)
 # Use cmd.exe shell semantics for docker commands
 
-# 使用自定义 env 文件
-ENV_FILE := ./config/docker/.env
-
 PROJECT_NAME := backend
 COMPOSE_FILE := docker-compose.yml
 
 
 # Helper to run docker compose with file and project name
-DC := docker compose --env-file $(ENV_FILE) -f $(COMPOSE_FILE) -p $(PROJECT_NAME)
+DC := docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME)
 
 .PHONY: help
 help:

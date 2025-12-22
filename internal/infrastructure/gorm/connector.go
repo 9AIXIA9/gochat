@@ -3,7 +3,6 @@ package gorm
 import (
 	"fmt"
 
-	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -35,13 +34,8 @@ func ConnectToMysql(config *MysqlConfig) (*gorm.DB, error) {
 		}()
 		return nil, fmt.Errorf("connect to mysql failed,err:%w", err)
 	}
-	// Register tracing plugin only if a tracer provider exists (telemetry may be disabled)
-	if otel.GetTracerProvider() != nil {
-		_ = db.Use(tracing.NewPlugin())
+	if err := db.Use(tracing.NewPlugin()); err != nil {
+		return nil, fmt.Errorf("register gorm otel plugin failed: %w", err)
 	}
-	// Register custom observability plugin (metrics + slow query tracing)
-	metrics := NewDBMetrics(nil)
-	metrics.Register(nil)
-	_ = db.Use(NewObservabilityPlugin(metrics, config.SlowThresholdMillis))
 	return db, nil
 }
