@@ -69,6 +69,7 @@ func buildKafkaConsumer(
 	appConfig *config.App,
 	reproducer *ckafka.Producer,
 	eventRepo event.Repository,
+	contextName string,
 	topics []event.Topic,
 	register func(r *kafkaInfra.Router),
 ) (*kafkaInfra.Consumer, error) {
@@ -96,6 +97,7 @@ func buildKafkaConsumer(
 	router.Use(
 		middleware.NewLoggerMiddleware(),
 		middleware.NewRecoverMiddleware(),
+		middleware.NewTraceMiddleware(appConfig.Name+"."+contextName+".kafka_consumer"),
 	)
 	register(router)
 
@@ -118,7 +120,7 @@ func provideAuthEventConsumer(
 	eventRepo event.Repository,
 	authUserCreated authApp.UserCreatedUseCase,
 ) (AuthKafkaConsumer, error) {
-	consumer, err := buildKafkaConsumer(appConfig, reproducer, eventRepo,
+	consumer, err := buildKafkaConsumer(appConfig, reproducer, eventRepo, "authorization",
 		[]event.Topic{
 			authDomain.TopicUserCreated,
 		},
@@ -126,7 +128,11 @@ func provideAuthEventConsumer(
 			r.EventHandle(authDomain.TopicUserCreated, authEvent.NewUserCreatedEventHandler(authUserCreated))
 		},
 	)
-	return consumer, err
+	if err != nil {
+		return nil, err
+	}
+
+	return consumer, nil
 }
 
 func provideProfileEventConsumer(
@@ -137,7 +143,7 @@ func provideProfileEventConsumer(
 	profileRoomCreated profileApp.RoomCreatedUseCase,
 	profileRoomshipCreated profileApp.RoomshipCreatedUseCase,
 ) (ProfileKafkaConsumer, error) {
-	consumer, err := buildKafkaConsumer(appConfig, reproducer, eventRepo,
+	consumer, err := buildKafkaConsumer(appConfig, reproducer, eventRepo, "profile",
 		[]event.Topic{
 			profileDomain.TopicUserCreated,
 			profileDomain.TopicRoomCreated,
@@ -162,7 +168,7 @@ func provideChatEventConsumer(
 	chatFriendshipCreated chatApp.FriendshipCreatedUseCase,
 	chatUndeliveredMessagesPushRequested chatApp.UndeliveredMessagesPushRequestedUseCase,
 ) (ChatKafkaConsumer, error) {
-	consumer, err := buildKafkaConsumer(appConfig, reproducer, eventRepo,
+	consumer, err := buildKafkaConsumer(appConfig, reproducer, eventRepo, "chat",
 		[]event.Topic{
 			chatDomain.TopicUserCreated,
 			chatDomain.TopicRoomCreated,
@@ -190,7 +196,7 @@ func provideNotificationEventConsumer(
 	notificationSystemMessageNotificationRequested notificationApp.SystemMessageNotificationRequestedUseCase,
 	notificationUndeliveredMessagesRequested notificationApp.UndeliveredMessagesNotificationRequestedUseCase,
 ) (NotificationKafkaConsumer, error) {
-	consumer, err := buildKafkaConsumer(appConfig, reproducer, eventRepo,
+	consumer, err := buildKafkaConsumer(appConfig, reproducer, eventRepo, "notification",
 		[]event.Topic{
 			notificationDomain.TopicWelcomeEmailNotificationRequested,
 			notificationDomain.TopicSystemMessageNotificationRequested,
@@ -219,7 +225,7 @@ func provideRoomshipEventConsumer(
 	roomshipMemberRequestCreated roomshipApp.MemberRequestCreatedUseCase,
 	roomshipRoomshipCreated roomshipApp.RoomshipCreatedUseCase,
 ) (RoomshipKafkaConsumer, error) {
-	consumer, err := buildKafkaConsumer(appConfig, reproducer, eventRepo,
+	consumer, err := buildKafkaConsumer(appConfig, reproducer, eventRepo, "roomship",
 		[]event.Topic{
 			roomshipDomain.TopicUserCreated,
 			roomshipDomain.TopicRoomCreated,
@@ -247,7 +253,7 @@ func provideFriendshipEventConsumer(
 	friendshipFriendRequestCreated friendshipApp.FriendRequestCreatedUseCase,
 	friendshipFriendshipCreated friendshipApp.FriendshipCreatedUseCase,
 ) (FriendshipKafkaConsumer, error) {
-	consumer, err := buildKafkaConsumer(appConfig, reproducer, eventRepo,
+	consumer, err := buildKafkaConsumer(appConfig, reproducer, eventRepo, "friendship",
 		[]event.Topic{
 			friendshipDomain.TopicUserCreated,
 			friendshipDomain.TopicFriendRequestAgreed,

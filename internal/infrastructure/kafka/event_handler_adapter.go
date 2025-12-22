@@ -18,18 +18,21 @@ func WrapEventHandler(eventHandler event.Handler) Handler {
 
 func toEvent(message *ckafka.Message) event.Event {
 	var id event.ID
+	headers := make(map[string]string, len(message.Headers)-1)
 	for _, header := range message.Headers {
 		if header.Key == eventIDKey {
 			id = event.ID(header.Value)
-			break
+			continue
 		}
+		headers[header.Key] = string(header.Value)
 	}
+
 	return event.LoadStandardEvent(
 		id,
 		kernel.ID(message.Key),
 		message.Timestamp,
 		event.Topic(*message.TopicPartition.Topic),
 		message.Value,
-		nil,
+		headers,
 	)
 }
