@@ -16,13 +16,14 @@ const (
 type ListPrivateMessagesUseCase kernel.UseCase[*ListPrivateMessagesInput, *ListPrivateMessagesOutput]
 
 type ListPrivateMessagesInput struct {
-	UserID kernel.UserID
-	BaseID kernel.MessageID
-	Limit  int
+	OperatorID kernel.UserID
+	UserID     kernel.UserID
+	BaseID     kernel.MessageID
+	Limit      int
 }
 
 func (r *ListPrivateMessagesInput) Validate() error {
-	if len(r.UserID) == 0 {
+	if len(r.OperatorID) == 0 || len(r.UserID) == 0 {
 		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "user id can't be empty")
 	}
 
@@ -34,11 +35,11 @@ type ListPrivateMessagesOutput struct {
 }
 
 type listPrivateMessagesUseCase struct {
-	finder domain.PrivateMessagesFinderByRecipientID
+	finder domain.PrivateMessagesFinderByUserIDs
 }
 
 func NewListPrivateMessagesUseCase(
-	finder domain.PrivateMessagesFinderByRecipientID,
+	finder domain.PrivateMessagesFinderByUserIDs,
 ) (ListPrivateMessagesUseCase, error) {
 	if err := utils.CheckInterfaces(finder); err != nil {
 		return nil, err
@@ -57,7 +58,7 @@ func (uc *listPrivateMessagesUseCase) Execute(ctx context.Context, input *ListPr
 		limit = maxPrivateMessagesListLimit
 	}
 
-	messages, err := uc.finder.FindsByRecipientID(ctx, input.UserID, limit, input.BaseID)
+	messages, err := uc.finder.FindsByUserIDs(ctx, input.OperatorID, input.UserID, limit, input.BaseID)
 	if err != nil {
 		return nil, err
 	}

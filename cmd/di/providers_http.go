@@ -154,7 +154,7 @@ func provideHttpRouter(
 	chatsGroup := baseGroup.Group("/chats")
 	chatsGroup.Use(authorizationMiddleware)
 	{
-		chatsGroup.GET("/private-messages", chatHTTP.NewListPrivateMessagesHandler(listPrivateMessages, validator))
+		chatsGroup.GET("/private-messages/:user_id", chatHTTP.NewListPrivateMessagesHandler(listPrivateMessages, validator))
 		chatsGroup.GET("/rooms/messages", chatHTTP.NewListRoomMessagesHandler(listRoomMessages, validator))
 		chatsGroup.POST("/private-messages", chatHTTP.NewSendPrivateMessageHandler(sendPrivateMessage, validator))
 		chatsGroup.POST("/rooms/messages", chatHTTP.NewSendRoomMessageHandler(sendRoomMessage, validator))

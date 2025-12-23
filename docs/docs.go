@@ -190,67 +190,6 @@ const docTemplate = `{
             }
         },
         "/chats/private-messages": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "获取当前登录用户的私聊消息列表，可基于 base_id 游标和 limit 分页",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Chat"
-                ],
-                "summary": "获取私聊消息列表",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "分页大小，默认20，最大100",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "成功返回私聊消息列表",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/internal_chat_port_http.ListPrivateMessagesResponseData"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
-                        }
-                    },
-                    "401": {
-                        "description": "未认证",
-                        "schema": {
-                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器内部错误",
-                        "schema": {
-                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
-                        }
-                    }
-                }
-            },
             "post": {
                 "security": [
                     {
@@ -341,6 +280,88 @@ const docTemplate = `{
                         "description": "发送成功",
                         "schema": {
                             "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未认证",
+                        "schema": {
+                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/chats/private-messages/{user_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取当前登录用户的私聊消息列表，可基于 base_id 游标和 limit 分页",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "获取私聊消息列表",
+                "parameters": [
+                    {
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
+                        "description": "私聊对象用户ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
+                        "description": "分页游标，返回该ID之前的消息",
+                        "name": "base_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "分页大小，默认20，最大100",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "成功返回私聊消息列表",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_chat_port_http.ListPrivateMessagesResponseData"
+                                        }
+                                    }
+                                }
+                            ]
                         }
                     },
                     "400": {
@@ -1746,7 +1767,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
-                    "type": "string"
+                    "$ref": "#/definitions/gochat_internal_shared_kernel.MessageID"
                 },
                 "recipient_id": {
                     "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"

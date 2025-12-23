@@ -95,10 +95,12 @@ func (repo *PrivateMessageRepository) UpdatesByUserID(ctx context.Context, sende
 		Update("state", state).Error)
 }
 
-func (repo *PrivateMessageRepository) FindsByRecipientID(ctx context.Context, recipientID kernel.UserID, limit int, baseID kernel.MessageID) ([]*domain.PrivateMessage, error) {
+func (repo *PrivateMessageRepository) FindsByUserIDs(ctx context.Context, userID1, userID2 kernel.UserID, limit int, baseID kernel.MessageID) ([]*domain.PrivateMessage, error) {
 	var messages []model.PrivateMessage
+
 	query := repo.db.WithContext(ctx).Model(&model.PrivateMessage{}).
-		Where("recipient_id = ?", recipientID).
+		Where("(sender_id = ? AND recipient_id = ?) OR (sender_id = ? AND recipient_id = ?)",
+			userID1, userID2, userID2, userID1).
 		Order("id DESC").
 		Limit(limit)
 	if baseID != "" {
