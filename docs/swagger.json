@@ -1384,14 +1384,14 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "获取当前登录用户相关的房间成员请求列表，可基于 base_id 游标和 limit 分页",
+                "description": "获取当前登录用户管理的房间成员请求列表，可基于 base_id 游标和 limit 分页",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Roomship"
                 ],
-                "summary": "获取房间成员请求列表",
+                "summary": "获取属于登录用户处理的请求列表",
                 "parameters": [
                     {
                         "enum": [

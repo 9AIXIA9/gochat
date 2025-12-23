@@ -35,9 +35,9 @@ type ListMemberRequestsResponseData struct {
 	Requests []*dto.MemberRequest `json:"requests,omitempty"`
 }
 
-// NewListMemberRequestsHandler 获取房间成员请求列表
-// @Summary      获取房间成员请求列表
-// @Description  获取当前登录用户相关的房间成员请求列表，可基于 base_id 游标和 limit 分页
+// NewListMemberRequestsHandler 获取属于登录用户处理的请求列表
+// @Summary      获取属于登录用户处理的请求列表
+// @Description  获取当前登录用户管理的房间成员请求列表，可基于 base_id 游标和 limit 分页
 // @Tags         Roomship
 // @Security     BearerAuth
 // @Produce      json

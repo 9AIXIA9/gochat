@@ -69,13 +69,22 @@ func (repo *MemberRequestRepository) ExistByUserIDAndRoomIDAndState(ctx context.
 
 func (repo *MemberRequestRepository) FindsByUserID(ctx context.Context, userID kernel.UserID, limit int, baseID kernel.OperationID) ([]*domain.MemberRequest, error) {
 	var requests []model.MemberRequest
-	query := repo.db.WithContext(ctx).Model(&model.MemberRequest{}).
-		Where("applicant_id = ?", userID).
+
+	// 查询用户作为房主的房间中的成员申请，按时间倒序分页
+	sub := repo.db.WithContext(ctx).
+		Model(&model.Room{}).
+		Select("id").
+		Where("owner_id = ?", userID)
+
+	query := repo.db.WithContext(ctx).
+		Where("room_id IN (?)", sub).
 		Order("id DESC").
 		Limit(limit)
+
 	if baseID != "" {
 		query = query.Where("id < ?", baseID)
 	}
+
 	if err := query.Find(&requests).Error; err != nil {
 		return nil, gormutils.TranslateError(err)
 	}
