@@ -21,57 +21,73 @@ const (
 
 func TestListPrivateMessagesInput_Validate(t *testing.T) {
 	input := &application.ListPrivateMessagesInput{
-		UserID: fixedUserID,
-		BaseID: fixedPrivateMessageBaseID,
-		Limit:  maxPrivateMessagesLimit,
+		OperatorID: fixedUserID,
+		UserID:     fixedFriendID,
+		BaseID:     fixedPrivateMessageBaseID,
+		Limit:      maxPrivateMessagesLimit,
 	}
 
 	err := input.Validate()
 	require.NoError(t, err)
 
 	inputWithNoBaseID := &application.ListPrivateMessagesInput{
-		UserID: fixedUserID,
-		BaseID: "",
-		Limit:  maxPrivateMessagesLimit,
+		OperatorID: fixedUserID,
+		UserID:     fixedFriendID,
+		BaseID:     "",
+		Limit:      maxPrivateMessagesLimit,
 	}
 
 	err = inputWithNoBaseID.Validate()
 	require.NoError(t, err)
 
 	inputWithNoLimit := &application.ListPrivateMessagesInput{
-		UserID: fixedUserID,
-		BaseID: fixedPrivateMessageBaseID,
-		Limit:  0,
+		OperatorID: fixedUserID,
+		UserID:     fixedFriendID,
+		BaseID:     fixedPrivateMessageBaseID,
+		Limit:      0,
 	}
 
 	err = inputWithNoLimit.Validate()
 	require.NoError(t, err)
 
 	inputWithNegativeLimit := &application.ListPrivateMessagesInput{
-		UserID: fixedUserID,
-		BaseID: fixedPrivateMessageBaseID,
-		Limit:  -10,
+		OperatorID: fixedUserID,
+		UserID:     fixedFriendID,
+		BaseID:     fixedPrivateMessageBaseID,
+		Limit:      -10,
 	}
 
 	err = inputWithNegativeLimit.Validate()
 	require.NoError(t, err)
 
 	inputWithNoBaseIDAndLimit := &application.ListPrivateMessagesInput{
-		UserID: fixedUserID,
-		BaseID: "",
-		Limit:  0,
+		OperatorID: fixedUserID,
+		UserID:     fixedFriendID,
+		BaseID:     "",
+		Limit:      0,
 	}
 
 	err = inputWithNoBaseIDAndLimit.Validate()
 	require.NoError(t, err)
 
 	inputWithEmptyUserID := &application.ListPrivateMessagesInput{
-		UserID: "",
-		BaseID: fixedPrivateMessageBaseID,
-		Limit:  maxPrivateMessagesLimit,
+		OperatorID: fixedUserID,
+		UserID:     "",
+		BaseID:     fixedPrivateMessageBaseID,
+		Limit:      maxPrivateMessagesLimit,
 	}
 
 	err = inputWithEmptyUserID.Validate()
+	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
+
+	inputWithEmptyOperatorID := &application.ListPrivateMessagesInput{
+		OperatorID: "",
+		UserID:     fixedFriendID,
+		BaseID:     fixedPrivateMessageBaseID,
+		Limit:      maxPrivateMessagesLimit,
+	}
+
+	err = inputWithEmptyOperatorID.Validate()
 	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
 }
 
@@ -79,7 +95,7 @@ func TestNewListPrivateMessagesUseCase(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	finder := mocks.NewMockPrivateMessagesFinderByRecipientID(ctrl)
+	finder := mocks.NewMockPrivateMessagesFinderByUserIDs(ctrl)
 
 	useCase, err := application.NewListPrivateMessagesUseCase(
 		finder,
@@ -100,7 +116,7 @@ func TestListPrivateMessagesUseCase_Execute(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	finder := mocks.NewMockPrivateMessagesFinderByRecipientID(ctrl)
+	finder := mocks.NewMockPrivateMessagesFinderByUserIDs(ctrl)
 
 	useCase, err := application.NewListPrivateMessagesUseCase(
 		finder,
@@ -112,12 +128,13 @@ func TestListPrivateMessagesUseCase_Execute(t *testing.T) {
 	fixedLimit := maxPrivateMessagesLimit - 1
 	messages := getPrivateMessages(fixedLimit)
 
-	finder.EXPECT().FindsByRecipientID(gomock.Any(), fixedUserID, fixedLimit, fixedPrivateMessageBaseID).Return(messages, nil)
+	finder.EXPECT().FindsByUserIDs(gomock.Any(), fixedUserID, fixedFriendID, fixedLimit, fixedPrivateMessageBaseID).Return(messages, nil)
 
 	output, err := useCase.Execute(nil, &application.ListPrivateMessagesInput{
-		UserID: fixedUserID,
-		BaseID: fixedPrivateMessageBaseID,
-		Limit:  maxPrivateMessagesLimit - 1,
+		OperatorID: fixedUserID,
+		UserID:     fixedFriendID,
+		BaseID:     fixedPrivateMessageBaseID,
+		Limit:      maxPrivateMessagesLimit - 1,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, output)
@@ -127,12 +144,13 @@ func TestListPrivateMessagesUseCase_Execute(t *testing.T) {
 	// 模拟limit为0
 	messages = getPrivateMessages(defaultPrivateMessagesLimit)
 
-	finder.EXPECT().FindsByRecipientID(gomock.Any(), fixedUserID, defaultPrivateMessagesLimit, fixedPrivateMessageBaseID).Return(messages, nil)
+	finder.EXPECT().FindsByUserIDs(gomock.Any(), fixedUserID, fixedFriendID, defaultPrivateMessagesLimit, fixedPrivateMessageBaseID).Return(messages, nil)
 
 	output, err = useCase.Execute(nil, &application.ListPrivateMessagesInput{
-		UserID: fixedUserID,
-		BaseID: fixedPrivateMessageBaseID,
-		Limit:  0,
+		OperatorID: fixedUserID,
+		UserID:     fixedFriendID,
+		BaseID:     fixedPrivateMessageBaseID,
+		Limit:      0,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, output)
@@ -140,12 +158,13 @@ func TestListPrivateMessagesUseCase_Execute(t *testing.T) {
 	require.Len(t, output.PrivateMessages, defaultPrivateMessagesLimit)
 
 	//模拟负数limit
-	finder.EXPECT().FindsByRecipientID(gomock.Any(), fixedUserID, defaultPrivateMessagesLimit, fixedPrivateMessageBaseID).Return(messages, nil)
+	finder.EXPECT().FindsByUserIDs(gomock.Any(), fixedUserID, fixedFriendID, defaultPrivateMessagesLimit, fixedPrivateMessageBaseID).Return(messages, nil)
 
 	output, err = useCase.Execute(nil, &application.ListPrivateMessagesInput{
-		UserID: fixedUserID,
-		BaseID: fixedPrivateMessageBaseID,
-		Limit:  -100,
+		OperatorID: fixedUserID,
+		UserID:     fixedFriendID,
+		BaseID:     fixedPrivateMessageBaseID,
+		Limit:      -100,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, output)
@@ -155,12 +174,13 @@ func TestListPrivateMessagesUseCase_Execute(t *testing.T) {
 	// 模拟太大的limit
 	messages = getPrivateMessages(maxPrivateMessagesLimit)
 
-	finder.EXPECT().FindsByRecipientID(gomock.Any(), fixedUserID, maxPrivateMessagesLimit, fixedPrivateMessageBaseID).Return(messages, nil)
+	finder.EXPECT().FindsByUserIDs(gomock.Any(), fixedUserID, fixedFriendID, maxPrivateMessagesLimit, fixedPrivateMessageBaseID).Return(messages, nil)
 
 	output, err = useCase.Execute(nil, &application.ListPrivateMessagesInput{
-		UserID: fixedUserID,
-		BaseID: fixedPrivateMessageBaseID,
-		Limit:  1000,
+		OperatorID: fixedUserID,
+		UserID:     fixedFriendID,
+		BaseID:     fixedPrivateMessageBaseID,
+		Limit:      1000,
 	})
 	require.NoError(t, err)
 	require.NotNil(t, output)

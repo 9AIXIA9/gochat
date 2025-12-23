@@ -146,7 +146,7 @@ const docTemplate = `{
             }
         },
         "/auth/tokens/refresh": {
-            "get": {
+            "put": {
                 "description": "使用刷新令牌 Cookie 刷新访问令牌，并重新设置刷新令牌 Cookie",
                 "produces": [
                     "application/json"
@@ -190,67 +190,6 @@ const docTemplate = `{
             }
         },
         "/chats/private-messages": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "获取当前登录用户的私聊消息列表，可基于 base_id 游标和 limit 分页",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Chat"
-                ],
-                "summary": "获取私聊消息列表",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "分页大小，默认20，最大100",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "成功返回私聊消息列表",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/internal_chat_port_http.ListPrivateMessagesResponseData"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
-                        }
-                    },
-                    "401": {
-                        "description": "未认证",
-                        "schema": {
-                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器内部错误",
-                        "schema": {
-                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
-                        }
-                    }
-                }
-            },
             "post": {
                 "security": [
                     {
@@ -364,22 +303,32 @@ const docTemplate = `{
                 }
             }
         },
-        "/chats/rooms/messages": {
+        "/chats/private-messages/{user_id}": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "获取当前登录用户所在房间的消息列表，可基于 base_id 游标和 limit 分页",
+                "description": "获取用户和对方聊天记录，可基于 base_id 游标和 limit 分页",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Chat"
                 ],
-                "summary": "获取房间消息列表",
+                "summary": "获取用户聊天记录",
                 "parameters": [
+                    {
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
+                        "description": "私聊对象用户ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "enum": [
                             ""
@@ -398,7 +347,89 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "成功返回房间消息列表",
+                        "description": "成功返回私聊消息记录",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_chat_port_http.ListPrivateMessagesResponseData"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未认证",
+                        "schema": {
+                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/chats/rooms/messages": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取当前登录用户所在房间的消息记录，可基于 base_id 游标和 limit 分页",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "获取房间内的消息",
+                "parameters": [
+                    {
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
+                        "description": "房间ID",
+                        "name": "room_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
+                        "description": "分页游标，返回该ID之前的消息",
+                        "name": "base_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "分页大小，默认20，最大100",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "成功返回房间消息记录",
                         "schema": {
                             "allOf": [
                                 {
@@ -1359,14 +1390,14 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "获取当前登录用户相关的房间成员请求列表，可基于 base_id 游标和 limit 分页",
+                "description": "获取当前登录用户管理的房间成员请求列表，可基于 base_id 游标和 limit 分页",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Roomship"
                 ],
-                "summary": "获取房间成员请求列表",
+                "summary": "获取属于登录用户处理的请求列表",
                 "parameters": [
                     {
                         "enum": [
@@ -1746,7 +1777,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
-                    "type": "string"
+                    "$ref": "#/definitions/gochat_internal_shared_kernel.MessageID"
                 },
                 "recipient_id": {
                     "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"

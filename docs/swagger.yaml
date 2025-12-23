@@ -15,7 +15,7 @@ definitions:
       content:
         type: string
       id:
-        type: string
+        $ref: '#/definitions/gochat_internal_shared_kernel.MessageID'
       recipient_id:
         $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
       sender_id:
@@ -545,7 +545,7 @@ paths:
       tags:
       - Authorization
   /auth/tokens/refresh:
-    get:
+    put:
       description: 使用刷新令牌 Cookie 刷新访问令牌，并重新设置刷新令牌 Cookie
       produces:
       - application/json
@@ -571,42 +571,6 @@ paths:
       tags:
       - Authorization
   /chats/private-messages:
-    get:
-      description: 获取当前登录用户的私聊消息列表，可基于 base_id 游标和 limit 分页
-      parameters:
-      - description: 分页大小，默认20，最大100
-        in: query
-        name: limit
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 成功返回私聊消息列表
-          schema:
-            allOf:
-            - $ref: '#/definitions/gochat_internal_shared_api.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/internal_chat_port_http.ListPrivateMessagesResponseData'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/gochat_internal_shared_api.Response'
-        "401":
-          description: 未认证
-          schema:
-            $ref: '#/definitions/gochat_internal_shared_api.Response'
-        "500":
-          description: 服务器内部错误
-          schema:
-            $ref: '#/definitions/gochat_internal_shared_api.Response'
-      security:
-      - BearerAuth: []
-      summary: 获取私聊消息列表
-      tags:
-      - Chat
     post:
       consumes:
       - application/json
@@ -640,6 +604,56 @@ paths:
       security:
       - BearerAuth: []
       summary: 发送私聊消息
+      tags:
+      - Chat
+  /chats/private-messages/{user_id}:
+    get:
+      description: 获取用户和对方聊天记录，可基于 base_id 游标和 limit 分页
+      parameters:
+      - description: 私聊对象用户ID
+        enum:
+        - ""
+        in: path
+        name: user_id
+        required: true
+        type: string
+      - description: 分页游标，返回该ID之前的消息
+        enum:
+        - ""
+        in: query
+        name: base_id
+        type: string
+      - description: 分页大小，默认20，最大100
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功返回私聊消息记录
+          schema:
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_chat_port_http.ListPrivateMessagesResponseData'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+        "401":
+          description: 未认证
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取用户聊天记录
       tags:
       - Chat
   /chats/private-messages/read:
@@ -680,8 +694,15 @@ paths:
       - Chat
   /chats/rooms/messages:
     get:
-      description: 获取当前登录用户所在房间的消息列表，可基于 base_id 游标和 limit 分页
+      description: 获取当前登录用户所在房间的消息记录，可基于 base_id 游标和 limit 分页
       parameters:
+      - description: 房间ID
+        enum:
+        - ""
+        in: path
+        name: room_id
+        required: true
+        type: string
       - description: 分页游标，返回该ID之前的消息
         enum:
         - ""
@@ -696,7 +717,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: 成功返回房间消息列表
+          description: 成功返回房间消息记录
           schema:
             allOf:
             - $ref: '#/definitions/gochat_internal_shared_api.Response'
@@ -718,7 +739,7 @@ paths:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
       - BearerAuth: []
-      summary: 获取房间消息列表
+      summary: 获取房间内的消息
       tags:
       - Chat
     post:
@@ -1363,7 +1384,7 @@ paths:
       - Roomship
   /rooms/requests/:
     get:
-      description: 获取当前登录用户相关的房间成员请求列表，可基于 base_id 游标和 limit 分页
+      description: 获取当前登录用户管理的房间成员请求列表，可基于 base_id 游标和 limit 分页
       parameters:
       - description: 分页游标，返回该ID之前的记录
         enum:
@@ -1401,7 +1422,7 @@ paths:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
       - BearerAuth: []
-      summary: 获取房间成员请求列表
+      summary: 获取属于登录用户处理的请求列表
       tags:
       - Roomship
     post:
