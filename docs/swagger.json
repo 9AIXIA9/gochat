@@ -17,7 +17,7 @@
     "host": "localhost:8080",
     "basePath": "/api/v1",
     "paths": {
-        "/authorization/login": {
+        "/auth/login": {
             "post": {
                 "description": "使用学号/账号和密码登录，成功后下发访问令牌与刷新令牌（刷新令牌存于 Cookie）",
                 "consumes": [
@@ -75,51 +75,7 @@
                 }
             }
         },
-        "/authorization/refresh_access_token": {
-            "get": {
-                "description": "使用刷新令牌 Cookie 刷新访问令牌，并重新设置刷新令牌 Cookie",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Authorization"
-                ],
-                "summary": "刷新访问令牌",
-                "responses": {
-                    "200": {
-                        "description": "刷新成功，返回新的访问令牌",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/internal_authorization_port_http.RefreshAccessTokenResponseData"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "刷新令牌无效或已过期",
-                        "schema": {
-                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器内部错误",
-                        "schema": {
-                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/authorization/sign_up": {
+        "/auth/sign-up": {
             "post": {
                 "description": "使用邮箱和密码注册账号，成功后返回系统分配的用户编号",
                 "consumes": [
@@ -183,7 +139,51 @@
                 }
             }
         },
-        "/chat/private": {
+        "/auth/tokens/refresh": {
+            "get": {
+                "description": "使用刷新令牌 Cookie 刷新访问令牌，并重新设置刷新令牌 Cookie",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authorization"
+                ],
+                "summary": "刷新访问令牌",
+                "responses": {
+                    "200": {
+                        "description": "刷新成功，返回新的访问令牌",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_authorization_port_http.RefreshAccessTokenResponseData"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "刷新令牌无效或已过期",
+                        "schema": {
+                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/chats/private-messages": {
             "get": {
                 "security": [
                     {
@@ -301,7 +301,64 @@
                 }
             }
         },
-        "/chat/room": {
+        "/chats/private-messages/read": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "向指定房间发送一条消息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "发送房间消息",
+                "parameters": [
+                    {
+                        "description": "发送房间消息请求体",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_chat_port_http.ReadPrivateMessagesRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "发送成功",
+                        "schema": {
+                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未认证",
+                        "schema": {
+                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/chats/rooms/messages": {
             "get": {
                 "security": [
                     {
@@ -428,55 +485,40 @@
                 }
             }
         },
-        "/friendship/": {
-            "get": {
+        "/chats/rooms/messages/read": {
+            "put": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "获取当前登录用户的好友关系列表，可基于 base_id 游标和 limit 分页",
+                "description": "向指定房间发送一条消息",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Friendship"
+                    "Chat"
                 ],
-                "summary": "获取好友列表",
+                "summary": "发送房间消息",
                 "parameters": [
                     {
-                        "enum": [
-                            ""
-                        ],
-                        "type": "string",
-                        "description": "分页游标，返回该ID之前的记录",
-                        "name": "base_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "分页大小，默认20，最大100",
-                        "name": "limit",
-                        "in": "query"
+                        "description": "发送房间消息请求体",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_chat_port_http.ReadRoomMessagesRequest"
+                        }
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "成功返回好友列表",
+                    "201": {
+                        "description": "发送成功",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/internal_friendship_port_http.ListFriendshipsResponseData"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
                         }
                     },
                     "400": {
@@ -500,7 +542,7 @@
                 }
             }
         },
-        "/friendship/request": {
+        "/friendship-requests/": {
             "get": {
                 "security": [
                     {
@@ -627,7 +669,7 @@
                 }
             }
         },
-        "/friendship/request/{request_id}/agree": {
+        "/friendship-requests/{request_id}/agree": {
             "put": {
                 "security": [
                     {
@@ -682,7 +724,7 @@
                 }
             }
         },
-        "/friendship/request/{request_id}/refuse": {
+        "/friendship-requests/{request_id}/refuse": {
             "put": {
                 "security": [
                     {
@@ -737,7 +779,79 @@
                 }
             }
         },
-        "/notification/system": {
+        "/friendships/": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取当前登录用户的好友关系列表，可基于 base_id 游标和 limit 分页",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Friendship"
+                ],
+                "summary": "获取好友列表",
+                "parameters": [
+                    {
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
+                        "description": "分页游标，返回该ID之前的记录",
+                        "name": "base_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "分页大小，默认20，最大100",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "成功返回好友列表",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_friendship_port_http.ListFriendshipsResponseData"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未认证",
+                        "schema": {
+                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/notifications/system-messages": {
             "get": {
                 "security": [
                     {
@@ -809,7 +923,55 @@
                 }
             }
         },
-        "/profile/me": {
+        "/profiles/me": {
+            "get": {
+                "description": "根据token获取本用户资料",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "获取本用户资料",
+                "responses": {
+                    "200": {
+                        "description": "成功返回用户资料",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_profile_port_http.GetMyProfileResponseData"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "用户不存在",
+                        "schema": {
+                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                        }
+                    }
+                }
+            },
             "put": {
                 "security": [
                     {
@@ -872,7 +1034,67 @@
                 }
             }
         },
-        "/profile/room": {
+        "/profiles/rooms/{room_id}": {
+            "get": {
+                "description": "根据房间ID获取房间公开资料",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "获取房间资料",
+                "parameters": [
+                    {
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
+                        "description": "房间ID",
+                        "name": "room_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "成功返回房间资料",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_profile_port_http.GetRoomProfileResponseData"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "房间不存在",
+                        "schema": {
+                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                        }
+                    }
+                }
+            },
             "put": {
                 "security": [
                     {
@@ -935,69 +1157,7 @@
                 }
             }
         },
-        "/profile/room/{room_id}": {
-            "get": {
-                "description": "根据房间ID获取房间公开资料",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Profile"
-                ],
-                "summary": "获取房间资料",
-                "parameters": [
-                    {
-                        "enum": [
-                            ""
-                        ],
-                        "type": "string",
-                        "description": "房间ID",
-                        "name": "room_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "成功返回房间资料",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/internal_profile_port_http.GetRoomProfileResponseData"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
-                        }
-                    },
-                    "404": {
-                        "description": "房间不存在",
-                        "schema": {
-                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器内部错误",
-                        "schema": {
-                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/profile/user/{user_id}": {
+        "/profiles/users/{user_id}": {
             "get": {
                 "description": "根据用户ID获取用户公开资料",
                 "produces": [
@@ -1059,7 +1219,7 @@
                 }
             }
         },
-        "/roomship/": {
+        "/rooms/": {
             "get": {
                 "security": [
                     {
@@ -1129,9 +1289,64 @@
                         }
                     }
                 }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "创建一个新的房间，当前登录用户将作为房主加入房间",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Roomship"
+                ],
+                "summary": "创建房间",
+                "parameters": [
+                    {
+                        "description": "创建房间请求体",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_roomship_port_http.CreateRoomRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "创建成功",
+                        "schema": {
+                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未认证",
+                        "schema": {
+                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                        }
+                    }
+                }
             }
         },
-        "/roomship/request": {
+        "/rooms/requests/": {
             "get": {
                 "security": [
                     {
@@ -1258,7 +1473,7 @@
                 }
             }
         },
-        "/roomship/request/{request_id}/agree": {
+        "/rooms/requests/{request_id}/agree": {
             "put": {
                 "security": [
                     {
@@ -1313,7 +1528,7 @@
                 }
             }
         },
-        "/roomship/request/{request_id}/refuse": {
+        "/rooms/requests/{request_id}/refuse": {
             "put": {
                 "security": [
                     {
@@ -1368,64 +1583,7 @@
                 }
             }
         },
-        "/roomship/room": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "创建一个新的房间，当前登录用户将作为房主加入房间",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Roomship"
-                ],
-                "summary": "创建房间",
-                "parameters": [
-                    {
-                        "description": "创建房间请求体",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/internal_roomship_port_http.CreateRoomRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "创建成功",
-                        "schema": {
-                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
-                        }
-                    },
-                    "401": {
-                        "description": "未认证",
-                        "schema": {
-                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器内部错误",
-                        "schema": {
-                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/roomship/room/{room_id}": {
+        "/rooms/{room_id}/members": {
             "get": {
                 "description": "根据房间ID获取房间成员列表",
                 "produces": [
@@ -1485,7 +1643,9 @@
                         }
                     }
                 }
-            },
+            }
+        },
+        "/rooms/{room_id}/members/me": {
             "delete": {
                 "security": [
                     {
@@ -2136,7 +2296,7 @@
         "internal_profile_port_http.UpdateRoomProfileRequest": {
             "type": "object",
             "required": [
-                "room_id"
+                "roomID"
             ],
             "properties": {
                 "introduction": {
@@ -2145,7 +2305,7 @@
                 "name": {
                     "type": "string"
                 },
-                "room_id": {
+                "roomID": {
                     "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
                 }
             }

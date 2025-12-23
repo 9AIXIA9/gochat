@@ -33,7 +33,7 @@ type GetMyProfileResponseData struct {
 // @Failure      400      {object}  api.Response "请求参数错误"
 // @Failure      404      {object}  api.Response "用户不存在"
 // @Failure      500      {object}  api.Response "服务器内部错误"
-// @Router       /profile/user/{user_id} [get]
+// @Router       /profiles/me [get]
 func NewGetMyProfileHandler(useCase application.GetUserProfileUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,

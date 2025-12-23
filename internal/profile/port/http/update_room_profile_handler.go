@@ -41,7 +41,7 @@ func (r *UpdateRoomProfileRequest) Bind(ginContext *gin.Context) error {
 // @Failure      401      {object}  api.Response    "未认证"
 // @Failure      404      {object}  api.Response    "房间资料不存在"
 // @Failure      500      {object}  api.Response    "服务器内部错误"
-// @Router       /profile/room [put]
+// @Router       /profiles/rooms/{room_id} [put]
 func NewUpdateRoomProfileHandler(useCase application.UpdateRoomProfileUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,
