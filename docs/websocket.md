@@ -7,8 +7,6 @@
 - 所有已实现的 WebSocket topic（与 HTTP 路由类似，都有清晰的请求结构）
   - `chat.send_private_message`
   - `chat.send_room_message`
-  - `chat.read_private_messages`
-  - `chat.read_room_messages`
 
 > 说明：本说明严格根据 `internal/chat/port/websocket` 目录下的 handler 代码编写，请求字段与后端校验保持一致；响应部分目前均为“无显式回包，有错误则关闭连接或发送错误消息”，你可以根据后续实现再补充服务端推送格式。
 
@@ -68,8 +66,6 @@ WebSocket 连接建立后，前端与后端约定使用 JSON 文本进行通信�
 - `topic`：字符串，表示业务主题，对应后端注册的 `websocket.Topic`：
   - `chat.send_private_message`
   - `chat.send_room_message`
-  - `chat.read_private_messages`
-  - `chat.read_room_messages`
 - `payload`：对象，对应各 topic 的请求结构（见下文）。
 
 前端发送时可以统一封装，如：
@@ -194,125 +190,6 @@ function sendWS(ws, topic, payload) {
 
 ---
 
-### 3.3 读取私聊消息：`chat.read_private_messages`
-
-> 注意：这个 topic 的语义是“标记/读取一段私聊消息”，具体是否有下行推送由 usecase 决定；当前 handler 本身没有把查询结果通过 WebSocket 返回，而是仅调用了 usecase。
-
-- **方向**：前端 → 后端
-- **后端 handler**：`internal/chat/port/websocket/read_private_messages_handler.go`
-- **Topic 常量**：
-
-  ```go
-  const ReadPrivateMessagesTopic websocket.Topic = "chat.read_private_messages"
-  ```
-
-- **请求 payload 结构**（对应 `ReadPrivateMessagesData`）：
-
-  ```jsonc
-  {
-    "sender_id": 10001   // 必填，对方用户 ID（即我想读取与谁的私聊记录）
-  }
-  ```
-
-  - `sender_id`：`kernel.UserID`，必填，`validate:"required"`。
-
-- **服务端逻辑概述**：
-
-  1. 从 payload 反序列化 `ReadPrivateMessagesData`。
-  2. 构造 `ReadPrivateMessagesInput`：
-
-     ```go
-     &application.ReadPrivateMessagesInput{
-       SenderID:    reqData.SenderID,
-       RecipientID: utils.GetUserID(ctx),
-     }
-     ```
-
-     这里的语义是：
-     - `SenderID`：会话对端用户 ID（前端传入的 `sender_id`）。
-     - `RecipientID`：当前登录用户 ID，由后端从 `context` 里获取。
-
-  3. 调用 `input.Validate()` 和 usecase 的 `Execute`。
-
-- **返回/推送**：
-
-  - 当前 handler 返回 `nil`，不直接把查询到的消息通过 WebSocket 回包；
-  - 具体是否有“读取成功后服务端主动推送最近消息列表”的行为，取决于 usecase 实现；
-  - 若你希望前端通过 WS 拿到结果，建议在 usecase 里或在 handler 中增加“返回消息列表”的逻辑，或在另外一个 topic 中推送结果。
-
-- **前端示例**：
-
-  ```js
-  sendWS(ws, "chat.read_private_messages", {
-    sender_id: 10001
-  });
-  ```
-
----
-
-### 3.4 读取房间消息：`chat.read_room_messages`
-
-> 当前实现中 `ReadRoomMessagesData` 结构为：
->
-> ```go
-> type ReadRoomMessagesData struct {
->   RoomID  kernel.RoomID `json:"room_id" validate:"required"`
->   Content string        `json:"content" validate:"required,max=1000"`
-> }
-> ```
->
-> 但构造 `ReadRoomMessagesInput` 时只使用了 `RoomID` 和当前用户 ID，不使用 `Content` 字段，看起来 `Content` 更像是冗余字段或后续扩展位。
-
-- **方向**：前端 → 后端
-- **后端 handler**：`internal/chat/port/websocket/read_room_messages_handler.go`
-- **Topic 常量**：
-
-  ```go
-  const ReadRoomMessagesTopic websocket.Topic = "chat.read_room_messages"
-  ```
-
-- **请求 payload 结构**（对应 `ReadRoomMessagesData`）：
-
-  ```jsonc
-  {
-    "room_id": 456,            // 必填，房间 ID
-    "content": "placeholder"  // 必填，目前后端未使用该字段，仍要求非空
-  }
-  ```
-
-  - `room_id`：`kernel.RoomID`，必填，`validate:"required"`。
-  - `content`：`string`，必填且 `max=1000`，当前实现中未使用该字段，仅作为校验项存在。
-
-- **服务端逻辑概述**：
-
-  1. 从 payload 反序列化 `ReadRoomMessagesData`。
-  2. 构造 `ReadRoomMessagesInput`：
-
-     ```go
-     &application.ReadRoomMessagesInput{
-       UserID: utils.GetUserID(ctx),
-       RoomID: reqData.RoomID,
-     }
-     ```
-
-  3. 校验并通过 usecase 读取/标记房间消息。
-
-- **返回/推送**：
-
-  - handler 返回 `nil`，不直接回包；
-  - 同样建议后续在 usecase 中补充“读取结果通过 WS 推送”的逻辑，或者在其他 topic 中下行通知。
-
-- **前端示例**：
-
-  ```js
-  sendWS(ws, "chat.read_room_messages", {
-    room_id: 456,
-    content: "read"   // 目前必须非空，但后端暂未使用
-  });
-  ```
-
----
-
 ## 4. 错误处理建议
 
 当前 handler 统一签名：
@@ -361,7 +238,6 @@ ws.onmessage = (event) => {
   - 获取资料 / 好友 / 房间列表
 - WebSocket：
   - 实时发送/接收消息
-  - 标记/读取特定会话或房间的消息
 
 推荐前端集成顺序：
 
