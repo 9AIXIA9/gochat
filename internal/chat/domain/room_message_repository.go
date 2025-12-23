@@ -12,7 +12,7 @@ type RoomMessageRepository interface {
 	RoomMessageFinder
 	RoomMessagesFinderByRecipientIDAndState
 	RoomMessagesStatesUpdaterByUserIDAndRoomID
-	RoomMessagesFinderByRecipientID
+	RoomMessagesFinderByRoomIDAndUserID
 }
 
 type RoomMessageCreator interface {
@@ -35,6 +35,6 @@ type RoomMessagesStatesUpdaterByUserIDAndRoomID interface {
 	UpdatesByUserIDAndRoomID(ctx context.Context, userID kernel.UserID, roomID kernel.RoomID, state MessageState) error
 }
 
-type RoomMessagesFinderByRecipientID interface {
-	FindsByRecipientID(ctx context.Context, recipientID kernel.UserID, limit int, baseID kernel.MessageID) ([]*RoomMessage, error)
+type RoomMessagesFinderByRoomIDAndUserID interface {
+	FindsByRoomIDAndUserID(ctx context.Context, roomID kernel.RoomID, userID kernel.UserID, limit int, baseID kernel.MessageID) ([]*RoomMessage, error)
 }

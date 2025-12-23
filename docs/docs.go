@@ -392,15 +392,25 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "获取当前登录用户所在房间的消息列表，可基于 base_id 游标和 limit 分页",
+                "description": "获取当前登录用户所在房间的消息记录，可基于 base_id 游标和 limit 分页",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Chat"
                 ],
-                "summary": "获取房间消息列表",
+                "summary": "获取房间内的消息",
                 "parameters": [
+                    {
+                        "enum": [
+                            ""
+                        ],
+                        "type": "string",
+                        "description": "房间ID",
+                        "name": "room_id",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "enum": [
                             ""
@@ -419,7 +429,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "成功返回房间消息列表",
+                        "description": "成功返回房间消息记录",
                         "schema": {
                             "allOf": [
                                 {

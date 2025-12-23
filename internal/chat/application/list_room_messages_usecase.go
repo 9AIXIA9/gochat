@@ -17,6 +17,7 @@ type ListRoomMessagesUseCase kernel.UseCase[*ListRoomMessagesInput, *ListRoomMes
 
 type ListRoomMessagesInput struct {
 	UserID kernel.UserID
+	RoomID kernel.RoomID
 	BaseID kernel.MessageID
 	Limit  int
 }
@@ -24,6 +25,10 @@ type ListRoomMessagesInput struct {
 func (r *ListRoomMessagesInput) Validate() error {
 	if len(r.UserID) == 0 {
 		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "user id can't be empty")
+	}
+
+	if len(r.RoomID) == 0 {
+		return myErrors.WrapBusiness(myErrors.ErrEmptyInput, "room id can't be empty")
 	}
 
 	return nil
@@ -34,11 +39,11 @@ type ListRoomMessagesOutput struct {
 }
 
 type listRoomMessagesUseCase struct {
-	finder domain.RoomMessagesFinderByRecipientID
+	finder domain.RoomMessagesFinderByRoomIDAndUserID
 }
 
 func NewListRoomMessagesUseCase(
-	finder domain.RoomMessagesFinderByRecipientID,
+	finder domain.RoomMessagesFinderByRoomIDAndUserID,
 ) (ListRoomMessagesUseCase, error) {
 	if err := utils.CheckInterfaces(finder); err != nil {
 		return nil, err
@@ -57,7 +62,7 @@ func (uc *listRoomMessagesUseCase) Execute(ctx context.Context, input *ListRoomM
 		limit = maxRoomMessagesListLimit
 	}
 
-	messages, err := uc.finder.FindsByRecipientID(ctx, input.UserID, limit, input.BaseID)
+	messages, err := uc.finder.FindsByRoomIDAndUserID(ctx, input.RoomID, input.UserID, limit, input.BaseID)
 	if err != nil {
 		return nil, err
 	}

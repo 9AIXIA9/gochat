@@ -114,17 +114,29 @@ func (repo *RoomMessageRepository) UpdatesByUserIDAndRoomID(ctx context.Context,
 		Update("chat_room_message_states.state", state).Error
 }
 
-func (repo *RoomMessageRepository) FindsByRecipientID(ctx context.Context, recipientID kernel.UserID, limit int, baseID kernel.MessageID) ([]*domain.RoomMessage, error) {
+func (repo *RoomMessageRepository) FindsByRoomIDAndUserID(ctx context.Context, roomID kernel.RoomID, userID kernel.UserID, limit int, baseID kernel.MessageID) ([]*domain.RoomMessage, error) {
 	var messages []model.RoomMessage
-	query := repo.db.WithContext(ctx).
-		Joins("JOIN chat_room_message_states ON chat_room_messages.id = chat_room_message_states.message_id").
-		Where("chat_room_message_states.user_id = ?", recipientID).
-		Preload("States").
+
+	// 先查询符合条件的消息ID
+	subQuery := repo.db.WithContext(ctx).
+		Model(&model.RoomMessage{}).
+		Select("DISTINCT chat_room_messages.id").
+		Joins("LEFT JOIN chat_room_message_states ON chat_room_message_states.message_id = chat_room_messages.id").
+		Where("chat_room_messages.room_id = ? AND (chat_room_messages.sender_id = ? OR chat_room_message_states.user_id = ?)", roomID, userID, userID).
 		Order("chat_room_messages.id DESC").
 		Limit(limit)
+
 	if baseID != "" {
-		query = query.Where("chat_room_messages.id < ?", baseID)
+		subQuery = subQuery.Where("chat_room_messages.id < ?", baseID)
 	}
+
+	// 用查询到的ID获取完整的消息数据
+	// 使用派生表避免IN+LIMIT问题
+	query := repo.db.WithContext(ctx).
+		Model(&model.RoomMessage{}).
+		Preload("States").
+		Joins("JOIN (?) AS t ON chat_room_messages.id = t.id", subQuery).
+		Order("chat_room_messages.id DESC")
 
 	if err := query.Find(&messages).Error; err != nil {
 		return nil, gormutils.TranslateError(err)

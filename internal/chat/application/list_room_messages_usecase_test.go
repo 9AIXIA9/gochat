@@ -23,6 +23,7 @@ const (
 func TestListRoomMessagesInput_Validate(t *testing.T) {
 	input := &application.ListRoomMessagesInput{
 		UserID: fixedUserID,
+		RoomID: fixedRoomID,
 		BaseID: fixedRoomMessageBaseID,
 		Limit:  maxRoomMessagesLimit,
 	}
@@ -32,6 +33,7 @@ func TestListRoomMessagesInput_Validate(t *testing.T) {
 
 	inputWithNoBaseID := &application.ListRoomMessagesInput{
 		UserID: fixedUserID,
+		RoomID: fixedRoomID,
 		BaseID: "",
 		Limit:  maxRoomMessagesLimit,
 	}
@@ -41,6 +43,7 @@ func TestListRoomMessagesInput_Validate(t *testing.T) {
 
 	inputWithNoLimit := &application.ListRoomMessagesInput{
 		UserID: fixedUserID,
+		RoomID: fixedRoomID,
 		BaseID: fixedRoomMessageBaseID,
 		Limit:  0,
 	}
@@ -50,6 +53,7 @@ func TestListRoomMessagesInput_Validate(t *testing.T) {
 
 	inputWithNegativeLimit := &application.ListRoomMessagesInput{
 		UserID: fixedUserID,
+		RoomID: fixedRoomID,
 		BaseID: fixedRoomMessageBaseID,
 		Limit:  -10,
 	}
@@ -59,6 +63,7 @@ func TestListRoomMessagesInput_Validate(t *testing.T) {
 
 	inputWithNoBaseIDAndLimit := &application.ListRoomMessagesInput{
 		UserID: fixedUserID,
+		RoomID: fixedRoomID,
 		BaseID: "",
 		Limit:  0,
 	}
@@ -68,11 +73,22 @@ func TestListRoomMessagesInput_Validate(t *testing.T) {
 
 	inputWithEmptyUserID := &application.ListRoomMessagesInput{
 		UserID: "",
+		RoomID: fixedRoomID,
 		BaseID: fixedRoomMessageBaseID,
 		Limit:  maxRoomMessagesLimit,
 	}
 
 	err = inputWithEmptyUserID.Validate()
+	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
+
+	inputWithEmptyRoomID := &application.ListRoomMessagesInput{
+		RoomID: "",
+		UserID: fixedUserID,
+		BaseID: fixedRoomMessageBaseID,
+		Limit:  maxRoomMessagesLimit,
+	}
+
+	err = inputWithEmptyRoomID.Validate()
 	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
 }
 
@@ -80,7 +96,7 @@ func TestNewListRoomMessagesUseCase(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	finder := mocks.NewMockRoomMessagesFinderByRecipientID(ctrl)
+	finder := mocks.NewMockRoomMessagesFinderByRoomIDAndUserID(ctrl)
 
 	useCase, err := application.NewListRoomMessagesUseCase(
 		finder,
@@ -101,7 +117,7 @@ func TestListRoomMessagesUseCase_Execute(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	finder := mocks.NewMockRoomMessagesFinderByRecipientID(ctrl)
+	finder := mocks.NewMockRoomMessagesFinderByRoomIDAndUserID(ctrl)
 
 	useCase, err := application.NewListRoomMessagesUseCase(
 		finder,
@@ -113,10 +129,11 @@ func TestListRoomMessagesUseCase_Execute(t *testing.T) {
 	fixedLimit := maxRoomMessagesLimit - 1
 	messages := getRoomMessages(fixedLimit)
 
-	finder.EXPECT().FindsByRecipientID(gomock.Any(), fixedUserID, fixedLimit, fixedRoomMessageBaseID).Return(messages, nil)
+	finder.EXPECT().FindsByRoomIDAndUserID(gomock.Any(), fixedRoomID, fixedUserID, fixedLimit, fixedRoomMessageBaseID).Return(messages, nil)
 
 	output, err := useCase.Execute(nil, &application.ListRoomMessagesInput{
 		UserID: fixedUserID,
+		RoomID: fixedRoomID,
 		BaseID: fixedRoomMessageBaseID,
 		Limit:  maxRoomMessagesLimit - 1,
 	})
@@ -128,10 +145,11 @@ func TestListRoomMessagesUseCase_Execute(t *testing.T) {
 	// 模拟limit为0
 	messages = getRoomMessages(defaultRoomMessagesLimit)
 
-	finder.EXPECT().FindsByRecipientID(gomock.Any(), fixedUserID, defaultRoomMessagesLimit, fixedRoomMessageBaseID).Return(messages, nil)
+	finder.EXPECT().FindsByRoomIDAndUserID(gomock.Any(), fixedRoomID, fixedUserID, defaultRoomMessagesLimit, fixedRoomMessageBaseID).Return(messages, nil)
 
 	output, err = useCase.Execute(nil, &application.ListRoomMessagesInput{
 		UserID: fixedUserID,
+		RoomID: fixedRoomID,
 		BaseID: fixedRoomMessageBaseID,
 		Limit:  0,
 	})
@@ -141,10 +159,11 @@ func TestListRoomMessagesUseCase_Execute(t *testing.T) {
 	require.Len(t, output.RoomMessages, defaultRoomMessagesLimit)
 
 	//模拟负数limit
-	finder.EXPECT().FindsByRecipientID(gomock.Any(), fixedUserID, defaultRoomMessagesLimit, fixedRoomMessageBaseID).Return(messages, nil)
+	finder.EXPECT().FindsByRoomIDAndUserID(gomock.Any(), fixedRoomID, fixedUserID, defaultRoomMessagesLimit, fixedRoomMessageBaseID).Return(messages, nil)
 
 	output, err = useCase.Execute(nil, &application.ListRoomMessagesInput{
 		UserID: fixedUserID,
+		RoomID: fixedRoomID,
 		BaseID: fixedRoomMessageBaseID,
 		Limit:  -100,
 	})
@@ -156,10 +175,11 @@ func TestListRoomMessagesUseCase_Execute(t *testing.T) {
 	// 模拟太大的limit
 	messages = getRoomMessages(maxRoomMessagesLimit)
 
-	finder.EXPECT().FindsByRecipientID(gomock.Any(), fixedUserID, maxRoomMessagesLimit, fixedRoomMessageBaseID).Return(messages, nil)
+	finder.EXPECT().FindsByRoomIDAndUserID(gomock.Any(), fixedRoomID, fixedUserID, maxRoomMessagesLimit, fixedRoomMessageBaseID).Return(messages, nil)
 
 	output, err = useCase.Execute(nil, &application.ListRoomMessagesInput{
 		UserID: fixedUserID,
+		RoomID: fixedRoomID,
 		BaseID: fixedRoomMessageBaseID,
 		Limit:  1000,
 	})
