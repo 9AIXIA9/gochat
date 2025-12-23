@@ -35,6 +35,8 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+//TODO 增强查询功能
+
 var HTTPSet = wire.NewSet(
 	provideHttpRouter,
 	provideHttpServer,
@@ -129,7 +131,7 @@ func provideHttpRouter(
 	{
 		authGroup.POST("/sign-up", authHTTP.NewSignUpHandler(signUp, validator))
 		authGroup.POST("/login", authHTTP.NewLoginHandler(login, validator, appConfig.Cookie))
-		authGroup.GET("/tokens/refresh", authHTTP.NewRefreshAccessTokenHandler(refreshAccessToken, validator, appConfig.Cookie))
+		authGroup.PUT("/tokens/refresh", authHTTP.NewRefreshAccessTokenHandler(refreshAccessToken, validator, appConfig.Cookie))
 	}
 
 	// 资料相关路由（RESTful）

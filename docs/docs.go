@@ -146,7 +146,7 @@ const docTemplate = `{
             }
         },
         "/auth/tokens/refresh": {
-            "get": {
+            "put": {
                 "description": "使用刷新令牌 Cookie 刷新访问令牌，并重新设置刷新令牌 Cookie",
                 "produces": [
                     "application/json"
