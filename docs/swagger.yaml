@@ -631,7 +631,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: 成功返回私聊消息列表
+          description: 成功返回私聊消息记录
           schema:
             allOf:
             - $ref: '#/definitions/gochat_internal_shared_api.Response'

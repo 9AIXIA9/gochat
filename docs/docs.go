@@ -347,7 +347,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "成功返回私聊消息列表",
+                        "description": "成功返回私聊消息记录",
                         "schema": {
                             "allOf": [
                                 {
