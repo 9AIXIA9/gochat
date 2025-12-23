@@ -304,14 +304,14 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "获取当前登录用户的私聊消息列表，可基于 base_id 游标和 limit 分页",
+                "description": "获取用户和对方聊天记录，可基于 base_id 游标和 limit 分页",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Chat"
                 ],
-                "summary": "获取私聊消息列表",
+                "summary": "获取用户聊天记录",
                 "parameters": [
                     {
                         "enum": [

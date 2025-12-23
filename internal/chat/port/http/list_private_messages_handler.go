@@ -39,9 +39,9 @@ type ListPrivateMessagesResponseData struct {
 	PrivateMessages []*dto.PrivateMessage `json:"private_messages,omitempty"`
 }
 
-// NewListPrivateMessagesHandler 获取私聊消息列表
-// @Summary      获取私聊消息列表
-// @Description  获取当前登录用户的私聊消息列表，可基于 base_id 游标和 limit 分页
+// NewListPrivateMessagesHandler 获取用户聊天记录
+// @Summary      获取用户聊天记录
+// @Description  获取用户和对方聊天记录，可基于 base_id 游标和 limit 分页
 // @Tags         Chat
 // @Security     BearerAuth
 // @Produce      json
