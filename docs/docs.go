@@ -2012,6 +2012,28 @@ const docTemplate = `{
                 }
             }
         },
+        "internal_chat_port_http.ReadPrivateMessagesRequest": {
+            "type": "object",
+            "required": [
+                "sender_id"
+            ],
+            "properties": {
+                "sender_id": {
+                    "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
+                }
+            }
+        },
+        "internal_chat_port_http.ReadRoomMessagesRequest": {
+            "type": "object",
+            "required": [
+                "room_id"
+            ],
+            "properties": {
+                "room_id": {
+                    "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
+                }
+            }
+        },
         "internal_chat_port_http.SendPrivateMessageRequest": {
             "type": "object",
             "required": [
@@ -2090,6 +2112,14 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/gochat_internal_notification_dto.SystemMessage"
                     }
+                }
+            }
+        },
+        "internal_profile_port_http.GetMyProfileResponseData": {
+            "type": "object",
+            "properties": {
+                "profile": {
+                    "$ref": "#/definitions/gochat_internal_profile_dto.UserProfile"
                 }
             }
         },

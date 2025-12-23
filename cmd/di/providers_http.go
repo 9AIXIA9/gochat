@@ -124,79 +124,93 @@ func provideHttpRouter(
 		middleware.NewTimeoutMiddleware(appConfig.Timeout),
 	)
 
-	// 授权相关路由
-	authorizationGroup := baseGroup.Group("/authorization")
+	// 授权相关路由（RESTful）
+	authGroup := baseGroup.Group("/auth")
 	{
-		authorizationGroup.POST("/sign_up", authHTTP.NewSignUpHandler(signUp, validator))
-		authorizationGroup.POST("/login", authHTTP.NewLoginHandler(login, validator, appConfig.Cookie))
-		authorizationGroup.GET("/refresh_access_token", authHTTP.NewRefreshAccessTokenHandler(refreshAccessToken, validator, appConfig.Cookie))
+		authGroup.POST("/sign-up", authHTTP.NewSignUpHandler(signUp, validator))
+		authGroup.POST("/login", authHTTP.NewLoginHandler(login, validator, appConfig.Cookie))
+		authGroup.GET("/tokens/refresh", authHTTP.NewRefreshAccessTokenHandler(refreshAccessToken, validator, appConfig.Cookie))
 	}
 
-	// 聊天相关路由
-	profileGroup := baseGroup.Group("/profile")
+	// 资料相关路由（RESTful）
+	profilesPublic := baseGroup.Group("/profiles")
 	{
-		profileGroup.GET("/user/:user_id", profileHTTP.NewGetUserProfileHandler(getUserProfile, validator))
-		profileGroup.GET("/room/:room_id", profileHTTP.NewGetRoomProfileHandler(getRoomProfile, validator))
+		profilesPublic.GET("/users/:user_id", profileHTTP.NewGetUserProfileHandler(getUserProfile, validator))
+		profilesPublic.GET("/rooms/:room_id", profileHTTP.NewGetRoomProfileHandler(getRoomProfile, validator))
 	}
 
-	profileGroup.Use(authorizationMiddleware)
+	profilesAuth := baseGroup.Group("/profiles")
+	profilesAuth.Use(authorizationMiddleware)
 	{
-		profileGroup.PUT("/me", profileHTTP.NewUpdateUserProfileHandler(updateUserProfile, validator))
-		profileGroup.PUT("/room", profileHTTP.NewUpdateRoomProfileHandler(updateRoomProfile, validator))
+		profilesAuth.GET("/me", profileHTTP.NewGetMyProfileHandler(getUserProfile, validator))
+		profilesAuth.PUT("/me", profileHTTP.NewUpdateUserProfileHandler(updateUserProfile, validator))
+		// Prefer path param; keep old body-based route for compatibility below
+		profilesAuth.PUT("/rooms/:room_id", profileHTTP.NewUpdateRoomProfileHandler(updateRoomProfile, validator))
 	}
 
-	// 聊天相关路由
-	chatGroup := baseGroup.Group("/chat")
-	chatGroup.Use(authorizationMiddleware)
+	// 聊天相关路由（RESTful）
+	chatsGroup := baseGroup.Group("/chats")
+	chatsGroup.Use(authorizationMiddleware)
 	{
-		chatGroup.GET("/private", chatHTTP.NewListPrivateMessagesHandler(listPrivateMessages, validator))
-		chatGroup.GET("/room", chatHTTP.NewListRoomMessagesHandler(listRoomMessages, validator))
-		chatGroup.POST("/private", chatHTTP.NewSendPrivateMessageHandler(sendPrivateMessage, validator))
-		chatGroup.POST("/room", chatHTTP.NewSendRoomMessageHandler(sendRoomMessage, validator))
-		chatGroup.PUT("/private/read", chatHTTP.NewReadPrivateMessagesHandler(readPrivateMessages, validator))
-		chatGroup.PUT("/room/read", chatHTTP.NewReadRoomMessagesHandler(readRoomMessages, validator))
+		chatsGroup.GET("/private-messages", chatHTTP.NewListPrivateMessagesHandler(listPrivateMessages, validator))
+		chatsGroup.GET("/rooms/messages", chatHTTP.NewListRoomMessagesHandler(listRoomMessages, validator))
+		chatsGroup.POST("/private-messages", chatHTTP.NewSendPrivateMessageHandler(sendPrivateMessage, validator))
+		chatsGroup.POST("/rooms/messages", chatHTTP.NewSendRoomMessageHandler(sendRoomMessage, validator))
+		chatsGroup.PUT("/private-messages/read", chatHTTP.NewReadPrivateMessagesHandler(readPrivateMessages, validator))
+		chatsGroup.PUT("/rooms/messages/read", chatHTTP.NewReadRoomMessagesHandler(readRoomMessages, validator))
 	}
 
-	// 房间功能路由
-	roomshipGroup := baseGroup.Group("/roomship")
+	// 房间与成员相关路由（RESTful）
+	// 公共：获取房间成员列表
+	roomsPublic := baseGroup.Group("/rooms")
 	{
-		roomshipGroup.GET("/room/:room_id", roomshipHTTP.NewListRoomMembersHandler(listRoomMembers, validator))
+		roomsPublic.GET("/:room_id/members", roomshipHTTP.NewListRoomMembersHandler(listRoomMembers, validator))
 	}
 
-	roomshipGroup.Use(authorizationMiddleware)
+	// 授权：管理我的房间与成员关系
+	roomsAuth := baseGroup.Group("/rooms")
+	roomsAuth.Use(authorizationMiddleware)
 	{
 		// Rooms
-		roomshipGroup.POST("/room", roomshipHTTP.NewCreateRoomHandler(createRoom, validator))
-
-		// Roomship
-		roomshipGroup.GET("/", roomshipHTTP.NewListRoomshipsHandler(listRoomships, validator))
-		roomshipGroup.DELETE("/room/:room_id", roomshipHTTP.NewLeaveRoomHandler(leaveRoom, validator))
-
-		// Member Requests
-		roomshipGroup.GET("/request", roomshipHTTP.NewListMemberRequestsHandler(listMemberRequests, validator))
-		roomshipGroup.POST("/request", roomshipHTTP.NewSendMemberRequestHandler(sendMemberRequest, validator))
-		roomshipGroup.PUT("/request/:request_id/agree", roomshipHTTP.NewAgreeMemberRequestHandler(agreeMemberRequest, validator))
-		roomshipGroup.PUT("/request/:request_id/refuse", roomshipHTTP.NewRefuseMemberRequestHandler(refuseMemberRequest, validator))
+		roomsAuth.POST("/", roomshipHTTP.NewCreateRoomHandler(createRoom, validator))
+		// 我加入的房间列表
+		roomsAuth.GET("/", roomshipHTTP.NewListRoomshipsHandler(listRoomships, validator))
+		// 退出房间
+		roomsAuth.DELETE("/:room_id/members/me", roomshipHTTP.NewLeaveRoomHandler(leaveRoom, validator))
 	}
 
-	// 好友功能路由
-	friendshipGroup := baseGroup.Group("/friendship")
-	friendshipGroup.Use(authorizationMiddleware)
+	// 成员请求
+	roomRequests := baseGroup.Group("/rooms/requests")
+	roomRequests.Use(authorizationMiddleware)
 	{
-		friendshipGroup.GET("/", friendshipHTTP.NewListFriendshipsHandler(listFriendships, validator))
-		friendshipGroup.GET("/request", friendshipHTTP.NewListFriendRequestsHandler(listFriendRequests, validator))
-		friendshipGroup.POST("/request", friendshipHTTP.NewSendFriendRequestHandler(sendFriendRequest, validator))
-		friendshipGroup.PUT("/request/:request_id/agree", friendshipHTTP.NewAgreeFriendRequestHandler(agreeFriendRequest, validator))
-		friendshipGroup.PUT("/request/:request_id/refuse", friendshipHTTP.NewRefuseFriendRequestHandler(refuseFriendRequest, validator))
+		roomRequests.GET("/", roomshipHTTP.NewListMemberRequestsHandler(listMemberRequests, validator))
+		roomRequests.POST("/", roomshipHTTP.NewSendMemberRequestHandler(sendMemberRequest, validator))
+		roomRequests.PUT("/:request_id/agree", roomshipHTTP.NewAgreeMemberRequestHandler(agreeMemberRequest, validator))
+		roomRequests.PUT("/:request_id/refuse", roomshipHTTP.NewRefuseMemberRequestHandler(refuseMemberRequest, validator))
 	}
 
-	// 通知功能路由
-	notificationGroup := baseGroup.Group("/notification")
-	notificationGroup.Use(authorizationMiddleware)
+	// 好友功能路由（RESTful）
+	friendshipsGroup := baseGroup.Group("/friendships")
+	friendshipsGroup.Use(authorizationMiddleware)
 	{
-		notificationGroup.GET("/system", notificationHTTP.NewListSystemMessagesHandler(listSystemMessages, validator))
+		friendshipsGroup.GET("/", friendshipHTTP.NewListFriendshipsHandler(listFriendships, validator))
 	}
 
+	friendshipRequestsGroup := baseGroup.Group("/friendship-requests")
+	friendshipRequestsGroup.Use(authorizationMiddleware)
+	{
+		friendshipRequestsGroup.GET("/", friendshipHTTP.NewListFriendRequestsHandler(listFriendRequests, validator))
+		friendshipRequestsGroup.POST("/", friendshipHTTP.NewSendFriendRequestHandler(sendFriendRequest, validator))
+		friendshipRequestsGroup.PUT("/:request_id/agree", friendshipHTTP.NewAgreeFriendRequestHandler(agreeFriendRequest, validator))
+		friendshipRequestsGroup.PUT("/:request_id/refuse", friendshipHTTP.NewRefuseFriendRequestHandler(refuseFriendRequest, validator))
+	}
+
+	// 通知功能路由（RESTful）
+	notificationsGroup := baseGroup.Group("/notifications")
+	notificationsGroup.Use(authorizationMiddleware)
+	{
+		notificationsGroup.GET("/system-messages", notificationHTTP.NewListSystemMessagesHandler(listSystemMessages, validator))
+	}
 	return router
 }
 
