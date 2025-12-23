@@ -11,7 +11,7 @@ import (
 
 type UpdateRoomProfileRequest struct {
 	UserID       kernel.UserID `json:"-" validate:"required"`
-	RoomID       kernel.RoomID `json:"room_id" validate:"required"`
+	RoomID       kernel.RoomID `uri:"room_id" validate:"required"`
 	Name         string        `json:"name"`
 	Introduction string        `json:"introduction"`
 }
@@ -20,6 +20,9 @@ func (r *UpdateRoomProfileRequest) Bind(ginContext *gin.Context) error {
 	r.UserID = ginutils.GetUserID(ginContext)
 	// 绑定查询参数
 	if err := ginContext.ShouldBind(r); err != nil {
+		return err
+	}
+	if err := ginContext.BindUri(r); err != nil {
 		return err
 	}
 	return nil
