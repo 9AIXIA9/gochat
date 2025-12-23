@@ -35,7 +35,7 @@ func (r *RefuseFriendRequestRequest) Bind(ginContext *gin.Context) error {
 // @Failure      400         {object}  api.Response "请求参数错误或请求已处理"
 // @Failure      401         {object}  api.Response "未认证"
 // @Failure      500         {object}  api.Response "服务器内部错误"
-// @Router       /friendship/request/{request_id}/refuse [put]
+// @Router       /friendship-requests/{request_id}/refuse [put]
 func NewRefuseFriendRequestHandler(useCase application.RefuseFriendRequestUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,

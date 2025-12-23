@@ -37,7 +37,7 @@ func (r *CreateRoomRequest) Bind(ginContext *gin.Context) error {
 // @Failure      400      {object}  api.Response  "请求参数错误"
 // @Failure      401      {object}  api.Response  "未认证"
 // @Failure      500      {object}  api.Response  "服务器内部错误"
-// @Router       /roomship/room [post]
+// @Router       /rooms/ [post]
 func NewCreateRoomHandler(useCase application.CreateRoomUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,

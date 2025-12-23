@@ -36,7 +36,7 @@ func (r *SendMemberRequestRequest) Bind(ginContext *gin.Context) error {
 // @Failure      400      {object}  api.Response    "请求参数错误或业务校验失败"
 // @Failure      401      {object}  api.Response    "未认证"
 // @Failure      500      {object}  api.Response    "服务器内部错误"
-// @Router       /roomship/request [post]
+// @Router       /rooms/requests/ [post]
 func NewSendMemberRequestHandler(useCase application.SendMemberRequestUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,

@@ -393,10 +393,10 @@ definitions:
         type: string
       name:
         type: string
-      room_id:
+      roomID:
         $ref: '#/definitions/gochat_internal_shared_kernel.RoomID'
     required:
-    - room_id
+    - roomID
     type: object
   internal_profile_port_http.UpdateUserProfileRequest:
     properties:
@@ -470,7 +470,7 @@ info:
   title: GoChat Backend API
   version: "1.0"
 paths:
-  /authorization/login:
+  /auth/login:
     post:
       consumes:
       - application/json
@@ -505,33 +505,7 @@ paths:
       summary: 用户登录
       tags:
       - Authorization
-  /authorization/refresh_access_token:
-    get:
-      description: 使用刷新令牌 Cookie 刷新访问令牌，并重新设置刷新令牌 Cookie
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 刷新成功，返回新的访问令牌
-          schema:
-            allOf:
-            - $ref: '#/definitions/gochat_internal_shared_api.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/internal_authorization_port_http.RefreshAccessTokenResponseData'
-              type: object
-        "400":
-          description: 刷新令牌无效或已过期
-          schema:
-            $ref: '#/definitions/gochat_internal_shared_api.Response'
-        "500":
-          description: 服务器内部错误
-          schema:
-            $ref: '#/definitions/gochat_internal_shared_api.Response'
-      summary: 刷新访问令牌
-      tags:
-      - Authorization
-  /authorization/sign_up:
+  /auth/sign-up:
     post:
       consumes:
       - application/json
@@ -570,7 +544,33 @@ paths:
       summary: 用户注册
       tags:
       - Authorization
-  /chat/private:
+  /auth/tokens/refresh:
+    get:
+      description: 使用刷新令牌 Cookie 刷新访问令牌，并重新设置刷新令牌 Cookie
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 刷新成功，返回新的访问令牌
+          schema:
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_authorization_port_http.RefreshAccessTokenResponseData'
+              type: object
+        "400":
+          description: 刷新令牌无效或已过期
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+      summary: 刷新访问令牌
+      tags:
+      - Authorization
+  /chats/private-messages:
     get:
       description: 获取当前登录用户的私聊消息列表，可基于 base_id 游标和 limit 分页
       parameters:
@@ -642,7 +642,43 @@ paths:
       summary: 发送私聊消息
       tags:
       - Chat
-  /chat/room:
+  /chats/private-messages/read:
+    put:
+      consumes:
+      - application/json
+      description: 向指定房间发送一条消息
+      parameters:
+      - description: 发送房间消息请求体
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_chat_port_http.ReadPrivateMessagesRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: 发送成功
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+        "401":
+          description: 未认证
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+      security:
+      - BearerAuth: []
+      summary: 发送房间消息
+      tags:
+      - Chat
+  /chats/rooms/messages:
     get:
       description: 获取当前登录用户所在房间的消息列表，可基于 base_id 游标和 limit 分页
       parameters:
@@ -720,32 +756,25 @@ paths:
       summary: 发送房间消息
       tags:
       - Chat
-  /friendship/:
-    get:
-      description: 获取当前登录用户的好友关系列表，可基于 base_id 游标和 limit 分页
+  /chats/rooms/messages/read:
+    put:
+      consumes:
+      - application/json
+      description: 向指定房间发送一条消息
       parameters:
-      - description: 分页游标，返回该ID之前的记录
-        enum:
-        - ""
-        in: query
-        name: base_id
-        type: string
-      - description: 分页大小，默认20，最大100
-        in: query
-        name: limit
-        type: integer
+      - description: 发送房间消息请求体
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_chat_port_http.ReadRoomMessagesRequest'
       produces:
       - application/json
       responses:
-        "200":
-          description: 成功返回好友列表
+        "201":
+          description: 发送成功
           schema:
-            allOf:
-            - $ref: '#/definitions/gochat_internal_shared_api.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/internal_friendship_port_http.ListFriendshipsResponseData'
-              type: object
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
         "400":
           description: 请求参数错误
           schema:
@@ -760,10 +789,10 @@ paths:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
       - BearerAuth: []
-      summary: 获取好友列表
+      summary: 发送房间消息
       tags:
-      - Friendship
-  /friendship/request:
+      - Chat
+  /friendship-requests/:
     get:
       description: 获取当前登录用户相关的好友请求列表，可基于 base_id 游标和 limit 分页
       parameters:
@@ -841,7 +870,7 @@ paths:
       summary: 发送好友请求
       tags:
       - Friendship
-  /friendship/request/{request_id}/agree:
+  /friendship-requests/{request_id}/agree:
     put:
       description: 同意指定的好友请求，将对方加入好友列表
       parameters:
@@ -876,7 +905,7 @@ paths:
       summary: 同意好友请求
       tags:
       - Friendship
-  /friendship/request/{request_id}/refuse:
+  /friendship-requests/{request_id}/refuse:
     put:
       description: 拒绝指定的好友请求
       parameters:
@@ -911,7 +940,50 @@ paths:
       summary: 拒绝好友请求
       tags:
       - Friendship
-  /notification/system:
+  /friendships/:
+    get:
+      description: 获取当前登录用户的好友关系列表，可基于 base_id 游标和 limit 分页
+      parameters:
+      - description: 分页游标，返回该ID之前的记录
+        enum:
+        - ""
+        in: query
+        name: base_id
+        type: string
+      - description: 分页大小，默认20，最大100
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功返回好友列表
+          schema:
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_friendship_port_http.ListFriendshipsResponseData'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+        "401":
+          description: 未认证
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取好友列表
+      tags:
+      - Friendship
+  /notifications/system-messages:
     get:
       description: 获取当前登录用户的系统通知列表，可基于 base_id 游标和 limit 分页
       parameters:
@@ -954,7 +1026,36 @@ paths:
       summary: 获取系统通知列表
       tags:
       - Notification
-  /profile/me:
+  /profiles/me:
+    get:
+      description: 根据token获取本用户资料
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功返回用户资料
+          schema:
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_profile_port_http.GetMyProfileResponseData'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+        "404":
+          description: 用户不存在
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+      summary: 获取本用户资料
+      tags:
+      - Profile
     put:
       consumes:
       - application/json
@@ -994,7 +1095,44 @@ paths:
       summary: 更新当前用户资料
       tags:
       - Profile
-  /profile/room:
+  /profiles/rooms/{room_id}:
+    get:
+      description: 根据房间ID获取房间公开资料
+      parameters:
+      - description: 房间ID
+        enum:
+        - ""
+        in: path
+        name: room_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功返回房间资料
+          schema:
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_profile_port_http.GetRoomProfileResponseData'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+        "404":
+          description: 房间不存在
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+      summary: 获取房间资料
+      tags:
+      - Profile
     put:
       consumes:
       - application/json
@@ -1034,45 +1172,7 @@ paths:
       summary: 更新房间资料
       tags:
       - Profile
-  /profile/room/{room_id}:
-    get:
-      description: 根据房间ID获取房间公开资料
-      parameters:
-      - description: 房间ID
-        enum:
-        - ""
-        in: path
-        name: room_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 成功返回房间资料
-          schema:
-            allOf:
-            - $ref: '#/definitions/gochat_internal_shared_api.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/internal_profile_port_http.GetRoomProfileResponseData'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/gochat_internal_shared_api.Response'
-        "404":
-          description: 房间不存在
-          schema:
-            $ref: '#/definitions/gochat_internal_shared_api.Response'
-        "500":
-          description: 服务器内部错误
-          schema:
-            $ref: '#/definitions/gochat_internal_shared_api.Response'
-      summary: 获取房间资料
-      tags:
-      - Profile
-  /profile/user/{user_id}:
+  /profiles/users/{user_id}:
     get:
       description: 根据用户ID获取用户公开资料
       parameters:
@@ -1110,7 +1210,7 @@ paths:
       summary: 获取用户资料
       tags:
       - Profile
-  /roomship/:
+  /rooms/:
     get:
       description: 获取当前登录用户加入的房间关系列表，可基于 base_id 游标和 limit 分页
       parameters:
@@ -1153,7 +1253,115 @@ paths:
       summary: 获取房间关系列表
       tags:
       - Roomship
-  /roomship/request:
+    post:
+      consumes:
+      - application/json
+      description: 创建一个新的房间，当前登录用户将作为房主加入房间
+      parameters:
+      - description: 创建房间请求体
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_roomship_port_http.CreateRoomRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: 创建成功
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+        "401":
+          description: 未认证
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+      security:
+      - BearerAuth: []
+      summary: 创建房间
+      tags:
+      - Roomship
+  /rooms/{room_id}/members:
+    get:
+      description: 根据房间ID获取房间成员列表
+      parameters:
+      - description: 房间ID
+        enum:
+        - ""
+        in: path
+        name: room_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功返回房间成员列表
+          schema:
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_roomship_port_http.ListRoomMembersResponseData'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+        "404":
+          description: 房间不存在
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+      summary: 获取房间成员列表
+      tags:
+      - Roomship
+  /rooms/{room_id}/members/me:
+    delete:
+      description: 当前登录用户退出指定房间
+      parameters:
+      - description: 房间ID
+        enum:
+        - ""
+        in: path
+        name: room_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 退出成功，若本身不在房间视为成功
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+        "400":
+          description: 请求参数错误或房主不能直接退出
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+        "401":
+          description: 未认证
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+      security:
+      - BearerAuth: []
+      summary: 退出房间
+      tags:
+      - Roomship
+  /rooms/requests/:
     get:
       description: 获取当前登录用户相关的房间成员请求列表，可基于 base_id 游标和 limit 分页
       parameters:
@@ -1231,7 +1439,7 @@ paths:
       summary: 发送入群请求
       tags:
       - Roomship
-  /roomship/request/{request_id}/agree:
+  /rooms/requests/{request_id}/agree:
     put:
       description: 同意指定房间成员请求，将对方加入房间
       parameters:
@@ -1266,7 +1474,7 @@ paths:
       summary: 同意入群请求
       tags:
       - Roomship
-  /roomship/request/{request_id}/refuse:
+  /rooms/requests/{request_id}/refuse:
     put:
       description: 拒绝指定房间成员请求
       parameters:
@@ -1299,114 +1507,6 @@ paths:
       security:
       - BearerAuth: []
       summary: 拒绝入群请求
-      tags:
-      - Roomship
-  /roomship/room:
-    post:
-      consumes:
-      - application/json
-      description: 创建一个新的房间，当前登录用户将作为房主加入房间
-      parameters:
-      - description: 创建房间请求体
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/internal_roomship_port_http.CreateRoomRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: 创建成功
-          schema:
-            $ref: '#/definitions/gochat_internal_shared_api.Response'
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/gochat_internal_shared_api.Response'
-        "401":
-          description: 未认证
-          schema:
-            $ref: '#/definitions/gochat_internal_shared_api.Response'
-        "500":
-          description: 服务器内部错误
-          schema:
-            $ref: '#/definitions/gochat_internal_shared_api.Response'
-      security:
-      - BearerAuth: []
-      summary: 创建房间
-      tags:
-      - Roomship
-  /roomship/room/{room_id}:
-    delete:
-      description: 当前登录用户退出指定房间
-      parameters:
-      - description: 房间ID
-        enum:
-        - ""
-        in: path
-        name: room_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 退出成功，若本身不在房间视为成功
-          schema:
-            $ref: '#/definitions/gochat_internal_shared_api.Response'
-        "400":
-          description: 请求参数错误或房主不能直接退出
-          schema:
-            $ref: '#/definitions/gochat_internal_shared_api.Response'
-        "401":
-          description: 未认证
-          schema:
-            $ref: '#/definitions/gochat_internal_shared_api.Response'
-        "500":
-          description: 服务器内部错误
-          schema:
-            $ref: '#/definitions/gochat_internal_shared_api.Response'
-      security:
-      - BearerAuth: []
-      summary: 退出房间
-      tags:
-      - Roomship
-    get:
-      description: 根据房间ID获取房间成员列表
-      parameters:
-      - description: 房间ID
-        enum:
-        - ""
-        in: path
-        name: room_id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 成功返回房间成员列表
-          schema:
-            allOf:
-            - $ref: '#/definitions/gochat_internal_shared_api.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/internal_roomship_port_http.ListRoomMembersResponseData'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/gochat_internal_shared_api.Response'
-        "404":
-          description: 房间不存在
-          schema:
-            $ref: '#/definitions/gochat_internal_shared_api.Response'
-        "500":
-          description: 服务器内部错误
-          schema:
-            $ref: '#/definitions/gochat_internal_shared_api.Response'
-      summary: 获取房间成员列表
       tags:
       - Roomship
   /ws/:
