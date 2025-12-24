@@ -30,16 +30,17 @@ import (
 
 const (
 	defaultConfigFilePath = "./config/config.yaml"
-	defaultENVFilePath    = "./.env.development"
 )
 
 func main() {
 	path := flag.String("config", defaultConfigFilePath, "config file path")
-	env := flag.String("env", defaultENVFilePath, "env file path")
+	env := flag.String("env", "", "env file path")
 	flag.Parse()
 
-	if err := godotenv.LoadEnvFile(*env); err != nil {
-		log.Fatalf("load env failed,err:%v", err)
+	if env != nil && *env != "" {
+		if err := godotenv.LoadEnvFile(*env); err != nil {
+			log.Fatalf("load env failed,err:%v", err)
+		}
 	}
 
 	conf, err := viper.LoadConfigFile(*path)
