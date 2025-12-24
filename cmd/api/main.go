@@ -16,7 +16,7 @@ package main
 import (
 	"context"
 	"flag"
-	"gochat/cmd/di"
+	"gochat/cmd/api/di"
 	"gochat/internal/infrastructure/godotenv"
 	"gochat/internal/infrastructure/viper"
 	zaputils "gochat/internal/infrastructure/zap"
