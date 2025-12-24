@@ -99,6 +99,12 @@ func buildKafkaConsumer(
 		middleware.NewRecoverMiddleware(),
 		middleware.NewTraceMiddleware(appConfig.Name+"."+contextName+".kafka_consumer"),
 	)
+
+	if appConfig.Breaker != nil {
+		conf := *appConfig.Breaker
+		conf.Name = appConfig.Name + "_" + contextName + "_kafka_consumer_circuit_breaker"
+		router.Use(middleware.NewCircuitBreakMiddleware(&conf))
+	}
 	register(router)
 
 	consumer, err := kafkaInfra.NewConsumer(appConfig.Kafka, router)
