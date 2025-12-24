@@ -41,10 +41,11 @@ func getAdminConfigMap(c *Config) *ckafka.ConfigMap {
 
 func getConsumerConfigMap(c *Config) *ckafka.ConfigMap {
 	return &ckafka.ConfigMap{
-		"bootstrap.servers":  c.BootstrapServers,
-		"group.id":           c.GroupID,
-		"auto.offset.reset":  c.AutoOffsetReset,
-		"enable.auto.commit": true,
+		"bootstrap.servers": c.BootstrapServers,
+		"group.id":          c.GroupID,
+		"auto.offset.reset": c.AutoOffsetReset,
+		// Disable auto commit to allow manual commit after successful handling
+		"enable.auto.commit": false,
 	}
 }
 
