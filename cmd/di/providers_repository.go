@@ -1,6 +1,7 @@
 package di
 
 import (
+	"gochat/config"
 	authDomain "gochat/internal/authorization/domain"
 	authConverter "gochat/internal/authorization/infrastructure/persistence/converter"
 	authModel "gochat/internal/authorization/infrastructure/persistence/model"
@@ -91,36 +92,40 @@ var RepoSet = wire.NewSet(
 	provideFriendshipFriendshipRepository,
 )
 
-func provideDatabaseMigrated(mysql *gorm.DB) databaseMigrated {
-	if err := gormInfra.AutoMigrate(
-		mysql,
-		&authModel.User{},
-		&notificationModel.SystemMessage{},
-		&profileModel.User{},
-		&profileModel.Room{},
-		&profileModel.Roomship{},
-		&profileModel.UserProfile{},
-		&profileModel.RoomProfile{},
-		&chatModel.User{},
-		&chatModel.Room{},
-		&chatModel.PrivateMessage{},
-		&chatModel.RoomMessage{},
-		&chatModel.RoomMessageState{},
-		&chatModel.Friendship{},
-		&chatModel.Roomship{},
-		&roomshipModel.User{},
-		&roomshipModel.Room{},
-		&roomshipModel.Roomship{},
-		&roomshipModel.MemberRequest{},
-		&friendshipModel.User{},
-		&friendshipModel.Friendship{},
-		&friendshipModel.FriendRequest{},
-		&model.Event{},
-		&model.DeadLetter{},
-	); err != nil {
-		zap.L().Warn("failed to migrate database", zap.Error(err))
-		return false
+func provideDatabaseMigrated(appConfig *config.App, db *gorm.DB) databaseMigrated {
+	if appConfig.Env == "dev" || appConfig.Env == "development" {
+		if err := gormInfra.AutoMigrate(
+			db,
+			&authModel.User{},
+			&notificationModel.SystemMessage{},
+			&profileModel.User{},
+			&profileModel.Room{},
+			&profileModel.Roomship{},
+			&profileModel.UserProfile{},
+			&profileModel.RoomProfile{},
+			&chatModel.User{},
+			&chatModel.Room{},
+			&chatModel.PrivateMessage{},
+			&chatModel.RoomMessage{},
+			&chatModel.RoomMessageState{},
+			&chatModel.Friendship{},
+			&chatModel.Roomship{},
+			&roomshipModel.User{},
+			&roomshipModel.Room{},
+			&roomshipModel.Roomship{},
+			&roomshipModel.MemberRequest{},
+			&friendshipModel.User{},
+			&friendshipModel.Friendship{},
+			&friendshipModel.FriendRequest{},
+			&model.Event{},
+			&model.DeadLetter{},
+		); err != nil {
+			zap.L().Warn("failed to migrate database", zap.Error(err))
+			return false
+		}
+		return true
 	}
+	zap.L().Info("Skipping database migration in non-development environment")
 	return true
 }
 
