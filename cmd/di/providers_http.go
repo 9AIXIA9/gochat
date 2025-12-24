@@ -35,8 +35,6 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-//TODO 增强查询功能
-
 var HTTPSet = wire.NewSet(
 	provideHttpRouter,
 	provideHttpServer,

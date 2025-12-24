@@ -2,12 +2,14 @@ package kafka
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/pkg/utils"
 	"time"
 
 	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
+	"github.com/sony/gobreaker/v2"
 	"go.uber.org/zap"
 )
 
@@ -24,6 +26,9 @@ type Consumer struct {
 	cancel context.CancelFunc
 
 	running bool
+
+	// pause duration when circuit breaker is open before resuming the partition
+	breakerPause time.Duration
 }
 
 func NewConsumer(config *Config, router *Router) (*Consumer, error) {
@@ -48,6 +53,7 @@ func NewConsumer(config *Config, router *Router) (*Consumer, error) {
 		ctx:          ctx,
 		cancel:       cancel,
 		running:      false,
+		breakerPause: 0,
 	}, nil
 }
 
@@ -104,6 +110,18 @@ func (c *Consumer) processMessage() {
 						zap.Error(err),
 					)
 				}
+
+				// If breaker is open/overloaded, pause this partition to avoid advancing the position
+				if errors.Is(err, gobreaker.ErrOpenState) || errors.Is(err, gobreaker.ErrTooManyRequests) {
+					c.pausePartition(m.TopicPartition)
+				}
+				// Do NOT commit on error
+			}
+			if err == nil {
+				// Commit only on successful handling
+				if _, cerr := c.consumer.CommitMessage(m); cerr != nil {
+					zap.L().Warn("kafka manual commit failed", zap.Error(cerr))
+				}
 			}
 		case ckafka.Error:
 			// Consumer-level error
@@ -124,4 +142,34 @@ func (c *Consumer) Close() {
 	if c.consumer != nil {
 		_ = c.consumer.Close()
 	}
+}
+
+// SetBreakerPause configures how long to pause partitions when the circuit is open.
+func (c *Consumer) SetBreakerPause(d time.Duration) {
+	c.breakerPause = d
+}
+
+// pausePartition pauses consumption for the given partition and schedules a resume after breakerPause.
+func (c *Consumer) pausePartition(tp ckafka.TopicPartition) {
+	if c.breakerPause <= 0 {
+		return
+	}
+	if err := c.consumer.Pause([]ckafka.TopicPartition{tp}); err != nil {
+		zap.L().Warn("kafka pause partition failed", zap.Error(err))
+		return
+	}
+	// schedule resume
+	pauseFor := c.breakerPause
+	utils.GoSafe(func() {
+		timer := time.NewTimer(pauseFor)
+		defer timer.Stop()
+		select {
+		case <-timer.C:
+			if err := c.consumer.Resume([]ckafka.TopicPartition{tp}); err != nil {
+				zap.L().Warn("kafka resume partition failed", zap.Error(err))
+			}
+		case <-c.ctx.Done():
+			return
+		}
+	})
 }
