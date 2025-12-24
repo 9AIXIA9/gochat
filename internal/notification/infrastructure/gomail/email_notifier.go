@@ -12,8 +12,6 @@ import (
 	"gopkg.in/gomail.v2"
 )
 
-//TODO 提供一个熔断机制，防止邮件服务不可用时大量请求堆积
-
 var _ domain.WelcomeEmailNotifier = (*EmailNotifier)(nil)
 
 const (
