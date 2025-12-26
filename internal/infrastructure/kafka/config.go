@@ -33,12 +33,6 @@ func (c *Config) Validate() error {
 	return nil
 }
 
-func getAdminConfigMap(c *Config) *ckafka.ConfigMap {
-	return &ckafka.ConfigMap{
-		"bootstrap.servers": c.BootstrapServers,
-	}
-}
-
 func getConsumerConfigMap(c *Config) *ckafka.ConfigMap {
 	return &ckafka.ConfigMap{
 		"bootstrap.servers": c.BootstrapServers,

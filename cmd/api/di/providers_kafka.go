@@ -1,7 +1,6 @@
 package di
 
 import (
-	"context"
 	"fmt"
 	"gochat/config"
 	authApp "gochat/internal/authorization/application"
@@ -70,31 +69,8 @@ func buildKafkaConsumer(
 	reproducer *ckafka.Producer,
 	eventRepo event.Repository,
 	contextName string,
-	topics []event.Topic,
 	register func(r *kafkaInfra.Router),
 ) (*kafkaInfra.Consumer, error) {
-	if appConfig.Env == "dev" || appConfig.Env == "development" {
-		if err := kafkaInfra.EnsureTopics(
-			context.Background(),
-			appConfig.Kafka,
-			topics,
-			1,
-			1,
-		); err != nil {
-			zap.L().Warn(
-				"Failed to ensure Kafka topics",
-				zap.Strings("topics", func() []string {
-					var ts []string
-					for _, t := range topics {
-						ts = append(ts, t.String())
-					}
-					return ts
-				}()),
-				zap.Error(err),
-			)
-		}
-	}
-
 	router := kafkaInfra.NewRouter()
 	router.Use(
 		middleware.NewLoggerMiddleware(),
@@ -137,9 +113,6 @@ func provideAuthEventConsumer(
 	authUserCreated authApp.UserCreatedUseCase,
 ) (AuthKafkaConsumer, error) {
 	consumer, err := buildKafkaConsumer(appConfig, reproducer, eventRepo, "authorization",
-		[]event.Topic{
-			authDomain.TopicUserCreated,
-		},
 		func(r *kafkaInfra.Router) {
 			r.EventHandle(authDomain.TopicUserCreated, authEvent.NewUserCreatedEventHandler(authUserCreated))
 		},
@@ -160,11 +133,6 @@ func provideProfileEventConsumer(
 	profileRoomshipCreated profileApp.RoomshipCreatedUseCase,
 ) (ProfileKafkaConsumer, error) {
 	consumer, err := buildKafkaConsumer(appConfig, reproducer, eventRepo, "profile",
-		[]event.Topic{
-			profileDomain.TopicUserCreated,
-			profileDomain.TopicRoomCreated,
-			profileDomain.TopicRoomshipCreated,
-		},
 		func(r *kafkaInfra.Router) {
 			r.EventHandle(profileDomain.TopicUserCreated, profileEvent.NewUserCreatedEventHandler(profileUserCreated))
 			r.EventHandle(profileDomain.TopicRoomCreated, profileEvent.NewRoomCreatedEventHandler(profileRoomCreated))
@@ -185,13 +153,6 @@ func provideChatEventConsumer(
 	chatUndeliveredMessagesPushRequested chatApp.UndeliveredMessagesPushRequestedUseCase,
 ) (ChatKafkaConsumer, error) {
 	consumer, err := buildKafkaConsumer(appConfig, reproducer, eventRepo, "chat",
-		[]event.Topic{
-			chatDomain.TopicUserCreated,
-			chatDomain.TopicRoomCreated,
-			chatDomain.TopicRoomshipCreated,
-			chatDomain.TopicFriendshipCreated,
-			chatDomain.TopicUndeliveredMessagesPushRequested,
-		},
 		func(r *kafkaInfra.Router) {
 			r.EventHandle(chatDomain.TopicUserCreated, chatEvent.NewUserCreatedEventHandler(chatUserCreated))
 			r.EventHandle(chatDomain.TopicRoomCreated, chatEvent.NewRoomCreatedEventHandler(chatRoomCreated))
@@ -213,11 +174,6 @@ func provideNotificationEventConsumer(
 	notificationUndeliveredMessagesRequested notificationApp.UndeliveredMessagesNotificationRequestedUseCase,
 ) (NotificationKafkaConsumer, error) {
 	consumer, err := buildKafkaConsumer(appConfig, reproducer, eventRepo, "notification",
-		[]event.Topic{
-			notificationDomain.TopicWelcomeEmailNotificationRequested,
-			notificationDomain.TopicSystemMessageNotificationRequested,
-			notificationDomain.TopicUndeliveredMessagesNotificationRequested,
-		},
 		func(r *kafkaInfra.Router) {
 			if emailAvailable {
 				r.EventHandle(notificationDomain.TopicWelcomeEmailNotificationRequested, notificationEvent.NewWelcomeEmailNotificationRequestedEventHandler(notificationWelcomeEmailNotificationRequested))
@@ -242,13 +198,6 @@ func provideRoomshipEventConsumer(
 	roomshipRoomshipCreated roomshipApp.RoomshipCreatedUseCase,
 ) (RoomshipKafkaConsumer, error) {
 	consumer, err := buildKafkaConsumer(appConfig, reproducer, eventRepo, "roomship",
-		[]event.Topic{
-			roomshipDomain.TopicUserCreated,
-			roomshipDomain.TopicRoomCreated,
-			roomshipDomain.TopicMemberRequestCreated,
-			roomshipDomain.TopicMemberRequestAgreed,
-			roomshipDomain.TopicRoomshipCreated,
-		},
 		func(r *kafkaInfra.Router) {
 			r.EventHandle(roomshipDomain.TopicUserCreated, roomshipEvent.NewUserCreatedEventHandler(roomshipUserCreated))
 			r.EventHandle(roomshipDomain.TopicRoomCreated, roomshipEvent.NewRoomCreatedEventHandler(roomshipRoomCreated))
@@ -270,12 +219,6 @@ func provideFriendshipEventConsumer(
 	friendshipFriendshipCreated friendshipApp.FriendshipCreatedUseCase,
 ) (FriendshipKafkaConsumer, error) {
 	consumer, err := buildKafkaConsumer(appConfig, reproducer, eventRepo, "friendship",
-		[]event.Topic{
-			friendshipDomain.TopicUserCreated,
-			friendshipDomain.TopicFriendRequestAgreed,
-			friendshipDomain.TopicFriendRequestCreated,
-			friendshipDomain.TopicFriendshipCreated,
-		},
 		func(r *kafkaInfra.Router) {
 			r.EventHandle(friendshipDomain.TopicUserCreated, friendshipEvent.NewUserCreatedEventHandler(friendshipUserCreated))
 			r.EventHandle(friendshipDomain.TopicFriendRequestAgreed, friendshipEvent.NewFriendRequestAgreedEventHandler(friendshipFriendRequestAgreed))
