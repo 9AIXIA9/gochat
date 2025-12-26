@@ -65,7 +65,7 @@ func (uc *sendRoomMessageUseCase) Execute(ctx context.Context, input *SendRoomMe
 	}
 
 	if len(roomships) == 0 {
-		return nil, myErrors.ErrNotFound
+		return nil, myErrors.NewBusiness("room not found")
 	}
 
 	message, err := uc.createRoomMessage(roomships, input)

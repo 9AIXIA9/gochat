@@ -1,6 +1,7 @@
 package model
 
 import (
+	"database/sql"
 	"gochat/internal/roomship/domain"
 	"gochat/internal/shared/kernel"
 	"time"
@@ -13,7 +14,7 @@ type MemberRequest struct {
 	Content     string                    `gorm:"type:varchar(500)"`
 	State       domain.MemberRequestState `gorm:"not null;index:idx_member_req_applicant_room_state,priority:3;index:idx_member_req_state"`
 	SentAt      time.Time                 `gorm:"not null;index:idx_member_req_to_sentat,priority:2;index:idx_member_req_sentat"`
-	OperatorID  kernel.UserID             `gorm:"type:char(36);not null;index"`
+	OperatorID  sql.NullString            `gorm:"type:char(36);index"`
 	OperatedAt  time.Time
 
 	_ struct{} `gorm:"constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;foreignKey:ApplicantID;references:ID"`
