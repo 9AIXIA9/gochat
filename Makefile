@@ -20,6 +20,14 @@ help:
 	@echo   make ps           - Show service status
 	@echo   make hooks        - Install Git hooks
 	@echo   make precommit    - Run pre-commit hook manually
+	@echo   make test-all     - Run all tests with race detector and shuffle
+	@echo   make lint         - Run golangci-lint if installed
+	@echo   make swagger      - Generate Swagger docs from annotations
+	@echo   make build        - Build the app binary
+	@echo   make run          - Run the app locally
+	@echo   make up-fast      - Up using build cache
+	@echo   make logs-app     - Tail only app logs
+	@echo   make status       - Alias for ps
 
 .PHONY: up
 up: ## Build (no cache) and up -d
@@ -64,6 +72,43 @@ hooks: ## Configure Git to use the versioned hooks in .githooks
 .PHONY: precommit
 precommit: ## Run pre-commit hook logic locally
 	@sh .githooks/pre-commit
+
+.PHONY: test-all
+test-all: ## Run all tests with race detector and shuffle
+	go test -race -shuffle=on ./...
+
+.PHONY: lint
+lint: ## Run golangci-lint if installed
+	golangci-lint run ./...
+
+.PHONY: swagger
+swagger: ## Generate Swagger docs from annotations
+	go generate ./cmd/api/main.go
+
+# Build & run app locally (without Docker)
+APP_MAIN := ./cmd/api/main.go
+
+.PHONY: build
+build: ## Build the app binary
+	go build -o bin/gochat-app $(APP_MAIN)
+
+.PHONY: run
+run: ## Run the app locally (use -config to override)
+	go run $(APP_MAIN) -config $(COMPOSE_FILE_DIR)/config/config.yaml
+
+# Compose utilities
+COMPOSE_FILE_DIR := .
+
+.PHONY: up-fast
+up-fast: ## Up using build cache
+	$(DC) up -d --build
+
+.PHONY: logs-app
+logs-app: ## Tail only app logs
+	$(DC) logs -f app
+
+.PHONY: status
+status: ps ## Alias for ps
 
 # Load environment overrides (optional). Default uses app env file.
 ENV_FILE ?= .env.development
