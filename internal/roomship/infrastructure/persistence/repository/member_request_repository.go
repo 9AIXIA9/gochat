@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	gormutils "gochat/internal/infrastructure/gorm"
 	"gochat/internal/roomship/domain"
 	"gochat/internal/roomship/infrastructure/persistence/model"
@@ -100,8 +101,16 @@ func (repo *MemberRequestRepository) toModel(memberRequest *domain.MemberRequest
 		Content:     memberRequest.Content(),
 		State:       memberRequest.State(),
 		SentAt:      memberRequest.CreatedAt(),
-		OperatorID:  memberRequest.OperatorID(),
-		OperatedAt:  memberRequest.OperatedAt(),
+		OperatorID: func() sql.NullString {
+			if memberRequest.OperatorID() != "" {
+				return sql.NullString{
+					String: memberRequest.OperatorID().String(),
+					Valid:  true,
+				}
+			}
+			return sql.NullString{} // Valid: false
+		}(),
+		OperatedAt: memberRequest.OperatedAt(),
 	}
 }
 
@@ -112,7 +121,12 @@ func (repo *MemberRequestRepository) toDomain(memberRequest *model.MemberRequest
 		memberRequest.ApplicantID,
 		memberRequest.RoomID,
 		memberRequest.Content,
-		memberRequest.OperatorID,
+		func() kernel.UserID {
+			if memberRequest.OperatorID.Valid {
+				return kernel.UserID(memberRequest.OperatorID.String)
+			}
+			return ""
+		}(),
 		memberRequest.OperatedAt,
 		memberRequest.SentAt,
 	)

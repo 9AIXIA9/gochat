@@ -3,35 +3,24 @@ package di
 import (
 	authDomain "gochat/internal/authorization/domain"
 	authConverter "gochat/internal/authorization/infrastructure/persistence/converter"
-	authModel "gochat/internal/authorization/infrastructure/persistence/model"
 	authRepo "gochat/internal/authorization/infrastructure/persistence/repository"
 	chatDomain "gochat/internal/chat/domain"
-	chatModel "gochat/internal/chat/infrastructure/persistence/model"
 	chatRepo "gochat/internal/chat/infrastructure/persistence/repository"
 	friendshipDomain "gochat/internal/friendship/domain"
-	friendshipModel "gochat/internal/friendship/infrastructure/persistence/model"
 	friendshipRepo "gochat/internal/friendship/infrastructure/persistence/repository"
-	gormInfra "gochat/internal/infrastructure/gorm"
-	"gochat/internal/infrastructure/persistence/model"
 	"gochat/internal/infrastructure/persistence/repository"
 	notificationDomain "gochat/internal/notification/domain"
-	notificationModel "gochat/internal/notification/infrastructure/persistence/model"
 	notificationRepo "gochat/internal/notification/infrastructure/persistence/repository"
 	profileDomain "gochat/internal/profile/domain"
-	profileModel "gochat/internal/profile/infrastructure/persistence/model"
 	profileRepo "gochat/internal/profile/infrastructure/persistence/repository"
 	roomshipDomain "gochat/internal/roomship/domain"
-	roomshipModel "gochat/internal/roomship/infrastructure/persistence/model"
 	roomshipRepo "gochat/internal/roomship/infrastructure/persistence/repository"
 	"gochat/internal/shared/event"
 
 	"github.com/google/wire"
 	"github.com/redis/go-redis/v9"
-	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
-
-type databaseMigrated bool
 
 var RepoSet = wire.NewSet(
 	// Bind repositories to their interfaces
@@ -66,7 +55,6 @@ var RepoSet = wire.NewSet(
 
 	wire.Bind(new(event.DeadLetterCreator), new(*repository.EventRepository)),
 
-	provideDatabaseMigrated,
 	provideEventRepository,
 	provideAuthorizationUserRepository,
 	provideAuthorizationRefreshTokenRepository,
@@ -90,39 +78,6 @@ var RepoSet = wire.NewSet(
 	provideFriendshipFriendRequestRepository,
 	provideFriendshipFriendshipRepository,
 )
-
-func provideDatabaseMigrated(mysql *gorm.DB) databaseMigrated {
-	if err := gormInfra.AutoMigrate(
-		mysql,
-		&authModel.User{},
-		&notificationModel.SystemMessage{},
-		&profileModel.User{},
-		&profileModel.Room{},
-		&profileModel.Roomship{},
-		&profileModel.UserProfile{},
-		&profileModel.RoomProfile{},
-		&chatModel.User{},
-		&chatModel.Room{},
-		&chatModel.PrivateMessage{},
-		&chatModel.RoomMessage{},
-		&chatModel.RoomMessageState{},
-		&chatModel.Friendship{},
-		&chatModel.Roomship{},
-		&roomshipModel.User{},
-		&roomshipModel.Room{},
-		&roomshipModel.Roomship{},
-		&roomshipModel.MemberRequest{},
-		&friendshipModel.User{},
-		&friendshipModel.Friendship{},
-		&friendshipModel.FriendRequest{},
-		&model.Event{},
-		&model.DeadLetter{},
-	); err != nil {
-		zap.L().Warn("failed to migrate database", zap.Error(err))
-		return false
-	}
-	return true
-}
 
 func provideEventRepository(db *gorm.DB) *repository.EventRepository {
 	return repository.NewEventRepository(db)

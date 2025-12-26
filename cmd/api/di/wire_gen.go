@@ -324,8 +324,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	diDatabaseMigrated := provideDatabaseMigrated(db)
-	dependencies, err := BuildDependencies(server, eventPublisher, authKafkaConsumer, profileKafkaConsumer, chatKafkaConsumer, notificationKafkaConsumer, roomshipKafkaConsumer, friendshipKafkaConsumer, binlogReader, emailNotifier, otelShutdown, diEmailServiceAvailable, diDatabaseMigrated)
+	dependencies, err := BuildDependencies(server, eventPublisher, authKafkaConsumer, profileKafkaConsumer, chatKafkaConsumer, notificationKafkaConsumer, roomshipKafkaConsumer, friendshipKafkaConsumer, binlogReader, emailNotifier, otelShutdown, diEmailServiceAvailable)
 	if err != nil {
 		return nil, err
 	}

@@ -23,7 +23,7 @@ RUN go mod download && \
 COPY . .
 
 # 直接构建二进制文件
-RUN GOOS=linux GOARCH=amd64 go build -tags musl -ldflags="-s -w" -o /app/server ./cmd;
+RUN GOOS=linux GOARCH=amd64 go build -tags musl -ldflags="-s -w" -o /app/server ./cmd/api;
 
 # 第二阶段：运行时
 FROM alpine:3.20

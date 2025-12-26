@@ -11,12 +11,14 @@
 // @securityDefinitions.apikey BearerAuth
 // @in              header
 // @name            Authorization
+//
+//go:generate swag init -g ./cmd/api/main.go -o ../../docs --parseDependency --parseInternal --dir ../..
 package main
 
 import (
 	"context"
 	"flag"
-	"gochat/cmd/di"
+	"gochat/cmd/api/di"
 	"gochat/internal/infrastructure/godotenv"
 	"gochat/internal/infrastructure/viper"
 	zaputils "gochat/internal/infrastructure/zap"

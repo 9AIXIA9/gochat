@@ -73,24 +73,26 @@ func buildKafkaConsumer(
 	topics []event.Topic,
 	register func(r *kafkaInfra.Router),
 ) (*kafkaInfra.Consumer, error) {
-	if err := kafkaInfra.EnsureTopics(
-		context.Background(),
-		appConfig.Kafka,
-		topics,
-		1,
-		1,
-	); err != nil {
-		zap.L().Warn(
-			"Failed to ensure Kafka topics",
-			zap.Strings("topics", func() []string {
-				var ts []string
-				for _, t := range topics {
-					ts = append(ts, t.String())
-				}
-				return ts
-			}()),
-			zap.Error(err),
-		)
+	if appConfig.Env == "dev" || appConfig.Env == "development" {
+		if err := kafkaInfra.EnsureTopics(
+			context.Background(),
+			appConfig.Kafka,
+			topics,
+			1,
+			1,
+		); err != nil {
+			zap.L().Warn(
+				"Failed to ensure Kafka topics",
+				zap.Strings("topics", func() []string {
+					var ts []string
+					for _, t := range topics {
+						ts = append(ts, t.String())
+					}
+					return ts
+				}()),
+				zap.Error(err),
+			)
+		}
 	}
 
 	router := kafkaInfra.NewRouter()
