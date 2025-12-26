@@ -115,11 +115,32 @@ golangci-lint run ./...
 - 默认配置：`config/config.yaml`
 - 环境变量覆盖：通过 `internal/infrastructure/godotenv` 读取 `.env`
 
-## 文档
-- 项目评估报告：`docs/project_evaluation_optimization.md`
-- 代码演进与路线图：`docs/code_evolution.md`
-- API 文档：`docs/swagger.yaml`、`docs/swagger.json`
-- WebSocket 说明：`docs/websocket.md`
+## 文档导航
+
+- 概览与评估
+  - 项目评估报告：`docs/project_evaluation_optimization.md`
+  - 代码演进与路线图：`docs/code_evolution.md`
+  - 项目演进路线图（版本迭代记录）：`docs/roadmap.md`
+- API 文档
+  - Swagger YAML：`docs/swagger.yaml`
+  - Swagger JSON：`docs/swagger.json`
+  - 注解入口：`cmd/api/main.go`
+- 实时通信
+  - WebSocket 说明：`docs/websocket.md`
+- 部署与监控
+  - docker-compose：`docker-compose.yml`
+  - Dockerfile：`Dockerfile`
+  - OTEL 采集器：`deployment/otel-collector-config.yaml`
+  - Prometheus：`deployment/prometheus.yml`
+  - Grafana 数据源与仪表：`deployment/grafana-datasources.yml`、`deployment/grafana-dashboards/gochat-app.json`
+  - 告警：`deployment/prometheus-alerts.yml`
+- 数据库与初始化
+  - SQL 迁移：`db/migrations/`
+  - MySQL 初始化：`deployment/grafana-dashboards/mysql-init/init_users.sh`
+  - Redis ACL 初始化：`deployment/redis_init/init_users.acl`
+- 构建与脚本
+  - Makefile：`Makefile`（常用：`make up`、`make up-fast`、`make logs-app`、`make test-all`、`make migrate-up`）
+  - 统计代码行数：`scripts/count_golang_code_lines.ps1`
 
 ## 许可协议
 MIT
