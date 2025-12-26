@@ -30,7 +30,6 @@ func BuildDependencies(
 	emailNotifier *gomailUtil.EmailNotifier,
 	OTELShutdown OTELShutdown,
 	_ emailServiceAvailable,
-	_ databaseMigrated,
 ) (*Dependencies, error) {
 	deps := &Dependencies{
 		HttpServer:          httpServer,
