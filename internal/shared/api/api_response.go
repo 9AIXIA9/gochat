@@ -1,15 +1,5 @@
 package api
 
-var (
-	ResponseSuccess            = NewResponse(CodeSuccess)
-	ResponseServerError        = NewResponse(CodeServerError)
-	ResponseTimeout            = NewResponse(CodeTimeout)
-	ResponseInvalidToken       = NewResponse(CodeUnauthorized)
-	ResponseInvalidParam       = NewResponse(CodeInvalidParam)
-	ResponseServiceUnavailable = NewResponse(CodeServiceUnavailable)
-	ResponseNotFound           = NewResponse(CodeNotFound)
-)
-
 type Response struct {
 	Code    Code   `json:"code"`
 	Message string `json:"message"`
