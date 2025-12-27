@@ -7,10 +7,10 @@ import (
 )
 
 type Friendship struct {
-	ID        domain.FriendshipID `json:"id"`
-	UserID1   kernel.UserID       `json:"user_id_1"`
-	UserID2   kernel.UserID       `json:"user_id_2"`
-	CreatedAt time.Time           `json:"created_at"`
+	ID        domain.FriendshipID `json:"id" example:"019b593b-462e-74d6-bfda-0e103a172190"`
+	UserID1   kernel.UserID       `json:"user_id_1" example:"019b593b-462e-74d6-bfda-0e103a172191"`
+	UserID2   kernel.UserID       `json:"user_id_2" example:"019b593b-462e-74d6-bfda-0e103a172192"`
+	CreatedAt time.Time           `json:"created_at" example:"019b593b-462e-74d6-bfda-0e103a172193"`
 }
 
 func ToFriendshipDTO(friendship *domain.Friendship) *Friendship {
