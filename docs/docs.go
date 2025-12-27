@@ -25,7 +25,7 @@ const docTemplate = `{
     "paths": {
         "/auth/login": {
             "post": {
-                "description": "使用学号/账号和密码登录，成功后下发访问令牌与刷新令牌（刷新令牌存于 Cookie）",
+                "description": "使用账号和密码登录，成功后下发访问令牌与刷新令牌（刷新令牌存于 Cookie）",
                 "tags": [
                     "Authorization"
                 ],
@@ -1496,10 +1496,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "number": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2004426295315795968"
                 },
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "your-password"
                 }
             }
         },
@@ -1507,7 +1509,8 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "access_token": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySUQiOiIwMTliNTkyOS02NWJjLTc1NDktODljNi0zZjdkYzY4NzI1NzciLCJleHAiOjE3NjY4MjY5MTMsImlhdCI6MTc2NjgyMzMxM30.ogmbXIK85Eqnh3EP_8Ttj0kkuZxsxP5wfERPSc0vNgw"
                 }
             }
         },
