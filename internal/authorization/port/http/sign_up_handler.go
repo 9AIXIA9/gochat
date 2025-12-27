@@ -29,9 +29,6 @@ type SignUpResponseData struct {
 // @Tags         Authorization
 // @Param        request  body      SignUpRequest        true  "注册请求体"
 // @Success      201      {object}  api.Response{data=SignUpResponseData}   "注册成功，返回用户编号"
-// @Failure      400      {object}  api.Response "请求参数错误或密码不合法"
-// @Failure      409      {object}  api.Response "邮箱已被占用"
-// @Failure      500      {object}  api.Response "服务器内部错误"
 // @Router       /auth/sign-up [post]
 func NewSignUpHandler(useCase application.SignUpUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(

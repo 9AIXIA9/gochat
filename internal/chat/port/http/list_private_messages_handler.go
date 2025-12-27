@@ -48,9 +48,6 @@ type ListPrivateMessagesResponseData struct {
 // @Param        base_id  query     kernel.MessageID    false "分页游标，返回该ID之前的消息"
 // @Param        limit    query     int    false "分页大小，默认20，最大100"
 // @Success      200      {object}  api.Response{data=ListPrivateMessagesResponseData} "成功返回私聊消息记录"
-// @Failure      400      {object}  api.Response "请求参数错误"
-// @Failure      401      {object}  api.Response "未认证"
-// @Failure      500      {object}  api.Response "服务器内部错误"
 // @Router       /chats/private-messages/{user_id} [get]
 func NewListPrivateMessagesHandler(useCase application.ListPrivateMessagesUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(

@@ -31,9 +31,6 @@ type GetRoomProfileResponseData struct {
 // @Tags         Profile
 // @Param        room_id  path      kernel.RoomID                        true  "房间ID"
 // @Success      200      {object}  api.Response{data=GetRoomProfileResponseData} "成功返回房间资料"
-// @Failure      400      {object}  api.Response "请求参数错误"
-// @Failure      404      {object}  api.Response "房间不存在"
-// @Failure      500      {object}  api.Response "服务器内部错误"
 // @Router       /profiles/rooms/{room_id} [get]
 func NewGetRoomProfileHandler(useCase application.GetRoomProfileUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(

@@ -35,10 +35,6 @@ func (r *UpdateUserProfileRequest) Bind(ginContext *gin.Context) error {
 // @Security     BearerAuth
 // @Param        request  body      UpdateUserProfileRequest  true  "更新用户资料请求体"
 // @Success      200      {object}  api.Response    "更新成功"
-// @Failure      400      {object}  api.Response    "请求参数错误"
-// @Failure      401      {object}  api.Response    "未认证"
-// @Failure      404      {object}  api.Response    "用户资料不存在"
-// @Failure      500      {object}  api.Response    "服务器内部错误"
 // @Router       /profiles/me [put]
 func NewUpdateUserProfileHandler(useCase application.UpdateUserProfileUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(

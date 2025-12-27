@@ -32,9 +32,6 @@ type GetUserProfileResponseData struct {
 // @Tags         Profile
 // @Param        user_id  path      kernel.UserID                         true  "用户ID"
 // @Success      200      {object}  api.Response{data=GetUserProfileResponseData}  "成功返回用户资料"
-// @Failure      400      {object}  api.Response "请求参数错误"
-// @Failure      404      {object}  api.Response "用户不存在"
-// @Failure      500      {object}  api.Response "服务器内部错误"
 // @Router       /profiles/users/{user_id} [get]
 func NewGetUserProfileHandler(useCase application.GetUserProfileUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(

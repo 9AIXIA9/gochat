@@ -31,9 +31,6 @@ type ListRoomMembersResponseData struct {
 // @Tags         Roomship
 // @Param        room_id  path        kernel.RoomID                           true  "房间ID"
 // @Success      200      {object}  api.Response{data=ListRoomMembersResponseData}  "成功返回房间成员列表"
-// @Failure      400      {object}  api.Response       "请求参数错误"
-// @Failure      404      {object}  api.Response       "房间不存在"
-// @Failure      500      {object}  api.Response       "服务器内部错误"
 // @Router       /rooms/{room_id}/members [get]
 func NewListRoomMembersHandler(useCase application.ListRoomMembersUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(

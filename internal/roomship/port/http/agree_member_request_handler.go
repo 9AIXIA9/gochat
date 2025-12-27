@@ -31,9 +31,6 @@ func (r *AgreeMemberRequestRequest) Bind(ginContext *gin.Context) error {
 // @Security     BearerAuth
 // @Param        request_id  path      kernel.OperationID                   true  "成员请求ID"
 // @Success      200         {object}  api.Response "同意成功"
-// @Failure      400         {object}  api.Response "请求参数错误或请求已处理/无权限"
-// @Failure      401         {object}  api.Response "未认证"
-// @Failure      500         {object}  api.Response "服务器内部错误"
 // @Router       /rooms/requests/{request_id}/agree [put]
 func NewAgreeMemberRequestHandler(useCase application.AgreeMemberRequestUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
