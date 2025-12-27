@@ -12,11 +12,11 @@ import (
 )
 
 type RefreshAccessTokenRequest struct {
-	RefreshToken domain.RefreshToken `json:"-" validate:"required"`
+	RefreshToken domain.RefreshToken `json:"-" validate:"required" example:"omkGPw-xSCtdVWIxSRP852I9dL0jPzyicgUdRArmbGI"`
 }
 
 type RefreshAccessTokenResponseData struct {
-	AccessToken domain.AccessToken `json:"access_token"`
+	AccessToken domain.AccessToken `json:"access_token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySUQiOiIwMTliNTkyOS02NWJjLTc1NDktODljNi0zZjdkYzY4NzI1NzciLCJleHAiOjE3NjY4MjY5MTMsImlhdCI6MTc2NjgyMzMxM30.ogmbXIK85Eqnh3EP_8Ttj0kkuZxsxP5wfERPSc0vNgw"`
 }
 
 func (r *RefreshAccessTokenRequest) Bind(ginContext *gin.Context) error {
