@@ -22,8 +22,7 @@ func AdaptUseCaseToHandler[
 ) gin.HandlerFunc {
 	return func(ginContext *gin.Context) {
 		var request RequestPointer = new(Request)
-		err := request.Bind(ginContext)
-		if err != nil {
+		if err := request.Bind(ginContext); err != nil {
 			zap.L().Error("bind request failed", zap.Error(err))
 			Response(ginContext, api.CodeInvalidParam)
 			return
@@ -49,7 +48,7 @@ func AdaptUseCaseToHandler[
 		output, err := useCase.Execute(ginContext.Request.Context(), input)
 		if err != nil {
 			if myErrors.IsBusinessError(err) {
-				ResponseWithMessage(ginContext, api.CodeSuccess, err.Error())
+				ResponseWithMessage(ginContext, api.CodeBusinessError, err.Error())
 			} else {
 				zap.L().Error(
 					"http handler failed",

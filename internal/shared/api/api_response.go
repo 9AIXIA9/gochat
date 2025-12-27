@@ -19,7 +19,7 @@ type Response struct {
 func NewResponse(code Code) *Response {
 	return &Response{
 		Code:    code,
-		Message: code.String(),
+		Message: code.DefaultMessage(),
 	}
 }
 
@@ -33,7 +33,7 @@ func NewResponseWithMessage(code Code, message string) *Response {
 func NewResponseWithData(data any) *Response {
 	return &Response{
 		Code:    CodeSuccess,
-		Message: CodeSuccess.String(),
+		Message: CodeSuccess.DefaultMessage(),
 		Data:    data,
 	}
 }
