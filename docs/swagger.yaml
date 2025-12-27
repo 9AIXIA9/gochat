@@ -531,10 +531,12 @@ definitions:
   internal_roomship_port_http.CreateRoomRequest:
     properties:
       max_member_count:
+        example: 20
         maximum: 200
         minimum: 0
         type: integer
       password:
+        example: secret
         maxLength: 100
         type: string
     type: object
@@ -1146,8 +1148,7 @@ paths:
       description: 当前登录用户退出指定房间
       parameters:
       - description: 房间ID
-        enum:
-        - ""
+        example: '"019b593b-462e-74d6-bfda-0e103a172190"'
         in: path
         name: room_id
         required: true

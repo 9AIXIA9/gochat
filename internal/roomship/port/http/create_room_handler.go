@@ -11,9 +11,9 @@ import (
 )
 
 type CreateRoomRequest struct {
-	UserID         kernel.UserID   `json:"-" validate:"required"`
-	MaxMemberCount int             `json:"max_member_count" validate:"gte=0,lte=200"`
-	Password       domain.Password `json:"password" validate:"max=100"`
+	UserID         kernel.UserID   `json:"-" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172191"`
+	MaxMemberCount int             `json:"max_member_count" validate:"gte=0,lte=200" example:"20"`
+	Password       domain.Password `json:"password" validate:"max=100" example:"secret"`
 }
 
 func (r *CreateRoomRequest) Bind(ginContext *gin.Context) error {

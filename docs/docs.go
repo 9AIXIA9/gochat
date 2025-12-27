@@ -1100,10 +1100,8 @@ const docTemplate = `{
                 "summary": "退出房间",
                 "parameters": [
                     {
-                        "enum": [
-                            ""
-                        ],
                         "type": "string",
+                        "example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
                         "description": "房间ID",
                         "name": "room_id",
                         "in": "path",
@@ -1964,11 +1962,13 @@ const docTemplate = `{
                 "max_member_count": {
                     "type": "integer",
                     "maximum": 200,
-                    "minimum": 0
+                    "minimum": 0,
+                    "example": 20
                 },
                 "password": {
                     "type": "string",
-                    "maxLength": 100
+                    "maxLength": 100,
+                    "example": "secret"
                 }
             }
         },
