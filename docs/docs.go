@@ -997,10 +997,8 @@ const docTemplate = `{
                 "summary": "同意入群请求",
                 "parameters": [
                     {
-                        "enum": [
-                            ""
-                        ],
                         "type": "string",
+                        "example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
                         "description": "成员请求ID",
                         "name": "request_id",
                         "in": "path",
@@ -1031,10 +1029,8 @@ const docTemplate = `{
                 "summary": "拒绝入群请求",
                 "parameters": [
                     {
-                        "enum": [
-                            ""
-                        ],
                         "type": "string",
+                        "example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
                         "description": "成员请求ID",
                         "name": "request_id",
                         "in": "path",

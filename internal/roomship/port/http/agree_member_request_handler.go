@@ -11,8 +11,8 @@ import (
 )
 
 type AgreeMemberRequestRequest struct {
-	UserID    kernel.UserID      `json:"-" validate:"required"`
-	RequestID kernel.OperationID `uri:"request_id" validate:"required"`
+	UserID    kernel.UserID      `json:"-" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172191"`
+	RequestID kernel.OperationID `uri:"request_id" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172192"`
 }
 
 func (r *AgreeMemberRequestRequest) Bind(ginContext *gin.Context) error {
@@ -29,7 +29,7 @@ func (r *AgreeMemberRequestRequest) Bind(ginContext *gin.Context) error {
 // @Description  同意指定房间成员请求，将对方加入房间
 // @Tags         Roomship
 // @Security     BearerAuth
-// @Param        request_id  path      kernel.OperationID                   true  "成员请求ID"
+// @Param        request_id  path      string    true  "成员请求ID"    example("019b593b-462e-74d6-bfda-0e103a172190")
 // @Success      200         {object}  api.Response "同意成功"
 // @Router       /rooms/requests/{request_id}/agree [put]
 func NewAgreeMemberRequestHandler(useCase application.AgreeMemberRequestUseCase, validator ginutils.Validator) gin.HandlerFunc {

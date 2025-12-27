@@ -10,8 +10,8 @@ import (
 )
 
 type RefuseMemberRequestRequest struct {
-	UserID    kernel.UserID      `json:"-" validate:"required"`
-	RequestID kernel.OperationID `uri:"request_id" validate:"required"`
+	UserID    kernel.UserID      `json:"-" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172191"`
+	RequestID kernel.OperationID `uri:"request_id" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172192"`
 }
 
 func (r *RefuseMemberRequestRequest) Bind(ginContext *gin.Context) error {
@@ -28,7 +28,7 @@ func (r *RefuseMemberRequestRequest) Bind(ginContext *gin.Context) error {
 // @Description  拒绝指定房间成员请求
 // @Tags         Roomship
 // @Security     BearerAuth
-// @Param        request_id  path      kernel.OperationID                   true  "成员请求ID"
+// @Param        request_id  path      string    true  "成员请求ID"    example("019b593b-462e-74d6-bfda-0e103a172190")
 // @Success      200         {object}  api.Response "拒绝成功"
 // @Router       /rooms/requests/{request_id}/refuse [put]
 func NewRefuseMemberRequestHandler(useCase application.RefuseMemberRequestUseCase, validator ginutils.Validator) gin.HandlerFunc {

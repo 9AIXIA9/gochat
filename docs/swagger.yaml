@@ -1218,8 +1218,7 @@ paths:
       description: 同意指定房间成员请求，将对方加入房间
       parameters:
       - description: 成员请求ID
-        enum:
-        - ""
+        example: '"019b593b-462e-74d6-bfda-0e103a172190"'
         in: path
         name: request_id
         required: true
@@ -1239,8 +1238,7 @@ paths:
       description: 拒绝指定房间成员请求
       parameters:
       - description: 成员请求ID
-        enum:
-        - ""
+        example: '"019b593b-462e-74d6-bfda-0e103a172190"'
         in: path
         name: request_id
         required: true
