@@ -1763,10 +1763,16 @@ const docTemplate = `{
             "properties": {
                 "content": {
                     "type": "string",
-                    "maxLength": 100
+                    "maxLength": 100,
+                    "example": "019b593b-462e-74d6-bfda-0e103a172192"
                 },
                 "to_id": {
-                    "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
+                        }
+                    ],
+                    "example": "019b593b-462e-74d6-bfda-0e103a172191"
                 }
             }
         },

@@ -413,10 +413,13 @@ definitions:
   internal_friendship_port_http.SendFriendRequestRequest:
     properties:
       content:
+        example: 019b593b-462e-74d6-bfda-0e103a172192
         maxLength: 100
         type: string
       to_id:
-        $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
+        allOf:
+        - $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
+        example: 019b593b-462e-74d6-bfda-0e103a172191
     required:
     - content
     - to_id
