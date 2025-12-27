@@ -1406,15 +1406,17 @@ const docTemplate = `{
             "type": "integer",
             "enum": [
                 200,
+                300,
                 500,
-                400,
-                401,
-                402,
                 403,
-                404
+                404,
+                405,
+                406,
+                407
             ],
             "x-enum-varnames": [
                 "CodeSuccess",
+                "CodeBusinessError",
                 "CodeServerError",
                 "CodeTimeout",
                 "CodeInvalidParam",
