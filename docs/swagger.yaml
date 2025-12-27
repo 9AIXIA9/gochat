@@ -252,15 +252,24 @@ definitions:
   gochat_internal_roomship_dto.Roomship:
     properties:
       created_at:
+        example: "2025-12-26 05:38:19.740"
         type: string
       id:
-        $ref: '#/definitions/gochat_internal_roomship_domain.RoomshipID'
+        allOf:
+        - $ref: '#/definitions/gochat_internal_roomship_domain.RoomshipID'
+        example: 019b593b-462e-74d6-bfda-0e103a172191
       role:
-        $ref: '#/definitions/gochat_internal_roomship_domain.RoomshipRole'
+        allOf:
+        - $ref: '#/definitions/gochat_internal_roomship_domain.RoomshipRole'
+        example: member
       room_id:
-        $ref: '#/definitions/gochat_internal_shared_kernel.RoomID'
+        allOf:
+        - $ref: '#/definitions/gochat_internal_shared_kernel.RoomID'
+        example: 019b593b-462e-74d6-bfda-0e103a172192
       user_id:
-        $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
+        allOf:
+        - $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
+        example: 019b593b-462e-74d6-bfda-0e103a172193
     type: object
   gochat_internal_shared_api.Code:
     enum:
@@ -1107,8 +1116,7 @@ paths:
       description: 根据房间ID获取房间成员列表
       parameters:
       - description: 房间ID
-        enum:
-        - ""
+        example: '"019b593b-462e-74d6-bfda-0e103a172190"'
         in: path
         name: room_id
         required: true

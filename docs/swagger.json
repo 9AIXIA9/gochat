@@ -1052,10 +1052,8 @@
                 "summary": "获取房间成员列表",
                 "parameters": [
                     {
-                        "enum": [
-                            ""
-                        ],
                         "type": "string",
+                        "example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
                         "description": "房间ID",
                         "name": "room_id",
                         "in": "path",
@@ -1530,19 +1528,40 @@
             "type": "object",
             "properties": {
                 "created_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-12-26 05:38:19.740"
                 },
                 "id": {
-                    "$ref": "#/definitions/gochat_internal_roomship_domain.RoomshipID"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/gochat_internal_roomship_domain.RoomshipID"
+                        }
+                    ],
+                    "example": "019b593b-462e-74d6-bfda-0e103a172191"
                 },
                 "role": {
-                    "$ref": "#/definitions/gochat_internal_roomship_domain.RoomshipRole"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/gochat_internal_roomship_domain.RoomshipRole"
+                        }
+                    ],
+                    "example": "member"
                 },
                 "room_id": {
-                    "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
+                        }
+                    ],
+                    "example": "019b593b-462e-74d6-bfda-0e103a172192"
                 },
                 "user_id": {
-                    "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
+                        }
+                    ],
+                    "example": "019b593b-462e-74d6-bfda-0e103a172193"
                 }
             }
         },
