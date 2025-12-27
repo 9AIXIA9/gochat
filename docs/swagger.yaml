@@ -802,8 +802,7 @@ paths:
       description: 同意指定的好友请求，将对方加入好友列表
       parameters:
       - description: 好友请求ID
-        enum:
-        - ""
+        example: '"019b593b-462e-74d6-bfda-0e103a172190"'
         in: path
         name: request_id
         required: true
@@ -823,8 +822,7 @@ paths:
       description: 拒绝指定的好友请求
       parameters:
       - description: 好友请求ID
-        enum:
-        - ""
+        example: '"019b593b-462e-74d6-bfda-0e103a172190"'
         in: path
         name: request_id
         required: true

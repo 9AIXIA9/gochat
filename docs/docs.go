@@ -482,10 +482,8 @@ const docTemplate = `{
                 "summary": "同意好友请求",
                 "parameters": [
                     {
-                        "enum": [
-                            ""
-                        ],
                         "type": "string",
+                        "example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
                         "description": "好友请求ID",
                         "name": "request_id",
                         "in": "path",
@@ -516,10 +514,8 @@ const docTemplate = `{
                 "summary": "拒绝好友请求",
                 "parameters": [
                     {
-                        "enum": [
-                            ""
-                        ],
                         "type": "string",
+                        "example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
                         "description": "好友请求ID",
                         "name": "request_id",
                         "in": "path",
