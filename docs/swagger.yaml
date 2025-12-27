@@ -13,17 +13,27 @@ definitions:
   gochat_internal_chat_dto.PrivateMessage:
     properties:
       content:
+        example: hello gochat!
         type: string
       id:
-        $ref: '#/definitions/gochat_internal_shared_kernel.MessageID'
+        allOf:
+        - $ref: '#/definitions/gochat_internal_shared_kernel.MessageID'
+        example: 019b593b-462e-74d6-bfda-0e103a172190
       recipient_id:
-        $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
+        allOf:
+        - $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
+        example: 019b5929-5f6a-73aa-8adf-57cebe980725
       sender_id:
-        $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
+        allOf:
+        - $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
+        example: 019b5929-65bc-7549-89c6-3f7dc6872577
       sent_at:
+        example: "2025-12-26 05:56:55.470"
         type: string
       state:
-        $ref: '#/definitions/gochat_internal_chat_domain.MessageState'
+        allOf:
+        - $ref: '#/definitions/gochat_internal_chat_domain.MessageState'
+        example: read
     type: object
   gochat_internal_chat_dto.RoomMessage:
     properties:
@@ -575,14 +585,18 @@ paths:
         name: user_id
         required: true
         type: string
-      - description: 分页游标，返回该ID之前的消息
+      - description: 分页游标
         enum:
         - ""
         in: query
         name: base_id
         type: string
-      - description: 分页大小，默认20，最大100
+      - default: 20
+        description: 分页大小
+        example: 50
         in: query
+        maximum: 100
+        minimum: 1
         name: limit
         type: integer
       responses:
