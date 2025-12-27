@@ -162,20 +162,30 @@ definitions:
   gochat_internal_profile_dto.UserProfile:
     properties:
       address:
+        example: China
         type: string
       email:
+        example: email@demo.com
         type: string
       gender:
-        $ref: '#/definitions/gochat_internal_shared_kernel.Gender'
+        allOf:
+        - $ref: '#/definitions/gochat_internal_shared_kernel.Gender'
+        example: 1
       id:
-        $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
+        allOf:
+        - $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
+        example: 019b593b-462e-74d6-bfda-0e103a172191
       name:
+        example: Jack
         type: string
       phone_number:
+        example: "13310001000"
         type: string
       sign:
+        example: I'm Jack!'
         type: string
       signed_up_at:
+        example: "2025-12-26 05:38:19.740"
         type: string
     type: object
   gochat_internal_roomship_domain.MemberRequestState:
@@ -992,8 +1002,7 @@ paths:
       description: 根据用户ID获取用户公开资料
       parameters:
       - description: 用户ID
-        enum:
-        - ""
+        example: '"019b593b-462e-74d6-bfda-0e103a172190"'
         in: path
         name: user_id
         required: true

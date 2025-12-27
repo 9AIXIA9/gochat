@@ -779,10 +779,8 @@ const docTemplate = `{
                 "summary": "获取用户资料",
                 "parameters": [
                     {
-                        "enum": [
-                            ""
-                        ],
                         "type": "string",
+                        "example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
                         "description": "用户ID",
                         "name": "user_id",
                         "in": "path",
@@ -1387,28 +1385,44 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "address": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "China"
                 },
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "email@demo.com"
                 },
                 "gender": {
-                    "$ref": "#/definitions/gochat_internal_shared_kernel.Gender"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/gochat_internal_shared_kernel.Gender"
+                        }
+                    ],
+                    "example": 1
                 },
                 "id": {
-                    "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
+                        }
+                    ],
+                    "example": "019b593b-462e-74d6-bfda-0e103a172191"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Jack"
                 },
                 "phone_number": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "13310001000"
                 },
                 "sign": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "I'm Jack!'"
                 },
                 "signed_up_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-12-26 05:38:19.740"
                 }
             }
         },

@@ -12,7 +12,7 @@ import (
 )
 
 type GetMyProfileRequest struct {
-	UserID kernel.UserID `json:"-" validate:"required"`
+	UserID kernel.UserID `json:"-" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172191"`
 }
 
 func (r *GetMyProfileRequest) Bind(ginContext *gin.Context) error {
