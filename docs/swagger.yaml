@@ -16,9 +16,8 @@ definitions:
         example: hello gochat!
         type: string
       id:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.MessageID'
         example: 019b593b-462e-74d6-bfda-0e103a172190
+        type: string
       recipient_id:
         allOf:
         - $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
@@ -579,15 +578,13 @@ paths:
       description: 获取用户和对方聊天记录，可基于 base_id 游标和 limit 分页
       parameters:
       - description: 私聊对象用户ID
-        enum:
-        - ""
+        example: '"019b5929-65bc-7549-89c6-3f7dc6872577"'
         in: path
         name: user_id
         required: true
         type: string
       - description: 分页游标
-        enum:
-        - ""
+        example: '"019b593b-462e-74d6-bfda-0e103a172190"'
         in: query
         name: base_id
         type: string

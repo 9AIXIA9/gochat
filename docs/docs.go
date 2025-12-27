@@ -212,20 +212,16 @@ const docTemplate = `{
                 "summary": "获取用户聊天记录",
                 "parameters": [
                     {
-                        "enum": [
-                            ""
-                        ],
                         "type": "string",
+                        "example": "\"019b5929-65bc-7549-89c6-3f7dc6872577\"",
                         "description": "私聊对象用户ID",
                         "name": "user_id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "enum": [
-                            ""
-                        ],
                         "type": "string",
+                        "example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
                         "description": "分页游标",
                         "name": "base_id",
                         "in": "query"
@@ -1143,11 +1139,7 @@ const docTemplate = `{
                     "example": "hello gochat!"
                 },
                 "id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.MessageID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172190"
                 },
                 "recipient_id": {
