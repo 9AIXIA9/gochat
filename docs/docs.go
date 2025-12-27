@@ -826,19 +826,21 @@ const docTemplate = `{
                 "tags": [
                     "Roomship"
                 ],
-                "summary": "获取房间关系列表",
+                "summary": "获取当前用户所在的房间关系列表",
                 "parameters": [
                     {
-                        "enum": [
-                            ""
-                        ],
                         "type": "string",
+                        "example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
                         "description": "分页游标，返回该ID之前的记录",
                         "name": "base_id",
                         "in": "query"
                     },
                     {
+                        "maximum": 100,
+                        "minimum": 1,
                         "type": "integer",
+                        "default": 20,
+                        "example": 50,
                         "description": "分页大小，默认20，最大100",
                         "name": "limit",
                         "in": "query"
