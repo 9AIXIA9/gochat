@@ -18,7 +18,7 @@ type SendRoomMessageRequest struct {
 func (r *SendRoomMessageRequest) Bind(ginContext *gin.Context) error {
 	senderID := ginutils.GetUserID(ginContext)
 	r.SenderID = senderID
-	return ginContext.ShouldBind(r)
+	return ginContext.BindJSON(r)
 }
 
 // NewSendRoomMessageHandler 发送房间消息

@@ -19,7 +19,7 @@ type SendPrivateMessageRequest struct {
 func (r *SendPrivateMessageRequest) Bind(ginContext *gin.Context) error {
 	senderID := ginutils.GetUserID(ginContext)
 	r.SenderID = senderID
-	return ginContext.ShouldBind(r)
+	return ginContext.BindJSON(r)
 }
 
 // NewSendPrivateMessageHandler 发送私聊消息

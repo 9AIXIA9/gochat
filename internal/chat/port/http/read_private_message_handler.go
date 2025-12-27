@@ -16,7 +16,7 @@ type ReadPrivateMessagesRequest struct {
 
 func (r *ReadPrivateMessagesRequest) Bind(ginContext *gin.Context) error {
 	r.RecipientID = ginutils.GetUserID(ginContext)
-	return ginContext.ShouldBind(r)
+	return ginContext.BindJSON(r)
 }
 
 // NewReadPrivateMessagesHandler 发送房间消息
