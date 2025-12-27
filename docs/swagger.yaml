@@ -364,10 +364,13 @@ definitions:
   internal_chat_port_http.SendRoomMessageRequest:
     properties:
       content:
+        example: Hello-Gochat!
         maxLength: 1000
         type: string
       room_id:
-        $ref: '#/definitions/gochat_internal_shared_kernel.RoomID'
+        allOf:
+        - $ref: '#/definitions/gochat_internal_shared_kernel.RoomID'
+        example: 019b593b-462e-74d6-bfda-0e103a172190
     required:
     - content
     - room_id

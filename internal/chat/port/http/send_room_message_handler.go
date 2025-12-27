@@ -10,9 +10,9 @@ import (
 )
 
 type SendRoomMessageRequest struct {
-	SenderID kernel.UserID `json:"-" validate:"required"`
-	RoomID   kernel.RoomID `json:"room_id" validate:"required"`
-	Content  string        `json:"content" validate:"required,max=1000"`
+	SenderID kernel.UserID `json:"-" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172190"`
+	RoomID   kernel.RoomID `json:"room_id" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172190"`
+	Content  string        `json:"content" validate:"required,max=1000" example:"Hello-Gochat!"`
 }
 
 func (r *SendRoomMessageRequest) Bind(ginContext *gin.Context) error {
