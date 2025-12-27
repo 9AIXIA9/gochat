@@ -460,8 +460,8 @@ definitions:
 host: localhost:8080
 info:
   contact:
-    email: support@example.com
-    name: API Support
+    email: 906094554@qq.com
+    name: XIA
   description: GoChat 聊天/好友/房间管理后端接口
   license:
     name: MIT

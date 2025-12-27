@@ -2,13 +2,16 @@
 // @version         1.0
 // @description     GoChat 聊天/好友/房间管理后端接口
 // @termsOfService  http://swagger.io/terms/
-// @contact.name    API Support
-// @contact.email   support@example.com
+// @contact.name    XIA
+// @contact.email   906094554@qq.com
 // @license.name    MIT
 // @license.url     https://opensource.org/licenses/MIT
 // @host            localhost:8080
 // @BasePath        /api/v1
 // @securityDefinitions.apikey BearerAuth
+// @schemes http
+// @accept json
+// @produce json
 // @in              header
 // @name            Authorization
 //
