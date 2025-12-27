@@ -1,8 +1,8 @@
 package api
 
 type Response struct {
-	Code    Code   `json:"code"`
-	Message string `json:"message"`
+	Code    Code   `json:"code" example:"200"`
+	Message string `json:"message" example:"Success"`
 	Data    any    `json:"data,omitempty" swaggertype:"object"`
 }
 

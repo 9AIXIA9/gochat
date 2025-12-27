@@ -1429,13 +1429,19 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "code": {
-                    "$ref": "#/definitions/gochat_internal_shared_api.Code"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/gochat_internal_shared_api.Code"
+                        }
+                    ],
+                    "example": 200
                 },
                 "data": {
                     "type": "object"
                 },
                 "message": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Success"
                 }
             }
         },
