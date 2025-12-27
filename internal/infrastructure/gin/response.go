@@ -17,8 +17,8 @@ func Response(ginContext *gin.Context, code api.Code) {
 		ginContext.JSON(api.CodeTimeout.ToHTTPCode(), api.ResponseTimeout)
 	case api.CodeInvalidParam:
 		ginContext.JSON(api.CodeInvalidParam.ToHTTPCode(), api.ResponseInvalidParam)
-	case api.CodeInvalidToken:
-		ginContext.JSON(api.CodeInvalidToken.ToHTTPCode(), api.ResponseInvalidToken)
+	case api.CodeUnauthorized:
+		ginContext.JSON(api.CodeUnauthorized.ToHTTPCode(), api.ResponseInvalidToken)
 	case api.CodeServiceUnavailable:
 		ginContext.JSON(api.CodeServiceUnavailable.ToHTTPCode(), api.ResponseServiceUnavailable)
 	case api.CodeNotFound:

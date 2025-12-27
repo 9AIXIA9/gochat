@@ -1412,7 +1412,7 @@
                 "CodeServerError",
                 "CodeTimeout",
                 "CodeInvalidParam",
-                "CodeInvalidToken",
+                "CodeUnauthorized",
                 "CodeNotFound",
                 "CodeServiceUnavailable"
             ]

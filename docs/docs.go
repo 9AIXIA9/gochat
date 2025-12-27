@@ -1418,7 +1418,7 @@ const docTemplate = `{
                 "CodeServerError",
                 "CodeTimeout",
                 "CodeInvalidParam",
-                "CodeInvalidToken",
+                "CodeUnauthorized",
                 "CodeNotFound",
                 "CodeServiceUnavailable"
             ]

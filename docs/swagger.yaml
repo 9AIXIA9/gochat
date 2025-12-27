@@ -207,7 +207,7 @@ definitions:
     - CodeServerError
     - CodeTimeout
     - CodeInvalidParam
-    - CodeInvalidToken
+    - CodeUnauthorized
     - CodeNotFound
     - CodeServiceUnavailable
   gochat_internal_shared_api.Response:

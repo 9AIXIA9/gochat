@@ -11,7 +11,7 @@ const (
 	CodeServerError   Code = 500
 	CodeTimeout       Code = 400 + iota
 	CodeInvalidParam
-	CodeInvalidToken
+	CodeUnauthorized
 	CodeNotFound
 	CodeServiceUnavailable
 )
@@ -28,7 +28,7 @@ func (c Code) ToHTTPCode() int {
 		return http.StatusRequestTimeout
 	case CodeInvalidParam:
 		return http.StatusBadRequest
-	case CodeInvalidToken:
+	case CodeUnauthorized:
 		return http.StatusUnauthorized
 	case CodeNotFound:
 		return http.StatusNotFound
@@ -51,8 +51,8 @@ func (c Code) DefaultMessage() string {
 		return "request timeout"
 	case CodeInvalidParam:
 		return "invalid parameter"
-	case CodeInvalidToken:
-		return "invalid token"
+	case CodeUnauthorized:
+		return "unauthorized"
 	case CodeNotFound:
 		return "not found"
 	case CodeServiceUnavailable:
