@@ -57,14 +57,6 @@ definitions:
       states:
         additionalProperties:
           $ref: '#/definitions/gochat_internal_chat_domain.MessageState'
-        description: |-
-          States 消息状态映射，表示各个用户对该消息的阅读状态
-          示例:
-          {
-            "019b593b-462e-74d6-bfda-0e103a172190": "read",     // 用户1已读
-            "019b593b-462e-74d6-bfda-0e103a172191": "delivered" // 用户2已送达
-          }
-          可能的状态值: "sent", "delivered", "read"
         type: object
     type: object
   gochat_internal_friendship_domain.FriendRequestState:
@@ -358,10 +350,13 @@ definitions:
   internal_chat_port_http.SendPrivateMessageRequest:
     properties:
       content:
+        example: Hello-Gochat!
         maxLength: 1000
         type: string
       recipient_id:
-        $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
+        allOf:
+        - $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
+        example: 019b593b-462e-74d6-bfda-0e103a172190
     required:
     - content
     - recipient_id
