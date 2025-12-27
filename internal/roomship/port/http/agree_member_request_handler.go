@@ -29,7 +29,6 @@ func (r *AgreeMemberRequestRequest) Bind(ginContext *gin.Context) error {
 // @Description  同意指定房间成员请求，将对方加入房间
 // @Tags         Roomship
 // @Security     BearerAuth
-// @Produce      json
 // @Param        request_id  path      kernel.OperationID                   true  "成员请求ID"
 // @Success      200         {object}  api.Response "同意成功"
 // @Failure      400         {object}  api.Response "请求参数错误或请求已处理/无权限"

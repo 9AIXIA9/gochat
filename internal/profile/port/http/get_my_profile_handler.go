@@ -28,7 +28,6 @@ type GetMyProfileResponseData struct {
 // @Summary      获取本用户资料
 // @Description  根据token获取本用户资料
 // @Tags         Profile
-// @Produce      json
 // @Success      200      {object}  api.Response{data=GetMyProfileResponseData}  "成功返回用户资料"
 // @Failure      400      {object}  api.Response "请求参数错误"
 // @Failure      404      {object}  api.Response "用户不存在"

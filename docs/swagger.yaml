@@ -472,8 +472,6 @@ info:
 paths:
   /auth/login:
     post:
-      consumes:
-      - application/json
       description: 使用学号/账号和密码登录，成功后下发访问令牌与刷新令牌（刷新令牌存于 Cookie）
       parameters:
       - description: 登录请求体
@@ -482,8 +480,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/internal_authorization_port_http.LoginRequest'
-      produces:
-      - application/json
       responses:
         "200":
           description: 登录成功，返回访问令牌
@@ -507,8 +503,6 @@ paths:
       - Authorization
   /auth/sign-up:
     post:
-      consumes:
-      - application/json
       description: 使用邮箱和密码注册账号，成功后返回系统分配的用户编号
       parameters:
       - description: 注册请求体
@@ -517,8 +511,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/internal_authorization_port_http.SignUpRequest'
-      produces:
-      - application/json
       responses:
         "201":
           description: 注册成功，返回用户编号
@@ -547,8 +539,6 @@ paths:
   /auth/tokens/refresh:
     put:
       description: 使用刷新令牌 Cookie 刷新访问令牌，并重新设置刷新令牌 Cookie
-      produces:
-      - application/json
       responses:
         "200":
           description: 刷新成功，返回新的访问令牌
@@ -572,8 +562,6 @@ paths:
       - Authorization
   /chats/private-messages:
     post:
-      consumes:
-      - application/json
       description: 向指定用户发送一条私聊消息
       parameters:
       - description: 发送私聊消息请求体
@@ -582,8 +570,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/internal_chat_port_http.SendPrivateMessageRequest'
-      produces:
-      - application/json
       responses:
         "201":
           description: 发送成功
@@ -627,8 +613,6 @@ paths:
         in: query
         name: limit
         type: integer
-      produces:
-      - application/json
       responses:
         "200":
           description: 成功返回私聊消息记录
@@ -658,8 +642,6 @@ paths:
       - Chat
   /chats/private-messages/read:
     put:
-      consumes:
-      - application/json
       description: 向指定房间发送一条消息
       parameters:
       - description: 发送房间消息请求体
@@ -668,8 +650,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/internal_chat_port_http.ReadPrivateMessagesRequest'
-      produces:
-      - application/json
       responses:
         "201":
           description: 发送成功
@@ -713,8 +693,6 @@ paths:
         in: query
         name: limit
         type: integer
-      produces:
-      - application/json
       responses:
         "200":
           description: 成功返回房间消息记录
@@ -743,8 +721,6 @@ paths:
       tags:
       - Chat
     post:
-      consumes:
-      - application/json
       description: 向指定房间发送一条消息
       parameters:
       - description: 发送房间消息请求体
@@ -753,8 +729,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/internal_chat_port_http.SendRoomMessageRequest'
-      produces:
-      - application/json
       responses:
         "201":
           description: 发送成功
@@ -779,8 +753,6 @@ paths:
       - Chat
   /chats/rooms/messages/read:
     put:
-      consumes:
-      - application/json
       description: 向指定房间发送一条消息
       parameters:
       - description: 发送房间消息请求体
@@ -789,8 +761,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/internal_chat_port_http.ReadRoomMessagesRequest'
-      produces:
-      - application/json
       responses:
         "201":
           description: 发送成功
@@ -827,8 +797,6 @@ paths:
         in: query
         name: limit
         type: integer
-      produces:
-      - application/json
       responses:
         "200":
           description: 成功返回好友请求列表
@@ -857,8 +825,6 @@ paths:
       tags:
       - Friendship
     post:
-      consumes:
-      - application/json
       description: 向指定用户发送好友请求
       parameters:
       - description: 发送好友请求体
@@ -867,8 +833,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/internal_friendship_port_http.SendFriendRequestRequest'
-      produces:
-      - application/json
       responses:
         "201":
           description: 发送成功
@@ -902,8 +866,6 @@ paths:
         name: request_id
         required: true
         type: string
-      produces:
-      - application/json
       responses:
         "200":
           description: 同意成功
@@ -937,8 +899,6 @@ paths:
         name: request_id
         required: true
         type: string
-      produces:
-      - application/json
       responses:
         "200":
           description: 拒绝成功
@@ -975,8 +935,6 @@ paths:
         in: query
         name: limit
         type: integer
-      produces:
-      - application/json
       responses:
         "200":
           description: 成功返回好友列表
@@ -1018,8 +976,6 @@ paths:
         in: query
         name: limit
         type: integer
-      produces:
-      - application/json
       responses:
         "200":
           description: 成功返回系统通知列表
@@ -1050,8 +1006,6 @@ paths:
   /profiles/me:
     get:
       description: 根据token获取本用户资料
-      produces:
-      - application/json
       responses:
         "200":
           description: 成功返回用户资料
@@ -1078,8 +1032,6 @@ paths:
       tags:
       - Profile
     put:
-      consumes:
-      - application/json
       description: 更新当前登录用户的基础资料（昵称、邮箱、电话等）
       parameters:
       - description: 更新用户资料请求体
@@ -1088,8 +1040,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/internal_profile_port_http.UpdateUserProfileRequest'
-      produces:
-      - application/json
       responses:
         "200":
           description: 更新成功
@@ -1127,8 +1077,6 @@ paths:
         name: room_id
         required: true
         type: string
-      produces:
-      - application/json
       responses:
         "200":
           description: 成功返回房间资料
@@ -1155,8 +1103,6 @@ paths:
       tags:
       - Profile
     put:
-      consumes:
-      - application/json
       description: 更新指定房间的资料（名称、简介等），通常需要房主或管理员权限
       parameters:
       - description: 更新房间资料请求体
@@ -1165,8 +1111,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/internal_profile_port_http.UpdateRoomProfileRequest'
-      produces:
-      - application/json
       responses:
         "200":
           description: 更新成功
@@ -1204,8 +1148,6 @@ paths:
         name: user_id
         required: true
         type: string
-      produces:
-      - application/json
       responses:
         "200":
           description: 成功返回用户资料
@@ -1245,8 +1187,6 @@ paths:
         in: query
         name: limit
         type: integer
-      produces:
-      - application/json
       responses:
         "200":
           description: 成功返回房间关系列表
@@ -1275,8 +1215,6 @@ paths:
       tags:
       - Roomship
     post:
-      consumes:
-      - application/json
       description: 创建一个新的房间，当前登录用户将作为房主加入房间
       parameters:
       - description: 创建房间请求体
@@ -1285,8 +1223,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/internal_roomship_port_http.CreateRoomRequest'
-      produces:
-      - application/json
       responses:
         "201":
           description: 创建成功
@@ -1320,8 +1256,6 @@ paths:
         name: room_id
         required: true
         type: string
-      produces:
-      - application/json
       responses:
         "200":
           description: 成功返回房间成员列表
@@ -1358,8 +1292,6 @@ paths:
         name: room_id
         required: true
         type: string
-      produces:
-      - application/json
       responses:
         "200":
           description: 退出成功，若本身不在房间视为成功
@@ -1396,8 +1328,6 @@ paths:
         in: query
         name: limit
         type: integer
-      produces:
-      - application/json
       responses:
         "200":
           description: 成功返回成员请求列表
@@ -1426,8 +1356,6 @@ paths:
       tags:
       - Roomship
     post:
-      consumes:
-      - application/json
       description: 向指定房间发送入群请求，可携带验证信息及密码
       parameters:
       - description: 发送入群请求体
@@ -1436,8 +1364,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/internal_roomship_port_http.SendMemberRequestRequest'
-      produces:
-      - application/json
       responses:
         "201":
           description: 发送成功
@@ -1471,8 +1397,6 @@ paths:
         name: request_id
         required: true
         type: string
-      produces:
-      - application/json
       responses:
         "200":
           description: 同意成功
@@ -1506,8 +1430,6 @@ paths:
         name: request_id
         required: true
         type: string
-      produces:
-      - application/json
       responses:
         "200":
           description: 拒绝成功

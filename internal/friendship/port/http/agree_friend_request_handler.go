@@ -28,7 +28,6 @@ func (r *AgreeFriendRequestRequest) Bind(ginContext *gin.Context) error {
 // @Description  同意指定的好友请求，将对方加入好友列表
 // @Tags         Friendship
 // @Security     BearerAuth
-// @Produce      json
 // @Param        request_id  path      kernel.OperationID                   true  "好友请求ID"
 // @Success      200         {object}  api.Response "同意成功"
 // @Failure      400         {object}  api.Response "请求参数错误或请求已处理"

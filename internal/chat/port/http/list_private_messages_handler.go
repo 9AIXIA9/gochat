@@ -44,7 +44,6 @@ type ListPrivateMessagesResponseData struct {
 // @Description  获取用户和对方聊天记录，可基于 base_id 游标和 limit 分页
 // @Tags         Chat
 // @Security     BearerAuth
-// @Produce      json
 // @Param        user_id  path      kernel.UserID       true  "私聊对象用户ID"
 // @Param        base_id  query     kernel.MessageID    false "分页游标，返回该ID之前的消息"
 // @Param        limit    query     int    false "分页大小，默认20，最大100"

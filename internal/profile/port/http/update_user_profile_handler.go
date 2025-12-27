@@ -33,8 +33,6 @@ func (r *UpdateUserProfileRequest) Bind(ginContext *gin.Context) error {
 // @Description  更新当前登录用户的基础资料（昵称、邮箱、电话等）
 // @Tags         Profile
 // @Security     BearerAuth
-// @Accept       json
-// @Produce      json
 // @Param        request  body      UpdateUserProfileRequest  true  "更新用户资料请求体"
 // @Success      200      {object}  api.Response    "更新成功"
 // @Failure      400      {object}  api.Response    "请求参数错误"

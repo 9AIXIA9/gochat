@@ -28,7 +28,6 @@ func (r *RefuseMemberRequestRequest) Bind(ginContext *gin.Context) error {
 // @Description  拒绝指定房间成员请求
 // @Tags         Roomship
 // @Security     BearerAuth
-// @Produce      json
 // @Param        request_id  path      kernel.OperationID                   true  "成员请求ID"
 // @Success      200         {object}  api.Response "拒绝成功"
 // @Failure      400         {object}  api.Response "请求参数错误或请求已处理/无权限"

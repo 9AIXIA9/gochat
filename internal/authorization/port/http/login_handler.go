@@ -31,8 +31,6 @@ func (r *LoginRequest) Bind(ginContext *gin.Context) error {
 // @Summary      用户登录
 // @Description  使用学号/账号和密码登录，成功后下发访问令牌与刷新令牌（刷新令牌存于 Cookie）
 // @Tags         Authorization
-// @Accept       json
-// @Produce      json
 // @Param        request  body      LoginRequest        true  "登录请求体"
 // @Success      200      {object}  api.Response{data=LoginResponseData}   "登录成功，返回访问令牌"
 // @Failure      400      {object}  api.Response "请求参数错误或密码错误"

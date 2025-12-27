@@ -30,8 +30,6 @@ func (r *CreateRoomRequest) Bind(ginContext *gin.Context) error {
 // @Description  创建一个新的房间，当前登录用户将作为房主加入房间
 // @Tags         Roomship
 // @Security     BearerAuth
-// @Accept       json
-// @Produce      json
 // @Param        request  body      CreateRoomRequest       true  "创建房间请求体"
 // @Success      201      {object}  api.Response  "创建成功"
 // @Failure      400      {object}  api.Response  "请求参数错误"

@@ -33,8 +33,6 @@ func (r *UpdateRoomProfileRequest) Bind(ginContext *gin.Context) error {
 // @Description  更新指定房间的资料（名称、简介等），通常需要房主或管理员权限
 // @Tags         Profile
 // @Security     BearerAuth
-// @Accept       json
-// @Produce      json
 // @Param        request  body      UpdateRoomProfileRequest  true  "更新房间资料请求体"
 // @Success      200      {object}  api.Response    "更新成功"
 // @Failure      400      {object}  api.Response    "请求参数错误"

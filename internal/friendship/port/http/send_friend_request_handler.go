@@ -27,8 +27,6 @@ func (r *SendFriendRequestRequest) Bind(ginContext *gin.Context) error {
 // @Description  向指定用户发送好友请求
 // @Tags         Friendship
 // @Security     BearerAuth
-// @Accept       json
-// @Produce      json
 // @Param        request  body      SendFriendRequestRequest  true  "发送好友请求体"
 // @Success      201      {object}  api.Response    "发送成功"
 // @Failure      400      {object}  api.Response    "请求参数错误或业务校验失败"

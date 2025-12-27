@@ -29,7 +29,6 @@ type ListRoomMembersResponseData struct {
 // @Summary      获取房间成员列表
 // @Description  根据房间ID获取房间成员列表
 // @Tags         Roomship
-// @Produce      json
 // @Param        room_id  path        kernel.RoomID                           true  "房间ID"
 // @Success      200      {object}  api.Response{data=ListRoomMembersResponseData}  "成功返回房间成员列表"
 // @Failure      400      {object}  api.Response       "请求参数错误"

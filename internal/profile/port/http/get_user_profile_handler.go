@@ -30,7 +30,6 @@ type GetUserProfileResponseData struct {
 // @Summary      获取用户资料
 // @Description  根据用户ID获取用户公开资料
 // @Tags         Profile
-// @Produce      json
 // @Param        user_id  path      kernel.UserID                         true  "用户ID"
 // @Success      200      {object}  api.Response{data=GetUserProfileResponseData}  "成功返回用户资料"
 // @Failure      400      {object}  api.Response "请求参数错误"

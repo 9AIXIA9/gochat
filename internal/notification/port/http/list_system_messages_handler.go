@@ -40,7 +40,6 @@ type ListSystemMessagesResponseData struct {
 // @Description  获取当前登录用户的系统通知列表，可基于 base_id 游标和 limit 分页
 // @Tags         Notification
 // @Security     BearerAuth
-// @Produce      json
 // @Param        base_id  query     kernel.MessageID    false "分页游标，返回该ID之前的消息"
 // @Param        limit    query     int    false "分页大小，默认20，最大100"
 // @Success      200      {object}  api.Response{data=ListSystemMessagesResponseData} "成功返回系统通知列表"

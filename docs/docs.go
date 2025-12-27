@@ -26,12 +26,6 @@ const docTemplate = `{
         "/auth/login": {
             "post": {
                 "description": "使用学号/账号和密码登录，成功后下发访问令牌与刷新令牌（刷新令牌存于 Cookie）",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Authorization"
                 ],
@@ -84,12 +78,6 @@ const docTemplate = `{
         "/auth/sign-up": {
             "post": {
                 "description": "使用邮箱和密码注册账号，成功后返回系统分配的用户编号",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Authorization"
                 ],
@@ -148,9 +136,6 @@ const docTemplate = `{
         "/auth/tokens/refresh": {
             "put": {
                 "description": "使用刷新令牌 Cookie 刷新访问令牌，并重新设置刷新令牌 Cookie",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Authorization"
                 ],
@@ -197,12 +182,6 @@ const docTemplate = `{
                     }
                 ],
                 "description": "向指定用户发送一条私聊消息",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Chat"
                 ],
@@ -254,12 +233,6 @@ const docTemplate = `{
                     }
                 ],
                 "description": "向指定房间发送一条消息",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Chat"
                 ],
@@ -311,9 +284,6 @@ const docTemplate = `{
                     }
                 ],
                 "description": "获取用户和对方聊天记录，可基于 base_id 游标和 limit 分页",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Chat"
                 ],
@@ -393,9 +363,6 @@ const docTemplate = `{
                     }
                 ],
                 "description": "获取当前登录用户所在房间的消息记录，可基于 base_id 游标和 limit 分页",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Chat"
                 ],
@@ -473,12 +440,6 @@ const docTemplate = `{
                     }
                 ],
                 "description": "向指定房间发送一条消息",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Chat"
                 ],
@@ -530,12 +491,6 @@ const docTemplate = `{
                     }
                 ],
                 "description": "向指定房间发送一条消息",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Chat"
                 ],
@@ -587,9 +542,6 @@ const docTemplate = `{
                     }
                 ],
                 "description": "获取当前登录用户相关的好友请求列表，可基于 base_id 游标和 limit 分页",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Friendship"
                 ],
@@ -657,12 +609,6 @@ const docTemplate = `{
                     }
                 ],
                 "description": "向指定用户发送好友请求",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Friendship"
                 ],
@@ -714,9 +660,6 @@ const docTemplate = `{
                     }
                 ],
                 "description": "同意指定的好友请求，将对方加入好友列表",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Friendship"
                 ],
@@ -769,9 +712,6 @@ const docTemplate = `{
                     }
                 ],
                 "description": "拒绝指定的好友请求",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Friendship"
                 ],
@@ -824,9 +764,6 @@ const docTemplate = `{
                     }
                 ],
                 "description": "获取当前登录用户的好友关系列表，可基于 base_id 游标和 limit 分页",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Friendship"
                 ],
@@ -896,9 +833,6 @@ const docTemplate = `{
                     }
                 ],
                 "description": "获取当前登录用户的系统通知列表，可基于 base_id 游标和 limit 分页",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Notification"
                 ],
@@ -963,9 +897,6 @@ const docTemplate = `{
         "/profiles/me": {
             "get": {
                 "description": "根据token获取本用户资料",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Profile"
                 ],
@@ -1016,12 +947,6 @@ const docTemplate = `{
                     }
                 ],
                 "description": "更新当前登录用户的基础资料（昵称、邮箱、电话等）",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Profile"
                 ],
@@ -1074,9 +999,6 @@ const docTemplate = `{
         "/profiles/rooms/{room_id}": {
             "get": {
                 "description": "根据房间ID获取房间公开资料",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Profile"
                 ],
@@ -1139,12 +1061,6 @@ const docTemplate = `{
                     }
                 ],
                 "description": "更新指定房间的资料（名称、简介等），通常需要房主或管理员权限",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Profile"
                 ],
@@ -1197,9 +1113,6 @@ const docTemplate = `{
         "/profiles/users/{user_id}": {
             "get": {
                 "description": "根据用户ID获取用户公开资料",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Profile"
                 ],
@@ -1264,9 +1177,6 @@ const docTemplate = `{
                     }
                 ],
                 "description": "获取当前登录用户加入的房间关系列表，可基于 base_id 游标和 limit 分页",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Roomship"
                 ],
@@ -1334,12 +1244,6 @@ const docTemplate = `{
                     }
                 ],
                 "description": "创建一个新的房间，当前登录用户将作为房主加入房间",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Roomship"
                 ],
@@ -1391,9 +1295,6 @@ const docTemplate = `{
                     }
                 ],
                 "description": "获取当前登录用户管理的房间成员请求列表，可基于 base_id 游标和 limit 分页",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Roomship"
                 ],
@@ -1461,12 +1362,6 @@ const docTemplate = `{
                     }
                 ],
                 "description": "向指定房间发送入群请求，可携带验证信息及密码",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Roomship"
                 ],
@@ -1518,9 +1413,6 @@ const docTemplate = `{
                     }
                 ],
                 "description": "同意指定房间成员请求，将对方加入房间",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Roomship"
                 ],
@@ -1573,9 +1465,6 @@ const docTemplate = `{
                     }
                 ],
                 "description": "拒绝指定房间成员请求",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Roomship"
                 ],
@@ -1623,9 +1512,6 @@ const docTemplate = `{
         "/rooms/{room_id}/members": {
             "get": {
                 "description": "根据房间ID获取房间成员列表",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Roomship"
                 ],
@@ -1690,9 +1576,6 @@ const docTemplate = `{
                     }
                 ],
                 "description": "当前登录用户退出指定房间",
-                "produces": [
-                    "application/json"
-                ],
                 "tags": [
                     "Roomship"
                 ],

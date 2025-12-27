@@ -29,8 +29,6 @@ func (r *SendMemberRequestRequest) Bind(ginContext *gin.Context) error {
 // @Description  向指定房间发送入群请求，可携带验证信息及密码
 // @Tags         Roomship
 // @Security     BearerAuth
-// @Accept       json
-// @Produce      json
 // @Param        request  body      SendMemberRequestRequest  true  "发送入群请求体"
 // @Success      201      {object}  api.Response    "发送成功"
 // @Failure      400      {object}  api.Response    "请求参数错误或业务校验失败"

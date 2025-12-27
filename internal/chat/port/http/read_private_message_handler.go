@@ -24,8 +24,6 @@ func (r *ReadPrivateMessagesRequest) Bind(ginContext *gin.Context) error {
 // @Description  向指定房间发送一条消息
 // @Tags         Chat
 // @Security     BearerAuth
-// @Accept       json
-// @Produce      json
 // @Param        request  body      ReadPrivateMessagesRequest     true  "发送房间消息请求体"
 // @Success      201      {object}  api.Response     "发送成功"
 // @Failure      400      {object}  api.Response     "请求参数错误"

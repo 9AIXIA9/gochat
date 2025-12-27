@@ -27,8 +27,6 @@ type SignUpResponseData struct {
 // @Summary      用户注册
 // @Description  使用邮箱和密码注册账号，成功后返回系统分配的用户编号
 // @Tags         Authorization
-// @Accept       json
-// @Produce      json
 // @Param        request  body      SignUpRequest        true  "注册请求体"
 // @Success      201      {object}  api.Response{data=SignUpResponseData}   "注册成功，返回用户编号"
 // @Failure      400      {object}  api.Response "请求参数错误或密码不合法"

@@ -44,7 +44,6 @@ type ListRoomMessagesResponseData struct {
 // @Description  获取当前登录用户所在房间的消息记录，可基于 base_id 游标和 limit 分页
 // @Tags         Chat
 // @Security     BearerAuth
-// @Produce      json
 // @Param        room_id  path      kernel.RoomID       true  "房间ID"
 // @Param        base_id  query     kernel.MessageID     false "分页游标，返回该ID之前的消息"
 // @Param        limit    query     int    false "分页大小，默认20，最大100"

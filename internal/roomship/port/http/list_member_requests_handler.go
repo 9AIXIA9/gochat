@@ -40,7 +40,6 @@ type ListMemberRequestsResponseData struct {
 // @Description  获取当前登录用户管理的房间成员请求列表，可基于 base_id 游标和 limit 分页
 // @Tags         Roomship
 // @Security     BearerAuth
-// @Produce      json
 // @Param        base_id  query       kernel.OperationID     false "分页游标，返回该ID之前的记录"
 // @Param        limit    query     int    false "分页大小，默认20，最大100"
 // @Success      200      {object}  api.Response{data=ListMemberRequestsResponseData} "成功返回成员请求列表"

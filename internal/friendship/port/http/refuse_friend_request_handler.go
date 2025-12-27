@@ -29,7 +29,6 @@ func (r *RefuseFriendRequestRequest) Bind(ginContext *gin.Context) error {
 // @Description  拒绝指定的好友请求
 // @Tags         Friendship
 // @Security     BearerAuth
-// @Produce      json
 // @Param        request_id  path      kernel.OperationID                   true  "好友请求ID"
 // @Success      200         {object}  api.Response "拒绝成功"
 // @Failure      400         {object}  api.Response "请求参数错误或请求已处理"
