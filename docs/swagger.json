@@ -166,14 +166,14 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "向指定房间发送一条消息",
+                "description": "阅读来自指定用户的所有未读消息",
                 "tags": [
                     "Chat"
                 ],
-                "summary": "发送房间消息",
+                "summary": "阅读指定用户消息",
                 "parameters": [
                     {
-                        "description": "发送房间消息请求体",
+                        "description": "阅读指定用户消息请求体",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -1615,7 +1615,12 @@
             ],
             "properties": {
                 "sender_id": {
-                    "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
+                        }
+                    ],
+                    "example": "019b593b-462e-74d6-bfda-0e103a172190"
                 }
             }
         },
