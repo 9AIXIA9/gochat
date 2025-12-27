@@ -2017,14 +2017,21 @@ const docTemplate = `{
             "properties": {
                 "content": {
                     "type": "string",
-                    "maxLength": 100
+                    "maxLength": 100,
+                    "example": "I would like to join the room."
                 },
                 "password": {
                     "type": "string",
-                    "maxLength": 100
+                    "maxLength": 100,
+                    "example": "secret"
                 },
                 "room_id": {
-                    "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
+                        }
+                    ],
+                    "example": "019b593b-462e-74d6-bfda-0e103a172192"
                 }
             }
         }

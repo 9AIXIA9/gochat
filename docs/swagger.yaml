@@ -562,13 +562,17 @@ definitions:
   internal_roomship_port_http.SendMemberRequestRequest:
     properties:
       content:
+        example: I would like to join the room.
         maxLength: 100
         type: string
       password:
+        example: secret
         maxLength: 100
         type: string
       room_id:
-        $ref: '#/definitions/gochat_internal_shared_kernel.RoomID'
+        allOf:
+        - $ref: '#/definitions/gochat_internal_shared_kernel.RoomID'
+        example: 019b593b-462e-74d6-bfda-0e103a172192
     required:
     - room_id
     type: object
