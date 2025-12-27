@@ -358,14 +358,14 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "向指定房间发送一条消息",
+                "description": "阅读指定房间的所有消息",
                 "tags": [
                     "Chat"
                 ],
-                "summary": "发送房间消息",
+                "summary": "阅读指定房间消息",
                 "parameters": [
                     {
-                        "description": "发送房间消息请求体",
+                        "description": "阅读指定房间消息请求体",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -1637,7 +1637,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "room_id": {
-                    "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
+                        }
+                    ],
+                    "example": "019b593b-462e-74d6-bfda-0e103a172190"
                 }
             }
         },

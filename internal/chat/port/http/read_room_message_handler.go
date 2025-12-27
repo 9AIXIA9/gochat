@@ -10,8 +10,8 @@ import (
 )
 
 type ReadRoomMessagesRequest struct {
-	RoomID kernel.RoomID `json:"room_id" validate:"required"`
-	UserID kernel.UserID `json:"-" validate:"required"`
+	RoomID kernel.RoomID `json:"room_id" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172190"`
+	UserID kernel.UserID `json:"-" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172191"`
 }
 
 func (r *ReadRoomMessagesRequest) Bind(ginContext *gin.Context) error {
@@ -19,12 +19,12 @@ func (r *ReadRoomMessagesRequest) Bind(ginContext *gin.Context) error {
 	return ginContext.BindJSON(r)
 }
 
-// NewReadRoomMessagesHandler 发送房间消息
-// @Summary      发送房间消息
-// @Description  向指定房间发送一条消息
+// NewReadRoomMessagesHandler 阅读指定房间消息
+// @Summary      阅读指定房间消息
+// @Description  阅读指定房间的所有消息
 // @Tags         Chat
 // @Security     BearerAuth
-// @Param        request  body      ReadRoomMessagesRequest     true  "发送房间消息请求体"
+// @Param        request  body      ReadRoomMessagesRequest     true  "阅读指定房间消息请求体"
 // @Success      200      {object}  api.Response     "发送成功"
 // @Router       /chats/rooms/messages/read [put]
 func NewReadRoomMessagesHandler(useCase application.ReadRoomMessagesUseCase, validator ginutils.Validator) gin.HandlerFunc {
