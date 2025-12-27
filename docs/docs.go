@@ -707,10 +707,8 @@ const docTemplate = `{
                 "summary": "获取房间资料",
                 "parameters": [
                     {
-                        "enum": [
-                            ""
-                        ],
                         "type": "string",
+                        "example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
                         "description": "房间ID",
                         "name": "room_id",
                         "in": "path",
@@ -1368,16 +1366,24 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "created_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-12-26 05:38:19.740"
                 },
                 "id": {
-                    "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
+                        }
+                    ],
+                    "example": "019b593b-462e-74d6-bfda-0e103a172191"
                 },
                 "introduction": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "This is our family room."
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "we're family'"
                 }
             }
         },
