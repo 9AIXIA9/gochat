@@ -28,7 +28,7 @@ func (r *SendPrivateMessageRequest) Bind(ginContext *gin.Context) error {
 // @Tags         Chat
 // @Security     BearerAuth
 // @Param        request  body      SendPrivateMessageRequest  true  "发送私聊消息请求体"
-// @Success      201      {object}  api.Response     "发送成功"
+// @Success      200      {object}  api.Response     "发送成功"
 // @Router       /chats/private-messages [post]
 func NewSendPrivateMessageHandler(useCase application.SendPrivateMessageUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(

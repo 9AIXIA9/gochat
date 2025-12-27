@@ -504,7 +504,7 @@ paths:
         schema:
           $ref: '#/definitions/internal_authorization_port_http.SignUpRequest'
       responses:
-        "201":
+        "200":
           description: 注册成功，返回用户编号
           schema:
             allOf:
@@ -543,7 +543,7 @@ paths:
         schema:
           $ref: '#/definitions/internal_chat_port_http.SendPrivateMessageRequest'
       responses:
-        "201":
+        "200":
           description: 发送成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
@@ -599,7 +599,7 @@ paths:
         schema:
           $ref: '#/definitions/internal_chat_port_http.ReadPrivateMessagesRequest'
       responses:
-        "201":
+        "200":
           description: 发送成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
@@ -654,7 +654,7 @@ paths:
         schema:
           $ref: '#/definitions/internal_chat_port_http.SendRoomMessageRequest'
       responses:
-        "201":
+        "200":
           description: 发送成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
@@ -674,7 +674,7 @@ paths:
         schema:
           $ref: '#/definitions/internal_chat_port_http.ReadRoomMessagesRequest'
       responses:
-        "201":
+        "200":
           description: 发送成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
@@ -722,7 +722,7 @@ paths:
         schema:
           $ref: '#/definitions/internal_friendship_port_http.SendFriendRequestRequest'
       responses:
-        "201":
+        "200":
           description: 发送成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
@@ -972,7 +972,7 @@ paths:
         schema:
           $ref: '#/definitions/internal_roomship_port_http.CreateRoomRequest'
       responses:
-        "201":
+        "200":
           description: 创建成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
@@ -1065,7 +1065,7 @@ paths:
         schema:
           $ref: '#/definitions/internal_roomship_port_http.SendMemberRequestRequest'
       responses:
-        "201":
+        "200":
           description: 发送成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'

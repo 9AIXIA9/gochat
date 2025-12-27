@@ -30,7 +30,7 @@ func (r *SendMemberRequestRequest) Bind(ginContext *gin.Context) error {
 // @Tags         Roomship
 // @Security     BearerAuth
 // @Param        request  body      SendMemberRequestRequest  true  "发送入群请求体"
-// @Success      201      {object}  api.Response    "发送成功"
+// @Success      200      {object}  api.Response    "发送成功"
 // @Router       /rooms/requests/ [post]
 func NewSendMemberRequestHandler(useCase application.SendMemberRequestUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(

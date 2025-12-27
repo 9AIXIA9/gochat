@@ -31,7 +31,7 @@ func (r *CreateRoomRequest) Bind(ginContext *gin.Context) error {
 // @Tags         Roomship
 // @Security     BearerAuth
 // @Param        request  body      CreateRoomRequest       true  "创建房间请求体"
-// @Success      201      {object}  api.Response  "创建成功"
+// @Success      200      {object}  api.Response  "创建成功"
 // @Router       /rooms/ [post]
 func NewCreateRoomHandler(useCase application.CreateRoomUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(

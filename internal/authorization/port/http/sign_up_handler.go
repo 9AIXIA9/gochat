@@ -28,7 +28,7 @@ type SignUpResponseData struct {
 // @Description  使用邮箱和密码注册账号，成功后返回系统分配的用户编号
 // @Tags         Authorization
 // @Param        request  body      SignUpRequest        true  "注册请求体"
-// @Success      201      {object}  api.Response{data=SignUpResponseData}   "注册成功，返回用户编号"
+// @Success      200      {object}  api.Response{data=SignUpResponseData}   "注册成功，返回用户编号"
 // @Router       /auth/sign-up [post]
 func NewSignUpHandler(useCase application.SignUpUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(

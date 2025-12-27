@@ -25,7 +25,7 @@ func (r *ReadRoomMessagesRequest) Bind(ginContext *gin.Context) error {
 // @Tags         Chat
 // @Security     BearerAuth
 // @Param        request  body      ReadRoomMessagesRequest     true  "发送房间消息请求体"
-// @Success      201      {object}  api.Response     "发送成功"
+// @Success      200      {object}  api.Response     "发送成功"
 // @Router       /chats/rooms/messages/read [put]
 func NewReadRoomMessagesHandler(useCase application.ReadRoomMessagesUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(

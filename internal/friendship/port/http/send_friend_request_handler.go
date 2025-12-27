@@ -28,7 +28,7 @@ func (r *SendFriendRequestRequest) Bind(ginContext *gin.Context) error {
 // @Tags         Friendship
 // @Security     BearerAuth
 // @Param        request  body      SendFriendRequestRequest  true  "发送好友请求体"
-// @Success      201      {object}  api.Response    "发送成功"
+// @Success      200      {object}  api.Response    "发送成功"
 // @Router       /friendship-requests/ [post]
 func NewSendFriendRequestHandler(useCase application.SendFriendRequestUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(

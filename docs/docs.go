@@ -82,7 +82,7 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "201": {
+                    "200": {
                         "description": "注册成功，返回用户编号",
                         "schema": {
                             "allOf": [
@@ -156,7 +156,7 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "201": {
+                    "200": {
                         "description": "发送成功",
                         "schema": {
                             "$ref": "#/definitions/gochat_internal_shared_api.Response"
@@ -189,7 +189,7 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "201": {
+                    "200": {
                         "description": "发送成功",
                         "schema": {
                             "$ref": "#/definitions/gochat_internal_shared_api.Response"
@@ -342,7 +342,7 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "201": {
+                    "200": {
                         "description": "发送成功",
                         "schema": {
                             "$ref": "#/definitions/gochat_internal_shared_api.Response"
@@ -375,7 +375,7 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "201": {
+                    "200": {
                         "description": "发送成功",
                         "schema": {
                             "$ref": "#/definitions/gochat_internal_shared_api.Response"
@@ -457,7 +457,7 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "201": {
+                    "200": {
                         "description": "发送成功",
                         "schema": {
                             "$ref": "#/definitions/gochat_internal_shared_api.Response"
@@ -882,7 +882,7 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "201": {
+                    "200": {
                         "description": "创建成功",
                         "schema": {
                             "$ref": "#/definitions/gochat_internal_shared_api.Response"
@@ -964,7 +964,7 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "201": {
+                    "200": {
                         "description": "发送成功",
                         "schema": {
                             "$ref": "#/definitions/gochat_internal_shared_api.Response"
