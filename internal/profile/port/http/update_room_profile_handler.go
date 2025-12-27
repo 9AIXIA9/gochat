@@ -10,10 +10,10 @@ import (
 )
 
 type UpdateRoomProfileRequest struct {
-	UserID       kernel.UserID `json:"-" validate:"required"`
-	RoomID       kernel.RoomID `uri:"room_id" validate:"required"`
-	Name         string        `json:"name"`
-	Introduction string        `json:"introduction"`
+	UserID       kernel.UserID `json:"-" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172191"`
+	RoomID       kernel.RoomID `uri:"room_id" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172192"`
+	Name         string        `json:"name" example:"family"`
+	Introduction string        `json:"introduction" example:"This is our family chat room."`
 }
 
 func (r *UpdateRoomProfileRequest) Bind(ginContext *gin.Context) error {
@@ -30,10 +30,11 @@ func (r *UpdateRoomProfileRequest) Bind(ginContext *gin.Context) error {
 
 // NewUpdateRoomProfileHandler 更新房间资料
 // @Summary      更新房间资料
-// @Description  更新指定房间的资料（名称、简介等），通常需要房主或管理员权限
+// @Description  更新指定房间的资料（名称、简介等），需要房主身份
 // @Tags         Profile
 // @Security     BearerAuth
 // @Param        request  body      UpdateRoomProfileRequest  true  "更新房间资料请求体"
+// @Param   	 room_id  path      string                    true  "房间ID"  example("019b593b-462e-74d6-bfda-0e103a172192")
 // @Success      200      {object}  api.Response    "更新成功"
 // @Router       /profiles/rooms/{room_id} [put]
 func NewUpdateRoomProfileHandler(useCase application.UpdateRoomProfileUseCase, validator ginutils.Validator) gin.HandlerFunc {

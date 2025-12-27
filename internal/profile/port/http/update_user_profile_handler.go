@@ -1,5 +1,7 @@
 package http
 
+//TODO 检视validate
+
 import (
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/profile/application"
@@ -10,13 +12,13 @@ import (
 )
 
 type UpdateUserProfileRequest struct {
-	UserID      kernel.UserID      `json:"-" validate:"required"`
-	Name        string             `json:"name"`
-	Gender      kernel.Gender      `json:"gender"`
-	Email       kernel.Email       `json:"email"`
-	PhoneNumber kernel.PhoneNumber `json:"phone_number"`
-	Address     kernel.Address     `json:"address"`
-	Sign        string             `json:"sign"`
+	UserID      kernel.UserID      `json:"-" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172191"`
+	Name        string             `json:"name" example:"Jack"`
+	Gender      kernel.Gender      `json:"gender" example:"1"`
+	Email       kernel.Email       `json:"email" example:"user@demo.com"`
+	PhoneNumber kernel.PhoneNumber `json:"phone_number" example:"13310001000"`
+	Address     kernel.Address     `json:"address" example:"China"`
+	Sign        string             `json:"sign" example:"I'm Jack!"`
 }
 
 func (r *UpdateUserProfileRequest) Bind(ginContext *gin.Context) error {

@@ -742,7 +742,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "更新指定房间的资料（名称、简介等），通常需要房主或管理员权限",
+                "description": "更新指定房间的资料（名称、简介等），需要房主身份",
                 "tags": [
                     "Profile"
                 ],
@@ -756,6 +756,14 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/internal_profile_port_http.UpdateRoomProfileRequest"
                         }
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"019b593b-462e-74d6-bfda-0e103a172192\"",
+                        "description": "房间ID",
+                        "name": "room_id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -1853,13 +1861,20 @@ const docTemplate = `{
             ],
             "properties": {
                 "introduction": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "This is our family chat room."
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "family"
                 },
                 "roomID": {
-                    "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
+                        }
+                    ],
+                    "example": "019b593b-462e-74d6-bfda-0e103a172192"
                 }
             }
         },
@@ -1867,22 +1882,32 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "address": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "China"
                 },
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "user@demo.com"
                 },
                 "gender": {
-                    "$ref": "#/definitions/gochat_internal_shared_kernel.Gender"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/gochat_internal_shared_kernel.Gender"
+                        }
+                    ],
+                    "example": 1
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Jack"
                 },
                 "phone_number": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "13310001000"
                 },
                 "sign": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "I'm Jack!"
                 }
             }
         },

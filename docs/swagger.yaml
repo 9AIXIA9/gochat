@@ -472,27 +472,38 @@ definitions:
   internal_profile_port_http.UpdateRoomProfileRequest:
     properties:
       introduction:
+        example: This is our family chat room.
         type: string
       name:
+        example: family
         type: string
       roomID:
-        $ref: '#/definitions/gochat_internal_shared_kernel.RoomID'
+        allOf:
+        - $ref: '#/definitions/gochat_internal_shared_kernel.RoomID'
+        example: 019b593b-462e-74d6-bfda-0e103a172192
     required:
     - roomID
     type: object
   internal_profile_port_http.UpdateUserProfileRequest:
     properties:
       address:
+        example: China
         type: string
       email:
+        example: user@demo.com
         type: string
       gender:
-        $ref: '#/definitions/gochat_internal_shared_kernel.Gender'
+        allOf:
+        - $ref: '#/definitions/gochat_internal_shared_kernel.Gender'
+        example: 1
       name:
+        example: Jack
         type: string
       phone_number:
+        example: "13310001000"
         type: string
       sign:
+        example: I'm Jack!
         type: string
     type: object
   internal_roomship_port_http.CreateRoomRequest:
@@ -983,7 +994,7 @@ paths:
       tags:
       - Profile
     put:
-      description: 更新指定房间的资料（名称、简介等），通常需要房主或管理员权限
+      description: 更新指定房间的资料（名称、简介等），需要房主身份
       parameters:
       - description: 更新房间资料请求体
         in: body
@@ -991,6 +1002,12 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/internal_profile_port_http.UpdateRoomProfileRequest'
+      - description: 房间ID
+        example: '"019b593b-462e-74d6-bfda-0e103a172192"'
+        in: path
+        name: room_id
+        required: true
+        type: string
       responses:
         "200":
           description: 更新成功
