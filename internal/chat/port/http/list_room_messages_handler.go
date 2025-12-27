@@ -13,10 +13,10 @@ import (
 const defaultRoomMessagesLimit = 20
 
 type ListRoomMessagesRequest struct {
-	UserID kernel.UserID    `json:"-" validate:"required"`
-	RoomID kernel.RoomID    `uri:"room_id" validate:"required"`
-	BaseID kernel.MessageID `form:"base_id"`                                  // 用于分页游标
-	Limit  int              `form:"limit" validate:"omitempty,min=1,max=100"` // 每页条数
+	UserID kernel.UserID    `json:"-" validate:"required" example:"019b5929-65bc-7549-89c6-3f7dc6872577"`
+	RoomID kernel.RoomID    `uri:"room_id" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172190"`
+	BaseID kernel.MessageID `form:"base_id" example:"019b593b-462e-74d6-bfda-0e103a172190"` // 用于分页游标
+	Limit  int              `form:"limit" validate:"omitempty,min=1,max=100" example:"20"`  // 每页条数
 }
 
 func (r *ListRoomMessagesRequest) Bind(ginContext *gin.Context) error {
@@ -44,9 +44,9 @@ type ListRoomMessagesResponseData struct {
 // @Description  获取当前登录用户所在房间的消息记录，可基于 base_id 游标和 limit 分页
 // @Tags         Chat
 // @Security     BearerAuth
-// @Param        room_id  path      kernel.RoomID       true  "房间ID"
-// @Param        base_id  query     kernel.MessageID     false "分页游标，返回该ID之前的消息"
-// @Param        limit    query     int    false "分页大小，默认20，最大100"
+// @Param        user_id  path      string  true  "群聊对象房间ID"  example("019b5929-65bc-7549-89c6-3f7dc6872577")
+// @Param        base_id  query     string  false "分页游标"       example("019b593b-462e-74d6-bfda-0e103a172190")
+// @Param        limit    query     int     false "分页大小"      minimum(1) maximum(100) default(20) example(50)
 // @Success      200      {object}  api.Response{data=ListRoomMessagesResponseData} "成功返回房间消息记录"
 // @Router       /chats/rooms/messages [get]
 func NewListRoomMessagesHandler(useCase application.ListRoomMessagesUseCase, validator ginutils.Validator) gin.HandlerFunc {

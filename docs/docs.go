@@ -273,27 +273,27 @@ const docTemplate = `{
                 "summary": "获取房间内的消息",
                 "parameters": [
                     {
-                        "enum": [
-                            ""
-                        ],
                         "type": "string",
-                        "description": "房间ID",
-                        "name": "room_id",
+                        "example": "\"019b5929-65bc-7549-89c6-3f7dc6872577\"",
+                        "description": "群聊对象房间ID",
+                        "name": "user_id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "enum": [
-                            ""
-                        ],
                         "type": "string",
-                        "description": "分页游标，返回该ID之前的消息",
+                        "example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
+                        "description": "分页游标",
                         "name": "base_id",
                         "in": "query"
                     },
                     {
+                        "maximum": 100,
+                        "minimum": 1,
                         "type": "integer",
-                        "description": "分页大小，默认20，最大100",
+                        "default": 20,
+                        "example": 50,
+                        "description": "分页大小",
                         "name": "limit",
                         "in": "query"
                     }
@@ -1176,21 +1176,39 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "content": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Hello-Gochat!"
                 },
                 "id": {
-                    "$ref": "#/definitions/gochat_internal_shared_kernel.MessageID"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/gochat_internal_shared_kernel.MessageID"
+                        }
+                    ],
+                    "example": "019b593b-462e-74d6-bfda-0e103a172190"
                 },
                 "room_id": {
-                    "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
+                        }
+                    ],
+                    "example": "019b593b-462e-74d6-bfda-0e103a172190"
                 },
                 "sender_id": {
-                    "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
+                        }
+                    ],
+                    "example": "019b593b-462e-74d6-bfda-0e103a172190"
                 },
                 "sent_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-12-26 05:38:19.740"
                 },
                 "states": {
+                    "description": "States 消息状态映射，表示各个用户对该消息的阅读状态\n示例:\n{\n  \"019b593b-462e-74d6-bfda-0e103a172190\": \"read\",     // 用户1已读\n  \"019b593b-462e-74d6-bfda-0e103a172191\": \"delivered\" // 用户2已送达\n}\n可能的状态值: \"sent\", \"delivered\", \"read\"",
                     "type": "object",
                     "additionalProperties": {
                         "$ref": "#/definitions/gochat_internal_chat_domain.MessageState"
