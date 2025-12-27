@@ -911,16 +911,18 @@ const docTemplate = `{
                 "summary": "获取属于登录用户处理的请求列表",
                 "parameters": [
                     {
-                        "enum": [
-                            ""
-                        ],
                         "type": "string",
+                        "example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
                         "description": "分页游标，返回该ID之前的记录",
                         "name": "base_id",
                         "in": "query"
                     },
                     {
+                        "maximum": 100,
+                        "minimum": 1,
                         "type": "integer",
+                        "default": 20,
+                        "example": 50,
                         "description": "分页大小，默认20，最大100",
                         "name": "limit",
                         "in": "query"
@@ -1277,7 +1279,7 @@ const docTemplate = `{
                             "$ref": "#/definitions/gochat_internal_friendship_domain.FriendRequestState"
                         }
                     ],
-                    "example": "read"
+                    "example": "pending"
                 },
                 "to": {
                     "allOf": [
@@ -1477,28 +1479,56 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "applicant_id": {
-                    "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
+                        }
+                    ],
+                    "example": "019b593b-462e-74d6-bfda-0e103a172192"
                 },
                 "content": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "I would like to join the room."
                 },
                 "created_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-12-26 05:38:20.740"
                 },
                 "id": {
-                    "$ref": "#/definitions/gochat_internal_shared_kernel.OperationID"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/gochat_internal_shared_kernel.OperationID"
+                        }
+                    ],
+                    "example": "019b593b-462e-74d6-bfda-0e103a172191"
                 },
                 "operated_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-12-26 05:38:19.740"
                 },
                 "operator_id": {
-                    "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
+                        }
+                    ],
+                    "example": "019b593b-462e-74d6-bfda-0e103a172194"
                 },
                 "room_id": {
-                    "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
+                        }
+                    ],
+                    "example": "019b593b-462e-74d6-bfda-0e103a172193"
                 },
                 "state": {
-                    "$ref": "#/definitions/gochat_internal_roomship_domain.MemberRequestState"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/gochat_internal_roomship_domain.MemberRequestState"
+                        }
+                    ],
+                    "example": "pending"
                 }
             }
         },

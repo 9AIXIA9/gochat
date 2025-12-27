@@ -95,7 +95,7 @@ definitions:
       state:
         allOf:
         - $ref: '#/definitions/gochat_internal_friendship_domain.FriendRequestState'
-        example: read
+        example: pending
       to:
         allOf:
         - $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
@@ -220,21 +220,34 @@ definitions:
   gochat_internal_roomship_dto.MemberRequest:
     properties:
       applicant_id:
-        $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
+        allOf:
+        - $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
+        example: 019b593b-462e-74d6-bfda-0e103a172192
       content:
+        example: I would like to join the room.
         type: string
       created_at:
+        example: "2025-12-26 05:38:20.740"
         type: string
       id:
-        $ref: '#/definitions/gochat_internal_shared_kernel.OperationID'
+        allOf:
+        - $ref: '#/definitions/gochat_internal_shared_kernel.OperationID'
+        example: 019b593b-462e-74d6-bfda-0e103a172191
       operated_at:
+        example: "2025-12-26 05:38:19.740"
         type: string
       operator_id:
-        $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
+        allOf:
+        - $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
+        example: 019b593b-462e-74d6-bfda-0e103a172194
       room_id:
-        $ref: '#/definitions/gochat_internal_shared_kernel.RoomID'
+        allOf:
+        - $ref: '#/definitions/gochat_internal_shared_kernel.RoomID'
+        example: 019b593b-462e-74d6-bfda-0e103a172193
       state:
-        $ref: '#/definitions/gochat_internal_roomship_domain.MemberRequestState'
+        allOf:
+        - $ref: '#/definitions/gochat_internal_roomship_domain.MemberRequestState'
+        example: pending
     type: object
   gochat_internal_roomship_dto.Roomship:
     properties:
@@ -1139,13 +1152,16 @@ paths:
       description: 获取当前登录用户管理的房间成员请求列表，可基于 base_id 游标和 limit 分页
       parameters:
       - description: 分页游标，返回该ID之前的记录
-        enum:
-        - ""
+        example: '"019b593b-462e-74d6-bfda-0e103a172190"'
         in: query
         name: base_id
         type: string
-      - description: 分页大小，默认20，最大100
+      - default: 20
+        description: 分页大小，默认20，最大100
+        example: 50
         in: query
+        maximum: 100
+        minimum: 1
         name: limit
         type: integer
       responses:

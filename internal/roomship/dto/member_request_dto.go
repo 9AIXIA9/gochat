@@ -7,14 +7,14 @@ import (
 )
 
 type MemberRequest struct {
-	ID          kernel.OperationID        `json:"id"`
-	State       domain.MemberRequestState `json:"state"`
-	ApplicantID kernel.UserID             `json:"applicant_id"`
-	RoomID      kernel.RoomID             `json:"room_id"`
-	Content     string                    `json:"content"`
-	OperatorID  kernel.UserID             `json:"operator_id"`
-	OperatedAt  time.Time                 `json:"operated_at"`
-	CreatedAt   time.Time                 `json:"created_at"`
+	ID          kernel.OperationID        `json:"id" example:"019b593b-462e-74d6-bfda-0e103a172191"`
+	State       domain.MemberRequestState `json:"state" example:"pending"`
+	ApplicantID kernel.UserID             `json:"applicant_id" example:"019b593b-462e-74d6-bfda-0e103a172192"`
+	RoomID      kernel.RoomID             `json:"room_id" example:"019b593b-462e-74d6-bfda-0e103a172193"`
+	Content     string                    `json:"content" example:"I would like to join the room."`
+	OperatorID  kernel.UserID             `json:"operator_id" example:"019b593b-462e-74d6-bfda-0e103a172194"`
+	OperatedAt  time.Time                 `json:"operated_at" example:"2025-12-26 05:38:19.740"`
+	CreatedAt   time.Time                 `json:"created_at" example:"2025-12-26 05:38:20.740"`
 }
 
 func ToMemberRequestDTO(request *domain.MemberRequest) *MemberRequest {
