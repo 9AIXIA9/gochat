@@ -65,7 +65,7 @@ const docTemplate = `{
         },
         "/auth/sign-up": {
             "post": {
-                "description": "使用邮箱和密码注册账号，成功后返回系统分配的用户编号",
+                "description": "使用邮箱和密码注册账号，成功后返回系统分配的账号",
                 "tags": [
                     "Authorization"
                 ],
@@ -83,7 +83,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "注册成功，返回用户编号",
+                        "description": "注册成功，返回账号",
                         "schema": {
                             "allOf": [
                                 {
@@ -1530,12 +1530,14 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "youremail@demo.com"
                 },
                 "password": {
                     "type": "string",
                     "maxLength": 50,
-                    "minLength": 6
+                    "minLength": 6,
+                    "example": "your-password"
                 }
             }
         },
@@ -1543,7 +1545,8 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "user_number": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2004426295315795968"
                 }
             }
         },

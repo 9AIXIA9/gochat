@@ -11,8 +11,8 @@ import (
 )
 
 type SignUpRequest struct {
-	Email    kernel.Email    `json:"email" validate:"required,email"`
-	Password domain.Password `json:"password" validate:"required,min=6,max=50"`
+	Email    kernel.Email    `json:"email" validate:"required,email" example:"youremail@demo.com"`
+	Password domain.Password `json:"password" validate:"required,min=6,max=50" example:"your-password"`
 }
 
 func (r *SignUpRequest) Bind(ginContext *gin.Context) error {
@@ -20,15 +20,15 @@ func (r *SignUpRequest) Bind(ginContext *gin.Context) error {
 }
 
 type SignUpResponseData struct {
-	UserNumber kernel.UserNumber `json:"user_number"`
+	UserNumber kernel.UserNumber `json:"user_number" example:"2004426295315795968"`
 }
 
 // NewSignUpHandler 用户注册
 // @Summary      用户注册
-// @Description  使用邮箱和密码注册账号，成功后返回系统分配的用户编号
+// @Description  使用邮箱和密码注册账号，成功后返回系统分配的账号
 // @Tags         Authorization
 // @Param        request  body      SignUpRequest        true  "注册请求体"
-// @Success      200      {object}  api.Response{data=SignUpResponseData}   "注册成功，返回用户编号"
+// @Success      200      {object}  api.Response{data=SignUpResponseData}   "注册成功，返回账号"
 // @Router       /auth/sign-up [post]
 func NewSignUpHandler(useCase application.SignUpUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
