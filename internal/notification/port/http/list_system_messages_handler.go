@@ -13,9 +13,9 @@ import (
 const defaultSystemMessagesLimit = 20
 
 type ListSystemMessagesRequest struct {
-	UserID kernel.UserID    `json:"-" validate:"required"`
-	BaseID kernel.MessageID `form:"base_id"`                                  // 用于分页游标
-	Limit  int              `form:"limit" validate:"omitempty,min=1,max=100"` // 每页条数
+	UserID kernel.UserID    `json:"-" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172191"`
+	BaseID kernel.MessageID `form:"base_id" example:"019b593b-462e-74d6-bfda-0e103a172192"` // 用于分页游标
+	Limit  int              `form:"limit" validate:"omitempty,min=1,max=100" example:"20"`  // 每页条数
 }
 
 func (r *ListSystemMessagesRequest) Bind(ginContext *gin.Context) error {
@@ -40,8 +40,8 @@ type ListSystemMessagesResponseData struct {
 // @Description  获取当前登录用户的系统通知列表，可基于 base_id 游标和 limit 分页
 // @Tags         Notification
 // @Security     BearerAuth
-// @Param        base_id  query     kernel.MessageID    false "分页游标，返回该ID之前的消息"
-// @Param        limit    query     int    false "分页大小，默认20，最大100"
+// @Param        base_id  query     string    false "分页游标，返回该ID之前的消息"    example("019b593b-462e-74d6-bfda-0e103a172190")
+// @Param        limit    query     int    false "分页大小，默认20，最大100"   minimum(1) maximum(100) default(20) example(50)
 // @Success      200      {object}  api.Response{data=ListSystemMessagesResponseData} "成功返回系统通知列表"
 // @Router       /notifications/system-messages [get]
 func NewListSystemMessagesHandler(useCase application.ListSystemMessagesUseCase, validator ginutils.Validator) gin.HandlerFunc {

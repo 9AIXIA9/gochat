@@ -599,16 +599,18 @@ const docTemplate = `{
                 "summary": "获取系统通知列表",
                 "parameters": [
                     {
-                        "enum": [
-                            ""
-                        ],
                         "type": "string",
+                        "example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
                         "description": "分页游标，返回该ID之前的消息",
                         "name": "base_id",
                         "in": "query"
                     },
                     {
+                        "maximum": 100,
+                        "minimum": 1,
                         "type": "integer",
+                        "default": 20,
+                        "example": 50,
                         "description": "分页大小，默认20，最大100",
                         "name": "limit",
                         "in": "query"
@@ -1331,19 +1333,36 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "content": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Hello-Gochat!"
                 },
                 "id": {
-                    "$ref": "#/definitions/gochat_internal_shared_kernel.MessageID"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/gochat_internal_shared_kernel.MessageID"
+                        }
+                    ],
+                    "example": "019b593b-462e-74d6-bfda-0e103a172191"
                 },
                 "recipient_id": {
-                    "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
+                        }
+                    ],
+                    "example": "019b593b-462e-74d6-bfda-0e103a172192"
                 },
                 "sent_at": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "2025-12-26 05:38:19.740"
                 },
                 "state": {
-                    "$ref": "#/definitions/gochat_internal_notification_domain.MessageState"
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/gochat_internal_notification_domain.MessageState"
+                        }
+                    ],
+                    "example": "read"
                 }
             }
         },

@@ -130,15 +130,23 @@ definitions:
   gochat_internal_notification_dto.SystemMessage:
     properties:
       content:
+        example: Hello-Gochat!
         type: string
       id:
-        $ref: '#/definitions/gochat_internal_shared_kernel.MessageID'
+        allOf:
+        - $ref: '#/definitions/gochat_internal_shared_kernel.MessageID'
+        example: 019b593b-462e-74d6-bfda-0e103a172191
       recipient_id:
-        $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
+        allOf:
+        - $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
+        example: 019b593b-462e-74d6-bfda-0e103a172192
       sent_at:
+        example: "2025-12-26 05:38:19.740"
         type: string
       state:
-        $ref: '#/definitions/gochat_internal_notification_domain.MessageState'
+        allOf:
+        - $ref: '#/definitions/gochat_internal_notification_domain.MessageState'
+        example: read
     type: object
   gochat_internal_profile_dto.RoomProfile:
     properties:
@@ -874,13 +882,16 @@ paths:
       description: 获取当前登录用户的系统通知列表，可基于 base_id 游标和 limit 分页
       parameters:
       - description: 分页游标，返回该ID之前的消息
-        enum:
-        - ""
+        example: '"019b593b-462e-74d6-bfda-0e103a172190"'
         in: query
         name: base_id
         type: string
-      - description: 分页大小，默认20，最大100
+      - default: 20
+        description: 分页大小，默认20，最大100
+        example: 50
         in: query
+        maximum: 100
+        minimum: 1
         name: limit
         type: integer
       responses:
