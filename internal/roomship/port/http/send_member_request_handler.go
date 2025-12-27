@@ -21,7 +21,7 @@ type SendMemberRequestRequest struct {
 func (r *SendMemberRequestRequest) Bind(ginContext *gin.Context) error {
 	userID := ginutils.GetUserID(ginContext)
 	r.UserID = userID
-	return ginContext.ShouldBind(r)
+	return ginContext.BindJSON(r)
 }
 
 // NewSendMemberRequestHandler 发送入群请求

@@ -22,7 +22,7 @@ type UpdateUserProfileRequest struct {
 func (r *UpdateUserProfileRequest) Bind(ginContext *gin.Context) error {
 	r.UserID = ginutils.GetUserID(ginContext)
 	// 绑定查询参数
-	if err := ginContext.ShouldBind(r); err != nil {
+	if err := ginContext.BindJSON(r); err != nil {
 		return err
 	}
 	return nil

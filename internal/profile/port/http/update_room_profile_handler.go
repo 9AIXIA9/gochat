@@ -19,7 +19,7 @@ type UpdateRoomProfileRequest struct {
 func (r *UpdateRoomProfileRequest) Bind(ginContext *gin.Context) error {
 	r.UserID = ginutils.GetUserID(ginContext)
 	// 绑定查询参数
-	if err := ginContext.ShouldBind(r); err != nil {
+	if err := ginContext.BindJSON(r); err != nil {
 		return err
 	}
 	if err := ginContext.BindUri(r); err != nil {

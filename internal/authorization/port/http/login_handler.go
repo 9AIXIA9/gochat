@@ -24,7 +24,7 @@ type LoginResponseData struct {
 }
 
 func (r *LoginRequest) Bind(ginContext *gin.Context) error {
-	return ginContext.ShouldBind(r)
+	return ginContext.BindJSON(r)
 }
 
 // NewLoginHandler 用户登录

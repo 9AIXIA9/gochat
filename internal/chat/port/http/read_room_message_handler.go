@@ -16,7 +16,7 @@ type ReadRoomMessagesRequest struct {
 
 func (r *ReadRoomMessagesRequest) Bind(ginContext *gin.Context) error {
 	r.UserID = ginutils.GetUserID(ginContext)
-	return ginContext.ShouldBind(r)
+	return ginContext.BindJSON(r)
 }
 
 // NewReadRoomMessagesHandler 发送房间消息

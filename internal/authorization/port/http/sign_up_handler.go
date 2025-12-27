@@ -16,7 +16,7 @@ type SignUpRequest struct {
 }
 
 func (r *SignUpRequest) Bind(ginContext *gin.Context) error {
-	return ginContext.ShouldBind(r)
+	return ginContext.BindJSON(r)
 }
 
 type SignUpResponseData struct {

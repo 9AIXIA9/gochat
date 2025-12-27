@@ -19,7 +19,7 @@ type SendFriendRequestRequest struct {
 func (r *SendFriendRequestRequest) Bind(ginContext *gin.Context) error {
 	fromID := ginutils.GetUserID(ginContext)
 	r.FromID = fromID
-	return ginContext.ShouldBind(r)
+	return ginContext.BindJSON(r)
 }
 
 // NewSendFriendRequestHandler 发送好友请求
