@@ -7,12 +7,12 @@ import (
 )
 
 type FriendRequest struct {
-	ID      kernel.OperationID        `json:"id"`
-	From    kernel.UserID             `json:"from"`
-	To      kernel.UserID             `json:"to"`
-	Content string                    `json:"content"`
-	State   domain.FriendRequestState `json:"state"`
-	SentAt  time.Time                 `json:"sent_at"` //UTC
+	ID      kernel.OperationID        `json:"id" example:"019b593b-462e-74d6-bfda-0e103a172190"`
+	From    kernel.UserID             `json:"from" example:"019b593b-462e-74d6-bfda-0e103a172191"`
+	To      kernel.UserID             `json:"to" example:"019b593b-462e-74d6-bfda-0e103a172192"`
+	Content string                    `json:"content" example:"Hello-Gochat!"`
+	State   domain.FriendRequestState `json:"state" example:"read"`
+	SentAt  time.Time                 `json:"sent_at" example:"2025-12-26 05:38:19.740"` //UTC
 }
 
 func ToFriendRequestDTO(request *domain.FriendRequest) *FriendRequest {
