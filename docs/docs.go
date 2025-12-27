@@ -1736,24 +1736,6 @@ const docTemplate = `{
                     }
                 }
             }
-        },
-        "/ws/": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "通过该接口发起 WebSocket 握手，建立长连接；后续使用 topic + JSON 消息收发。",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "WebSocket"
-                ],
-                "summary": "WebSocket 连接",
-                "responses": {}
-            }
         }
     },
     "definitions": {
