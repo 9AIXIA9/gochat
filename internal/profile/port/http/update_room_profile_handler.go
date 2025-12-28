@@ -12,8 +12,8 @@ import (
 type UpdateRoomProfileRequest struct {
 	UserID       kernel.UserID `json:"-" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172191"`
 	RoomID       kernel.RoomID `uri:"room_id" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172192"`
-	Name         string        `json:"name" example:"family"`
-	Introduction string        `json:"introduction" example:"This is our family chat room."`
+	Name         string        `json:"name" validate:"omitempty,max=32" example:"family"`
+	Introduction string        `json:"introduction" validate:"omitempty,max=200" example:"This is our family chat room."`
 }
 
 func (r *UpdateRoomProfileRequest) Bind(ginContext *gin.Context) error {

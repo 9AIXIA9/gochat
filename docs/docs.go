@@ -1907,10 +1907,12 @@ const docTemplate = `{
             "properties": {
                 "introduction": {
                     "type": "string",
+                    "maxLength": 200,
                     "example": "This is our family chat room."
                 },
                 "name": {
                     "type": "string",
+                    "maxLength": 32,
                     "example": "family"
                 },
                 "roomID": {

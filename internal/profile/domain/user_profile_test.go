@@ -70,7 +70,8 @@ func TestUserProfile_Updates(t *testing.T) {
 		time.Now().UTC(),
 	)
 
-	profile.UpdateName(fixedName)
+	err := profile.UpdateName(fixedName)
+	require.NoError(t, err)
 	assert.Equal(t, fixedName, profile.Name())
 
 	profile.UpdateGender(fixedGender)
@@ -82,7 +83,7 @@ func TestUserProfile_Updates(t *testing.T) {
 	profile.UpdatePhoneNumber(fixedPhoneNumber)
 	assert.Equal(t, fixedPhoneNumber, profile.PhoneNumber())
 
-	err := profile.UpdateAddress(fixedAddress)
+	err = profile.UpdateAddress(fixedAddress)
 	require.NoError(t, err)
 	assert.Equal(t, fixedAddress, profile.Address())
 

@@ -495,9 +495,11 @@ definitions:
     properties:
       introduction:
         example: This is our family chat room.
+        maxLength: 200
         type: string
       name:
         example: family
+        maxLength: 32
         type: string
       roomID:
         allOf:
