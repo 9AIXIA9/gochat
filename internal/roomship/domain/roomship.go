@@ -13,7 +13,7 @@ const (
 	MemberRole RoomshipRole = "member"
 )
 
-type RoomshipID kernel.ID
+type RoomshipID string
 
 func (r RoomshipID) String() string {
 	return string(r)

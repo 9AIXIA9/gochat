@@ -2,7 +2,7 @@ package domain
 
 import "gochat/internal/shared/kernel"
 
-type RoomshipID kernel.ID
+type RoomshipID string
 
 func (id RoomshipID) String() string {
 	return string(id)

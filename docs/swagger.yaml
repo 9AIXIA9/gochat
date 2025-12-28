@@ -19,13 +19,11 @@ definitions:
         example: 019b593b-462e-74d6-bfda-0e103a172190
         type: string
       recipient_id:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
         example: 019b5929-5f6a-73aa-8adf-57cebe980725
+        type: string
       sender_id:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
         example: 019b5929-65bc-7549-89c6-3f7dc6872577
+        type: string
       sent_at:
         example: "2025-12-26 05:56:55.470"
         type: string
@@ -40,17 +38,14 @@ definitions:
         example: Hello-Gochat!
         type: string
       id:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.MessageID'
         example: 019b593b-462e-74d6-bfda-0e103a172190
+        type: string
       room_id:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.RoomID'
         example: 019b593b-462e-74d6-bfda-0e103a172190
+        type: string
       sender_id:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
         example: 019b593b-462e-74d6-bfda-0e103a172190
+        type: string
       sent_at:
         example: "2025-12-26 05:38:19.740"
         type: string
@@ -69,25 +64,17 @@ definitions:
     - StatePending
     - StateAgreed
     - StateRefused
-  gochat_internal_friendship_domain.FriendshipID:
-    enum:
-    - ""
-    type: string
-    x-enum-varnames:
-    - EmptyUserID
   gochat_internal_friendship_dto.FriendRequest:
     properties:
       content:
         example: Hello-Gochat!
         type: string
       from:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
         example: 019b593b-462e-74d6-bfda-0e103a172191
+        type: string
       id:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.OperationID'
         example: 019b593b-462e-74d6-bfda-0e103a172190
+        type: string
       sent_at:
         description: UTC
         example: "2025-12-26 05:38:19.740"
@@ -97,9 +84,8 @@ definitions:
         - $ref: '#/definitions/gochat_internal_friendship_domain.FriendRequestState'
         example: pending
       to:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
         example: 019b593b-462e-74d6-bfda-0e103a172192
+        type: string
     type: object
   gochat_internal_friendship_dto.Friendship:
     properties:
@@ -107,17 +93,14 @@ definitions:
         example: 019b593b-462e-74d6-bfda-0e103a172193
         type: string
       id:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_friendship_domain.FriendshipID'
         example: 019b593b-462e-74d6-bfda-0e103a172190
+        type: string
       user_id_1:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
         example: 019b593b-462e-74d6-bfda-0e103a172191
+        type: string
       user_id_2:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
         example: 019b593b-462e-74d6-bfda-0e103a172192
+        type: string
     type: object
   gochat_internal_notification_domain.MessageState:
     enum:
@@ -133,13 +116,11 @@ definitions:
         example: Hello-Gochat!
         type: string
       id:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.MessageID'
         example: 019b593b-462e-74d6-bfda-0e103a172191
+        type: string
       recipient_id:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
         example: 019b593b-462e-74d6-bfda-0e103a172192
+        type: string
       sent_at:
         example: "2025-12-26 05:38:19.740"
         type: string
@@ -154,9 +135,8 @@ definitions:
         example: "2025-12-26 05:38:19.740"
         type: string
       id:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.RoomID'
         example: 019b593b-462e-74d6-bfda-0e103a172191
+        type: string
       introduction:
         example: This is our family room.
         type: string
@@ -177,9 +157,8 @@ definitions:
         - $ref: '#/definitions/gochat_internal_shared_kernel.Gender'
         example: 1
       id:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
         example: 019b593b-462e-74d6-bfda-0e103a172191
+        type: string
       name:
         example: Jack
         type: string
@@ -203,12 +182,6 @@ definitions:
     - StatePending
     - StateAgreed
     - StateRefused
-  gochat_internal_roomship_domain.RoomshipID:
-    enum:
-    - ""
-    type: string
-    x-enum-varnames:
-    - EmptyUserID
   gochat_internal_roomship_domain.RoomshipRole:
     enum:
     - owner
@@ -220,9 +193,8 @@ definitions:
   gochat_internal_roomship_dto.MemberRequest:
     properties:
       applicant_id:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
         example: 019b593b-462e-74d6-bfda-0e103a172192
+        type: string
       content:
         example: I would like to join the room.
         type: string
@@ -230,20 +202,17 @@ definitions:
         example: "2025-12-26 05:38:20.740"
         type: string
       id:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.OperationID'
         example: 019b593b-462e-74d6-bfda-0e103a172191
+        type: string
       operated_at:
         example: "2025-12-26 05:38:19.740"
         type: string
       operator_id:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
         example: 019b593b-462e-74d6-bfda-0e103a172194
+        type: string
       room_id:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.RoomID'
         example: 019b593b-462e-74d6-bfda-0e103a172193
+        type: string
       state:
         allOf:
         - $ref: '#/definitions/gochat_internal_roomship_domain.MemberRequestState'
@@ -255,21 +224,18 @@ definitions:
         example: "2025-12-26 05:38:19.740"
         type: string
       id:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_roomship_domain.RoomshipID'
         example: 019b593b-462e-74d6-bfda-0e103a172191
+        type: string
       role:
         allOf:
         - $ref: '#/definitions/gochat_internal_roomship_domain.RoomshipRole'
         example: member
       room_id:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.RoomID'
         example: 019b593b-462e-74d6-bfda-0e103a172192
+        type: string
       user_id:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
         example: 019b593b-462e-74d6-bfda-0e103a172193
+        type: string
     type: object
   gochat_internal_shared_api.Code:
     enum:
@@ -313,30 +279,6 @@ definitions:
     - UnknownGender
     - MaleGender
     - FemaleGender
-  gochat_internal_shared_kernel.MessageID:
-    enum:
-    - ""
-    type: string
-    x-enum-varnames:
-    - EmptyUserID
-  gochat_internal_shared_kernel.OperationID:
-    enum:
-    - ""
-    type: string
-    x-enum-varnames:
-    - EmptyUserID
-  gochat_internal_shared_kernel.RoomID:
-    enum:
-    - ""
-    type: string
-    x-enum-varnames:
-    - EmptyUserID
-  gochat_internal_shared_kernel.UserID:
-    enum:
-    - ""
-    type: string
-    x-enum-varnames:
-    - EmptyUserID
   internal_authorization_port_http.LoginRequest:
     properties:
       number:
@@ -398,18 +340,16 @@ definitions:
   internal_chat_port_http.ReadPrivateMessagesRequest:
     properties:
       sender_id:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
         example: 019b593b-462e-74d6-bfda-0e103a172190
+        type: string
     required:
     - sender_id
     type: object
   internal_chat_port_http.ReadRoomMessagesRequest:
     properties:
       room_id:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.RoomID'
         example: 019b593b-462e-74d6-bfda-0e103a172190
+        type: string
     required:
     - room_id
     type: object
@@ -420,9 +360,8 @@ definitions:
         maxLength: 1000
         type: string
       recipient_id:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
         example: 019b593b-462e-74d6-bfda-0e103a172190
+        type: string
     required:
     - content
     - recipient_id
@@ -434,9 +373,8 @@ definitions:
         maxLength: 1000
         type: string
       room_id:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.RoomID'
         example: 019b593b-462e-74d6-bfda-0e103a172190
+        type: string
     required:
     - content
     - room_id
@@ -462,9 +400,8 @@ definitions:
         maxLength: 100
         type: string
       to_id:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.UserID'
         example: 019b593b-462e-74d6-bfda-0e103a172191
+        type: string
     required:
     - content
     - to_id
@@ -502,9 +439,8 @@ definitions:
         maxLength: 32
         type: string
       roomID:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.RoomID'
         example: 019b593b-462e-74d6-bfda-0e103a172192
+        type: string
     required:
     - roomID
     type: object
@@ -581,9 +517,8 @@ definitions:
         maxLength: 100
         type: string
       room_id:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.RoomID'
         example: 019b593b-462e-74d6-bfda-0e103a172192
+        type: string
     required:
     - room_id
     type: object

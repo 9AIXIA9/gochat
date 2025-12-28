@@ -1145,19 +1145,11 @@ const docTemplate = `{
                     "example": "019b593b-462e-74d6-bfda-0e103a172190"
                 },
                 "recipient_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b5929-5f6a-73aa-8adf-57cebe980725"
                 },
                 "sender_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b5929-65bc-7549-89c6-3f7dc6872577"
                 },
                 "sent_at": {
@@ -1182,27 +1174,15 @@ const docTemplate = `{
                     "example": "Hello-Gochat!"
                 },
                 "id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.MessageID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172190"
                 },
                 "room_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172190"
                 },
                 "sender_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172190"
                 },
                 "sent_at": {
@@ -1230,15 +1210,6 @@ const docTemplate = `{
                 "StateRefused"
             ]
         },
-        "gochat_internal_friendship_domain.FriendshipID": {
-            "type": "string",
-            "enum": [
-                ""
-            ],
-            "x-enum-varnames": [
-                "EmptyUserID"
-            ]
-        },
         "gochat_internal_friendship_dto.FriendRequest": {
             "type": "object",
             "properties": {
@@ -1247,19 +1218,11 @@ const docTemplate = `{
                     "example": "Hello-Gochat!"
                 },
                 "from": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172191"
                 },
                 "id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.OperationID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172190"
                 },
                 "sent_at": {
@@ -1276,11 +1239,7 @@ const docTemplate = `{
                     "example": "pending"
                 },
                 "to": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172192"
                 }
             }
@@ -1293,27 +1252,15 @@ const docTemplate = `{
                     "example": "019b593b-462e-74d6-bfda-0e103a172193"
                 },
                 "id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_friendship_domain.FriendshipID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172190"
                 },
                 "user_id_1": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172191"
                 },
                 "user_id_2": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172192"
                 }
             }
@@ -1337,19 +1284,11 @@ const docTemplate = `{
                     "example": "Hello-Gochat!"
                 },
                 "id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.MessageID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172191"
                 },
                 "recipient_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172192"
                 },
                 "sent_at": {
@@ -1374,11 +1313,7 @@ const docTemplate = `{
                     "example": "2025-12-26 05:38:19.740"
                 },
                 "id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172191"
                 },
                 "introduction": {
@@ -1411,11 +1346,7 @@ const docTemplate = `{
                     "example": 1
                 },
                 "id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172191"
                 },
                 "name": {
@@ -1449,15 +1380,6 @@ const docTemplate = `{
                 "StateRefused"
             ]
         },
-        "gochat_internal_roomship_domain.RoomshipID": {
-            "type": "string",
-            "enum": [
-                ""
-            ],
-            "x-enum-varnames": [
-                "EmptyUserID"
-            ]
-        },
         "gochat_internal_roomship_domain.RoomshipRole": {
             "type": "string",
             "enum": [
@@ -1473,11 +1395,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "applicant_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172192"
                 },
                 "content": {
@@ -1489,11 +1407,7 @@ const docTemplate = `{
                     "example": "2025-12-26 05:38:20.740"
                 },
                 "id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.OperationID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172191"
                 },
                 "operated_at": {
@@ -1501,19 +1415,11 @@ const docTemplate = `{
                     "example": "2025-12-26 05:38:19.740"
                 },
                 "operator_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172194"
                 },
                 "room_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172193"
                 },
                 "state": {
@@ -1534,11 +1440,7 @@ const docTemplate = `{
                     "example": "2025-12-26 05:38:19.740"
                 },
                 "id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_roomship_domain.RoomshipID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172191"
                 },
                 "role": {
@@ -1550,19 +1452,11 @@ const docTemplate = `{
                     "example": "member"
                 },
                 "room_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172192"
                 },
                 "user_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172193"
                 }
             }
@@ -1621,42 +1515,6 @@ const docTemplate = `{
                 "UnknownGender",
                 "MaleGender",
                 "FemaleGender"
-            ]
-        },
-        "gochat_internal_shared_kernel.MessageID": {
-            "type": "string",
-            "enum": [
-                ""
-            ],
-            "x-enum-varnames": [
-                "EmptyUserID"
-            ]
-        },
-        "gochat_internal_shared_kernel.OperationID": {
-            "type": "string",
-            "enum": [
-                ""
-            ],
-            "x-enum-varnames": [
-                "EmptyUserID"
-            ]
-        },
-        "gochat_internal_shared_kernel.RoomID": {
-            "type": "string",
-            "enum": [
-                ""
-            ],
-            "x-enum-varnames": [
-                "EmptyUserID"
-            ]
-        },
-        "gochat_internal_shared_kernel.UserID": {
-            "type": "string",
-            "enum": [
-                ""
-            ],
-            "x-enum-varnames": [
-                "EmptyUserID"
             ]
         },
         "internal_authorization_port_http.LoginRequest": {
@@ -1751,11 +1609,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "sender_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172190"
                 }
             }
@@ -1767,11 +1621,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "room_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172190"
                 }
             }
@@ -1789,11 +1639,7 @@ const docTemplate = `{
                     "example": "Hello-Gochat!"
                 },
                 "recipient_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172190"
                 }
             }
@@ -1811,11 +1657,7 @@ const docTemplate = `{
                     "example": "Hello-Gochat!"
                 },
                 "room_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172190"
                 }
             }
@@ -1855,11 +1697,7 @@ const docTemplate = `{
                     "example": "019b593b-462e-74d6-bfda-0e103a172192"
                 },
                 "to_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172191"
                 }
             }
@@ -1916,11 +1754,7 @@ const docTemplate = `{
                     "example": "family"
                 },
                 "roomID": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172192"
                 }
             }
@@ -2032,11 +1866,7 @@ const docTemplate = `{
                     "example": "secret"
                 },
                 "room_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172192"
                 }
             }

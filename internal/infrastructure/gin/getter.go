@@ -17,12 +17,12 @@ func SetUserID(ginContext *gin.Context, userID kernel.UserID) {
 func GetUserID(ginContext *gin.Context) kernel.UserID {
 	idAny, ok := ginContext.Get(userIDKey)
 	if !ok {
-		return kernel.EmptyUserID
+		return ""
 	}
 
 	id, ok := idAny.(kernel.UserID)
 	if !ok {
-		return kernel.EmptyUserID
+		return ""
 	}
 	return id
 }
