@@ -7,12 +7,17 @@
 // @license.name    MIT
 // @license.url     https://opensource.org/licenses/MIT
 // @BasePath        /api/v1
-// @securityDefinitions.apikey BearerAuth
-// @schemes http
+// @schemes         http
 // @accept json
 // @produce json
-// @in              header
-// @name            Authorization
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description 认证格式：Bearer {access_token}（注意 Bearer 后加英文空格）
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name X-API-Key
+// @x-extension-openapi  {"x-timezone": "UTC"}
 //
 //go:generate swag init -g ./cmd/api/main.go -o ../../docs --parseDependency --parseInternal --dir ../..
 package main

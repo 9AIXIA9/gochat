@@ -13,7 +13,7 @@ import (
 type SendFriendRequestRequest struct {
 	FromID  kernel.UserID `json:"-" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172190"`
 	ToID    kernel.UserID `json:"to_id" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172191"`
-	Content string        `json:"content" validate:"required,max=100" example:"019b593b-462e-74d6-bfda-0e103a172192"`
+	Content string        `json:"content" validate:"required,max=100" example:"Hello, let's be friends!"`
 }
 
 func (r *SendFriendRequestRequest) Bind(ginContext *gin.Context) error {

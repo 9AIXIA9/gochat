@@ -5,6 +5,12 @@ import "github.com/swaggo/swag"
 
 const docTemplate = `{
     "schemes": {{ marshal .Schemes }},
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
     "swagger": "2.0",
     "info": {
         "description": "{{escape .Description}}",
@@ -1701,7 +1707,7 @@ const docTemplate = `{
                 "content": {
                     "type": "string",
                     "maxLength": 100,
-                    "example": "019b593b-462e-74d6-bfda-0e103a172192"
+                    "example": "Hello, let's be friends!"
                 },
                 "to_id": {
                     "type": "string",
@@ -1813,7 +1819,7 @@ const docTemplate = `{
                 "max_member_count": {
                     "type": "integer",
                     "maximum": 200,
-                    "minimum": 0,
+                    "minimum": 2,
                     "example": 20
                 },
                 "password": {
@@ -1880,7 +1886,14 @@ const docTemplate = `{
         }
     },
     "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "X-API-Key",
+            "in": "header",
+            "x-extension-openapi": "{\"x-timezone\": \"UTC\"}"
+        },
         "BearerAuth": {
+            "description": "认证格式：Bearer {access_token}（注意 Bearer 后加英文空格）",
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"
@@ -1893,7 +1906,7 @@ var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "",
 	BasePath:         "/api/v1",
-	Schemes:          []string{},
+	Schemes:          []string{"http"},
 	Title:            "GoChat Backend API",
 	Description:      "GoChat 聊天/好友/房间管理后端接口",
 	InfoInstanceName: "swagger",
