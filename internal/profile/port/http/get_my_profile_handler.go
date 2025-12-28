@@ -12,7 +12,7 @@ import (
 )
 
 type GetMyProfileRequest struct {
-	UserID kernel.UserID `json:"-" validate:"required"`
+	UserID kernel.UserID `json:"-" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172191"`
 }
 
 func (r *GetMyProfileRequest) Bind(ginContext *gin.Context) error {
@@ -28,11 +28,7 @@ type GetMyProfileResponseData struct {
 // @Summary      获取本用户资料
 // @Description  根据token获取本用户资料
 // @Tags         Profile
-// @Produce      json
 // @Success      200      {object}  api.Response{data=GetMyProfileResponseData}  "成功返回用户资料"
-// @Failure      400      {object}  api.Response "请求参数错误"
-// @Failure      404      {object}  api.Response "用户不存在"
-// @Failure      500      {object}  api.Response "服务器内部错误"
 // @Router       /profiles/me [get]
 func NewGetMyProfileHandler(useCase application.GetUserProfileUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(

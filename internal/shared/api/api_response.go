@@ -1,25 +1,15 @@
 package api
 
-var (
-	ResponseSuccess            = NewResponse(CodeSuccess)
-	ResponseServerError        = NewResponse(CodeServerError)
-	ResponseTimeout            = NewResponse(CodeTimeout)
-	ResponseInvalidToken       = NewResponse(CodeInvalidToken)
-	ResponseInvalidParam       = NewResponse(CodeInvalidParam)
-	ResponseServiceUnavailable = NewResponse(CodeServiceUnavailable)
-	ResponseNotFound           = NewResponse(CodeNotFound)
-)
-
 type Response struct {
-	Code    Code   `json:"code"`
-	Message string `json:"message"`
+	Code    Code   `json:"code" example:"200"`
+	Message string `json:"message" example:"Success"`
 	Data    any    `json:"data,omitempty" swaggertype:"object"`
 }
 
 func NewResponse(code Code) *Response {
 	return &Response{
 		Code:    code,
-		Message: code.String(),
+		Message: code.DefaultMessage(),
 	}
 }
 
@@ -33,7 +23,7 @@ func NewResponseWithMessage(code Code, message string) *Response {
 func NewResponseWithData(data any) *Response {
 	return &Response{
 		Code:    CodeSuccess,
-		Message: CodeSuccess.String(),
+		Message: CodeSuccess.DefaultMessage(),
 		Data:    data,
 	}
 }

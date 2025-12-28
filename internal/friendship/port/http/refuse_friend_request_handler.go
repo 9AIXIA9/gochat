@@ -11,8 +11,8 @@ import (
 )
 
 type RefuseFriendRequestRequest struct {
-	UserID    kernel.UserID      `json:"-" validate:"required"`
-	RequestID kernel.OperationID `uri:"request_id" validate:"required"`
+	UserID    kernel.UserID      `json:"-" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172190"`
+	RequestID kernel.OperationID `uri:"request_id" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172191"`
 }
 
 func (r *RefuseFriendRequestRequest) Bind(ginContext *gin.Context) error {
@@ -29,12 +29,8 @@ func (r *RefuseFriendRequestRequest) Bind(ginContext *gin.Context) error {
 // @Description  拒绝指定的好友请求
 // @Tags         Friendship
 // @Security     BearerAuth
-// @Produce      json
-// @Param        request_id  path      kernel.OperationID                   true  "好友请求ID"
+// @Param        request_id  path   string   true  "好友请求ID"   example("019b593b-462e-74d6-bfda-0e103a172190")
 // @Success      200         {object}  api.Response "拒绝成功"
-// @Failure      400         {object}  api.Response "请求参数错误或请求已处理"
-// @Failure      401         {object}  api.Response "未认证"
-// @Failure      500         {object}  api.Response "服务器内部错误"
 // @Router       /friendship-requests/{request_id}/refuse [put]
 func NewRefuseFriendRequestHandler(useCase application.RefuseFriendRequestUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(

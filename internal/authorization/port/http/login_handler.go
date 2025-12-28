@@ -15,12 +15,12 @@ import (
 const RefreshTokenCookieKey = "refresh_token"
 
 type LoginRequest struct {
-	Number   kernel.UserNumber `json:"number" validate:"required,numeric"`
-	Password domain.Password   `json:"password" validate:"required"`
+	Number   kernel.UserNumber `json:"number" validate:"required,numeric" example:"2004426295315795968"`
+	Password domain.Password   `json:"password" validate:"required" example:"your-password"`
 }
 
 type LoginResponseData struct {
-	AccessToken domain.AccessToken `json:"access_token"`
+	AccessToken domain.AccessToken `json:"access_token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySUQiOiIwMTliNTkyOS02NWJjLTc1NDktODljNi0zZjdkYzY4NzI1NzciLCJleHAiOjE3NjY4MjY5MTMsImlhdCI6MTc2NjgyMzMxM30.ogmbXIK85Eqnh3EP_8Ttj0kkuZxsxP5wfERPSc0vNgw"`
 }
 
 func (r *LoginRequest) Bind(ginContext *gin.Context) error {
@@ -29,14 +29,10 @@ func (r *LoginRequest) Bind(ginContext *gin.Context) error {
 
 // NewLoginHandler 用户登录
 // @Summary      用户登录
-// @Description  使用学号/账号和密码登录，成功后下发访问令牌与刷新令牌（刷新令牌存于 Cookie）
+// @Description  使用账号和密码登录，成功后下发访问令牌与刷新令牌（刷新令牌存于 Cookie）
 // @Tags         Authorization
-// @Accept       json
-// @Produce      json
 // @Param        request  body      LoginRequest        true  "登录请求体"
 // @Success      200      {object}  api.Response{data=LoginResponseData}   "登录成功，返回访问令牌"
-// @Failure      400      {object}  api.Response "请求参数错误或密码错误"
-// @Failure      500      {object}  api.Response "服务器内部错误"
 // @Router       /auth/login [post]
 func NewLoginHandler(useCase application.LoginUseCase, validator ginutils.Validator, cookieConfig *config.Cookie) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(

@@ -13,9 +13,9 @@ import (
 const defaultFriendRequestsLimit = 20
 
 type ListFriendRequestsRequest struct {
-	UserID kernel.UserID      `json:"-" validate:"required"`
-	BaseID kernel.OperationID `form:"base_id"`                                  // 用于分页游标
-	Limit  int                `form:"limit" validate:"omitempty,min=1,max=100"` // 每页条数
+	UserID kernel.UserID      `json:"-" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172190"`
+	BaseID kernel.OperationID `form:"base_id"  validate:"omitempty" example:"019b593b-462e-74d6-bfda-0e103a172191"` // 用于分页游标
+	Limit  int                `form:"limit" validate:"omitempty,min=1,max=100" example:"20"`                        // 每页条数
 }
 
 func (r *ListFriendRequestsRequest) Bind(ginContext *gin.Context) error {
@@ -35,18 +35,14 @@ type ListFriendRequestsResponseData struct {
 	Requests []*dto.FriendRequest `json:"requests,omitempty"`
 }
 
-// NewListFriendRequestsHandler 获取好友请求列表
-// @Summary      获取好友请求列表
+// NewListFriendRequestsHandler 获取该处理的好友请求列表
+// @Summary      获取该处理的好友请求列表
 // @Description  获取当前登录用户相关的好友请求列表，可基于 base_id 游标和 limit 分页
 // @Tags         Friendship
 // @Security     BearerAuth
-// @Produce      json
-// @Param        base_id  query     kernel.OperationID    false "分页游标，返回该ID之前的记录"
-// @Param        limit    query     int    false "分页大小，默认20，最大100"
+// @Param        base_id  query     string    false "分页游标，返回该ID之前的记录"    example("019b593b-462e-74d6-bfda-0e103a172190")
+// @Param        limit    query     int    false "分页大小，默认20，最大100"   minimum(1) maximum(100) default(20) example(50)
 // @Success      200      {object}  api.Response{data=ListFriendRequestsResponseData} "成功返回好友请求列表"
-// @Failure      400      {object}  api.Response       "请求参数错误"
-// @Failure      401      {object}  api.Response       "未认证"
-// @Failure      500      {object}  api.Response       "服务器内部错误"
 // @Router       /friendship-requests/ [get]
 func NewListFriendRequestsHandler(useCase application.ListFriendRequestsUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(

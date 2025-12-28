@@ -10,13 +10,13 @@ import (
 )
 
 type UpdateUserProfileRequest struct {
-	UserID      kernel.UserID      `json:"-" validate:"required"`
-	Name        string             `json:"name"`
-	Gender      kernel.Gender      `json:"gender"`
-	Email       kernel.Email       `json:"email"`
-	PhoneNumber kernel.PhoneNumber `json:"phone_number"`
-	Address     kernel.Address     `json:"address"`
-	Sign        string             `json:"sign"`
+	UserID      kernel.UserID      `json:"-" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172191"`
+	Name        string             `json:"name" validate:"omitempty,max=32" example:"Jack"`
+	Gender      kernel.Gender      `json:"gender" validate:"omitempty,oneof=0 1 2" example:"1"`
+	Email       kernel.Email       `json:"email" validate:"omitempty,email" example:"user@demo.com"`
+	PhoneNumber kernel.PhoneNumber `json:"phone_number" validate:"omitempty,numeric,len=11" example:"13310001000"`
+	Address     kernel.Address     `json:"address" validate:"omitempty,max=128" example:"China"`
+	Sign        string             `json:"sign" validate:"omitempty,max=140" example:"I'm Jack!"`
 }
 
 func (r *UpdateUserProfileRequest) Bind(ginContext *gin.Context) error {
@@ -33,14 +33,8 @@ func (r *UpdateUserProfileRequest) Bind(ginContext *gin.Context) error {
 // @Description  更新当前登录用户的基础资料（昵称、邮箱、电话等）
 // @Tags         Profile
 // @Security     BearerAuth
-// @Accept       json
-// @Produce      json
 // @Param        request  body      UpdateUserProfileRequest  true  "更新用户资料请求体"
 // @Success      200      {object}  api.Response    "更新成功"
-// @Failure      400      {object}  api.Response    "请求参数错误"
-// @Failure      401      {object}  api.Response    "未认证"
-// @Failure      404      {object}  api.Response    "用户资料不存在"
-// @Failure      500      {object}  api.Response    "服务器内部错误"
 // @Router       /profiles/me [put]
 func NewUpdateUserProfileHandler(useCase application.UpdateUserProfileUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(

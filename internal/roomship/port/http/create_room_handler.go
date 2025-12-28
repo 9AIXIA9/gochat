@@ -11,9 +11,9 @@ import (
 )
 
 type CreateRoomRequest struct {
-	UserID         kernel.UserID   `json:"-" validate:"required"`
-	MaxMemberCount int             `json:"max_member_count" validate:"gte=0,lte=200"`
-	Password       domain.Password `json:"password" validate:"max=100"`
+	UserID         kernel.UserID   `json:"-" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172191"`
+	MaxMemberCount int             `json:"max_member_count" validate:"gte=0,lte=200" example:"20"`
+	Password       domain.Password `json:"password" validate:"max=100" example:"secret"`
 }
 
 func (r *CreateRoomRequest) Bind(ginContext *gin.Context) error {
@@ -30,13 +30,8 @@ func (r *CreateRoomRequest) Bind(ginContext *gin.Context) error {
 // @Description  创建一个新的房间，当前登录用户将作为房主加入房间
 // @Tags         Roomship
 // @Security     BearerAuth
-// @Accept       json
-// @Produce      json
 // @Param        request  body      CreateRoomRequest       true  "创建房间请求体"
-// @Success      201      {object}  api.Response  "创建成功"
-// @Failure      400      {object}  api.Response  "请求参数错误"
-// @Failure      401      {object}  api.Response  "未认证"
-// @Failure      500      {object}  api.Response  "服务器内部错误"
+// @Success      200      {object}  api.Response  "创建成功"
 // @Router       /rooms/ [post]
 func NewCreateRoomHandler(useCase application.CreateRoomUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(

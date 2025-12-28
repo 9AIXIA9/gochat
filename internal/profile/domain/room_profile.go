@@ -1,8 +1,13 @@
 package domain
 
 import (
+	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 	"time"
+)
+
+const (
+	maxIntroductionLen = 200
 )
 
 type RoomProfile struct {
@@ -36,12 +41,20 @@ func CreateRoomProfile(
 	}
 }
 
-func (p *RoomProfile) UpdateName(name string) {
+func (p *RoomProfile) UpdateName(name string) error {
+	if len(name) > maxNameLen {
+		return myErrors.NewBusiness("name length exceeds limit: max=%d", maxNameLen)
+	}
 	p.name = name
+	return nil
 }
 
-func (p *RoomProfile) UpdateIntroduction(introduction string) {
+func (p *RoomProfile) UpdateIntroduction(introduction string) error {
+	if len(introduction) > maxIntroductionLen {
+		return myErrors.NewBusiness("introduction length exceeds limit: max=%d", maxIntroductionLen)
+	}
 	p.introduction = introduction
+	return nil
 }
 
 func (p *RoomProfile) ID() kernel.RoomID {

@@ -68,7 +68,9 @@ func (uc *updateUserProfileUseCase) Execute(ctx context.Context, input *UpdateUs
 		return nil, err
 	}
 
-	uc.updatesProfile(profile, input)
+	if err := uc.updatesProfile(profile, input); err != nil {
+		return nil, err
+	}
 
 	if err := uc.updater.Update(ctx, profile); err != nil {
 		return nil, err
@@ -77,9 +79,11 @@ func (uc *updateUserProfileUseCase) Execute(ctx context.Context, input *UpdateUs
 	return nil, nil
 }
 
-func (uc *updateUserProfileUseCase) updatesProfile(profile *domain.UserProfile, input *UpdateUserProfileInput) {
+func (uc *updateUserProfileUseCase) updatesProfile(profile *domain.UserProfile, input *UpdateUserProfileInput) error {
 	if input.Name != "" {
-		profile.UpdateName(input.Name)
+		if err := profile.UpdateName(input.Name); err != nil {
+			return err
+		}
 	}
 	if input.Gender != kernel.UnknownGender {
 		profile.UpdateGender(input.Gender)
@@ -91,9 +95,14 @@ func (uc *updateUserProfileUseCase) updatesProfile(profile *domain.UserProfile, 
 		profile.UpdatePhoneNumber(input.PhoneNumber)
 	}
 	if input.Address != "" {
-		profile.UpdateAddress(input.Address)
+		if err := profile.UpdateAddress(input.Address); err != nil {
+			return err
+		}
 	}
 	if input.Sign != "" {
-		profile.UpdateSign(input.Sign)
+		if err := profile.UpdateSign(input.Sign); err != nil {
+			return err
+		}
 	}
+	return nil
 }

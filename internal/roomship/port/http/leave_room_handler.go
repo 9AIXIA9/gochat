@@ -10,8 +10,8 @@ import (
 )
 
 type LeaveRoomRequest struct {
-	UserID kernel.UserID `json:"-" validate:"required"`
-	RoomID kernel.RoomID `uri:"room_id" validate:"required"`
+	UserID kernel.UserID `json:"-" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172191"`
+	RoomID kernel.RoomID `uri:"room_id" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172192"`
 }
 
 func (r *LeaveRoomRequest) Bind(ginContext *gin.Context) error {
@@ -28,12 +28,8 @@ func (r *LeaveRoomRequest) Bind(ginContext *gin.Context) error {
 // @Description  当前登录用户退出指定房间
 // @Tags         Roomship
 // @Security     BearerAuth
-// @Produce      json
-// @Param        room_id  path      kernel.RoomID                   true  "房间ID"
+// @Param        room_id  path     string   true  "房间ID"    example("019b593b-462e-74d6-bfda-0e103a172190")
 // @Success      200      {object}  api.Response "退出成功，若本身不在房间视为成功"
-// @Failure      400      {object}  api.Response "请求参数错误或房主不能直接退出"
-// @Failure      401      {object}  api.Response "未认证"
-// @Failure      500      {object}  api.Response "服务器内部错误"
 // @Router       /rooms/{room_id}/members/me [delete]
 func NewLeaveRoomHandler(useCase application.LeaveRoomUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(

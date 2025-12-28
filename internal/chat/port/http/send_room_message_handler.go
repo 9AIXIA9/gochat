@@ -10,9 +10,9 @@ import (
 )
 
 type SendRoomMessageRequest struct {
-	SenderID kernel.UserID `json:"-" validate:"required"`
-	RoomID   kernel.RoomID `json:"room_id" validate:"required"`
-	Content  string        `json:"content" validate:"required,max=1000"`
+	SenderID kernel.UserID `json:"-" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172190"`
+	RoomID   kernel.RoomID `json:"room_id" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172190"`
+	Content  string        `json:"content" validate:"required,max=1000" example:"Hello-Gochat!"`
 }
 
 func (r *SendRoomMessageRequest) Bind(ginContext *gin.Context) error {
@@ -26,13 +26,8 @@ func (r *SendRoomMessageRequest) Bind(ginContext *gin.Context) error {
 // @Description  向指定房间发送一条消息
 // @Tags         Chat
 // @Security     BearerAuth
-// @Accept       json
-// @Produce      json
 // @Param        request  body      SendRoomMessageRequest     true  "发送房间消息请求体"
-// @Success      201      {object}  api.Response     "发送成功"
-// @Failure      400      {object}  api.Response     "请求参数错误"
-// @Failure      401      {object}  api.Response     "未认证"
-// @Failure      500      {object}  api.Response     "服务器内部错误"
+// @Success      200      {object}  api.Response     "发送成功"
 // @Router       /chats/rooms/messages [post]
 func NewSendRoomMessageHandler(useCase application.SendRoomMessageUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(

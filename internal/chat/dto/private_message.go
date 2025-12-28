@@ -7,12 +7,12 @@ import (
 )
 
 type PrivateMessage struct {
-	ID          kernel.MessageID    `json:"id"`
-	SenderID    kernel.UserID       `json:"sender_id"`
-	RecipientID kernel.UserID       `json:"recipient_id"`
-	State       domain.MessageState `json:"state"`
-	Content     string              `json:"content"`
-	SentAt      time.Time           `json:"sent_at"`
+	ID          kernel.MessageID    `json:"id" example:"019b593b-462e-74d6-bfda-0e103a172190"`
+	SenderID    kernel.UserID       `json:"sender_id" example:"019b5929-65bc-7549-89c6-3f7dc6872577"`
+	RecipientID kernel.UserID       `json:"recipient_id" example:"019b5929-5f6a-73aa-8adf-57cebe980725"`
+	State       domain.MessageState `json:"state" example:"read"`
+	Content     string              `json:"content" example:"hello gochat!"`
+	SentAt      time.Time           `json:"sent_at" example:"2025-12-26 05:56:55.470"`
 }
 
 func ToPrivateMessageDTO(message *domain.PrivateMessage) *PrivateMessage {

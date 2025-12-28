@@ -11,7 +11,7 @@ import (
 )
 
 type ListRoomMembersRequest struct {
-	RoomID kernel.RoomID `uri:"room_id" validate:"required"`
+	RoomID kernel.RoomID `uri:"room_id" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172191"`
 }
 
 func (r *ListRoomMembersRequest) Bind(ginContext *gin.Context) error {
@@ -29,12 +29,8 @@ type ListRoomMembersResponseData struct {
 // @Summary      获取房间成员列表
 // @Description  根据房间ID获取房间成员列表
 // @Tags         Roomship
-// @Produce      json
-// @Param        room_id  path        kernel.RoomID                           true  "房间ID"
+// @Param        room_id  path      string     true  "房间ID"    example("019b593b-462e-74d6-bfda-0e103a172190")
 // @Success      200      {object}  api.Response{data=ListRoomMembersResponseData}  "成功返回房间成员列表"
-// @Failure      400      {object}  api.Response       "请求参数错误"
-// @Failure      404      {object}  api.Response       "房间不存在"
-// @Failure      500      {object}  api.Response       "服务器内部错误"
 // @Router       /rooms/{room_id}/members [get]
 func NewListRoomMembersHandler(useCase application.ListRoomMembersUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(

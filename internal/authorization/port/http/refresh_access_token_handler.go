@@ -12,11 +12,11 @@ import (
 )
 
 type RefreshAccessTokenRequest struct {
-	RefreshToken domain.RefreshToken `json:"-" validate:"required"`
+	RefreshToken domain.RefreshToken `json:"-" validate:"required" example:"omkGPw-xSCtdVWIxSRP852I9dL0jPzyicgUdRArmbGI"`
 }
 
 type RefreshAccessTokenResponseData struct {
-	AccessToken domain.AccessToken `json:"access_token"`
+	AccessToken domain.AccessToken `json:"access_token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySUQiOiIwMTliNTkyOS02NWJjLTc1NDktODljNi0zZjdkYzY4NzI1NzciLCJleHAiOjE3NjY4MjY5MTMsImlhdCI6MTc2NjgyMzMxM30.ogmbXIK85Eqnh3EP_8Ttj0kkuZxsxP5wfERPSc0vNgw"`
 }
 
 func (r *RefreshAccessTokenRequest) Bind(ginContext *gin.Context) error {
@@ -32,10 +32,7 @@ func (r *RefreshAccessTokenRequest) Bind(ginContext *gin.Context) error {
 // @Summary      刷新访问令牌
 // @Description  使用刷新令牌 Cookie 刷新访问令牌，并重新设置刷新令牌 Cookie
 // @Tags         Authorization
-// @Produce      json
 // @Success      200  {object}  api.Response{data=RefreshAccessTokenResponseData}  "刷新成功，返回新的访问令牌"
-// @Failure      400  {object}  api.Response         "刷新令牌无效或已过期"
-// @Failure      500  {object}  api.Response         "服务器内部错误"
 // @Router       /auth/tokens/refresh [put]
 func NewRefreshAccessTokenHandler(useCase application.RefreshAccessTokenUseCase, validator ginutils.Validator, cookieConfig *config.Cookie) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(

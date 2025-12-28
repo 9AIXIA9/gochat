@@ -10,8 +10,8 @@ import (
 )
 
 type ReadPrivateMessagesRequest struct {
-	SenderID    kernel.UserID `json:"sender_id" validate:"required"`
-	RecipientID kernel.UserID `json:"-" validate:"required"`
+	SenderID    kernel.UserID `json:"sender_id" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172190"`
+	RecipientID kernel.UserID `json:"-" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172191"`
 }
 
 func (r *ReadPrivateMessagesRequest) Bind(ginContext *gin.Context) error {
@@ -19,18 +19,13 @@ func (r *ReadPrivateMessagesRequest) Bind(ginContext *gin.Context) error {
 	return ginContext.BindJSON(r)
 }
 
-// NewReadPrivateMessagesHandler 发送房间消息
-// @Summary      发送房间消息
-// @Description  向指定房间发送一条消息
+// NewReadPrivateMessagesHandler 阅读指定用户消息
+// @Summary      阅读指定用户消息
+// @Description  阅读来自指定用户的所有未读消息
 // @Tags         Chat
 // @Security     BearerAuth
-// @Accept       json
-// @Produce      json
-// @Param        request  body      ReadPrivateMessagesRequest     true  "发送房间消息请求体"
-// @Success      201      {object}  api.Response     "发送成功"
-// @Failure      400      {object}  api.Response     "请求参数错误"
-// @Failure      401      {object}  api.Response     "未认证"
-// @Failure      500      {object}  api.Response     "服务器内部错误"
+// @Param        request  body      ReadPrivateMessagesRequest     true  "阅读指定用户消息请求体"
+// @Success      200      {object}  api.Response     "发送成功"
 // @Router       /chats/private-messages/read [put]
 func NewReadPrivateMessagesHandler(useCase application.ReadPrivateMessagesUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
