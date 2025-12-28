@@ -83,7 +83,7 @@ lint: ## Run golangci-lint if installed
 
 .PHONY: swagger
 swagger: ## Generate Swagger docs from annotations
-	go generate ./cmd/api/main.go
+	swag init -g cmd/api/main.go --parseDependency --parseInternal
 
 # Build & run app locally (without Docker)
 APP_MAIN := ./cmd/api/main.go
