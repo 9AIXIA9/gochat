@@ -9,7 +9,7 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "termsOfService": "http://swagger.io/terms/",
+        "termsOfService": "https://swagger.io/terms/",
         "contact": {
             "name": "XIA",
             "email": "906094554@qq.com"
@@ -190,7 +190,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "发送成功",
+                        "description": "成功已读",
                         "schema": {
                             "$ref": "#/definitions/gochat_internal_shared_api.Response"
                         }
@@ -260,65 +260,6 @@ const docTemplate = `{
             }
         },
         "/chats/rooms/messages": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "获取当前登录用户所在房间的消息记录，可基于 base_id 游标和 limit 分页",
-                "tags": [
-                    "Chat"
-                ],
-                "summary": "获取房间内的消息",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "x-example": "\"019b5929-65bc-7549-89c6-3f7dc6872577\"",
-                        "description": "群聊对象房间ID",
-                        "name": "user_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "x-example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
-                        "description": "分页游标",
-                        "name": "base_id",
-                        "in": "query"
-                    },
-                    {
-                        "maximum": 100,
-                        "minimum": 1,
-                        "type": "integer",
-                        "default": 20,
-                        "x-example": 50,
-                        "description": "分页大小",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "成功返回房间消息记录",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/internal_chat_port_http.ListRoomMessagesResponseData"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
             "post": {
                 "security": [
                     {
@@ -376,7 +317,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "发送成功",
+                        "description": "成功已读",
                         "schema": {
                             "$ref": "#/definitions/gochat_internal_shared_api.Response"
                         }
@@ -384,7 +325,68 @@ const docTemplate = `{
                 }
             }
         },
-        "/friendship-requests/": {
+        "/chats/rooms/messages/{room_id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取当前登录用户所在房间的消息记录，可基于 base_id 游标和 limit 分页",
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "获取房间内的消息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "x-example": "\"019b5929-65bc-7549-89c6-3f7dc6872577\"",
+                        "description": "群聊对象房间ID",
+                        "name": "room_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "x-example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
+                        "description": "分页游标",
+                        "name": "base_id",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 20,
+                        "x-example": 50,
+                        "description": "分页大小",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "成功返回房间消息记录",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_chat_port_http.ListRoomMessagesResponseData"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/friendship-requests": {
             "get": {
                 "security": [
                     {
@@ -532,7 +534,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/friendships/": {
+        "/friendships": {
             "get": {
                 "security": [
                     {
@@ -640,6 +642,11 @@ const docTemplate = `{
         },
         "/profiles/me": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "根据token获取本用户资料",
                 "tags": [
                     "Profile"
@@ -815,7 +822,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/rooms/": {
+        "/rooms": {
             "get": {
                 "security": [
                     {
@@ -899,7 +906,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/rooms/requests/": {
+        "/rooms/requests": {
             "get": {
                 "security": [
                     {
@@ -1301,7 +1308,7 @@ const docTemplate = `{
                             "$ref": "#/definitions/gochat_internal_notification_domain.MessageState"
                         }
                     ],
-                    "example": "read"
+                    "example": "delivered"
                 }
             }
         },

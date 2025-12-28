@@ -43,7 +43,7 @@ type ListMemberRequestsResponseData struct {
 // @Param        base_id  query     string     false "分页游标，返回该ID之前的记录"    example("019b593b-462e-74d6-bfda-0e103a172190")
 // @Param        limit    query     int    false "分页大小，默认20，最大100"   minimum(1) maximum(100) default(20) example(50)
 // @Success      200      {object}  api.Response{data=ListMemberRequestsResponseData} "成功返回成员请求列表"
-// @Router       /rooms/requests/ [get]
+// @Router       /rooms/requests [get]
 func NewListMemberRequestsHandler(useCase application.ListMemberRequestsUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,

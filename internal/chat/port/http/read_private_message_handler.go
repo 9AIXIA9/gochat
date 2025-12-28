@@ -25,7 +25,7 @@ func (r *ReadPrivateMessagesRequest) Bind(ginContext *gin.Context) error {
 // @Tags         Chat
 // @Security     BearerAuth
 // @Param        request  body      ReadPrivateMessagesRequest     true  "阅读指定用户消息请求体"
-// @Success      200      {object}  api.Response     "发送成功"
+// @Success      200      {object}  api.Response     "成功已读"
 // @Router       /chats/private-messages/read [put]
 func NewReadPrivateMessagesHandler(useCase application.ReadPrivateMessagesUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(

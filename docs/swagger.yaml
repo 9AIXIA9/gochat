@@ -127,7 +127,7 @@ definitions:
       state:
         allOf:
         - $ref: '#/definitions/gochat_internal_notification_domain.MessageState'
-        example: read
+        example: delivered
     type: object
   gochat_internal_profile_dto.RoomProfile:
     properties:
@@ -530,7 +530,7 @@ info:
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
-  termsOfService: http://swagger.io/terms/
+  termsOfService: https://swagger.io/terms/
   title: GoChat Backend API
   version: '1.0'
 paths:
@@ -666,7 +666,7 @@ paths:
           $ref: '#/definitions/internal_chat_port_http.ReadPrivateMessagesRequest'
       responses:
         '200':
-          description: 发送成功
+          description: 成功已读
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
@@ -675,12 +675,32 @@ paths:
       tags:
       - Chat
   /chats/rooms/messages:
+    post:
+      description: 向指定房间发送一条消息
+      parameters:
+      - description: 发送房间消息请求体
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_chat_port_http.SendRoomMessageRequest'
+      responses:
+        '200':
+          description: 发送成功
+          schema:
+            $ref: '#/definitions/gochat_internal_shared_api.Response'
+      security:
+      - BearerAuth: []
+      summary: 发送房间消息
+      tags:
+      - Chat
+  /chats/rooms/messages/{room_id}:
     get:
       description: 获取当前登录用户所在房间的消息记录，可基于 base_id 游标和 limit 分页
       parameters:
       - description: 群聊对象房间ID
         in: path
-        name: user_id
+        name: room_id
         required: true
         type: string
         x-example: '"019b5929-65bc-7549-89c6-3f7dc6872577"'
@@ -712,25 +732,6 @@ paths:
       summary: 获取房间内的消息
       tags:
       - Chat
-    post:
-      description: 向指定房间发送一条消息
-      parameters:
-      - description: 发送房间消息请求体
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/internal_chat_port_http.SendRoomMessageRequest'
-      responses:
-        '200':
-          description: 发送成功
-          schema:
-            $ref: '#/definitions/gochat_internal_shared_api.Response'
-      security:
-      - BearerAuth: []
-      summary: 发送房间消息
-      tags:
-      - Chat
   /chats/rooms/messages/read:
     put:
       description: 阅读指定房间的所有消息
@@ -743,7 +744,7 @@ paths:
           $ref: '#/definitions/internal_chat_port_http.ReadRoomMessagesRequest'
       responses:
         '200':
-          description: 发送成功
+          description: 成功已读
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
@@ -751,7 +752,7 @@ paths:
       summary: 阅读指定房间消息
       tags:
       - Chat
-  /friendship-requests/:
+  /friendship-requests:
     get:
       description: 获取当前登录用户相关的好友请求列表，可基于 base_id 游标和 limit 分页
       parameters:
@@ -842,7 +843,7 @@ paths:
       summary: 拒绝好友请求
       tags:
       - Friendship
-  /friendships/:
+  /friendships:
     get:
       description: 获取当前登录用户的好友关系列表，可基于 base_id 游标和 limit 分页
       parameters:
@@ -919,6 +920,8 @@ paths:
                 data:
                   $ref: '#/definitions/internal_profile_port_http.GetMyProfileResponseData'
               type: object
+      security:
+      - BearerAuth: []
       summary: 获取本用户资料
       tags:
       - Profile
@@ -1012,7 +1015,7 @@ paths:
       summary: 获取用户资料
       tags:
       - Profile
-  /rooms/:
+  /rooms:
     get:
       description: 获取当前登录用户加入的房间关系列表，可基于 base_id 游标和 limit 分页
       parameters:
@@ -1106,7 +1109,7 @@ paths:
       summary: 退出房间
       tags:
       - Roomship
-  /rooms/requests/:
+  /rooms/requests:
     get:
       description: 获取当前登录用户管理的房间成员请求列表，可基于 base_id 游标和 limit 分页
       parameters:
