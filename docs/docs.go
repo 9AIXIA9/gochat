@@ -238,7 +238,7 @@ const docTemplate = `{
                         "type": "integer",
                         "default": 20,
                         "x-example": 50,
-                        "description": "分页大小",
+                        "description": "分页大小，默认 20，最大 100",
                         "name": "limit",
                         "in": "query"
                     }
@@ -365,7 +365,7 @@ const docTemplate = `{
                         "type": "integer",
                         "default": 20,
                         "x-example": 50,
-                        "description": "分页大小",
+                        "description": "分页大小，默认 20，最大 100",
                         "name": "limit",
                         "in": "query"
                     }
@@ -762,21 +762,21 @@ const docTemplate = `{
                 "summary": "更新房间资料",
                 "parameters": [
                     {
+                        "type": "string",
+                        "x-example": "\"019b593b-462e-74d6-bfda-0e103a172192\"",
+                        "description": "房间ID",
+                        "name": "room_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "更新房间资料请求体",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_profile_port_http.UpdateRoomProfileRequest"
+                            "$ref": "#/definitions/internal_profile_port_http.UpdateRoomProfileRequestBody"
                         }
-                    },
-                    {
-                        "type": "string",
-                        "x-example": "019b593b-462e-74d6-bfda-0e103a172192",
-                        "description": "房间ID",
-                        "name": "room_id",
-                        "in": "path",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -1228,7 +1228,7 @@ const docTemplate = `{
             "properties": {
                 "content": {
                     "type": "string",
-                    "example": "Hello-Gochat!"
+                    "example": "Hi, let's be friends!"
                 },
                 "from": {
                     "type": "string",
@@ -1750,11 +1750,8 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_profile_port_http.UpdateRoomProfileRequest": {
+        "internal_profile_port_http.UpdateRoomProfileRequestBody": {
             "type": "object",
-            "required": [
-                "roomID"
-            ],
             "properties": {
                 "introduction": {
                     "type": "string",
@@ -1765,10 +1762,6 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 32,
                     "example": "family"
-                },
-                "roomID": {
-                    "type": "string",
-                    "example": "019b593b-462e-74d6-bfda-0e103a172192"
                 }
             }
         },
@@ -1890,8 +1883,7 @@ const docTemplate = `{
             "description": "认证格式：Bearer {access_token}（注意 Bearer 后加英文空格）",
             "type": "apiKey",
             "name": "Authorization",
-            "in": "header",
-            "x-extension-openapi": "{\"x-timezone\": \"UTC\"}"
+            "in": "header"
         }
     }
 }`

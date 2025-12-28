@@ -233,7 +233,7 @@
             "minimum": 1,
             "type": "integer",
             "default": 20,
-            "description": "分页大小",
+            "description": "分页大小，默认 20，最大 100",
             "name": "limit",
             "in": "query",
             "x-example": 50
@@ -360,7 +360,7 @@
             "minimum": 1,
             "type": "integer",
             "default": 20,
-            "description": "分页大小",
+            "description": "分页大小，默认 20，最大 100",
             "name": "limit",
             "in": "query",
             "x-example": 50
@@ -758,21 +758,21 @@
         "summary": "更新房间资料",
         "parameters": [
           {
-            "description": "更新房间资料请求体",
-            "name": "request",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/internal_profile_port_http.UpdateRoomProfileRequest"
-            }
-          },
-          {
             "type": "string",
             "description": "房间ID",
             "name": "room_id",
             "in": "path",
             "required": true,
-            "x-example": "019b593b-462e-74d6-bfda-0e103a172192"
+            "x-example": "\"019b593b-462e-74d6-bfda-0e103a172192\""
+          },
+          {
+            "description": "更新房间资料请求体",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/internal_profile_port_http.UpdateRoomProfileRequestBody"
+            }
           }
         ],
         "responses": {
@@ -1224,7 +1224,7 @@
       "properties": {
         "content": {
           "type": "string",
-          "example": "Hello-Gochat!"
+          "example": "Hi, let's be friends!"
         },
         "from": {
           "type": "string",
@@ -1746,11 +1746,8 @@
         }
       }
     },
-    "internal_profile_port_http.UpdateRoomProfileRequest": {
+    "internal_profile_port_http.UpdateRoomProfileRequestBody": {
       "type": "object",
-      "required": [
-        "roomID"
-      ],
       "properties": {
         "introduction": {
           "type": "string",
@@ -1761,10 +1758,6 @@
           "type": "string",
           "maxLength": 32,
           "example": "family"
-        },
-        "roomID": {
-          "type": "string",
-          "example": "019b593b-462e-74d6-bfda-0e103a172192"
         }
       }
     },
@@ -1886,8 +1879,7 @@
       "description": "认证格式：Bearer {access_token}（注意 Bearer 后加英文空格）",
       "type": "apiKey",
       "name": "Authorization",
-      "in": "header",
-      "x-extension-openapi": "{\"x-timezone\": \"UTC\"}"
+      "in": "header"
     }
   }
 }
