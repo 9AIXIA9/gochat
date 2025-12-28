@@ -399,11 +399,11 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "获取当前登录用户相关的好友请求列表，可基于 base_id 游标和 limit 分页",
+                "description": "获取当前用户收到的好友请求列表（待处理 / 已处理）列表，可基于 base_id 游标和 limit 分页",
                 "tags": [
                     "Friendship"
                 ],
-                "summary": "获取该处理的好友请求列表",
+                "summary": "获取当前用户收到的好友请求列表（待处理 / 已处理）",
                 "parameters": [
                     {
                         "type": "string",
@@ -1123,7 +1123,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "退出成功，若本身不在房间视为成功",
+                        "description": "主动退出指定房间，幂等设计：不在房间也返回成功",
                         "schema": {
                             "$ref": "#/definitions/gochat_internal_shared_api.Response"
                         }
@@ -1262,7 +1262,7 @@ const docTemplate = `{
             "properties": {
                 "created_at": {
                     "type": "string",
-                    "example": "019b593b-462e-74d6-bfda-0e103a172193"
+                    "example": "2025-12-26 05:38:19.740"
                 },
                 "id": {
                     "type": "string",
@@ -1886,17 +1886,12 @@ const docTemplate = `{
         }
     },
     "securityDefinitions": {
-        "ApiKeyAuth": {
-            "type": "apiKey",
-            "name": "X-API-Key",
-            "in": "header",
-            "x-extension-openapi": "{\"x-timezone\": \"UTC\"}"
-        },
         "BearerAuth": {
             "description": "认证格式：Bearer {access_token}（注意 Bearer 后加英文空格）",
             "type": "apiKey",
             "name": "Authorization",
-            "in": "header"
+            "in": "header",
+            "x-extension-openapi": "{\"x-timezone\": \"UTC\"}"
         }
     }
 }`

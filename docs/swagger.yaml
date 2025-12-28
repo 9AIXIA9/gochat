@@ -92,7 +92,7 @@ definitions:
   gochat_internal_friendship_dto.Friendship:
     properties:
       created_at:
-        example: 019b593b-462e-74d6-bfda-0e103a172193
+        example: '2025-12-26 05:38:19.740'
         type: string
       id:
         example: 019b593b-462e-74d6-bfda-0e103a172190
@@ -756,7 +756,7 @@ paths:
       - Chat
   /friendship-requests:
     get:
-      description: 获取当前登录用户相关的好友请求列表，可基于 base_id 游标和 limit 分页
+      description: 获取当前用户收到的好友请求列表（待处理 / 已处理）列表，可基于 base_id 游标和 limit 分页
       parameters:
       - description: 分页游标，返回该ID之前的记录
         in: query
@@ -783,7 +783,7 @@ paths:
               type: object
       security:
       - BearerAuth: []
-      summary: 获取该处理的好友请求列表
+      summary: 获取当前用户收到的好友请求列表（待处理 / 已处理）
       tags:
       - Friendship
     post:
@@ -1103,7 +1103,7 @@ paths:
         x-example: '"019b593b-462e-74d6-bfda-0e103a172190"'
       responses:
         '200':
-          description: 退出成功，若本身不在房间视为成功
+          description: 主动退出指定房间，幂等设计：不在房间也返回成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
@@ -1207,14 +1207,10 @@ produces:
 schemes:
 - http
 securityDefinitions:
-  ApiKeyAuth:
-    in: header
-    name: X-API-Key
-    type: apiKey
-    x-extension-openapi: '{"x-timezone": "UTC"}'
   BearerAuth:
     description: 认证格式：Bearer {access_token}（注意 Bearer 后加英文空格）
     in: header
     name: Authorization
     type: apiKey
+    x-extension-openapi: '{"x-timezone": "UTC"}'
 swagger: '2.0'
