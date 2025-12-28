@@ -13,12 +13,12 @@ import (
 
 type UpdateUserProfileRequest struct {
 	UserID      kernel.UserID      `json:"-" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172191"`
-	Name        string             `json:"name" example:"Jack"`
-	Gender      kernel.Gender      `json:"gender" example:"1"`
-	Email       kernel.Email       `json:"email" example:"user@demo.com"`
-	PhoneNumber kernel.PhoneNumber `json:"phone_number" example:"13310001000"`
-	Address     kernel.Address     `json:"address" example:"China"`
-	Sign        string             `json:"sign" example:"I'm Jack!"`
+	Name        string             `json:"name" validate:"omitempty,max=32" example:"Jack"`
+	Gender      kernel.Gender      `json:"gender" validate:"omitempty,oneof=0 1 2" example:"1"`
+	Email       kernel.Email       `json:"email" validate:"omitempty,email" example:"user@demo.com"`
+	PhoneNumber kernel.PhoneNumber `json:"phone_number" validate:"omitempty,numeric,len=11" example:"13310001000"`
+	Address     kernel.Address     `json:"address" validate:"omitempty,max=128" example:"China"`
+	Sign        string             `json:"sign" validate:"omitempty,max=140" example:"I'm Jack!"`
 }
 
 func (r *UpdateUserProfileRequest) Bind(ginContext *gin.Context) error {

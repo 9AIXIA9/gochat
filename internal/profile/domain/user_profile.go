@@ -1,8 +1,15 @@
 package domain
 
 import (
+	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 	"time"
+)
+
+const (
+	maxNameLen    = 32
+	maxAddressLen = 100
+	maxSignLen    = 100
 )
 
 type UserProfile struct {
@@ -51,8 +58,12 @@ func CreateUserProfile(
 	}
 }
 
-func (p *UserProfile) UpdateName(name string) {
+func (p *UserProfile) UpdateName(name string) error {
+	if len(name) > maxNameLen {
+		return myErrors.NewBusiness("name length exceeds limit: max=%d", maxNameLen)
+	}
 	p.name = name
+	return nil
 }
 
 func (p *UserProfile) UpdateGender(gender kernel.Gender) {
@@ -67,12 +78,20 @@ func (p *UserProfile) UpdateEmail(email kernel.Email) {
 	p.email = email
 }
 
-func (p *UserProfile) UpdateAddress(address kernel.Address) {
+func (p *UserProfile) UpdateAddress(address kernel.Address) error {
+	if len(address) > maxAddressLen {
+		return myErrors.NewBusiness("address length exceeds limit: max=%d", maxAddressLen)
+	}
 	p.address = address
+	return nil
 }
 
-func (p *UserProfile) UpdateSign(sign string) {
+func (p *UserProfile) UpdateSign(sign string) error {
+	if len(sign) > maxSignLen {
+		return myErrors.NewBusiness("sign length exceeds limit: max=%d", maxSignLen)
+	}
 	p.sign = sign
+	return nil
 }
 
 func (p *UserProfile) ID() kernel.UserID {

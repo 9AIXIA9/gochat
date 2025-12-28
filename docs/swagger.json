@@ -1922,6 +1922,7 @@
             "properties": {
                 "address": {
                     "type": "string",
+                    "maxLength": 128,
                     "example": "China"
                 },
                 "email": {
@@ -1929,6 +1930,11 @@
                     "example": "user@demo.com"
                 },
                 "gender": {
+                    "enum": [
+                        0,
+                        1,
+                        2
+                    ],
                     "allOf": [
                         {
                             "$ref": "#/definitions/gochat_internal_shared_kernel.Gender"
@@ -1938,6 +1944,7 @@
                 },
                 "name": {
                     "type": "string",
+                    "maxLength": 32,
                     "example": "Jack"
                 },
                 "phone_number": {
@@ -1946,6 +1953,7 @@
                 },
                 "sign": {
                     "type": "string",
+                    "maxLength": 140,
                     "example": "I'm Jack!"
                 }
             }

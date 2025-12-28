@@ -1928,6 +1928,7 @@ const docTemplate = `{
             "properties": {
                 "address": {
                     "type": "string",
+                    "maxLength": 128,
                     "example": "China"
                 },
                 "email": {
@@ -1935,6 +1936,11 @@ const docTemplate = `{
                     "example": "user@demo.com"
                 },
                 "gender": {
+                    "enum": [
+                        0,
+                        1,
+                        2
+                    ],
                     "allOf": [
                         {
                             "$ref": "#/definitions/gochat_internal_shared_kernel.Gender"
@@ -1944,6 +1950,7 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string",
+                    "maxLength": 32,
                     "example": "Jack"
                 },
                 "phone_number": {
@@ -1952,6 +1959,7 @@ const docTemplate = `{
                 },
                 "sign": {
                     "type": "string",
+                    "maxLength": 140,
                     "example": "I'm Jack!"
                 }
             }

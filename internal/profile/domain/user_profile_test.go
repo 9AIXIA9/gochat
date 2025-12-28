@@ -11,6 +11,12 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
+const (
+	maxNameLen    = 32
+	maxAddressLen = 100
+	maxSignLen    = 100
+)
+
 func TestLoadUserProfile(t *testing.T) {
 	profile := domain.LoadUserProfile(
 		fixedUserID,
@@ -50,4 +56,59 @@ func TestCreateUserProfile(t *testing.T) {
 	assert.Equal(t, signedUpAt, profile.SignedUpAt())
 	assert.Equal(t, fixedUserID, profile.ID())
 	assert.Equal(t, kernel.UnknownGender, profile.Gender())
+}
+
+func TestUserProfile_Updates(t *testing.T) {
+	profile := domain.LoadUserProfile(
+		fixedUserID,
+		"",
+		kernel.UnknownGender,
+		"",
+		"",
+		"",
+		"",
+		time.Now().UTC(),
+	)
+
+	profile.UpdateName(fixedName)
+	assert.Equal(t, fixedName, profile.Name())
+
+	profile.UpdateGender(fixedGender)
+	assert.Equal(t, fixedGender, profile.Gender())
+
+	profile.UpdateEmail(fixedEmail)
+	assert.Equal(t, fixedEmail, profile.Email())
+
+	profile.UpdatePhoneNumber(fixedPhoneNumber)
+	assert.Equal(t, fixedPhoneNumber, profile.PhoneNumber())
+
+	err := profile.UpdateAddress(fixedAddress)
+	require.NoError(t, err)
+	assert.Equal(t, fixedAddress, profile.Address())
+
+	err = profile.UpdateSign(fixedSign)
+	require.NoError(t, err)
+	assert.Equal(t, fixedSign, profile.Sign())
+
+	// Test exceeding max lengths
+	longName := ""
+	for i := 0; i < maxNameLen+1; i++ {
+		longName += "a"
+	}
+	err = profile.UpdateName(longName)
+	require.Error(t, err)
+
+	longAddress := ""
+	for i := 0; i < maxAddressLen+1; i++ {
+		longAddress += "a"
+	}
+	err = profile.UpdateAddress(kernel.Address(longAddress))
+	require.Error(t, err)
+
+	longSign := ""
+	for i := 0; i < maxSignLen+1; i++ {
+		longSign += "a"
+	}
+	err = profile.UpdateSign(longSign)
+	require.Error(t, err)
 }

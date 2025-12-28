@@ -510,6 +510,7 @@ definitions:
     properties:
       address:
         example: China
+        maxLength: 128
         type: string
       email:
         example: user@demo.com
@@ -517,15 +518,21 @@ definitions:
       gender:
         allOf:
         - $ref: '#/definitions/gochat_internal_shared_kernel.Gender'
+        enum:
+        - 0
+        - 1
+        - 2
         example: 1
       name:
         example: Jack
+        maxLength: 32
         type: string
       phone_number:
         example: "13310001000"
         type: string
       sign:
         example: I'm Jack!
+        maxLength: 140
         type: string
     type: object
   internal_roomship_port_http.CreateRoomRequest:
