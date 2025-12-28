@@ -627,12 +627,12 @@ paths:
         name: user_id
         required: true
         type: string
-        x-example: '"019b5929-65bc-7549-89c6-3f7dc6872577"'
+        x-example: 019b5929-65bc-7549-89c6-3f7dc6872577
       - description: 分页游标
         in: query
         name: base_id
         type: string
-        x-example: '"019b593b-462e-74d6-bfda-0e103a172190"'
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       - default: 20
         description: 分页大小
         in: query
@@ -705,12 +705,12 @@ paths:
         name: room_id
         required: true
         type: string
-        x-example: '"019b5929-65bc-7549-89c6-3f7dc6872577"'
+        x-example: 019b5929-65bc-7549-89c6-3f7dc6872577
       - description: 分页游标
         in: query
         name: base_id
         type: string
-        x-example: '"019b593b-462e-74d6-bfda-0e103a172190"'
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       - default: 20
         description: 分页大小
         in: query
@@ -762,7 +762,7 @@ paths:
         in: query
         name: base_id
         type: string
-        x-example: '"019b593b-462e-74d6-bfda-0e103a172190"'
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       - default: 20
         description: 分页大小，默认20，最大100
         in: query
@@ -814,7 +814,7 @@ paths:
         name: request_id
         required: true
         type: string
-        x-example: '"019b593b-462e-74d6-bfda-0e103a172190"'
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       responses:
         '200':
           description: 同意成功
@@ -834,7 +834,7 @@ paths:
         name: request_id
         required: true
         type: string
-        x-example: '"019b593b-462e-74d6-bfda-0e103a172190"'
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       responses:
         '200':
           description: 拒绝成功
@@ -853,7 +853,7 @@ paths:
         in: query
         name: base_id
         type: string
-        x-example: '"019b593b-462e-74d6-bfda-0e103a172190"'
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       - default: 20
         description: 分页大小，默认20，最大100
         in: query
@@ -885,7 +885,7 @@ paths:
         in: query
         name: base_id
         type: string
-        x-example: '"019b593b-462e-74d6-bfda-0e103a172190"'
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       - default: 20
         description: 分页大小，默认20，最大100
         in: query
@@ -955,7 +955,7 @@ paths:
         name: room_id
         required: true
         type: string
-        x-example: '"019b593b-462e-74d6-bfda-0e103a172190"'
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       responses:
         '200':
           description: 成功返回房间资料
@@ -983,7 +983,7 @@ paths:
         name: room_id
         required: true
         type: string
-        x-example: '"019b593b-462e-74d6-bfda-0e103a172192"'
+        x-example: 019b593b-462e-74d6-bfda-0e103a172192
       responses:
         '200':
           description: 更新成功
@@ -1003,7 +1003,7 @@ paths:
         name: user_id
         required: true
         type: string
-        x-example: '"019b593b-462e-74d6-bfda-0e103a172190"'
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       responses:
         '200':
           description: 成功返回用户资料
@@ -1025,7 +1025,7 @@ paths:
         in: query
         name: base_id
         type: string
-        x-example: '"019b593b-462e-74d6-bfda-0e103a172190"'
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       - default: 20
         description: 分页大小，默认20，最大100
         in: query
@@ -1077,7 +1077,7 @@ paths:
         name: room_id
         required: true
         type: string
-        x-example: '"019b593b-462e-74d6-bfda-0e103a172190"'
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       responses:
         '200':
           description: 成功返回房间成员列表
@@ -1100,7 +1100,7 @@ paths:
         name: room_id
         required: true
         type: string
-        x-example: '"019b593b-462e-74d6-bfda-0e103a172190"'
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       responses:
         '200':
           description: 主动退出指定房间，幂等设计：不在房间也返回成功
@@ -1119,7 +1119,7 @@ paths:
         in: query
         name: base_id
         type: string
-        x-example: '"019b593b-462e-74d6-bfda-0e103a172190"'
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       - default: 20
         description: 分页大小，默认20，最大100
         in: query
@@ -1171,7 +1171,7 @@ paths:
         name: request_id
         required: true
         type: string
-        x-example: '"019b593b-462e-74d6-bfda-0e103a172190"'
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       responses:
         '200':
           description: 同意成功
@@ -1191,7 +1191,7 @@ paths:
         name: request_id
         required: true
         type: string
-        x-example: '"019b593b-462e-74d6-bfda-0e103a172190"'
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       responses:
         '200':
           description: 拒绝成功

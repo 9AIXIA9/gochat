@@ -34,7 +34,7 @@ func (r *UpdateRoomProfileRequest) Bind(ginContext *gin.Context) error {
 // @Tags         Profile
 // @Security     BearerAuth
 // @Param        request  body      UpdateRoomProfileRequest  true  "更新房间资料请求体"
-// @Param   	 room_id  path      string                    true  "房间ID"  example("019b593b-462e-74d6-bfda-0e103a172192")
+// @Param   	 room_id  path      string                    true  "房间ID"  example(019b593b-462e-74d6-bfda-0e103a172192)
 // @Success      200      {object}  api.Response    "更新成功"
 // @Router       /profiles/rooms/{room_id} [put]
 func NewUpdateRoomProfileHandler(useCase application.UpdateRoomProfileUseCase, validator ginutils.Validator) gin.HandlerFunc {

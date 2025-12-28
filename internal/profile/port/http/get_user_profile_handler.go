@@ -30,7 +30,7 @@ type GetUserProfileResponseData struct {
 // @Summary      获取用户资料
 // @Description  根据用户ID获取用户公开资料
 // @Tags         Profile
-// @Param        user_id  path      string      true  "用户ID"    example("019b593b-462e-74d6-bfda-0e103a172190")
+// @Param        user_id  path      string      true  "用户ID"    example(019b593b-462e-74d6-bfda-0e103a172190)
 // @Success      200      {object}  api.Response{data=GetUserProfileResponseData}  "成功返回用户资料"
 // @Router       /profiles/users/{user_id} [get]
 func NewGetUserProfileHandler(useCase application.GetUserProfileUseCase, validator ginutils.Validator) gin.HandlerFunc {

@@ -219,14 +219,14 @@
             "name": "user_id",
             "in": "path",
             "required": true,
-            "x-example": "\"019b5929-65bc-7549-89c6-3f7dc6872577\""
+            "x-example": "019b5929-65bc-7549-89c6-3f7dc6872577"
           },
           {
             "type": "string",
             "description": "分页游标",
             "name": "base_id",
             "in": "query",
-            "x-example": "\"019b593b-462e-74d6-bfda-0e103a172190\""
+            "x-example": "019b593b-462e-74d6-bfda-0e103a172190"
           },
           {
             "maximum": 100,
@@ -346,14 +346,14 @@
             "name": "room_id",
             "in": "path",
             "required": true,
-            "x-example": "\"019b5929-65bc-7549-89c6-3f7dc6872577\""
+            "x-example": "019b5929-65bc-7549-89c6-3f7dc6872577"
           },
           {
             "type": "string",
             "description": "分页游标",
             "name": "base_id",
             "in": "query",
-            "x-example": "\"019b593b-462e-74d6-bfda-0e103a172190\""
+            "x-example": "019b593b-462e-74d6-bfda-0e103a172190"
           },
           {
             "maximum": 100,
@@ -406,7 +406,7 @@
             "description": "分页游标，返回该ID之前的记录",
             "name": "base_id",
             "in": "query",
-            "x-example": "\"019b593b-462e-74d6-bfda-0e103a172190\""
+            "x-example": "019b593b-462e-74d6-bfda-0e103a172190"
           },
           {
             "maximum": 100,
@@ -491,7 +491,7 @@
             "name": "request_id",
             "in": "path",
             "required": true,
-            "x-example": "\"019b593b-462e-74d6-bfda-0e103a172190\""
+            "x-example": "019b593b-462e-74d6-bfda-0e103a172190"
           }
         ],
         "responses": {
@@ -523,7 +523,7 @@
             "name": "request_id",
             "in": "path",
             "required": true,
-            "x-example": "\"019b593b-462e-74d6-bfda-0e103a172190\""
+            "x-example": "019b593b-462e-74d6-bfda-0e103a172190"
           }
         ],
         "responses": {
@@ -554,7 +554,7 @@
             "description": "分页游标，返回该ID之前的记录",
             "name": "base_id",
             "in": "query",
-            "x-example": "\"019b593b-462e-74d6-bfda-0e103a172190\""
+            "x-example": "019b593b-462e-74d6-bfda-0e103a172190"
           },
           {
             "maximum": 100,
@@ -607,7 +607,7 @@
             "description": "分页游标，返回该ID之前的消息",
             "name": "base_id",
             "in": "query",
-            "x-example": "\"019b593b-462e-74d6-bfda-0e103a172190\""
+            "x-example": "019b593b-462e-74d6-bfda-0e103a172190"
           },
           {
             "maximum": 100,
@@ -721,7 +721,7 @@
             "name": "room_id",
             "in": "path",
             "required": true,
-            "x-example": "\"019b593b-462e-74d6-bfda-0e103a172190\""
+            "x-example": "019b593b-462e-74d6-bfda-0e103a172190"
           }
         ],
         "responses": {
@@ -772,7 +772,7 @@
             "name": "room_id",
             "in": "path",
             "required": true,
-            "x-example": "\"019b593b-462e-74d6-bfda-0e103a172192\""
+            "x-example": "019b593b-462e-74d6-bfda-0e103a172192"
           }
         ],
         "responses": {
@@ -799,7 +799,7 @@
             "name": "user_id",
             "in": "path",
             "required": true,
-            "x-example": "\"019b593b-462e-74d6-bfda-0e103a172190\""
+            "x-example": "019b593b-462e-74d6-bfda-0e103a172190"
           }
         ],
         "responses": {
@@ -842,7 +842,7 @@
             "description": "分页游标，返回该ID之前的记录",
             "name": "base_id",
             "in": "query",
-            "x-example": "\"019b593b-462e-74d6-bfda-0e103a172190\""
+            "x-example": "019b593b-462e-74d6-bfda-0e103a172190"
           },
           {
             "maximum": 100,
@@ -926,7 +926,7 @@
             "description": "分页游标，返回该ID之前的记录",
             "name": "base_id",
             "in": "query",
-            "x-example": "\"019b593b-462e-74d6-bfda-0e103a172190\""
+            "x-example": "019b593b-462e-74d6-bfda-0e103a172190"
           },
           {
             "maximum": 100,
@@ -1011,7 +1011,7 @@
             "name": "request_id",
             "in": "path",
             "required": true,
-            "x-example": "\"019b593b-462e-74d6-bfda-0e103a172190\""
+            "x-example": "019b593b-462e-74d6-bfda-0e103a172190"
           }
         ],
         "responses": {
@@ -1043,7 +1043,7 @@
             "name": "request_id",
             "in": "path",
             "required": true,
-            "x-example": "\"019b593b-462e-74d6-bfda-0e103a172190\""
+            "x-example": "019b593b-462e-74d6-bfda-0e103a172190"
           }
         ],
         "responses": {
@@ -1070,7 +1070,7 @@
             "name": "room_id",
             "in": "path",
             "required": true,
-            "x-example": "\"019b593b-462e-74d6-bfda-0e103a172190\""
+            "x-example": "019b593b-462e-74d6-bfda-0e103a172190"
           }
         ],
         "responses": {
@@ -1114,7 +1114,7 @@
             "name": "room_id",
             "in": "path",
             "required": true,
-            "x-example": "\"019b593b-462e-74d6-bfda-0e103a172190\""
+            "x-example": "019b593b-462e-74d6-bfda-0e103a172190"
           }
         ],
         "responses": {
