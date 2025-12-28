@@ -522,7 +522,6 @@ definitions:
     required:
     - room_id
     type: object
-host: localhost:8080
 info:
   contact:
     email: 906094554@qq.com
