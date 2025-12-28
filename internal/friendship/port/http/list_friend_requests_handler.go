@@ -10,8 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//TODO 所有的limit要重新限制
-
 const defaultFriendRequestsLimit = 20
 
 type ListFriendRequestsRequest struct {

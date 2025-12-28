@@ -1,7 +1,5 @@
 package http
 
-//TODO 检视validate
-
 import (
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/profile/application"
