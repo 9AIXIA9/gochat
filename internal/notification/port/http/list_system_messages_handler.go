@@ -14,8 +14,8 @@ const defaultSystemMessagesLimit = 20
 
 type ListSystemMessagesRequest struct {
 	UserID kernel.UserID    `json:"-" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172191"`
-	BaseID kernel.MessageID `form:"base_id" example:"019b593b-462e-74d6-bfda-0e103a172192"` // 用于分页游标
-	Limit  int              `form:"limit" validate:"omitempty,min=1,max=100" example:"20"`  // 每页条数
+	BaseID kernel.MessageID `form:"base_id"  validate:"omitempty" example:"019b593b-462e-74d6-bfda-0e103a172192"` // 用于分页游标
+	Limit  int              `form:"limit" validate:"omitempty,min=1,max=100" example:"20"`                        // 每页条数
 }
 
 func (r *ListSystemMessagesRequest) Bind(ginContext *gin.Context) error {

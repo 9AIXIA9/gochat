@@ -16,8 +16,8 @@ const defaultRoomshipsLimit = 20
 
 type ListRoomshipsRequest struct {
 	UserID kernel.UserID     `json:"-" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172191"`
-	BaseID domain.RoomshipID `form:"base_id" example:"019b593b-462e-74d6-bfda-0e103a172192"` // 用于分页游标
-	Limit  int               `form:"limit" validate:"omitempty,min=1,max=100" example:"20"`  // 每页条数
+	BaseID domain.RoomshipID `form:"base_id"  validate:"omitempty" example:"019b593b-462e-74d6-bfda-0e103a172192"` // 用于分页游标
+	Limit  int               `form:"limit" validate:"omitempty,min=1,max=100" example:"20"`                        // 每页条数
 }
 
 func (r *ListRoomshipsRequest) Bind(ginContext *gin.Context) error {

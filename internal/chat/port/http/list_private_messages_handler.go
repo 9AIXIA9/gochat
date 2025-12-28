@@ -15,8 +15,8 @@ const defaultPrivateMessagesLimit = 20
 type ListPrivateMessagesRequest struct {
 	OperatorID kernel.UserID    `json:"-" validate:"required" example:"019b5929-5f6a-73aa-8adf-57cebe980725"`
 	UserID     kernel.UserID    `uri:"user_id" validate:"required" example:"019b5929-65bc-7549-89c6-3f7dc6872577"`
-	BaseID     kernel.MessageID `form:"base_id" example:"019b593b-462e-74d6-bfda-0e103a172190"` // 用于分页游标
-	Limit      int              `form:"limit" validate:"omitempty,min=1,max=100" example:"50"`  // 每页条数
+	BaseID     kernel.MessageID `form:"base_id"  validate:"omitempty" example:"019b593b-462e-74d6-bfda-0e103a172190"` // 用于分页游标
+	Limit      int              `form:"limit" validate:"omitempty,min=1,max=100" example:"50"`                        // 每页条数
 }
 
 func (r *ListPrivateMessagesRequest) Bind(ginContext *gin.Context) error {

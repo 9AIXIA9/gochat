@@ -15,8 +15,8 @@ const defaultFriendshipsLimit = 20
 
 type ListFriendshipsRequest struct {
 	UserID kernel.UserID       `json:"-" validate:"required" example:"019b593b-462e-74d6-bfda-0e103a172190"`
-	BaseID domain.FriendshipID `form:"base_id" example:"019b593b-462e-74d6-bfda-0e103a172191"` // 用于分页游标
-	Limit  int                 `form:"limit" validate:"omitempty,min=1,max=100" example:"20"`  // 每页条数
+	BaseID domain.FriendshipID `form:"base_id"  validate:"omitempty" example:"019b593b-462e-74d6-bfda-0e103a172191"` // 用于分页游标
+	Limit  int                 `form:"limit" validate:"omitempty,min=1,max=100" example:"20"`                        // 每页条数
 }
 
 func (r *ListFriendshipsRequest) Bind(ginContext *gin.Context) error {
