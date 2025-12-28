@@ -5,11 +5,17 @@ import "github.com/swaggo/swag"
 
 const docTemplate = `{
     "schemes": {{ marshal .Schemes }},
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
     "swagger": "2.0",
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "termsOfService": "http://swagger.io/terms/",
+        "termsOfService": "https://swagger.io/terms/",
         "contact": {
             "name": "XIA",
             "email": "906094554@qq.com"
@@ -190,7 +196,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "发送成功",
+                        "description": "成功已读",
                         "schema": {
                             "$ref": "#/definitions/gochat_internal_shared_api.Response"
                         }
@@ -213,7 +219,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "\"019b5929-65bc-7549-89c6-3f7dc6872577\"",
+                        "x-example": "019b5929-65bc-7549-89c6-3f7dc6872577",
                         "description": "私聊对象用户ID",
                         "name": "user_id",
                         "in": "path",
@@ -221,7 +227,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "分页游标",
                         "name": "base_id",
                         "in": "query"
@@ -231,8 +237,8 @@ const docTemplate = `{
                         "minimum": 1,
                         "type": "integer",
                         "default": 20,
-                        "example": 50,
-                        "description": "分页大小",
+                        "x-example": 50,
+                        "description": "分页大小，默认 20，最大 100",
                         "name": "limit",
                         "in": "query"
                     }
@@ -260,65 +266,6 @@ const docTemplate = `{
             }
         },
         "/chats/rooms/messages": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "获取当前登录用户所在房间的消息记录，可基于 base_id 游标和 limit 分页",
-                "tags": [
-                    "Chat"
-                ],
-                "summary": "获取房间内的消息",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "example": "\"019b5929-65bc-7549-89c6-3f7dc6872577\"",
-                        "description": "群聊对象房间ID",
-                        "name": "user_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
-                        "description": "分页游标",
-                        "name": "base_id",
-                        "in": "query"
-                    },
-                    {
-                        "maximum": 100,
-                        "minimum": 1,
-                        "type": "integer",
-                        "default": 20,
-                        "example": 50,
-                        "description": "分页大小",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "成功返回房间消息记录",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/internal_chat_port_http.ListRoomMessagesResponseData"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
             "post": {
                 "security": [
                     {
@@ -376,7 +323,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "发送成功",
+                        "description": "成功已读",
                         "schema": {
                             "$ref": "#/definitions/gochat_internal_shared_api.Response"
                         }
@@ -384,22 +331,83 @@ const docTemplate = `{
                 }
             }
         },
-        "/friendship-requests/": {
+        "/chats/rooms/messages/{room_id}": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "获取当前登录用户相关的好友请求列表，可基于 base_id 游标和 limit 分页",
+                "description": "获取当前登录用户所在房间的消息记录，可基于 base_id 游标和 limit 分页",
                 "tags": [
-                    "Friendship"
+                    "Chat"
                 ],
-                "summary": "获取该处理的好友请求列表",
+                "summary": "获取房间内的消息",
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
+                        "x-example": "019b5929-65bc-7549-89c6-3f7dc6872577",
+                        "description": "群聊对象房间ID",
+                        "name": "room_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "description": "分页游标",
+                        "name": "base_id",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 20,
+                        "x-example": 50,
+                        "description": "分页大小，默认 20，最大 100",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "成功返回房间消息记录",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_chat_port_http.ListRoomMessagesResponseData"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/friendship-requests": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "获取当前用户收到的好友请求列表（待处理 / 已处理）列表，可基于 base_id 游标和 limit 分页",
+                "tags": [
+                    "Friendship"
+                ],
+                "summary": "获取当前用户收到的好友请求列表（待处理 / 已处理）",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "分页游标，返回该ID之前的记录",
                         "name": "base_id",
                         "in": "query"
@@ -409,7 +417,7 @@ const docTemplate = `{
                         "minimum": 1,
                         "type": "integer",
                         "default": 20,
-                        "example": 50,
+                        "x-example": 50,
                         "description": "分页大小，默认20，最大100",
                         "name": "limit",
                         "in": "query"
@@ -483,7 +491,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "好友请求ID",
                         "name": "request_id",
                         "in": "path",
@@ -515,7 +523,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "好友请求ID",
                         "name": "request_id",
                         "in": "path",
@@ -532,7 +540,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/friendships/": {
+        "/friendships": {
             "get": {
                 "security": [
                     {
@@ -547,7 +555,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "分页游标，返回该ID之前的记录",
                         "name": "base_id",
                         "in": "query"
@@ -557,7 +565,7 @@ const docTemplate = `{
                         "minimum": 1,
                         "type": "integer",
                         "default": 20,
-                        "example": 50,
+                        "x-example": 50,
                         "description": "分页大小，默认20，最大100",
                         "name": "limit",
                         "in": "query"
@@ -600,7 +608,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "分页游标，返回该ID之前的消息",
                         "name": "base_id",
                         "in": "query"
@@ -610,7 +618,7 @@ const docTemplate = `{
                         "minimum": 1,
                         "type": "integer",
                         "default": 20,
-                        "example": 50,
+                        "x-example": 50,
                         "description": "分页大小，默认20，最大100",
                         "name": "limit",
                         "in": "query"
@@ -640,6 +648,11 @@ const docTemplate = `{
         },
         "/profiles/me": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "根据token获取本用户资料",
                 "tags": [
                     "Profile"
@@ -708,7 +721,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "房间ID",
                         "name": "room_id",
                         "in": "path",
@@ -749,21 +762,21 @@ const docTemplate = `{
                 "summary": "更新房间资料",
                 "parameters": [
                     {
+                        "type": "string",
+                        "x-example": "\"019b593b-462e-74d6-bfda-0e103a172192\"",
+                        "description": "房间ID",
+                        "name": "room_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "更新房间资料请求体",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_profile_port_http.UpdateRoomProfileRequest"
+                            "$ref": "#/definitions/internal_profile_port_http.UpdateRoomProfileRequestBody"
                         }
-                    },
-                    {
-                        "type": "string",
-                        "example": "\"019b593b-462e-74d6-bfda-0e103a172192\"",
-                        "description": "房间ID",
-                        "name": "room_id",
-                        "in": "path",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -786,7 +799,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "用户ID",
                         "name": "user_id",
                         "in": "path",
@@ -815,7 +828,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/rooms/": {
+        "/rooms": {
             "get": {
                 "security": [
                     {
@@ -830,7 +843,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "分页游标，返回该ID之前的记录",
                         "name": "base_id",
                         "in": "query"
@@ -840,7 +853,7 @@ const docTemplate = `{
                         "minimum": 1,
                         "type": "integer",
                         "default": 20,
-                        "example": 50,
+                        "x-example": 50,
                         "description": "分页大小，默认20，最大100",
                         "name": "limit",
                         "in": "query"
@@ -899,7 +912,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/rooms/requests/": {
+        "/rooms/requests": {
             "get": {
                 "security": [
                     {
@@ -914,7 +927,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "分页游标，返回该ID之前的记录",
                         "name": "base_id",
                         "in": "query"
@@ -924,7 +937,7 @@ const docTemplate = `{
                         "minimum": 1,
                         "type": "integer",
                         "default": 20,
-                        "example": 50,
+                        "x-example": 50,
                         "description": "分页大小，默认20，最大100",
                         "name": "limit",
                         "in": "query"
@@ -998,7 +1011,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "成员请求ID",
                         "name": "request_id",
                         "in": "path",
@@ -1030,7 +1043,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "成员请求ID",
                         "name": "request_id",
                         "in": "path",
@@ -1057,7 +1070,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "房间ID",
                         "name": "room_id",
                         "in": "path",
@@ -1101,7 +1114,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "\"019b593b-462e-74d6-bfda-0e103a172190\"",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "房间ID",
                         "name": "room_id",
                         "in": "path",
@@ -1110,7 +1123,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "退出成功，若本身不在房间视为成功",
+                        "description": "主动退出指定房间，幂等设计：不在房间也返回成功",
                         "schema": {
                             "$ref": "#/definitions/gochat_internal_shared_api.Response"
                         }
@@ -1145,19 +1158,11 @@ const docTemplate = `{
                     "example": "019b593b-462e-74d6-bfda-0e103a172190"
                 },
                 "recipient_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b5929-5f6a-73aa-8adf-57cebe980725"
                 },
                 "sender_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b5929-65bc-7549-89c6-3f7dc6872577"
                 },
                 "sent_at": {
@@ -1182,27 +1187,15 @@ const docTemplate = `{
                     "example": "Hello-Gochat!"
                 },
                 "id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.MessageID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172190"
                 },
                 "room_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172190"
                 },
                 "sender_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172190"
                 },
                 "sent_at": {
@@ -1230,36 +1223,19 @@ const docTemplate = `{
                 "StateRefused"
             ]
         },
-        "gochat_internal_friendship_domain.FriendshipID": {
-            "type": "string",
-            "enum": [
-                ""
-            ],
-            "x-enum-varnames": [
-                "EmptyUserID"
-            ]
-        },
         "gochat_internal_friendship_dto.FriendRequest": {
             "type": "object",
             "properties": {
                 "content": {
                     "type": "string",
-                    "example": "Hello-Gochat!"
+                    "example": "Hi, let's be friends!"
                 },
                 "from": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172191"
                 },
                 "id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.OperationID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172190"
                 },
                 "sent_at": {
@@ -1276,11 +1252,7 @@ const docTemplate = `{
                     "example": "pending"
                 },
                 "to": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172192"
                 }
             }
@@ -1290,30 +1262,18 @@ const docTemplate = `{
             "properties": {
                 "created_at": {
                     "type": "string",
-                    "example": "019b593b-462e-74d6-bfda-0e103a172193"
+                    "example": "2025-12-26 05:38:19.740"
                 },
                 "id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_friendship_domain.FriendshipID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172190"
                 },
                 "user_id_1": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172191"
                 },
                 "user_id_2": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172192"
                 }
             }
@@ -1337,19 +1297,11 @@ const docTemplate = `{
                     "example": "Hello-Gochat!"
                 },
                 "id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.MessageID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172191"
                 },
                 "recipient_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172192"
                 },
                 "sent_at": {
@@ -1362,7 +1314,7 @@ const docTemplate = `{
                             "$ref": "#/definitions/gochat_internal_notification_domain.MessageState"
                         }
                     ],
-                    "example": "read"
+                    "example": "delivered"
                 }
             }
         },
@@ -1374,11 +1326,7 @@ const docTemplate = `{
                     "example": "2025-12-26 05:38:19.740"
                 },
                 "id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172191"
                 },
                 "introduction": {
@@ -1387,7 +1335,7 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string",
-                    "example": "we're family'"
+                    "example": "we're family"
                 }
             }
         },
@@ -1411,11 +1359,7 @@ const docTemplate = `{
                     "example": 1
                 },
                 "id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172191"
                 },
                 "name": {
@@ -1428,7 +1372,7 @@ const docTemplate = `{
                 },
                 "sign": {
                     "type": "string",
-                    "example": "I'm Jack!'"
+                    "example": "I'm Jack!"
                 },
                 "signed_up_at": {
                     "type": "string",
@@ -1449,15 +1393,6 @@ const docTemplate = `{
                 "StateRefused"
             ]
         },
-        "gochat_internal_roomship_domain.RoomshipID": {
-            "type": "string",
-            "enum": [
-                ""
-            ],
-            "x-enum-varnames": [
-                "EmptyUserID"
-            ]
-        },
         "gochat_internal_roomship_domain.RoomshipRole": {
             "type": "string",
             "enum": [
@@ -1473,11 +1408,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "applicant_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172192"
                 },
                 "content": {
@@ -1489,11 +1420,7 @@ const docTemplate = `{
                     "example": "2025-12-26 05:38:20.740"
                 },
                 "id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.OperationID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172191"
                 },
                 "operated_at": {
@@ -1501,19 +1428,11 @@ const docTemplate = `{
                     "example": "2025-12-26 05:38:19.740"
                 },
                 "operator_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172194"
                 },
                 "room_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172193"
                 },
                 "state": {
@@ -1534,11 +1453,7 @@ const docTemplate = `{
                     "example": "2025-12-26 05:38:19.740"
                 },
                 "id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_roomship_domain.RoomshipID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172191"
                 },
                 "role": {
@@ -1550,19 +1465,11 @@ const docTemplate = `{
                     "example": "member"
                 },
                 "room_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172192"
                 },
                 "user_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172193"
                 }
             }
@@ -1621,42 +1528,6 @@ const docTemplate = `{
                 "UnknownGender",
                 "MaleGender",
                 "FemaleGender"
-            ]
-        },
-        "gochat_internal_shared_kernel.MessageID": {
-            "type": "string",
-            "enum": [
-                ""
-            ],
-            "x-enum-varnames": [
-                "EmptyUserID"
-            ]
-        },
-        "gochat_internal_shared_kernel.OperationID": {
-            "type": "string",
-            "enum": [
-                ""
-            ],
-            "x-enum-varnames": [
-                "EmptyUserID"
-            ]
-        },
-        "gochat_internal_shared_kernel.RoomID": {
-            "type": "string",
-            "enum": [
-                ""
-            ],
-            "x-enum-varnames": [
-                "EmptyUserID"
-            ]
-        },
-        "gochat_internal_shared_kernel.UserID": {
-            "type": "string",
-            "enum": [
-                ""
-            ],
-            "x-enum-varnames": [
-                "EmptyUserID"
             ]
         },
         "internal_authorization_port_http.LoginRequest": {
@@ -1751,11 +1622,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "sender_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172190"
                 }
             }
@@ -1767,11 +1634,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "room_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172190"
                 }
             }
@@ -1789,11 +1652,7 @@ const docTemplate = `{
                     "example": "Hello-Gochat!"
                 },
                 "recipient_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172190"
                 }
             }
@@ -1811,11 +1670,7 @@ const docTemplate = `{
                     "example": "Hello-Gochat!"
                 },
                 "room_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172190"
                 }
             }
@@ -1852,14 +1707,10 @@ const docTemplate = `{
                 "content": {
                     "type": "string",
                     "maxLength": 100,
-                    "example": "019b593b-462e-74d6-bfda-0e103a172192"
+                    "example": "Hello, let's be friends!"
                 },
                 "to_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.UserID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172191"
                 }
             }
@@ -1899,11 +1750,8 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_profile_port_http.UpdateRoomProfileRequest": {
+        "internal_profile_port_http.UpdateRoomProfileRequestBody": {
             "type": "object",
-            "required": [
-                "roomID"
-            ],
             "properties": {
                 "introduction": {
                     "type": "string",
@@ -1914,14 +1762,6 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 32,
                     "example": "family"
-                },
-                "roomID": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
-                        }
-                    ],
-                    "example": "019b593b-462e-74d6-bfda-0e103a172192"
                 }
             }
         },
@@ -1972,7 +1812,7 @@ const docTemplate = `{
                 "max_member_count": {
                     "type": "integer",
                     "maximum": 200,
-                    "minimum": 0,
+                    "minimum": 2,
                     "example": 20
                 },
                 "password": {
@@ -2032,11 +1872,7 @@ const docTemplate = `{
                     "example": "secret"
                 },
                 "room_id": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_shared_kernel.RoomID"
-                        }
-                    ],
+                    "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172192"
                 }
             }
@@ -2044,6 +1880,7 @@ const docTemplate = `{
     },
     "securityDefinitions": {
         "BearerAuth": {
+            "description": "认证格式：Bearer {access_token}（注意 Bearer 后加英文空格）",
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"
@@ -2054,9 +1891,9 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
+	Host:             "",
 	BasePath:         "/api/v1",
-	Schemes:          []string{},
+	Schemes:          []string{"http"},
 	Title:            "GoChat Backend API",
 	Description:      "GoChat 聊天/好友/房间管理后端接口",
 	InfoInstanceName: "swagger",

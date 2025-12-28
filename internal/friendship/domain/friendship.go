@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type FriendshipID kernel.ID
+type FriendshipID string
 
 type Friendship struct {
 	id        FriendshipID

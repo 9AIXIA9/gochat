@@ -9,7 +9,7 @@ import (
 type SystemMessage struct {
 	ID          kernel.MessageID    `json:"id" example:"019b593b-462e-74d6-bfda-0e103a172191"`
 	RecipientID kernel.UserID       `json:"recipient_id" example:"019b593b-462e-74d6-bfda-0e103a172192"`
-	State       domain.MessageState `json:"state" example:"read"`
+	State       domain.MessageState `json:"state" example:"delivered"`
 	Content     string              `json:"content" example:"Hello-Gochat!"`
 	SentAt      time.Time           `json:"sent_at" example:"2025-12-26 05:38:19.740"`
 }

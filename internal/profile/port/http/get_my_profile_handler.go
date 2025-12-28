@@ -28,6 +28,7 @@ type GetMyProfileResponseData struct {
 // @Summary      获取本用户资料
 // @Description  根据token获取本用户资料
 // @Tags         Profile
+// @Security     BearerAuth
 // @Success      200      {object}  api.Response{data=GetMyProfileResponseData}  "成功返回用户资料"
 // @Router       /profiles/me [get]
 func NewGetMyProfileHandler(useCase application.GetUserProfileUseCase, validator ginutils.Validator) gin.HandlerFunc {

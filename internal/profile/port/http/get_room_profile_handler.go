@@ -29,7 +29,7 @@ type GetRoomProfileResponseData struct {
 // @Summary      获取房间资料
 // @Description  根据房间ID获取房间公开资料
 // @Tags         Profile
-// @Param        room_id  path      string     true  "房间ID"   example("019b593b-462e-74d6-bfda-0e103a172190")
+// @Param        room_id  path      string     true  "房间ID"   example(019b593b-462e-74d6-bfda-0e103a172190)
 // @Success      200      {object}  api.Response{data=GetRoomProfileResponseData} "成功返回房间资料"
 // @Router       /profiles/rooms/{room_id} [get]
 func NewGetRoomProfileHandler(useCase application.GetRoomProfileUseCase, validator ginutils.Validator) gin.HandlerFunc {

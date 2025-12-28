@@ -1,19 +1,19 @@
 // @title           GoChat Backend API
 // @version         1.0
 // @description     GoChat 聊天/好友/房间管理后端接口
-// @termsOfService  http://swagger.io/terms/
+// @termsOfService  https://swagger.io/terms/
 // @contact.name    XIA
 // @contact.email   906094554@qq.com
 // @license.name    MIT
 // @license.url     https://opensource.org/licenses/MIT
-// @host            localhost:8080
 // @BasePath        /api/v1
-// @securityDefinitions.apikey BearerAuth
-// @schemes http
+// @schemes         http
 // @accept json
 // @produce json
-// @in              header
-// @name            Authorization
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description 认证格式：Bearer {access_token}（注意 Bearer 后加英文空格）
 //
 //go:generate swag init -g ./cmd/api/main.go -o ../../docs --parseDependency --parseInternal --dir ../..
 package main

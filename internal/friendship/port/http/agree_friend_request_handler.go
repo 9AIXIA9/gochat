@@ -28,7 +28,7 @@ func (r *AgreeFriendRequestRequest) Bind(ginContext *gin.Context) error {
 // @Description  同意指定的好友请求，将对方加入好友列表
 // @Tags         Friendship
 // @Security     BearerAuth
-// @Param        request_id  path   string   true  "好友请求ID"   example("019b593b-462e-74d6-bfda-0e103a172190")
+// @Param        request_id  path   string   true  "好友请求ID"   example(019b593b-462e-74d6-bfda-0e103a172190)
 // @Success      200         {object}  api.Response "同意成功"
 // @Router       /friendship-requests/{request_id}/agree [put]
 func NewAgreeFriendRequestHandler(useCase application.AgreeFriendRequestUseCase, validator ginutils.Validator) gin.HandlerFunc {

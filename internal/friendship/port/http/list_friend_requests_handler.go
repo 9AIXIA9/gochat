@@ -35,15 +35,15 @@ type ListFriendRequestsResponseData struct {
 	Requests []*dto.FriendRequest `json:"requests,omitempty"`
 }
 
-// NewListFriendRequestsHandler 获取该处理的好友请求列表
-// @Summary      获取该处理的好友请求列表
-// @Description  获取当前登录用户相关的好友请求列表，可基于 base_id 游标和 limit 分页
+// NewListFriendRequestsHandler 获取当前用户收到的好友请求列表（待处理 / 已处理）
+// @Summary      获取当前用户收到的好友请求列表（待处理 / 已处理）
+// @Description  获取当前用户收到的好友请求列表（待处理 / 已处理）列表，可基于 base_id 游标和 limit 分页
 // @Tags         Friendship
 // @Security     BearerAuth
-// @Param        base_id  query     string    false "分页游标，返回该ID之前的记录"    example("019b593b-462e-74d6-bfda-0e103a172190")
+// @Param        base_id  query     string    false "分页游标，返回该ID之前的记录"    example(019b593b-462e-74d6-bfda-0e103a172190)
 // @Param        limit    query     int    false "分页大小，默认20，最大100"   minimum(1) maximum(100) default(20) example(50)
 // @Success      200      {object}  api.Response{data=ListFriendRequestsResponseData} "成功返回好友请求列表"
-// @Router       /friendship-requests/ [get]
+// @Router       /friendship-requests [get]
 func NewListFriendRequestsHandler(useCase application.ListFriendRequestsUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,

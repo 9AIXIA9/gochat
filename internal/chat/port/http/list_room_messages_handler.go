@@ -44,11 +44,11 @@ type ListRoomMessagesResponseData struct {
 // @Description  获取当前登录用户所在房间的消息记录，可基于 base_id 游标和 limit 分页
 // @Tags         Chat
 // @Security     BearerAuth
-// @Param        user_id  path      string  true  "群聊对象房间ID"  example("019b5929-65bc-7549-89c6-3f7dc6872577")
-// @Param        base_id  query     string  false "分页游标"       example("019b593b-462e-74d6-bfda-0e103a172190")
-// @Param        limit    query     int     false "分页大小"      minimum(1) maximum(100) default(20) example(50)
+// @Param        room_id  path      string  true  "群聊对象房间ID"  example(019b5929-65bc-7549-89c6-3f7dc6872577)
+// @Param        base_id  query     string  false "分页游标"       example(019b593b-462e-74d6-bfda-0e103a172190)
+// @Param        limit    query     int     false "分页大小，默认 20，最大 100"      minimum(1) maximum(100) default(20) example(50)
 // @Success      200      {object}  api.Response{data=ListRoomMessagesResponseData} "成功返回房间消息记录"
-// @Router       /chats/rooms/messages [get]
+// @Router       /chats/rooms/messages/{room_id} [get]
 func NewListRoomMessagesHandler(useCase application.ListRoomMessagesUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,

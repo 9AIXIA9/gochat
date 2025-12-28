@@ -28,8 +28,8 @@ func (r *LeaveRoomRequest) Bind(ginContext *gin.Context) error {
 // @Description  当前登录用户退出指定房间
 // @Tags         Roomship
 // @Security     BearerAuth
-// @Param        room_id  path     string   true  "房间ID"    example("019b593b-462e-74d6-bfda-0e103a172190")
-// @Success      200      {object}  api.Response "退出成功，若本身不在房间视为成功"
+// @Param        room_id  path     string   true  "房间ID"    example(019b593b-462e-74d6-bfda-0e103a172190)
+// @Success      200      {object}  api.Response "主动退出指定房间，幂等设计：不在房间也返回成功"
 // @Router       /rooms/{room_id}/members/me [delete]
 func NewLeaveRoomHandler(useCase application.LeaveRoomUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(

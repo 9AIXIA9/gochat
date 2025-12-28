@@ -41,10 +41,10 @@ type ListFriendshipsResponseData struct {
 // @Description  获取当前登录用户的好友关系列表，可基于 base_id 游标和 limit 分页
 // @Tags         Friendship
 // @Security     BearerAuth
-// @Param        base_id  query     string    false "分页游标，返回该ID之前的记录"    example("019b593b-462e-74d6-bfda-0e103a172190")
+// @Param        base_id  query     string    false "分页游标，返回该ID之前的记录"    example(019b593b-462e-74d6-bfda-0e103a172190)
 // @Param        limit    query     int    false "分页大小，默认20，最大100"   minimum(1) maximum(100) default(20) example(50)
 // @Success      200      {object}  api.Response{data=ListFriendshipsResponseData} "成功返回好友列表"
-// @Router       /friendships/ [get]
+// @Router       /friendships [get]
 func NewListFriendshipsHandler(useCase application.ListFriendshipsUseCase, validator ginutils.Validator) gin.HandlerFunc {
 	return ginutils.AdaptUseCaseToHandler(
 		useCase,

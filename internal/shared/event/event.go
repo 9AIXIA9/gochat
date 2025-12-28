@@ -6,10 +6,10 @@ import (
 	"time"
 )
 
-type ID kernel.ID
+type ID string
 
 func (i ID) String() string {
-	return kernel.ID(i).String()
+	return string(i)
 }
 
 type Topic string

@@ -78,7 +78,9 @@ func (uc *updateRoomProfileUseCase) Execute(ctx context.Context, input *UpdateRo
 		return nil, err
 	}
 
-	uc.updatesProfile(profile, input)
+	if err := uc.updatesProfile(profile, input); err != nil {
+		return nil, err
+	}
 
 	if err := uc.updater.Update(ctx, profile); err != nil {
 		return nil, err
@@ -89,11 +91,16 @@ func (uc *updateRoomProfileUseCase) Execute(ctx context.Context, input *UpdateRo
 	return nil, nil
 }
 
-func (uc *updateRoomProfileUseCase) updatesProfile(profile *domain.RoomProfile, input *UpdateRoomProfileInput) {
+func (uc *updateRoomProfileUseCase) updatesProfile(profile *domain.RoomProfile, input *UpdateRoomProfileInput) error {
 	if input.Name != "" {
-		profile.UpdateName(input.Name)
+		if err := profile.UpdateName(input.Name); err != nil {
+			return err
+		}
 	}
 	if input.Introduction != "" {
-		profile.UpdateIntroduction(input.Introduction)
+		if err := profile.UpdateIntroduction(input.Introduction); err != nil {
+			return err
+		}
 	}
+	return nil
 }

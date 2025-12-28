@@ -2,7 +2,7 @@ package domain
 
 import "gochat/internal/shared/kernel"
 
-type FriendshipID kernel.ID
+type FriendshipID string
 
 func (id FriendshipID) String() string {
 	return string(id)
