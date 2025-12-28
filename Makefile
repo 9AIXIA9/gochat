@@ -81,9 +81,25 @@ test-all: ## Run all tests with race detector and shuffle
 lint: ## Run golangci-lint if installed
 	golangci-lint run ./...
 
+# Swagger documentation
 .PHONY: swagger
-swagger: ## Generate Swagger docs from annotations
+swagger: swagger-generate fix-swagger ## Generate Swagger docs and fix example fields
+
+.PHONY: swagger-generate
+swagger-generate: ## Generate Swagger docs from annotations
 	swag init -g cmd/api/main.go --parseDependency --parseInternal
+	@echo "Swagger docs generated in docs/ directory"
+
+.PHONY: fix-swagger
+fix-swagger: ## Fix Swagger example fields (example -> x-example)
+	@echo "Fixing Swagger example fields..."
+	python scripts/fix_swagger.py docs/docs.go docs/swagger.yaml docs/swagger.json --backup
+	@echo "Swagger files fixed"
+
+.PHONY: fix-swagger-dry-run
+fix-swagger-dry-run: ## Check what would be fixed (dry run)
+	@echo "Checking Swagger files (dry run)..."
+	python scripts/fix_swagger.py docs/docs.go docs/swagger.yaml docs/swagger.json --dry-run
 
 # Build & run app locally (without Docker)
 APP_MAIN := ./cmd/api/main.go
