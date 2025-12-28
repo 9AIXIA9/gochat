@@ -13,7 +13,7 @@ type UserProfile struct {
 	Email       kernel.Email       `json:"email" example:"email@demo.com"`
 	PhoneNumber kernel.PhoneNumber `json:"phone_number" example:"13310001000"`
 	Address     kernel.Address     `json:"address" example:"China"`
-	Sign        string             `json:"sign" example:"I'm Jack!'"`
+	Sign        string             `json:"sign" example:"I'm Jack!"`
 	SignedUpAt  time.Time          `json:"signed_up_at" example:"2025-12-26 05:38:19.740"`
 }
 

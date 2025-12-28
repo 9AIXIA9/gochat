@@ -46,7 +46,7 @@ type ListPrivateMessagesResponseData struct {
 // @Security     BearerAuth
 // @Param        user_id  path      string  true  "私聊对象用户ID"  example(019b5929-65bc-7549-89c6-3f7dc6872577)
 // @Param        base_id  query     string  false "分页游标"       example(019b593b-462e-74d6-bfda-0e103a172190)
-// @Param        limit    query     int     false "分页大小"      minimum(1) maximum(100) default(20) example(50)
+// @Param        limit    query     int     false "分页大小，默认 20，最大 100"      minimum(1) maximum(100) default(20) example(50)
 // @Success      200      {object}  api.Response{data=ListPrivateMessagesResponseData} "成功返回私聊消息记录"
 // @Router       /chats/private-messages/{user_id} [get]
 func NewListPrivateMessagesHandler(useCase application.ListPrivateMessagesUseCase, validator ginutils.Validator) gin.HandlerFunc {

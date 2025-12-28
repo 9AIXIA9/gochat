@@ -143,7 +143,7 @@ definitions:
         example: This is our family room.
         type: string
       name:
-        example: we're family'
+        example: we're family
         type: string
     type: object
   gochat_internal_profile_dto.UserProfile:
@@ -168,7 +168,7 @@ definitions:
         example: '13310001000'
         type: string
       sign:
-        example: I'm Jack!'
+        example: I'm Jack!
         type: string
       signed_up_at:
         example: '2025-12-26 05:38:19.740'

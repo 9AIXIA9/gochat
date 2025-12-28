@@ -10,7 +10,7 @@ type FriendRequest struct {
 	ID      kernel.OperationID        `json:"id" example:"019b593b-462e-74d6-bfda-0e103a172190"`
 	From    kernel.UserID             `json:"from" example:"019b593b-462e-74d6-bfda-0e103a172191"`
 	To      kernel.UserID             `json:"to" example:"019b593b-462e-74d6-bfda-0e103a172192"`
-	Content string                    `json:"content" example:"Hello-Gochat!"`
+	Content string                    `json:"content" example:"Hi, let's be friends!"`
 	State   domain.FriendRequestState `json:"state" example:"pending"`
 	SentAt  time.Time                 `json:"sent_at" example:"2025-12-26 05:38:19.740"` //UTC
 }

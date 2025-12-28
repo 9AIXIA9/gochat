@@ -1335,7 +1335,7 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string",
-                    "example": "we're family'"
+                    "example": "we're family"
                 }
             }
         },
@@ -1372,7 +1372,7 @@ const docTemplate = `{
                 },
                 "sign": {
                     "type": "string",
-                    "example": "I'm Jack!'"
+                    "example": "I'm Jack!"
                 },
                 "signed_up_at": {
                     "type": "string",

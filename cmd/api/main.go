@@ -14,7 +14,6 @@
 // @in header
 // @name Authorization
 // @description 认证格式：Bearer {access_token}（注意 Bearer 后加英文空格）
-// @x-extension-openapi  {"x-timezone": "UTC"}
 //
 //go:generate swag init -g ./cmd/api/main.go -o ../../docs --parseDependency --parseInternal --dir ../..
 package main
