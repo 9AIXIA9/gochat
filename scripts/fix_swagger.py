@@ -1,71 +1,82 @@
 #!/usr/bin/env python3
 import json
-import sys
-import os
+import yaml
 import re
-from typing import Dict, List, Any, Optional
+import os
+import sys
+from typing import Dict, List, Any, Tuple, Optional
+import shutil
 
-def fix_swagger_selective(input_file: str, output_file: str = None, dry_run: bool = False) -> Dict:
+def load_yaml_file(filepath: str) -> Optional[Dict]:
+    """加载YAML文件"""
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            return yaml.safe_load(f)
+    except Exception as e:
+        print(f"✗ 加载YAML文件失败: {e}")
+        return None
+
+def save_yaml_file(data: Dict, filepath: str) -> bool:
+    """保存YAML文件"""
+    try:
+        with open(filepath, 'w', encoding='utf-8') as f:
+            yaml.dump(data, f, allow_unicode=True, sort_keys=False, default_flow_style=False)
+        return True
+    except Exception as e:
+        print(f"✗ 保存YAML文件失败: {e}")
+        return False
+
+def load_json_file(filepath: str) -> Optional[Dict]:
+    """加载JSON文件"""
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"✗ 加载JSON文件失败: {e}")
+        return None
+
+def save_json_file(data: Dict, filepath: str) -> bool:
+    """保存JSON文件"""
+    try:
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        return True
+    except Exception as e:
+        print(f"✗ 保存JSON文件失败: {e}")
+        return False
+
+def fix_swagger_object(data: Dict) -> Tuple[Dict, Dict]:
     """
-    选择性修复swagger文档中的example字段
-
-    只处理以下位置的example，改为x-example：
-    1. 所有parameters中的example（无论in是path、query、header还是cookie）
-    2. 不处理其他地方（schema、responses等）的example
+    修复swagger对象中的example字段
 
     Args:
-        input_file: 输入的swagger文件路径
-        output_file: 输出文件路径，默认在原文件名后加_fixed
-        dry_run: 只统计不修改
+        data: swagger对象
 
     Returns:
-        统计信息字典
+        Tuple[修复后的对象, 统计信息]
     """
-    if output_file is None and not dry_run:
-        base, ext = os.path.splitext(input_file)
-        output_file = f"{base}_fixed{ext}"
+    if not isinstance(data, dict):
+        return data, {}
 
-    try:
-        with open(input_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
+    stats = {
+        "total_params": 0,
+        "params_fixed": 0,
+        "other_examples": 0,
+        "path_params": 0,
+        "query_params": 0,
+        "header_params": 0,
+        "cookie_params": 0
+    }
 
-        # 统计信息
-        stats = {
-            "total_params": 0,
-            "params_fixed": 0,
-            "other_examples": 0,
-            "path_params": 0,
-            "query_params": 0,
-            "header_params": 0,
-            "cookie_params": 0
-        }
-
-        def is_parameter_example(obj: Dict, path: str) -> bool:
-            """
-            判断一个example字段是否在parameter中
-            参数定义通常包含以下字段：name, in, description, required, type等
-            """
-            # 如果对象是参数，它应该有"in"字段
-            if isinstance(obj, dict) and "in" in obj:
-                return obj["in"] in ["path", "query", "header", "cookie"]
-            return False
-
-        def process_parameters(params: List[Dict], context: str = "") -> List[Dict]:
-            """处理parameters数组"""
-            if not isinstance(params, list):
-                return params
-
-            fixed_params = []
-            for param in params:
-                if not isinstance(param, dict):
-                    fixed_params.append(param)
-                    continue
-
-                param_copy = param.copy()
+    def fix_param_examples(obj: Any) -> Any:
+        """修复参数中的example字段"""
+        if isinstance(obj, dict):
+            # 如果是参数且有example，则修复
+            if "in" in obj and obj["in"] in ["path", "query", "header", "cookie"]:
                 stats["total_params"] += 1
 
                 # 记录参数类型
-                param_in = param_copy.get("in", "unknown")
+                param_in = obj.get("in", "unknown")
                 if param_in == "path":
                     stats["path_params"] += 1
                 elif param_in == "query":
@@ -75,338 +86,366 @@ def fix_swagger_selective(input_file: str, output_file: str = None, dry_run: boo
                 elif param_in == "cookie":
                     stats["cookie_params"] += 1
 
-                # 如果parameter中有example，则修改
-                if "example" in param_copy and is_parameter_example(param_copy, f"{context}.parameters"):
-                    # 在修改前记录
-                    param_name = param_copy.get("name", "unnamed")
-                    param_example = param_copy["example"]
-
-                    if dry_run:
-                        print(f"  [DRY RUN] 将修改: {context} -> {param_name} ({param_in})")
-                        print(f"    当前example: {param_example}")
-                    else:
-                        param_copy["x-example"] = param_copy.pop("example")
-
+                # 修复example字段
+                if "example" in obj:
+                    obj["x-example"] = obj.pop("example")
                     stats["params_fixed"] += 1
 
-                fixed_params.append(param_copy)
+            # 递归处理
+            for key, value in obj.items():
+                if key != "x-example":  # 避免递归新添加的字段
+                    obj[key] = fix_param_examples(value)
 
-            return fixed_params
+        elif isinstance(obj, list):
+            for i, item in enumerate(obj):
+                obj[i] = fix_param_examples(item)
 
-        def process_paths(paths: Dict) -> Dict:
-            """处理paths部分"""
-            if not isinstance(paths, dict):
-                return paths
+        return obj
 
-            fixed_paths = {}
-            for path, methods in paths.items():
-                if not isinstance(methods, dict):
-                    fixed_paths[path] = methods
-                    continue
+    # 修复整个对象
+    fixed_data = fix_param_examples(data.copy())
+    return fixed_data, stats
 
-                fixed_methods = {}
-                for method, operation in methods.items():
-                    if not isinstance(operation, dict):
-                        fixed_methods[method] = operation
-                        continue
-
-                    operation_copy = operation.copy()
-                    context = f"paths.{path}.{method}"
-
-                    # 处理operation的parameters
-                    if "parameters" in operation:
-                        operation_copy["parameters"] = process_parameters(
-                            operation["parameters"],
-                            context
-                        )
-
-                    # 处理请求体
-                    if "requestBody" in operation and "content" in operation["requestBody"]:
-                        # 不修改请求体中的example
-                        pass
-
-                    # 处理响应
-                    if "responses" in operation:
-                        # 不修改响应中的example
-                        pass
-
-                    fixed_methods[method] = operation_copy
-
-                fixed_paths[path] = fixed_methods
-
-            return fixed_paths
-
-        def process_components(components: Dict) -> Dict:
-            """处理components部分"""
-            if not isinstance(components, dict):
-                return components
-
-            components_copy = components.copy()
-
-            # 处理components/parameters
-            if "parameters" in components and isinstance(components["parameters"], dict):
-                params_dict = components["parameters"]
-                fixed_params = {}
-
-                for param_name, param_def in params_dict.items():
-                    if isinstance(param_def, dict):
-                        param_copy = param_def.copy()
-                        if "example" in param_copy and is_parameter_example(param_copy, f"components.parameters.{param_name}"):
-                            param_in = param_copy.get("in", "unknown")
-                            if dry_run:
-                                print(f"  [DRY RUN] 将修改: components.parameters.{param_name} ({param_in})")
-                                print(f"    当前example: {param_copy['example']}")
-                            else:
-                                param_copy["x-example"] = param_copy.pop("example")
-                            stats["params_fixed"] += 1
-                        fixed_params[param_name] = param_copy
-                    else:
-                        fixed_params[param_name] = param_def
-
-                components_copy["parameters"] = fixed_params
-
-            return components_copy
-
-        def find_other_examples(obj: Any, path: str = "") -> None:
-            """查找但不修改其他位置的example，用于统计"""
-            if isinstance(obj, dict):
-                for key, value in obj.items():
-                    if key == "example":
-                        # 检查父对象是否是parameter
-                        parent_is_param = False
-                        if "in" in obj and obj["in"] in ["path", "query", "header", "cookie"]:
-                            parent_is_param = True
-
-                        if not parent_is_param:
-                            stats["other_examples"] += 1
-                            if dry_run and stats["other_examples"] <= 5:  # 只显示前5个
-                                example_preview = str(value)[:50] + "..." if len(str(value)) > 50 else str(value)
-                                print(f"  [DRY RUN] 保持原样: {path}.example ({example_preview})")
-
-                    # 继续递归查找
-                    if isinstance(value, (dict, list)):
-                        new_path = f"{path}.{key}" if path else key
-                        find_other_examples(value, new_path)
-
-            elif isinstance(obj, list):
-                for i, item in enumerate(obj):
-                    if isinstance(item, (dict, list)):
-                        new_path = f"{path}[{i}]" if path else f"[{i}]"
-                        find_other_examples(item, new_path)
-
-        # 主要处理逻辑
-        print(f"开始处理文件: {input_file}")
-
-        # 1. 处理根级别parameters
-        if "parameters" in data and isinstance(data["parameters"], list):
-            data["parameters"] = process_parameters(data["parameters"], "global.parameters")
-
-        # 2. 处理paths
-        if "paths" in data:
-            data["paths"] = process_paths(data["paths"])
-
-        # 3. 处理components
-        if "components" in data:
-            data["components"] = process_components(data["components"])
-
-        # 4. 查找其他位置的example（不修改，只统计）
-        if dry_run:
-            print("\n[查找非参数位置的example字段]")
-        find_other_examples(data)
-
-        # 写入文件
-        if not dry_run and output_file:
-            with open(output_file, 'w', encoding='utf-8') as f:
-                json.dump(data, f, ensure_ascii=False, indent=2)
-            print(f"✓ 已保存到: {output_file}")
-        elif dry_run:
-            print(f"\n✓ 模拟执行完成，未实际修改文件")
-
-        return stats
-
-    except FileNotFoundError:
-        print(f"✗ 错误: 文件 {input_file} 不存在")
-        return {}
-    except json.JSONDecodeError as e:
-        print(f"✗ 错误: JSON解析失败 - {e}")
-        return {}
-    except Exception as e:
-        print(f"✗ 错误: {e}")
-        import traceback
-        traceback.print_exc()
-        return {}
-
-
-def quick_fix_swagger(input_file: str, output_file: str = None) -> bool:
+def process_swagger_file(filepath: str, output_path: str = None, dry_run: bool = False) -> bool:
     """
-    快速修复：修复所有参数中的example为x-example
-    不询问，不交互，直接修复
+    处理单个swagger文件
+
+    Args:
+        filepath: 输入文件路径
+        output_path: 输出文件路径，None则使用输入路径
+        dry_run: 是否只显示统计不实际修改
+
+    Returns:
+        bool: 是否成功
     """
-    if output_file is None:
-        base, ext = os.path.splitext(input_file)
-        output_file = f"{base}_fixed{ext}"
-
-    try:
-        with open(input_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-
-        fixed_count = 0
-
-        def fix_param_examples(params):
-            """修复参数数组中的example字段"""
-            nonlocal fixed_count
-            if not isinstance(params, list):
-                return params
-
-            fixed = []
-            for param in params:
-                if not isinstance(param, dict):
-                    fixed.append(param)
-                    continue
-
-                param_copy = param.copy()
-                # 如果是参数（有"in"字段）且有example，则修复
-                if "in" in param_copy and param_copy["in"] in ["path", "query", "header", "cookie"]:
-                    if "example" in param_copy:
-                        param_copy["x-example"] = param_copy.pop("example")
-                        fixed_count += 1
-                fixed.append(param_copy)
-
-            return fixed
-
-        # 处理根级别parameters
-        if "parameters" in data and isinstance(data["parameters"], list):
-            data["parameters"] = fix_param_examples(data["parameters"])
-
-        # 处理paths
-        if "paths" in data and isinstance(data["paths"], dict):
-            for path, methods in data["paths"].items():
-                if not isinstance(methods, dict):
-                    continue
-                for method, operation in methods.items():
-                    if isinstance(operation, dict) and "parameters" in operation:
-                        data["paths"][path][method]["parameters"] = fix_param_examples(operation["parameters"])
-
-        # 处理components/parameters
-        if "components" in data and isinstance(data["components"], dict):
-            if "parameters" in data["components"] and isinstance(data["components"]["parameters"], dict):
-                for param_name, param_def in data["components"]["parameters"].items():
-                    if isinstance(param_def, dict) and "in" in param_def and "example" in param_def:
-                        if param_def["in"] in ["path", "query", "header", "cookie"]:
-                            data["components"]["parameters"][param_name]["x-example"] = data["components"]["parameters"][param_name].pop("example")
-                            fixed_count += 1
-
-        # 写入文件
-        with open(output_file, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-
-        print(f"✓ 修复完成! 共修改了 {fixed_count} 个参数中的example字段")
-        print(f"✓ 已保存到: {output_file}")
-        return True
-
-    except Exception as e:
-        print(f"✗ 错误: {e}")
+    if not os.path.exists(filepath):
+        print(f"✗ 文件不存在: {filepath}")
         return False
 
+    filename = os.path.basename(filepath)
+    file_ext = os.path.splitext(filename)[1].lower()
 
-if __name__ == "__main__":
+    print(f"\n处理文件: {filename}")
+    print("-" * 50)
+
+    # 加载数据
+    data = None
+    is_go_file = filename.lower().endswith('.go')
+
+    if is_go_file:
+        # 处理Go文件
+        with open(filepath, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        # 查找反引号内的JSON内容
+        go_matches = re.findall(r'`({[\s\S]*?})`', content)
+        if not go_matches:
+            print("✗ 在Go文件中未找到JSON内容")
+            return False
+
+        json_str = go_matches[0]
+        try:
+            data = json.loads(json_str)
+        except json.JSONDecodeError as e:
+            print(f"✗ 解析Go文件中的JSON失败: {e}")
+            return False
+
+    elif file_ext in ['.yaml', '.yml']:
+        data = load_yaml_file(filepath)
+    elif file_ext == '.json':
+        data = load_json_file(filepath)
+    else:
+        print(f"✗ 不支持的文件类型: {file_ext}")
+        return False
+
+    if data is None:
+        return False
+
+    # 修复数据
+    fixed_data, stats = fix_swagger_object(data)
+
+    # 显示统计信息
+    print(f"统计信息:")
+    print(f"  总参数数量: {stats.get('total_params', 0)}")
+    print(f"  已修复的参数: {stats.get('params_fixed', 0)}")
+    if stats.get('path_params', 0) > 0:
+        print(f"  - path参数: {stats.get('path_params', 0)}")
+    if stats.get('query_params', 0) > 0:
+        print(f"  - query参数: {stats.get('query_params', 0)}")
+    if stats.get('header_params', 0) > 0:
+        print(f"  - header参数: {stats.get('header_params', 0)}")
+    if stats.get('cookie_params', 0) > 0:
+        print(f"  - cookie参数: {stats.get('cookie_params', 0)}")
+
+    if dry_run:
+        print("✓ 模拟运行完成，未实际修改文件")
+        return True
+
+    # 保存数据
+    if output_path is None:
+        output_path = filepath
+
+    success = False
+    if is_go_file:
+        # 保存Go文件
+        fixed_json = json.dumps(fixed_data, ensure_ascii=False, indent=2)
+        # 替换原JSON内容
+        new_content = re.sub(r'`({[\s\S]*?})`', f'`{fixed_json}`', content, count=1)
+
+        try:
+            with open(output_path, 'w', encoding='utf-8') as f:
+                f.write(new_content)
+            print(f"✓ 已保存到: {output_path}")
+            success = True
+        except Exception as e:
+            print(f"✗ 保存Go文件失败: {e}")
+            success = False
+
+    elif file_ext in ['.yaml', '.yml']:
+        success = save_yaml_file(fixed_data, output_path)
+        if success:
+            print(f"✓ 已保存到: {output_path}")
+
+    elif file_ext == '.json':
+        success = save_json_file(fixed_data, output_path)
+        if success:
+            print(f"✓ 已保存到: {output_path}")
+
+    return success
+
+def process_multiple_files(file_paths: List[str], output_dir: str = None, dry_run: bool = False) -> Dict:
+    """
+    批量处理多个文件
+
+    Args:
+        file_paths: 文件路径列表
+        output_dir: 输出目录，None则覆盖原文件
+        dry_run: 是否只显示统计不实际修改
+
+    Returns:
+        处理结果统计
+    """
+    results = {
+        "total": len(file_paths),
+        "success": 0,
+        "failed": 0,
+        "details": []
+    }
+
+    for filepath in file_paths:
+        if not os.path.exists(filepath):
+            print(f"\n✗ 文件不存在: {filepath}")
+            results["failed"] += 1
+            results["details"].append({"file": filepath, "status": "not_found"})
+            continue
+
+        # 确定输出路径
+        output_path = None
+        if output_dir:
+            filename = os.path.basename(filepath)
+            output_path = os.path.join(output_dir, filename)
+
+        success = process_swagger_file(filepath, output_path, dry_run)
+
+        if success:
+            results["success"] += 1
+            results["details"].append({"file": filepath, "status": "success"})
+        else:
+            results["failed"] += 1
+            results["details"].append({"file": filepath, "status": "failed"})
+
+    return results
+
+def find_swagger_files(directory: str, patterns: List[str] = None) -> List[str]:
+    """
+    查找目录下的swagger相关文件
+
+    Args:
+        directory: 目录路径
+        patterns: 文件模式列表
+
+    Returns:
+        找到的文件路径列表
+    """
+    if patterns is None:
+        patterns = [
+            "**/*.json",
+            "**/*.yaml",
+            "**/*.yml",
+            "**/docs.go",
+            "**/swagger.go"
+        ]
+
+    import glob
+
+    found_files = []
+    for pattern in patterns:
+        files = glob.glob(os.path.join(directory, pattern), recursive=True)
+        found_files.extend(files)
+
+    # 去重
+    found_files = list(set(found_files))
+
+    # 过滤出可能是swagger文档的文件
+    swagger_files = []
+    for filepath in found_files:
+        filename = os.path.basename(filepath).lower()
+
+        # 检查文件内容是否包含swagger相关关键词
+        try:
+            with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
+                content = f.read(4096)  # 只读取前4KB
+
+            # 检查是否包含swagger相关关键词
+            swagger_keywords = ['swagger', 'openapi', '"paths"', '"parameters"']
+            if any(keyword.lower() in content.lower() for keyword in swagger_keywords):
+                swagger_files.append(filepath)
+        except:
+            continue
+
+    return swagger_files
+
+def backup_file(filepath: str) -> bool:
+    """备份文件"""
+    if not os.path.exists(filepath):
+        return False
+
+    backup_path = f"{filepath}.bak"
+    counter = 1
+    while os.path.exists(backup_path):
+        backup_path = f"{filepath}.bak.{counter}"
+        counter += 1
+
+    try:
+        shutil.copy2(filepath, backup_path)
+        print(f"  ✓ 已备份: {backup_path}")
+        return True
+    except Exception as e:
+        print(f"  ✗ 备份失败: {e}")
+        return False
+
+def main():
+    """主函数"""
     if len(sys.argv) < 2:
-        print("swagger文档example字段修复工具")
-        print("=" * 50)
+        print("Swagger文档修复工具")
+        print("=" * 60)
+        print("修复swagger文档中parameters的example字段为x-example")
+        print()
         print("用法:")
-        print("  1. 自动修复所有参数中的example (快速模式):")
-        print("     python fix_swagger.py <swagger文件路径>")
+        print("  1. 处理单个文件:")
+        print("     python fix_swagger_all.py <文件路径>")
         print()
-        print("  2. 模拟运行，只显示会修改的内容:")
-        print("     python fix_swagger.py <swagger文件路径> --dry-run")
+        print("  2. 批量处理目录下所有相关文件:")
+        print("     python fix_swagger_all.py <目录路径> --batch")
         print()
-        print("  3. 快速修复并覆盖原文件:")
-        print("     python fix_swagger.py <swagger文件路径> --quick")
+        print("  3. 模拟运行（不实际修改）:")
+        print("     python fix_swagger_all.py <文件或目录> --dry-run")
         print()
-        print("  4. 指定输出文件:")
-        print("     python fix_swagger.py <输入文件> <输出文件>")
+        print("  4. 指定输出目录:")
+        print("     python fix_swagger_all.py <输入目录> <输出目录>")
+        print()
+        print("  5. 处理多个指定文件:")
+        print("     python fix_swagger_all.py 文件1 文件2 文件3")
         print()
         print("示例:")
-        print("  python fix_swagger.py swagger.json")
-        print("  python fix_swagger.py swagger.json --dry-run")
-        print("  python fix_swagger.py swagger.json --quick")
-        print("  python fix_swagger.py swagger.json swagger_fixed.json")
+        print("  python fix_swagger_all.py swagger.json")
+        print("  python fix_swagger_all.py swagger.yaml")
+        print("  python fix_swagger_all.py docs.go")
+        print("  python fix_swagger_all.py api/ --batch")
+        print("  python fix_swagger_all.py swagger.json --dry-run")
+        print("  python fix_swagger_all.py swagger.yaml docs.go")
         sys.exit(1)
 
-    input_file = sys.argv[1]
+    # 解析参数
+    file_paths = []
+    output_dir = None
+    dry_run = False
+    batch_mode = False
+    backup_files = False
 
-    if not os.path.exists(input_file):
-        print(f"错误: 文件不存在 - {input_file}")
-        sys.exit(1)
+    i = 1
+    while i < len(sys.argv):
+        arg = sys.argv[i]
 
-    if len(sys.argv) > 2:
-        if sys.argv[2] == "--dry-run":
-            # 模拟运行
-            print("模拟运行模式 (不会实际修改文件):")
-            stats = fix_swagger_selective(input_file, dry_run=True)
-            if stats:
-                print("\n" + "="*50)
-                print("统计信息:")
-                print(f"  总参数数量: {stats.get('total_params', 0)}")
-                print(f"  将修复的参数: {stats.get('params_fixed', 0)}")
-                if stats.get('path_params', 0) > 0:
-                    print(f"  - path参数: {stats.get('path_params', 0)}")
-                if stats.get('query_params', 0) > 0:
-                    print(f"  - query参数: {stats.get('query_params', 0)}")
-                if stats.get('header_params', 0) > 0:
-                    print(f"  - header参数: {stats.get('header_params', 0)}")
-                if stats.get('cookie_params', 0) > 0:
-                    print(f"  - cookie参数: {stats.get('cookie_params', 0)}")
-                print(f"  保持原样的example: {stats.get('other_examples', 0)}")
+        if arg == "--dry-run":
+            dry_run = True
+        elif arg == "--batch":
+            batch_mode = True
+        elif arg == "--backup":
+            backup_files = True
+        elif arg.startswith("--output="):
+            output_dir = arg.split("=", 1)[1]
+        elif arg == "--output" and i + 1 < len(sys.argv):
+            output_dir = sys.argv[i + 1]
+            i += 1
+        elif os.path.isdir(arg):
+            if batch_mode:
+                # 批量处理目录
+                found_files = find_swagger_files(arg)
+                if found_files:
+                    file_paths.extend(found_files)
+                else:
+                    print(f"✗ 在目录 {arg} 中未找到swagger相关文件")
+            else:
+                print(f"✗ 错误: 目录 {arg} 需要与 --batch 参数一起使用")
+                sys.exit(1)
+        elif os.path.isfile(arg):
+            file_paths.append(arg)
+        elif not arg.startswith("-"):
+            # 可能是文件但不存在
+            print(f"✗ 警告: 文件或目录不存在: {arg}")
 
-        elif sys.argv[2] == "--quick":
-            # 快速修复
-            success = quick_fix_swagger(input_file, input_file)  # 覆盖原文件
-            if success:
-                print("\n✓ 快速修复完成，已覆盖原文件")
+        i += 1
 
-        elif sys.argv[2].endswith(".json"):
-            # 指定输出文件
-            output_file = sys.argv[2]
-            stats = fix_swagger_selective(input_file, output_file)
-            if stats:
-                print("\n" + "="*50)
-                print("修复完成! 统计信息:")
-                print(f"  总参数数量: {stats.get('total_params', 0)}")
-                print(f"  已修复的参数: {stats.get('params_fixed', 0)}")
-                if stats.get('path_params', 0) > 0:
-                    print(f"  - path参数: {stats.get('path_params', 0)}")
-                if stats.get('query_params', 0) > 0:
-                    print(f"  - query参数: {stats.get('query_params', 0)}")
-                if stats.get('header_params', 0) > 0:
-                    print(f"  - header参数: {stats.get('header_params', 0)}")
-                if stats.get('cookie_params', 0) > 0:
-                    print(f"  - cookie参数: {stats.get('cookie_params', 0)}")
-                print(f"  保持原样的example: {stats.get('other_examples', 0)}")
+    # 如果没有指定文件，检查当前目录
+    if not file_paths and batch_mode:
+        found_files = find_swagger_files(".")
+        if found_files:
+            file_paths = found_files
         else:
-            print(f"未知参数: {sys.argv[2]}")
-    else:
-        # 默认行为：快速修复，不覆盖原文件
-        base, ext = os.path.splitext(input_file)
-        output_file = f"{base}_fixed{ext}"
+            print("✗ 在当前目录中未找到swagger相关文件")
+            sys.exit(1)
+    elif not file_paths:
+        print("✗ 错误: 未指定要处理的文件")
+        sys.exit(1)
 
-        print(f"快速修复模式:")
-        print(f"输入文件: {input_file}")
-        print(f"输出文件: {output_file}")
-        print()
+    # 显示要处理的文件
+    print(f"找到 {len(file_paths)} 个文件:")
+    for filepath in file_paths:
+        print(f"  - {filepath}")
 
-        stats = fix_swagger_selective(input_file, output_file)
-        if stats:
-            print("\n" + "="*50)
-            print("修复完成! 统计信息:")
-            print(f"  总参数数量: {stats.get('total_params', 0)}")
-            print(f"  已修复的参数: {stats.get('params_fixed', 0)}")
-            if stats.get('path_params', 0) > 0:
-                print(f"  - path参数: {stats.get('path_params', 0)}")
-            if stats.get('query_params', 0) > 0:
-                print(f"  - query参数: {stats.get('query_params', 0)}")
-            if stats.get('header_params', 0) > 0:
-                print(f"  - header参数: {stats.get('header_params', 0)}")
-            if stats.get('cookie_params', 0) > 0:
-                print(f"  - cookie参数: {stats.get('cookie_params', 0)}")
-            print(f"  保持原样的example: {stats.get('other_examples', 0)}")
+    if dry_run:
+        print("\n" + "="*60)
+        print("模拟运行模式 (不会实际修改文件)")
+        print("="*60)
+
+    # 备份文件
+    if backup_files and not dry_run:
+        print("\n备份文件中...")
+        for filepath in file_paths:
+            if os.path.exists(filepath):
+                backup_file(filepath)
+
+    # 处理文件
+    print("\n开始处理...")
+    results = process_multiple_files(file_paths, output_dir, dry_run)
+
+    # 显示结果
+    print("\n" + "="*60)
+    print("处理完成!")
+    print(f"  成功: {results['success']}")
+    print(f"  失败: {results['failed']}")
+    print(f"  总计: {results['total']}")
+
+    if results['failed'] > 0:
+        print("\n失败的文件:")
+        for detail in results['details']:
+            if detail['status'] == 'failed':
+                print(f"  - {detail['file']}")
+
+    if dry_run:
+        print("\n提示: 使用 --backup 参数可以在修改前备份原文件")
+        print("      示例: python fix_swagger_all.py swagger.json --backup")
+
+if __name__ == "__main__":
+    main()
