@@ -1,6 +1,8 @@
 # Makefile for GoChat backend on Windows (requires GNU make)
 # Use cmd.exe shell semantics for docker commands
 
+SHELL := cmd.exe
+
 PROJECT_NAME := backend
 COMPOSE_FILE := docker-compose.yml
 
@@ -10,24 +12,38 @@ DC := docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME)
 
 .PHONY: help
 help:
-	@echo Available targets:
-	@echo   make up           - Build (no cache) and start all services in background
-	@echo   make down         - Stop and remove containers (keep named volumes)
-	@echo   make destroy      - Stop and remove containers, images, and named volumes
-	@echo   make rebuild      - Remove old app image and rebuild with no cache
-	@echo   make restart      - Restart services using build cache
-	@echo   make logs         - Tail app logs
-	@echo   make ps           - Show service status
-	@echo   make hooks        - Install Git hooks
-	@echo   make precommit    - Run pre-commit hook manually
-	@echo   make test-all     - Run all tests with race detector and shuffle
-	@echo   make lint         - Run golangci-lint if installed
-	@echo   make swagger      - Generate Swagger docs from annotations
-	@echo   make build        - Build the app binary
-	@echo   make run          - Run the app locally
-	@echo   make up-fast      - Up using build cache
-	@echo   make logs-app     - Tail only app logs
-	@echo   make status       - Alias for ps
+	@echo "Available targets:"
+	@echo "  make up           - Build (no cache) and start all services in background"
+	@echo "  make up-fast      - Up using build cache"
+	@echo "  make down         - Stop and remove containers (keep named volumes)"
+	@echo "  make destroy      - Stop and remove containers, images, and named volumes"
+	@echo "  make rebuild      - Remove old app image and rebuild with no cache"
+	@echo "  make restart      - Restart services using build cache"
+	@echo "  make logs         - Tail app logs"
+	@echo "  make logs-app     - Tail only app logs"
+	@echo "  make ps           - Show service status"
+	@echo "  make status       - Alias for ps"
+	@echo "  make hooks        - Install Git hooks"
+	@echo "  make precommit    - Run pre-commit hook manually"
+	@echo "  make test-all     - Run all tests with race detector and shuffle"
+	@echo "  make lint         - Run golangci-lint if installed"
+	@echo "  make swagger      - Generate Swagger docs from annotations"
+	@echo "  make swagger-generate - Generate Swagger docs from annotations"
+	@echo "  make fix-swagger  - Fix Swagger example fields (example -> x-example)"
+	@echo "  make fix-swagger-dry-run - Check what would be fixed (dry run)"
+	@echo "  make build        - Build the app binary"
+	@echo "  make run          - Run the app locally"
+	@echo "  make migrate-status - Show migration status"
+	@echo "  make migrate-up   - Apply all pending migrations"
+	@echo "  make migrate-down - Roll back the most recent migration"
+	@echo "  make migrate-reset - Roll back all migrations"
+	@echo "  make migrate-create - Create a new SQL migration (usage: make migrate-create name=add_table)"
+	@echo "  make migrate-status-host - Show migration status (host -> 127.0.0.1:$$(MYSQL_HOST_PORT))"
+	@echo "  make migrate-up-host - Apply migrations using host port"
+	@echo "  make migrate-down-host - Roll back last migration using host port"
+	@echo "  make migrate-reset-host - Reset all migrations using host port"
+	@echo "  make migrate-verify - Fail if pending migrations (container network DSN)"
+	@echo "  make migrate-verify-host - Fail if pending migrations (host 127.0.0.1:$$(MYSQL_HOST_PORT))"
 
 .PHONY: up
 up: ## Build (no cache) and up -d
