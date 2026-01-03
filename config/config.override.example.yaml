@@ -1,0 +1,15 @@
+# Example deploy override (gitignored as config.override.yaml). Use for cluster-specific tweaks.
+# Only include keys you want to override.
+Env: production
+Logger:
+  Mode: release
+  Level: warn
+Cookie:
+  Secure: true
+  Domain: example.com
+CORS:
+  AllowOrigins:
+    - https://app.example.com
+Kafka:
+  BootstrapServers: kafka:9092
+

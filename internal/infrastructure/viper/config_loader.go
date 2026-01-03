@@ -1,6 +1,7 @@
 package viper
 
 import (
+	"errors"
 	"fmt"
 	"gochat/config"
 	"os"
@@ -10,31 +11,19 @@ import (
 	"github.com/spf13/viper"
 )
 
-func LoadConfigFile(path string) (*config.App, error) {
+func LoadConfigFile(baseConfigPath string, overlays ...string) (*config.App, error) {
 	v := viper.New()
 
-	// 设置配置文件
-	v.SetConfigFile(path)
-
-	// 读取配置文件内容
-	content, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("read config file failed: %w", err)
+	// load base config
+	if err := readConfigInto(v, baseConfigPath, false); err != nil {
+		return nil, err
 	}
 
-	// 扩展环境变量
-	expandedContent := os.ExpandEnv(string(content))
-
-	// 使用扩展后的内容配置Viper
-	ext := filepath.Ext(path)
-	if ext == "" {
-		ext = ".yaml"
-	}
-	v.SetConfigType(strings.TrimPrefix(ext, "."))
-
-	// 使用扩展后的内容配置Viper
-	if err := v.ReadConfig(strings.NewReader(expandedContent)); err != nil {
-		return nil, fmt.Errorf("read config failed: %w", err)
+	// merge optional overlays; later overlays win
+	for _, overlay := range overlays {
+		if err := mergeIfExists(v, overlay); err != nil {
+			return nil, err
+		}
 	}
 
 	cfg := new(config.App)
@@ -42,6 +31,50 @@ func LoadConfigFile(path string) (*config.App, error) {
 		return nil, fmt.Errorf("parse config file failed: %w", err)
 	}
 
-	//验证配置正确性
 	return cfg, cfg.Validate()
+}
+
+func readConfigInto(v *viper.Viper, path string, merge bool) error {
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return fmt.Errorf("read config file failed: %w", err)
+	}
+
+	expandedContent := os.ExpandEnv(string(content))
+	cfgType := configTypeFor(path)
+	v.SetConfigType(cfgType)
+
+	if merge {
+		if err := v.MergeConfig(strings.NewReader(expandedContent)); err != nil {
+			return fmt.Errorf("merge config failed: %w", err)
+		}
+		return nil
+	}
+
+	if err := v.ReadConfig(strings.NewReader(expandedContent)); err != nil {
+		return fmt.Errorf("read config failed: %w", err)
+	}
+	return nil
+}
+
+func mergeIfExists(v *viper.Viper, path string) error {
+	if path == "" {
+		return nil
+	}
+
+	if _, err := os.Stat(path); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil
+		}
+		return fmt.Errorf("stat config overlay failed: %w", err)
+	}
+	return readConfigInto(v, path, true)
+}
+
+func configTypeFor(path string) string {
+	ext := strings.TrimPrefix(filepath.Ext(path), ".")
+	if ext == "" {
+		return "yaml"
+	}
+	return ext
 }

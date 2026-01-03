@@ -1,0 +1,17 @@
+# Example local overrides (gitignored as config.local.yaml). Copy this file and adjust.
+# Only include keys you want to override.
+Port: 8081
+Env: local
+Mysql:
+  Host: 127.0.0.1
+  Port: 3306
+  Username: root
+  Database: gochat_local
+Redis:
+  Database: 1
+Logger:
+  Level: debug
+CORS:
+  AllowOrigins:
+    - http://localhost:3000
+
