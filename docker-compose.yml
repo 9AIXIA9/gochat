@@ -178,16 +178,17 @@ services:
         condition: service_healthy
     restart: unless-stopped
     env_file:
-      - config/service/.env.app
+      - ./.env
     environment:
       TZ: ${TZ:-Asia/Shanghai}
     ports:
       - '${APP_HOST_PORT:-8080}:8080'
     volumes:
       - ./config/config.yaml:/app/config/config.yaml:ro
+      - ./config/config.override.yaml:/app/config/config.override.yaml:ro
       - ./certs:/app/certs:ro
       - ./logs:/app/logs
-    command: [ "/app/server", "-config", "./config/config.yaml" ]
+    command: [ "/app/server", "-config", "./config/config.yaml","-override_config","./config/config.override.yaml" ]
 
 volumes:
   mysql-data:

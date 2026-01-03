@@ -76,9 +76,7 @@ go.work
 # ----- 环境配置 ----- #
 .env*
 *.env
-!./config/docker/.env.template
-!./config/service/.env.*.template
-!.env.*.template
+!.env.*.example
 
 
 # ----- IDE 配置 ----- #
@@ -114,3 +112,7 @@ _site/
 
 # ----- CERT证书 ----- #
 certs/
+
+# Local config overlays (not committed)
+config/config.local.yaml
+config/config.override.yaml

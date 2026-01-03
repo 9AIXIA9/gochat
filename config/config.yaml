@@ -1,18 +1,20 @@
+# Base defaults. Override via config.local.yaml or config.override.yaml (gitignored), and env vars for sensitive values.
 Name: gochat
-Env: ${Env}
+Env: debug
 Host: 0.0.0.0
 Port: 8080
 MachineNode: 1
-Timeout: ${REQUEST_TIMEOUT}
+Timeout: 10s
 
 Cookie:
-  Domain: ${COOKIE_DOMAIN}
-  Secure: ${COOKIE_SECURE}
-  HttpOnly: ${COOKIE_HTTPONLY}
-  Path: ${COOKIE_PATH}
+  Domain: ""
+  Secure: false
+  HttpOnly: true
+  Path: /
 
 CORS:
-  AllowOrigins: ${CORS_ORIGINS}
+  AllowOrigins:
+    - "*"
   AllowMethods:
     - GET
     - POST
@@ -41,19 +43,19 @@ RateLimit:
   Limit: 10
 
 Mysql:
-  Host: ${DB_HOST}
-  Port: ${DB_PORT}
-  Username: ${DB_USERNAME}
+  Host: 127.0.0.1
+  Port: 3306
+  Username: root
   Password: ${DB_PASSWORD}
-  Database: ${DB_NAME}
+  Database: gochat
   SlowThresholdMillis: 200
 
 Redis:
-  User: ${REDIS_USER}
-  Host: ${REDIS_HOST}
-  Port: ${REDIS_PORT}
+  User: ""
+  Host: 127.0.0.1
+  Port: 6379
   Password: ${REDIS_PASSWORD}
-  Database: ${REDIS_DB}
+  Database: 0
 
 Logger:
   Mode: debug
@@ -67,22 +69,22 @@ Hasher:
   Cost: 10
 
 Email:
-  Host: ${EMAIL_HOST}
-  Port: ${EMAIL_PORT}
-  Username: ${EMAIL_USERNAME}
+  Host: smtp.example.com
+  Port: 587
+  Username: noreply@example.com
   Password: ${EMAIL_PASSWORD}
 
 BinlogReader:
-  Addr: ${BINLOG_ADDR}
-  User: ${BINLOG_USER}
+  Addr: 127.0.0.1:3306
+  User: canal
   Password: ${BINLOG_PASSWORD}
-  TableDB: ${BINLOG_TABLEDB}
+  TableDB: gochat
 
 Kafka:
-  BootstrapServers: ${KAFKA_BOOTSTRAP_SERVERS}
-  Acks: ${KAFKA_ACKS}
-  GroupID: ${KAFKA_GROUP_ID}
-  AutoOffsetReset: ${KAFKA_AUTO_OFFSET_RESET}
+  BootstrapServers: 127.0.0.1:9092
+  Acks: 1
+  GroupID: gochat
+  AutoOffsetReset: latest
 
 Breaker:
   MaxRequests: 5
@@ -93,7 +95,7 @@ Breaker:
   ErrorThreshold: 20
 
 OTEL:
-  Endpoint: ${OTEL_ENDPOINT}
-  ServiceName: ${OTEL_SERVICE_NAME}
-  Environment: ${Env}
+  Endpoint: 127.0.0.1:4317
+  ServiceName: gochat
+  Environment: debug
   Insecure: true
