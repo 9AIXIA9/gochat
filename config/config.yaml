@@ -1,4 +1,5 @@
 # Base defaults. Override via config.local.yaml or config.override.yaml (gitignored), and env vars for sensitive values.
+# Base file keeps literal defaults and does NOT expand env vars.
 Name: gochat
 Env: debug
 Host: 0.0.0.0
@@ -35,7 +36,7 @@ RefreshToken:
   Length: 32
 
 AccessToken:
-  Secret: ${JWT_SECRET}
+  Secret: "dev-secret-change-me"
   ValidityDuration: 1h
 
 RateLimit:
@@ -46,7 +47,7 @@ Mysql:
   Host: 127.0.0.1
   Port: 3306
   Username: root
-  Password: ${DB_PASSWORD}
+  Password: ""
   Database: gochat
   SlowThresholdMillis: 200
 
@@ -54,15 +55,15 @@ Redis:
   User: ""
   Host: 127.0.0.1
   Port: 6379
-  Password: ${REDIS_PASSWORD}
+  Password: ""
   Database: 0
 
 Logger:
   Mode: debug
   Level: info
   Filename: logs/app.log
-  MaxSize: 100    # MB
-  MaxAge: 7       # days
+  MaxSize: 100
+  MaxAge: 7
   MaxBackups: 3
 
 Hasher:
@@ -72,12 +73,12 @@ Email:
   Host: smtp.example.com
   Port: 587
   Username: noreply@example.com
-  Password: ${EMAIL_PASSWORD}
+  Password: ""
 
 BinlogReader:
   Addr: 127.0.0.1:3306
   User: canal
-  Password: ${BINLOG_PASSWORD}
+  Password: ""
   TableDB: gochat
 
 Kafka:

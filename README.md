@@ -112,8 +112,11 @@ golangci-lint run ./...
 ```
 
 ## 配置
-- 默认配置：`config/config.yaml`
-- 环境变量覆盖：通过 `internal/infrastructure/godotenv` 读取 `.env`
+- 基础默认：`config/config.yaml`（不展开环境变量，用作完整默认值）
+- 可选覆盖：`config.local.yaml`（gitignored，本地开发）、`config.override.yaml`（gitignored，部署环境）。覆盖文件会展开环境变量以便注入敏感值。
+- 环境文件：`-env` 标志加载 `.env` 或指定文件；也可直接使用进程环境。
+- 加载顺序：基础 -> 本地覆盖 -> 部署覆盖；后者键覆盖前者。
+- 容器部署：`docker-compose.yml` 挂载 `config.yaml` 与 `config.override.yaml`，敏感值通过环境变量传入覆盖文件中的占位符。
 
 ## 文档导航
 
