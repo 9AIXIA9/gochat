@@ -135,7 +135,6 @@ services:
     volumes:
       - prometheus-data:/prometheus
       - ./deployment/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./deployment/prometheus-alerts.yml:/etc/prometheus/alerts.yml:ro
     healthcheck:
       test: [ "CMD", "wget", "--spider", "-q", "http://localhost:9090/-/healthy" ]
       interval: 10s
@@ -153,7 +152,6 @@ services:
       - "3000:3000"
     volumes:
       - grafana-data:/var/lib/grafana
-      - ./deployment/grafana-dashboards:/etc/grafana/provisioning/dashboards:ro
       - ./deployment/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
     depends_on:
       - prometheus
@@ -186,7 +184,6 @@ services:
     volumes:
       - ./config/config.yaml:/app/config/config.yaml:ro
       - ./config/config.override.yaml:/app/config/config.override.yaml:ro
-      - ./certs:/app/certs:ro
       - ./logs:/app/logs
     command: [ "/app/server", "-config", "./config/config.yaml","-override_config","./config/config.override.yaml" ]
 
