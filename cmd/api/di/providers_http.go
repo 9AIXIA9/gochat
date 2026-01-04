@@ -35,6 +35,12 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+var nonBusinessPaths = []string{
+	"/healthz",
+	"/swagger/*any",
+	"/metrics",
+}
+
 var HTTPSet = wire.NewSet(
 	provideHttpRouter,
 	provideHttpServer,
@@ -75,13 +81,14 @@ func provideHttpRouter(
 	redisClient *redis.Client,
 	websocketHandler *handler.WebsocketHandler,
 ) *gin.Engine {
+	// 设置全局环境变量
 	ginInfra.SetGlobalEnv(appConfig.Env)
 
 	// 初始化Gin路由器
 	router := gin.New()
 
 	// 链路追踪中间件）
-	router.Use(otelgin.Middleware(appConfig.Name))
+	router.Use(middleware.SkipMiddleware(nonBusinessPaths, otelgin.Middleware(appConfig.Name)))
 
 	// swagger base path 保持与路由前缀一致
 	docs.SwaggerInfo.BasePath = "/api/v1"
@@ -89,14 +96,14 @@ func provideHttpRouter(
 	// 全局中间件
 	router.Use(
 		middleware.NewRecoverMiddleware(),
-		middleware.NewLoggerMiddleware(),
+		middleware.SkipMiddleware(nonBusinessPaths, middleware.NewLoggerMiddleware()),
 		middleware.NewCORSMiddleware(appConfig.CORS),
 	)
 
 	// 非业务路由
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router.NoRoute(handler.NewNotFoundHandler())
-	router.Any("/health_check", handler.NewHealthCheckHandler())
+	router.Any("/healthz", handler.NewHealthCheckHandler())
 
 	// 业务路由
 	baseGroup := router.Group("/api/v1")
@@ -104,14 +111,14 @@ func provideHttpRouter(
 		middleware.NewRateLimitMiddleware(redisClient, appConfig.RateLimit),
 	)
 
-	authorizationMiddleware := authHTTP.NewAuthorizationMiddleware(parseAccessToken)
-
 	// 断路器中间件
 	if appConfig.Breaker != nil {
 		zap.L().Info("Enable Circuit Breaker Middleware")
 		appConfig.Breaker.Name = appConfig.Name + "_http_circuit_breaker"
 		baseGroup.Use(middleware.NewCircuitBreakMiddleware(appConfig.Breaker))
 	}
+
+	authorizationMiddleware := authHTTP.NewAuthorizationMiddleware(parseAccessToken)
 
 	// WebSocket路由
 	websocketGroup := baseGroup.Group("/ws")
