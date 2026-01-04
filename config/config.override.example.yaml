@@ -1,15 +1,30 @@
 # Example deploy override (gitignored as config.override.yaml). Use for cluster-specific tweaks.
-# Only include keys you want to override.
+# Only include keys you want to override. Overlays expand env vars so you can inject secrets at runtime.
 Env: production
+
 Logger:
   Mode: release
   Level: warn
+
 Cookie:
   Secure: true
   Domain: example.com
+
 CORS:
   AllowOrigins:
     - https://app.example.com
+
 Kafka:
   BootstrapServers: kafka:9092
 
+# Sensitive values: set via env in overrides
+AccessToken:
+  Secret: ${JWT_SECRET}
+Mysql:
+  Password: ${DB_PASSWORD}
+Redis:
+  Password: ${REDIS_PASSWORD}
+Email:
+  Password: ${EMAIL_PASSWORD}
+BinlogReader:
+  Password: ${BINLOG_PASSWORD}

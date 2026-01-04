@@ -14,14 +14,14 @@ import (
 func LoadConfigFile(baseConfigPath string, overlays ...string) (*config.App, error) {
 	v := viper.New()
 
-	// load base config
-	if err := readConfigInto(v, baseConfigPath, false); err != nil {
+	// load base config without env expansion to keep committed defaults stable
+	if err := readConfigInto(v, baseConfigPath, false, false); err != nil {
 		return nil, err
 	}
 
-	// merge optional overlays; later overlays win
+	// merge optional overlays; later overlays win; overlays may expand env for sensitive values
 	for _, overlay := range overlays {
-		if err := mergeIfExists(v, overlay); err != nil {
+		if err := mergeIfExists(v, overlay, true); err != nil {
 			return nil, err
 		}
 	}
@@ -34,13 +34,16 @@ func LoadConfigFile(baseConfigPath string, overlays ...string) (*config.App, err
 	return cfg, cfg.Validate()
 }
 
-func readConfigInto(v *viper.Viper, path string, merge bool) error {
+func readConfigInto(v *viper.Viper, path string, merge bool, expandEnv bool) error {
 	content, err := os.ReadFile(path)
 	if err != nil {
 		return fmt.Errorf("read config file failed: %w", err)
 	}
 
-	expandedContent := os.ExpandEnv(string(content))
+	expandedContent := string(content)
+	if expandEnv {
+		expandedContent = os.ExpandEnv(string(content))
+	}
 	cfgType := configTypeFor(path)
 	v.SetConfigType(cfgType)
 
@@ -57,7 +60,7 @@ func readConfigInto(v *viper.Viper, path string, merge bool) error {
 	return nil
 }
 
-func mergeIfExists(v *viper.Viper, path string) error {
+func mergeIfExists(v *viper.Viper, path string, expandEnv bool) error {
 	if path == "" {
 		return nil
 	}
@@ -68,7 +71,7 @@ func mergeIfExists(v *viper.Viper, path string) error {
 		}
 		return fmt.Errorf("stat config overlay failed: %w", err)
 	}
-	return readConfigInto(v, path, true)
+	return readConfigInto(v, path, true, expandEnv)
 }
 
 func configTypeFor(path string) string {
