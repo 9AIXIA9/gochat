@@ -40,7 +40,7 @@ ENV TZ=Asia/Shanghai
 # 设置容器本地时区（使 Go/系统日志等均使用本地时间）
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-RUN mkdir -p /app/config /app/logs /app/data /app/certs
+RUN mkdir -p /app/config /app/logs
 
 # 复制必需的库文件（librdkafka 运行时依赖）
 COPY --from=builder /usr/lib/librdkafka.so.* /usr/lib/
