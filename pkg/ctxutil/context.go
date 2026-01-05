@@ -3,6 +3,8 @@ package ctxutil
 import (
 	"context"
 	"gochat/internal/shared/kernel"
+
+	"go.opentelemetry.io/otel/trace"
 )
 
 const (
@@ -46,4 +48,18 @@ func RequestIDFrom(ctx context.Context) kernel.OperationID {
 		return requestID
 	}
 	return ""
+}
+
+func SpanIDAndTraceIDFrom(ctx context.Context) (string, string) {
+	span := trace.SpanFromContext(ctx)
+	if !span.IsRecording() {
+		return "", ""
+	}
+
+	spanCtx := span.SpanContext()
+	if !spanCtx.IsValid() {
+		return "", ""
+	}
+
+	return spanCtx.TraceID().String(), spanCtx.SpanID().String()
 }

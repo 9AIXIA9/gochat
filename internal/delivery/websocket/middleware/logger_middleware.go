@@ -20,12 +20,28 @@ func NewLoggerMiddleware() websocket.Middleware {
 			resp := next.Handle(ctx, data)
 
 			dur := time.Since(start)
-			zap.L().Info(
-				"request completed",
+
+			fields := []zap.Field{
 				zap.String("user_id", ctxutil.UserIDFrom(ctx).String()),
 				zap.String("topic", websocket.GetTopic(ctx).String()),
 				zap.Duration("latency", dur),
 				zap.Error(ctxutil.ErrorFrom(ctx)),
+			}
+
+			if requestID := ctxutil.RequestIDFrom(ctx).String(); requestID != "" {
+				fields = append(fields, zap.String("request_id", requestID))
+			}
+
+			if traceID, spanID := ctxutil.SpanIDAndTraceIDFrom(ctx); traceID != "" && spanID != "" {
+				fields = append(fields,
+					zap.String("trace_id", traceID),
+					zap.String("span_id", spanID),
+				)
+			}
+
+			zap.L().Info(
+				"request completed",
+				fields...,
 			)
 			return resp
 		})

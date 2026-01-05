@@ -1,12 +1,10 @@
 package middleware
 
 import (
-	"context"
 	"gochat/pkg/ctxutil"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -33,7 +31,7 @@ func NewLoggerMiddleware() gin.HandlerFunc {
 			fields = append(fields, zap.String("request_id", requestID))
 		}
 
-		if traceID, spanID := getSpanIDAndTraceID(c.Request.Context()); traceID != "" && spanID != "" {
+		if traceID, spanID := ctxutil.SpanIDAndTraceIDFrom(c.Request.Context()); traceID != "" && spanID != "" {
 			fields = append(fields,
 				zap.String("trace_id", traceID),
 				zap.String("span_id", spanID),
@@ -49,18 +47,4 @@ func NewLoggerMiddleware() gin.HandlerFunc {
 			fields...,
 		)
 	}
-}
-
-func getSpanIDAndTraceID(ctx context.Context) (string, string) {
-	span := trace.SpanFromContext(ctx)
-	if !span.IsRecording() {
-		return "", ""
-	}
-
-	spanCtx := span.SpanContext()
-	if !spanCtx.IsValid() {
-		return "", ""
-	}
-
-	return spanCtx.TraceID().String(), spanCtx.SpanID().String()
 }
