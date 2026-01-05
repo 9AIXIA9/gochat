@@ -1,24 +1,29 @@
 package di
 
 import (
+	"context"
 	"fmt"
 	"gochat/docs"
 	"gochat/internal/application"
 	authApp "gochat/internal/authorization/application"
 	chatApp "gochat/internal/chat/application"
 	friendshipApp "gochat/internal/friendship/application"
+	kafkaInfra "gochat/internal/infrastructure/kafka"
 	"gochat/internal/infrastructure/websocket"
 	notificationApp "gochat/internal/notification/application"
 	profileApp "gochat/internal/profile/application"
 	roomshipApp "gochat/internal/roomship/application"
 	"net/http"
+	"time"
 
+	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
 	gorillaWebsocket "github.com/gorilla/websocket"
 	"github.com/redis/go-redis/v9"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 
 	"gochat/config"
 	authHTTP "gochat/internal/authorization/port/http"
@@ -37,6 +42,7 @@ import (
 
 var nonBusinessPaths = []string{
 	"/healthz",
+	"/readyz",
 	"/swagger/*any",
 	"/metrics",
 }
@@ -45,6 +51,7 @@ var HTTPSet = wire.NewSet(
 	provideHttpRouter,
 	provideHttpServer,
 	provideWebsocketHandler,
+	provideIsReadyChecker,
 )
 
 func provideHttpRouter(
@@ -80,6 +87,7 @@ func provideHttpRouter(
 	validator ginInfra.Validator,
 	redisClient *redis.Client,
 	websocketHandler *handler.WebsocketHandler,
+	isReady func() bool,
 ) *gin.Engine {
 	// 设置全局环境变量
 	ginInfra.SetGlobalEnv(appConfig.Env)
@@ -104,6 +112,7 @@ func provideHttpRouter(
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router.NoRoute(handler.NewNotFoundHandler())
 	router.Any("/healthz", handler.NewHealthCheckHandler())
+	router.Any("/readyz", handler.NewReadyCheckHandler(isReady))
 
 	// 业务路由
 	baseGroup := router.Group("/api/v1")
@@ -241,4 +250,41 @@ func provideWebsocketHandler(
 		router,
 		userSessionStartedUseCase,
 	)
+}
+
+func provideIsReadyChecker(
+	db *gorm.DB,
+	rdb *redis.Client,
+	producer *kafka.Producer,
+	consumers []*kafkaInfra.Consumer,
+) func() bool {
+	return func() bool {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		dbConn, err := db.DB()
+		if err != nil {
+			return false
+		}
+		if err := dbConn.PingContext(ctx); err != nil {
+			return false
+		}
+
+		if err := rdb.Ping(ctx).Err(); err != nil {
+			return false
+		}
+
+		// Flush 将内存中缓冲的所有消息发送到Kafka 剩余未发送的消息数量
+		if remaining := producer.Flush(1000); remaining > 0 {
+			return false
+		}
+
+		for _, consumer := range consumers {
+			if err := consumer.Ping(ctx); err != nil {
+				return false
+			}
+		}
+
+		return true
+	}
 }
