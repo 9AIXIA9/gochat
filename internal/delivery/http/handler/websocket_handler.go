@@ -9,6 +9,8 @@ import (
 	"github.com/gorilla/websocket"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 )
 
@@ -36,8 +38,20 @@ func NewWebsocketHandler(
 func (s *WebsocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	userID := ctxutil.UserIDFrom(r.Context())
 
+	tracer := otel.Tracer("websocket.connection")
+	// Short-lived span for the upgrade/handshake so it exports immediately.
+	ctxConn, span := tracer.Start(r.Context(), "websocket.upgrade", trace.WithSpanKind(trace.SpanKindServer))
+	span.SetAttributes(
+		attribute.String("enduser.id", userID.String()),
+		attribute.String("net.peer.ip", r.RemoteAddr),
+		attribute.String("http.target", r.URL.Path),
+	)
+
 	conn, err := s.upgrader.Upgrade(w, r, nil)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "upgrade failed")
+		span.End()
 		zap.L().Error(
 			"failed to upgrade to websocket",
 			zap.String("userID", userID.String()),
@@ -45,19 +59,10 @@ func (s *WebsocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		)
 		return
 	}
-
-	// Start a connection-level span based on the HTTP request context
-	tracer := otel.Tracer("websocket.connection")
-	ctxConn, span := tracer.Start(r.Context(), "websocket.connection")
-	span.SetAttributes(
-		attribute.String("enduser.id", userID.String()),
-		attribute.String("net.peer.ip", r.RemoteAddr),
-		attribute.String("http.target", r.URL.Path),
-	)
+	span.End()
 
 	client := websocketInfra.NewClient(ctxConn, conn, s.router)
 	client.WithOnClose(func() {
-		span.End()
 		// Unregister by pointer to avoid removing a newly registered client when replacing connections.
 		s.manager.UnregisterClient(client)
 	})
