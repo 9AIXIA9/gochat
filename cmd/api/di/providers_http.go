@@ -38,6 +38,7 @@ import (
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"golang.org/x/sync/errgroup"
 )
 
 var nonBusinessPaths = []string{
@@ -262,29 +263,35 @@ func provideIsReadyChecker(
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 
-		dbConn, err := db.DB()
-		if err != nil {
-			return false
-		}
-		if err := dbConn.PingContext(ctx); err != nil {
-			return false
-		}
+		group, ctx := errgroup.WithContext(ctx)
 
-		if err := rdb.Ping(ctx).Err(); err != nil {
-			return false
-		}
-
-		// Flush 将内存中缓冲的所有消息发送到Kafka 剩余未发送的消息数量
-		if remaining := producer.Flush(1000); remaining > 0 {
-			return false
-		}
-
-		for _, consumer := range consumers {
-			if err := consumer.Ping(ctx); err != nil {
-				return false
+		group.Go(func() error {
+			dbConn, err := db.DB()
+			if err != nil {
+				return err
 			}
+			return dbConn.PingContext(ctx)
+		})
+
+		group.Go(func() error {
+			return rdb.Ping(ctx).Err()
+		})
+
+		group.Go(func() error {
+			// Flush returns remaining buffered messages; treat leftover as unhealthy
+			if remaining := producer.Flush(1000); remaining > 0 {
+				return fmt.Errorf("kafka producer has %d pending messages", remaining)
+			}
+			return nil
+		})
+
+		for _, c := range consumers {
+			consumer := c
+			group.Go(func() error {
+				return consumer.Ping(ctx)
+			})
 		}
 
-		return true
+		return group.Wait() == nil
 	}
 }
