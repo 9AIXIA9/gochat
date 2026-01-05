@@ -100,7 +100,10 @@ func provideHttpRouter(
 	router.Use(middleware.SkipMiddleware(nonBusinessPaths, otelgin.Middleware(appConfig.Name)))
 
 	// 请求ID中间件，确保每个请求都有可追踪的request_id
-	router.Use(middleware.NewRequestIDMiddleware())
+
+	router.Use(
+		middleware.SkipMiddleware(nonBusinessPaths, middleware.NewRequestIDMiddleware()),
+	)
 
 	// swagger base path 保持与路由前缀一致
 	docs.SwaggerInfo.BasePath = "/api/v1"
@@ -114,11 +117,12 @@ func provideHttpRouter(
 
 	// 非业务路由
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	router.NoRoute(handler.NewNotFoundHandler())
 	router.Any("/healthz", handler.NewHealthCheckHandler())
 	router.Any("/readyz", handler.NewReadyCheckHandler(isReady))
 
 	// 业务路由
+	router.NoRoute(handler.NewNotFoundHandler())
+
 	baseGroup := router.Group("/api/v1")
 	baseGroup.Use(
 		middleware.NewRateLimitMiddleware(redisClient, appConfig.RateLimit),

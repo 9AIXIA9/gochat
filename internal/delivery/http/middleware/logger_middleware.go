@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"gochat/pkg/ctxutil"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -23,6 +24,7 @@ func NewLoggerMiddleware() gin.HandlerFunc {
 			zap.String("query", c.Request.URL.RawQuery),
 			zap.Int("status", c.Writer.Status()),
 			zap.Duration("latency", dur),
+			zap.String("request_id", ctxutil.RequestIDFrom(c.Request.Context()).String()),
 			zap.Error(c.Errors.Last()),
 		)
 	}
