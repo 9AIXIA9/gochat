@@ -33,6 +33,7 @@ import (
 
 var KafkaSet = wire.NewSet(
 	provideKafkaProducer,
+	provideKafkaConsumers,
 	provideAuthEventConsumer,
 	provideProfileEventConsumer,
 	provideChatEventConsumer,
@@ -61,6 +62,24 @@ func provideKafkaProducer(
 		return nil, fmt.Errorf("failed to create Kafka producer: %w", err)
 	}
 	return producer, nil
+}
+
+func provideKafkaConsumers(
+	authConsumer AuthKafkaConsumer,
+	profileConsumer ProfileKafkaConsumer,
+	chatConsumer ChatKafkaConsumer,
+	notificationConsumer NotificationKafkaConsumer,
+	roomshipConsumer RoomshipKafkaConsumer,
+	friendshipConsumer FriendshipKafkaConsumer,
+) []*kafkaInfra.Consumer {
+	return []*kafkaInfra.Consumer{
+		authConsumer,
+		profileConsumer,
+		chatConsumer,
+		notificationConsumer,
+		roomshipConsumer,
+		friendshipConsumer,
+	}
 }
 
 // common builder to reduce duplication across contexts

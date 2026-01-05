@@ -44,8 +44,8 @@ type (
 
 var InfraSet = wire.NewSet(
 	provideObservability,
-	provideMysql,
-	provideRedis,
+	provideMysqlConnection,
+	provideRedisConnection,
 	provideKafkaPublisher,
 	provideValidator,
 	// Generators & managers (concrete providers)
@@ -105,10 +105,10 @@ func provideObservability(cfg *config.App) (OTELShutdown, error) {
 	return infraotel.Init(cfg.OTEL)
 }
 
-func provideMysql(appConfig *config.App) (*gorm.DB, error) {
+func provideMysqlConnection(appConfig *config.App) (*gorm.DB, error) {
 	return gormInfra.ConnectToMysql(appConfig.Mysql)
 }
-func provideRedis(appConfig *config.App) (*redis.Client, error) {
+func provideRedisConnection(appConfig *config.App) (*redis.Client, error) {
 	return redisInfra.ConnectToRedis(appConfig.Redis)
 }
 

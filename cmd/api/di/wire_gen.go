@@ -21,7 +21,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 		return nil, err
 	}
 	hasher := provideHasher(appConfig)
-	db, err := provideMysql(appConfig)
+	db, err := provideMysqlConnection(appConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	}
 	accessTokenManager := provideAccessTokenManager(appConfig)
 	refreshTokenGenerator := provideRefreshTokenGenerator(appConfig)
-	client, err := provideRedis(appConfig)
+	client, err := provideRedisConnection(appConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -180,12 +180,6 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 		return nil, err
 	}
 	websocketHandler := provideWebsocketHandler(upgrader, manager, router, userSessionStartedUseCase)
-	engine := provideHttpRouter(appConfig, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, getUserProfileUseCase, getRoomProfileUseCase, updateUserProfileUseCase, updateRoomProfileUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, readPrivateMessagesUseCase, readRoomMessagesUseCase, listPrivateMessagesUseCase, listRoomMessagesUseCase, createRoomUseCase, listRoomMembersUseCase, sendMemberRequestUseCase, agreeMemberRequestUseCase, refuseMemberRequestUseCase, listMemberRequestsUseCase, listRoomshipsUseCase, leaveRoomUseCase, sendFriendRequestUseCase, agreeFriendRequestUseCase, refuseFriendRequestUseCase, listFriendshipsUseCase, listFriendRequestsUseCase, listSystemMessagesUseCase, validator, client, websocketHandler)
-	server := provideHttpServer(appConfig, engine)
-	eventPublisher, err := provideKafkaPublisher(appConfig, eventRepository)
-	if err != nil {
-		return nil, err
-	}
 	producer, err := provideKafkaProducer(appConfig)
 	if err != nil {
 		return nil, err
@@ -310,6 +304,14 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
+	v := provideKafkaConsumers(authKafkaConsumer, profileKafkaConsumer, chatKafkaConsumer, notificationKafkaConsumer, roomshipKafkaConsumer, friendshipKafkaConsumer)
+	v2 := provideIsReadyChecker(db, client, producer, v)
+	engine := provideHttpRouter(appConfig, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, getUserProfileUseCase, getRoomProfileUseCase, updateUserProfileUseCase, updateRoomProfileUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, readPrivateMessagesUseCase, readRoomMessagesUseCase, listPrivateMessagesUseCase, listRoomMessagesUseCase, createRoomUseCase, listRoomMembersUseCase, sendMemberRequestUseCase, agreeMemberRequestUseCase, refuseMemberRequestUseCase, listMemberRequestsUseCase, listRoomshipsUseCase, leaveRoomUseCase, sendFriendRequestUseCase, agreeFriendRequestUseCase, refuseFriendRequestUseCase, listFriendshipsUseCase, listFriendRequestsUseCase, listSystemMessagesUseCase, validator, client, websocketHandler, v2)
+	server := provideHttpServer(appConfig, engine)
+	eventPublisher, err := provideKafkaPublisher(appConfig, eventRepository)
+	if err != nil {
+		return nil, err
+	}
 	canal, err := provideCanal(appConfig)
 	if err != nil {
 		return nil, err
@@ -324,7 +326,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	dependencies, err := BuildDependencies(server, eventPublisher, authKafkaConsumer, profileKafkaConsumer, chatKafkaConsumer, notificationKafkaConsumer, roomshipKafkaConsumer, friendshipKafkaConsumer, binlogReader, emailNotifier, otelShutdown, diEmailServiceAvailable)
+	dependencies, err := BuildDependencies(server, eventPublisher, v, binlogReader, emailNotifier, otelShutdown, diEmailServiceAvailable)
 	if err != nil {
 		return nil, err
 	}

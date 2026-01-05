@@ -173,3 +173,23 @@ func (c *Consumer) pausePartition(tp ckafka.TopicPartition) {
 		}
 	})
 }
+
+func (c *Consumer) Ping(ctx context.Context) error {
+	if c.consumer == nil {
+		return errors.New("consumer is nil")
+	}
+
+	// 设置超时
+	timeoutMs := 1000
+	if deadline, ok := ctx.Deadline(); ok {
+		if ms := int(time.Until(deadline).Milliseconds()); ms > 0 {
+			timeoutMs = ms
+		}
+	}
+
+	// 获取元数据检查连接
+	if _, err := c.consumer.GetMetadata(nil, false, timeoutMs); err != nil {
+		return fmt.Errorf("consumer metadata check failed: %w", err)
+	}
+	return nil
+}
