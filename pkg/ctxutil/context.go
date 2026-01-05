@@ -6,8 +6,9 @@ import (
 )
 
 const (
-	userIDKey = "user_id"
-	errorKey  = "error"
+	userIDKey    = "user_id"
+	requestIDKey = "request_id"
+	errorKey     = "error"
 )
 
 // WithError returns a new context carrying an error value.
@@ -32,6 +33,17 @@ func WithUserID(ctx context.Context, userID kernel.UserID) context.Context {
 func UserIDFrom(ctx context.Context) kernel.UserID {
 	if userID, ok := ctx.Value(userIDKey).(kernel.UserID); ok {
 		return userID
+	}
+	return ""
+}
+
+func WithRequestID(ctx context.Context, requestID kernel.OperationID) context.Context {
+	return context.WithValue(ctx, requestIDKey, requestID)
+}
+
+func RequestIDFrom(ctx context.Context) kernel.OperationID {
+	if requestID, ok := ctx.Value(requestIDKey).(kernel.OperationID); ok {
+		return requestID
 	}
 	return ""
 }

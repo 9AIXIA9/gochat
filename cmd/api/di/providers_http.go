@@ -99,6 +99,9 @@ func provideHttpRouter(
 	// 链路追踪中间件）
 	router.Use(middleware.SkipMiddleware(nonBusinessPaths, otelgin.Middleware(appConfig.Name)))
 
+	// 请求ID中间件，确保每个请求都有可追踪的request_id
+	router.Use(middleware.NewRequestIDMiddleware())
+
 	// swagger base path 保持与路由前缀一致
 	docs.SwaggerInfo.BasePath = "/api/v1"
 
