@@ -91,10 +91,11 @@ func buildKafkaConsumer(
 	register func(r *kafkaInfra.Router),
 ) (*kafkaInfra.Consumer, error) {
 	router := kafkaInfra.NewRouter()
+	// Order matters: recover outermost, trace next (so logger sees span), logger innermost.
 	router.Use(
-		middleware.NewLoggerMiddleware(),
 		middleware.NewRecoverMiddleware(),
 		middleware.NewTraceMiddleware(appConfig.Name+"."+contextName+".kafka_consumer"),
+		middleware.NewLoggerMiddleware(),
 	)
 
 	if appConfig.Breaker != nil {
