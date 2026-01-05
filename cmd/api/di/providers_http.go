@@ -90,6 +90,7 @@ func provideHttpRouter(
 	redisClient *redis.Client,
 	websocketHandler *handler.WebsocketHandler,
 	isReady func() bool,
+	_ OTELShutdown,
 ) *gin.Engine {
 	// 设置全局环境变量
 	ginInfra.SetGlobalEnv(appConfig.Env)

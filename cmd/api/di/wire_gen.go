@@ -306,7 +306,11 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	}
 	v := provideKafkaConsumers(authKafkaConsumer, profileKafkaConsumer, chatKafkaConsumer, notificationKafkaConsumer, roomshipKafkaConsumer, friendshipKafkaConsumer)
 	v2 := provideIsReadyChecker(db, client, producer, v)
-	engine := provideHttpRouter(appConfig, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, getUserProfileUseCase, getRoomProfileUseCase, updateUserProfileUseCase, updateRoomProfileUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, readPrivateMessagesUseCase, readRoomMessagesUseCase, listPrivateMessagesUseCase, listRoomMessagesUseCase, createRoomUseCase, listRoomMembersUseCase, sendMemberRequestUseCase, agreeMemberRequestUseCase, refuseMemberRequestUseCase, listMemberRequestsUseCase, listRoomshipsUseCase, leaveRoomUseCase, sendFriendRequestUseCase, agreeFriendRequestUseCase, refuseFriendRequestUseCase, listFriendshipsUseCase, listFriendRequestsUseCase, listSystemMessagesUseCase, validator, client, websocketHandler, v2)
+	otelShutdown, err := provideObservability(appConfig)
+	if err != nil {
+		return nil, err
+	}
+	engine := provideHttpRouter(appConfig, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, getUserProfileUseCase, getRoomProfileUseCase, updateUserProfileUseCase, updateRoomProfileUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, readPrivateMessagesUseCase, readRoomMessagesUseCase, listPrivateMessagesUseCase, listRoomMessagesUseCase, createRoomUseCase, listRoomMembersUseCase, sendMemberRequestUseCase, agreeMemberRequestUseCase, refuseMemberRequestUseCase, listMemberRequestsUseCase, listRoomshipsUseCase, leaveRoomUseCase, sendFriendRequestUseCase, agreeFriendRequestUseCase, refuseFriendRequestUseCase, listFriendshipsUseCase, listFriendRequestsUseCase, listSystemMessagesUseCase, validator, client, websocketHandler, v2, otelShutdown)
 	server := provideHttpServer(appConfig, engine)
 	eventPublisher, err := provideKafkaPublisher(appConfig, eventRepository)
 	if err != nil {
@@ -322,10 +326,6 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	}
 	eventHandler := provideCanalBinlogReaderHandler(unpublishedEventsCreatedUseCase)
 	binlogReader := provideCanalBinlogReader(canal, eventHandler)
-	otelShutdown, err := provideObservability(appConfig)
-	if err != nil {
-		return nil, err
-	}
 	dependencies, err := BuildDependencies(server, eventPublisher, v, binlogReader, emailNotifier, otelShutdown, diEmailServiceAvailable)
 	if err != nil {
 		return nil, err
