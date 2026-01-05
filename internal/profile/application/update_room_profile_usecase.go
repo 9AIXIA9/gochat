@@ -6,7 +6,7 @@ import (
 	"gochat/internal/profile/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 type UpdateRoomProfileUseCase kernel.UseCase[*UpdateRoomProfileInput, *kernel.NoOutput]
@@ -41,7 +41,7 @@ func NewUpdateRoomProfileUseCase(
 	profileFinder domain.RoomProfileFinder,
 	roomshipFinder domain.RoomshipFinderByUserIDAndRoomID,
 ) (UpdateRoomProfileUseCase, error) {
-	if err := utils.CheckInterfaces(
+	if err := validate.NotNil(
 		updater,
 		profileFinder,
 		roomshipFinder,

@@ -5,7 +5,7 @@ import (
 	"gochat/internal/chat/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 const (
@@ -41,7 +41,7 @@ type listPrivateMessagesUseCase struct {
 func NewListPrivateMessagesUseCase(
 	finder domain.PrivateMessagesFinderByUserIDs,
 ) (ListPrivateMessagesUseCase, error) {
-	if err := utils.CheckInterfaces(finder); err != nil {
+	if err := validate.NotNil(finder); err != nil {
 		return nil, err
 	}
 	return &listPrivateMessagesUseCase{

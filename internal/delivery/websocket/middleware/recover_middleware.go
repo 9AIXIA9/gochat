@@ -4,7 +4,7 @@ import (
 	"context"
 	"gochat/internal/infrastructure/websocket"
 	"gochat/internal/shared/api"
-	"gochat/pkg/utils"
+	"gochat/pkg/ctxutil"
 	"runtime/debug"
 
 	"go.uber.org/zap"
@@ -19,7 +19,7 @@ func NewRecoverMiddleware() websocket.Middleware {
 					zap.L().Error("panic recovered",
 						zap.Any("panic", r),
 						zap.String("stack", stack),
-						zap.String("user_id", utils.GetUserID(ctx).String()),
+						zap.String("user_id", ctxutil.UserIDFrom(ctx).String()),
 						zap.String("topic", websocket.GetTopic(ctx).String()),
 					)
 				}

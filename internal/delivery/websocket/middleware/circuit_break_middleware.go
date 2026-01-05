@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gochat/pkg/ctxutil"
 
 	"gochat/internal/infrastructure/breaker"
 	"gochat/internal/infrastructure/websocket"
 	"gochat/internal/shared/api"
-	"gochat/pkg/utils"
 
 	"github.com/sony/gobreaker/v2"
 )
@@ -23,7 +23,7 @@ func NewCircuitBreakMiddleware(conf *breaker.Config) websocket.Middleware {
 				r := next.Handle(ctx, data)
 				resp = r
 
-				ctxErr := utils.GetError(ctx)
+				ctxErr := ctxutil.ErrorFrom(ctx)
 				if ctxErr != nil {
 					return nil, fmt.Errorf("ctx error: %w", ctxErr)
 				}

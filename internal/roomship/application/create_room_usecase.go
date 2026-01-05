@@ -6,7 +6,7 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 const defaultMemberCount = 20
@@ -47,7 +47,7 @@ func NewCreateRoomUseCase(
 	encryptor domain.Encryptor,
 	roomCreator domain.RoomCreator,
 ) (CreateRoomUseCase, error) {
-	if err := utils.CheckInterfaces(
+	if err := validate.NotNil(
 		eventIDGenerator,
 		roomIDGenerator,
 		numberGenerator,

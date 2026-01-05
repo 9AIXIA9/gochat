@@ -5,7 +5,7 @@ import (
 	"gochat/internal/shared/api"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/ctxutil"
 
 	"go.uber.org/zap"
 )
@@ -46,10 +46,10 @@ func AdaptUsecaseToHandler[
 			if myErrors.IsBusinessError(err) {
 				return api.NewResponseWithMessage(api.CodeSuccess, err.Error())
 			}
-			ctx = utils.SetError(ctx, err)
+			ctxutil.WithError(ctx, err)
 			zap.L().Error(
 				"websocket usecase execute failed",
-				zap.String("user_id", utils.GetUserID(ctx).String()),
+				zap.String("user_id", ctxutil.UserIDFrom(ctx).String()),
 				zap.String("topic", GetTopic(ctx).String()),
 				zap.Error(err),
 			)

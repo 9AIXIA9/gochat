@@ -4,7 +4,7 @@ import (
 	"context"
 	"gochat/internal/authorization/domain"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 type ParseAccessTokenUseCase kernel.UseCase[*ParseAccessTokenInput, *ParseAccessTokenOutput]
@@ -26,7 +26,7 @@ type parseAccessTokenUseCase struct {
 }
 
 func NewParseAccessTokenUseCase(accessTokenParser domain.AccessTokenParser) (ParseAccessTokenUseCase, error) {
-	if err := utils.CheckInterfaces(accessTokenParser); err != nil {
+	if err := validate.NotNil(accessTokenParser); err != nil {
 		return nil, err
 	}
 

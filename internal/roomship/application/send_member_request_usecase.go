@@ -7,7 +7,7 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 type SendMemberRequestUseCase kernel.UseCase[*SendMemberRequestInput, *kernel.NoOutput]
@@ -45,7 +45,7 @@ func NewSendMemberRequestUseCase(
 	comparator domain.Comparator,
 	creator domain.MemberRequestCreator,
 ) (SendMemberRequestUseCase, error) {
-	if err := utils.CheckInterfaces(
+	if err := validate.NotNil(
 		memberRequestExister,
 		roomshipExister,
 		finder,

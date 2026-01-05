@@ -5,7 +5,7 @@ import (
 	"gochat/internal/chat/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 const messageCountLimit = 100
@@ -41,7 +41,7 @@ func NewUndeliveredMessagesPushRequestedUseCase(
 	roomMessageNotifier domain.RoomMessageNotifier,
 	roomMessagesUpdater domain.RoomMessagesUpdater,
 ) (UndeliveredMessagesPushRequestedUseCase, error) {
-	if err := utils.CheckInterfaces(
+	if err := validate.NotNil(
 		privateMessagesFinder,
 		privateMessageNotifier,
 		privateMessagesUpdater,

@@ -6,7 +6,7 @@ import (
 	"gochat/internal/profile/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 type GetRoomProfileUseCase kernel.UseCase[*GetRoomProfileInput, *GetRoomProfileOutput]
@@ -33,7 +33,7 @@ type getRoomProfileUseCase struct {
 func NewGetRoomProfileUseCase(
 	finder domain.RoomProfileFinder,
 ) (GetRoomProfileUseCase, error) {
-	if err := utils.CheckInterfaces(
+	if err := validate.NotNil(
 		finder,
 	); err != nil {
 		return nil, err

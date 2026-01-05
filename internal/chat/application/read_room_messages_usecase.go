@@ -5,7 +5,7 @@ import (
 	"gochat/internal/chat/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 type ReadRoomMessagesUseCase kernel.UseCase[*ReadRoomMessagesInput, *kernel.NoOutput]
@@ -30,7 +30,7 @@ type readRoomMessagesUseCase struct {
 func NewReadRoomMessagesUseCase(
 	updater domain.RoomMessagesStatesUpdaterByUserIDAndRoomID,
 ) (ReadRoomMessagesUseCase, error) {
-	if err := utils.CheckInterfaces(updater); err != nil {
+	if err := validate.NotNil(updater); err != nil {
 		return nil, err
 	}
 

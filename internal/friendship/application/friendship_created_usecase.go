@@ -9,7 +9,7 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 type FriendshipCreatedUseCase kernel.UseCase[*FriendshipCreatedInput, *kernel.NoOutput]
@@ -37,7 +37,7 @@ func NewFriendshipCreatedUseCase(
 	creator event.UnpublishedEventsCreator,
 	idGenerator event.IDGenerator,
 ) (FriendshipCreatedUseCase, error) {
-	if err := utils.CheckInterfaces(
+	if err := validate.NotNil(
 		idGenerator, finderByID, creator,
 	); err != nil {
 		return nil, err

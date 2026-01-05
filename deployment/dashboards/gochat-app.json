@@ -2,7 +2,9 @@
   "dashboard": {
     "id": null,
     "title": "GoChat Application",
-    "tags": ["gochat"],
+    "tags": [
+      "gochat"
+    ],
     "timezone": "browser",
     "panels": [],
     "time": {

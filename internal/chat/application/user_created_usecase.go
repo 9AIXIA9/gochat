@@ -5,7 +5,7 @@ import (
 	"gochat/internal/chat/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 type UserCreatedUseCase kernel.UseCase[*UserCreatedInput, *kernel.NoOutput]
@@ -29,7 +29,7 @@ type userCreatedUseCase struct {
 func NewUserCreatedUseCase(
 	userSaver domain.UserSaver,
 ) (UserCreatedUseCase, error) {
-	if err := utils.CheckInterfaces(userSaver); err != nil {
+	if err := validate.NotNil(userSaver); err != nil {
 		return nil, err
 	}
 

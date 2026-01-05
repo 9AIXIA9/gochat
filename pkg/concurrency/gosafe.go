@@ -1,4 +1,4 @@
-package utils
+package concurrency
 
 import (
 	"runtime/debug"
@@ -6,6 +6,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// GoSafe runs fn in a goroutine and logs any panic.
 func GoSafe(fn func()) {
 	go func() {
 		defer func() {

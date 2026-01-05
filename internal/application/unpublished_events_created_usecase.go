@@ -5,7 +5,7 @@ import (
 	"errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 	"time"
 
 	"go.uber.org/zap"
@@ -24,7 +24,7 @@ func NewUnpublishedEventsCreatedUseCase(
 	publisher event.Publisher,
 	lister event.UnpublishedEventsLister,
 ) (UnpublishedEventsCreatedUseCase, error) {
-	if err := utils.CheckInterfaces(
+	if err := validate.NotNil(
 		publisher,
 		lister,
 	); err != nil {

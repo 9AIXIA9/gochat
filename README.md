@@ -3,6 +3,7 @@
 一个采用 DDD 风格的聊天/好友/房间管理后端，支持 HTTP、WebSocket 与 Kafka 三种交付通道。以 Go 构建，具备完善的依赖注入、持久化与可观测性能力。
 
 ## 功能特性
+
 - 授权认证：注册/登录/刷新/解析（JWT + bcrypt）
 - 聊天：私聊与房间消息（HTTP + WebSocket + Kafka）
 - 好友与房间：好友请求、好友关系、房间成员管理
@@ -11,6 +12,7 @@
 - 可观测性：OpenTelemetry Traces、Prometheus 指标、Grafana 仪表盘
 
 ## 技术栈
+
 - Go，Gin（HTTP），Gorilla WebSocket（WS）
 - Kafka（confluent-kafka-go），MySQL（Gorm），Redis
 - Google Wire 进行依赖注入
@@ -20,6 +22,7 @@
 - Docker 与 docker-compose
 
 ## 项目结构
+
 - `cmd/api`：应用入口与依赖注入装配（DI）
 - `internal/{context}`：DDD 分层（`application`、`domain`、`infrastructure`、`port`）
 - `internal/delivery`：HTTP/Kafka/WebSocket 适配层
@@ -90,11 +93,13 @@ docker-compose down
 ```
 
 默认地址：
+
 - HTTP：`http://localhost:8080`
 - BasePath：`/api/v1`
 - Swagger：参见 `docs/swagger.yaml` 以及 `cmd/api/main.go` 中的注解
 
 ## 健康与就绪
+
 - 健康检查：通过 HTTP Handler 返回状态
 - 优雅关机：`cmd/api/main.go` 基于信号触发，依次关闭 HTTP、Kafka Producer/Consumers、Binlog、Email、OTEL
 
@@ -112,6 +117,7 @@ golangci-lint run ./...
 ```
 
 ## 配置
+
 - 基础默认：`config/config.yaml`（不展开环境变量，用作完整默认值）
 - 可选覆盖：`config.local.yaml`（gitignored，本地开发）、`config.override.yaml`（gitignored，部署环境）。覆盖文件会展开环境变量以便注入敏感值。
 - 环境文件：`-env` 标志加载 `.env` 或指定文件；也可直接使用进程环境。
@@ -121,29 +127,30 @@ golangci-lint run ./...
 ## 文档导航
 
 - 概览与评估
-  - 项目评估报告：`docs/project_evaluation_optimization.md`
-  - 代码演进与路线图：`docs/code_evolution.md`
-  - 项目演进路线图（版本迭代记录）：`docs/roadmap.md`
+	- 项目评估报告：`docs/project_evaluation_optimization.md`
+	- 代码演进与路线图：`docs/code_evolution.md`
+	- 项目演进路线图（版本迭代记录）：`docs/roadmap.md`
 - API 文档
-  - Swagger YAML：`docs/swagger.yaml`
-  - Swagger JSON：`docs/swagger.json`
-  - 注解入口：`cmd/api/main.go`
+	- Swagger YAML：`docs/swagger.yaml`
+	- Swagger JSON：`docs/swagger.json`
+	- 注解入口：`cmd/api/main.go`
 - 实时通信
-  - WebSocket 说明：`docs/websocket.md`
+	- WebSocket 说明：`docs/websocket.md`
 - 部署与监控
-  - docker-compose：`docker-compose.yml`
-  - Dockerfile：`Dockerfile`
-  - OTEL 采集器：`deployment/otel-collector-config.yaml`
-  - Prometheus：`deployment/prometheus.yml`
-  - Grafana 数据源与仪表：`deployment/grafana-datasources.yml`、`deployment/grafana-dashboards/gochat-app.json`
-  - 告警：`deployment/prometheus-alerts.yml`
+	- docker-compose：`docker-compose.yml`
+	- Dockerfile：`Dockerfile`
+	- OTEL 采集器：`deployment/otel-collector-config.yaml`
+	- Prometheus：`deployment/prometheus.yml`
+	- Grafana 数据源与仪表：`deployment/grafana-datasources.yml`、`deployment/grafana-dashboards/gochat-app.json`
+	- 告警：`deployment/prometheus-alerts.yml`
 - 数据库与初始化
-  - SQL 迁移：`db/migrations/`
-  - MySQL 初始化：`deployment/grafana-dashboards/mysql-init/init_users.sh`
-  - Redis ACL 初始化：`deployment/redis_init/init_users.acl`
+	- SQL 迁移：`db/migrations/`
+	- MySQL 初始化：`deployment/grafana-dashboards/mysql-init/init_users.sh`
+	- Redis ACL 初始化：`deployment/redis_init/init_users.acl`
 - 构建与脚本
-  - Makefile：`Makefile`（常用：`make up`、`make up-fast`、`make logs-app`、`make test-all`、`make migrate-up`）
-  - 统计代码行数：`scripts/count_golang_code_lines.ps1`
+	- Makefile：`Makefile`（常用：`make up`、`make up-fast`、`make logs-app`、`make test-all`、`make migrate-up`）
+	- 统计代码行数：`scripts/count_golang_code_lines.ps1`
 
 ## 许可协议
+
 MIT

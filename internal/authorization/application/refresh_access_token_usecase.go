@@ -5,7 +5,7 @@ import (
 	"gochat/internal/authorization/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 
 	"context"
 )
@@ -38,7 +38,7 @@ func NewRefreshAccessTokenUseCase(
 	accessTokenGenerator domain.AccessTokenGenerator,
 	refreshTokenGenerator domain.RefreshTokenGenerator,
 ) (RefreshAccessTokenUseCase, error) {
-	if err := utils.CheckInterfaces(
+	if err := validate.NotNil(
 		refreshTokenUpserter,
 		refreshTokenFinder,
 		accessTokenGenerator,

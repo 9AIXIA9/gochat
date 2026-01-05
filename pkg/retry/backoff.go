@@ -1,4 +1,4 @@
-package utils
+package retry
 
 import (
 	"context"
@@ -6,7 +6,8 @@ import (
 	"time"
 )
 
-func BackoffWait(ctx context.Context, retry int, baseDelay time.Duration) {
+// Wait performs exponential backoff with jitter for the given retry attempt.
+func Wait(ctx context.Context, retry int, baseDelay time.Duration) {
 	maxDelay := baseDelay * (1 << retry)
 	jitter := time.Duration(rand.Int63n(int64(maxDelay) / 2))
 	delay := maxDelay + jitter

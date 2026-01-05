@@ -6,7 +6,7 @@ import (
 	"gochat/internal/profile/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 	"time"
 )
 
@@ -34,7 +34,7 @@ func NewRoomCreatedUseCase(
 	roomSaver domain.RoomSaver,
 	creator domain.RoomProfileCreator,
 ) (RoomCreatedUseCase, error) {
-	if err := utils.CheckInterfaces(
+	if err := validate.NotNil(
 		roomSaver,
 		creator,
 	); err != nil {

@@ -5,7 +5,7 @@ import (
 	"gochat/internal/notification/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 type SystemMessageNotificationRequestedUseCase kernel.UseCase[*SystemMessageNotificationRequestedInput, *kernel.NoOutput]
@@ -38,7 +38,7 @@ func NewSystemMessageNotificationRequestedUseCase(
 	messageNotifier domain.SystemMessageNotifier,
 	idGenerator kernel.MessageIDGenerator,
 ) (SystemMessageNotificationRequestedUseCase, error) {
-	if err := utils.CheckInterfaces(
+	if err := validate.NotNil(
 		messageCreator,
 		messageNotifier,
 		idGenerator,

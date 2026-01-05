@@ -5,7 +5,7 @@ import (
 	"gochat/internal/friendship/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 type ListFriendRequestsUseCase kernel.UseCase[*ListFriendRequestsInput, *ListFriendRequestsOutput]
@@ -40,7 +40,7 @@ type listFriendRequestsUseCase struct {
 func NewListFriendRequestsUseCase(
 	finder domain.FriendRequestsFinderByUserID,
 ) (ListFriendRequestsUseCase, error) {
-	if err := utils.CheckInterfaces(finder); err != nil {
+	if err := validate.NotNil(finder); err != nil {
 		return nil, err
 	}
 	return &listFriendRequestsUseCase{

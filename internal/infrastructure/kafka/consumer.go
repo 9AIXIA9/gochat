@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	myErrors "gochat/internal/shared/errors"
-	"gochat/pkg/utils"
+	"gochat/pkg/concurrency"
 	"time"
 
 	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
@@ -73,7 +73,7 @@ func (c *Consumer) Start() error {
 	c.running = true
 	zap.L().Info("kafka consumer started", zap.Strings("topics", topics), zap.Bool("auto_commit", true))
 
-	utils.GoSafe(c.processMessage)
+	concurrency.GoSafe(c.processMessage)
 
 	return nil
 }
@@ -160,7 +160,7 @@ func (c *Consumer) pausePartition(tp ckafka.TopicPartition) {
 	}
 	// schedule resume
 	pauseFor := c.breakerPause
-	utils.GoSafe(func() {
+	concurrency.GoSafe(func() {
 		timer := time.NewTimer(pauseFor)
 		defer timer.Stop()
 		select {

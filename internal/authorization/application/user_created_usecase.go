@@ -11,7 +11,7 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 type UserCreatedUseCase kernel.UseCase[*UserCreatedInput, *kernel.NoOutput]
@@ -38,7 +38,7 @@ func NewUserCreatedUseCase(
 	creator event.UnpublishedEventsCreator,
 	finder domain.UserFinderByID,
 ) (UserCreatedUseCase, error) {
-	if err := utils.CheckInterfaces(
+	if err := validate.NotNil(
 		idGenerator,
 		creator,
 		finder,

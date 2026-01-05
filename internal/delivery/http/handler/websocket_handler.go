@@ -3,7 +3,7 @@ package handler
 import (
 	"gochat/internal/application"
 	websocketInfra "gochat/internal/infrastructure/websocket"
-	"gochat/pkg/utils"
+	"gochat/pkg/ctxutil"
 	"net/http"
 
 	"github.com/gorilla/websocket"
@@ -34,7 +34,7 @@ func NewWebsocketHandler(
 }
 
 func (s *WebsocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	userID := utils.GetUserID(r.Context())
+	userID := ctxutil.UserIDFrom(r.Context())
 
 	conn, err := s.upgrader.Upgrade(w, r, nil)
 	if err != nil {

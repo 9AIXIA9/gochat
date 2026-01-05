@@ -4,7 +4,7 @@ import (
 	"context"
 	"gochat/internal/infrastructure/websocket"
 	"gochat/internal/shared/api"
-	"gochat/pkg/utils"
+	"gochat/pkg/ctxutil"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -19,7 +19,7 @@ func NewTraceMiddleware(serviceName string) websocket.Middleware {
 	return func(next websocket.Handler) websocket.Handler {
 		return websocket.HandlerFunc(func(ctx context.Context, data []byte) *api.Response {
 			topic := websocket.GetTopic(ctx).String()
-			userID := utils.GetUserID(ctx).String()
+			userID := ctxutil.UserIDFrom(ctx).String()
 
 			ctxWithSpan, span := tracer.Start(ctx, topic, trace.WithSpanKind(trace.SpanKindServer))
 			defer span.End()
@@ -32,7 +32,7 @@ func NewTraceMiddleware(serviceName string) websocket.Middleware {
 			)
 
 			resp := next.Handle(ctxWithSpan, data)
-			if err := utils.GetError(ctxWithSpan); err != nil {
+			if err := ctxutil.ErrorFrom(ctxWithSpan); err != nil {
 				span.SetStatus(codes.Error, err.Error())
 			}
 			return resp

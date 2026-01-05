@@ -7,7 +7,7 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 type MemberRequestAgreedUseCase kernel.UseCase[*MemberRequestAgreedInput, *kernel.NoOutput]
@@ -37,7 +37,7 @@ func NewMemberRequestAgreedUseCase(
 	finder domain.MemberRequestFinderByID,
 	creator domain.RoomshipCreator,
 ) (MemberRequestAgreedUseCase, error) {
-	if err := utils.CheckInterfaces(
+	if err := validate.NotNil(
 		roomshipIDGenerator,
 		idGenerator,
 		creator,

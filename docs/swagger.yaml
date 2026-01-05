@@ -1,17 +1,17 @@
 basePath: /api/v1
 consumes:
-- application/json
+  - application/json
 definitions:
   gochat_internal_chat_domain.MessageState:
     enum:
-    - undelivered
-    - delivered
-    - read
+      - undelivered
+      - delivered
+      - read
     type: string
     x-enum-varnames:
-    - MessageStateUndelivered
-    - MessageStateDelivered
-    - MessageStateRead
+      - MessageStateUndelivered
+      - MessageStateDelivered
+      - MessageStateRead
   gochat_internal_chat_dto.PrivateMessage:
     properties:
       content:
@@ -31,7 +31,7 @@ definitions:
         type: string
       state:
         allOf:
-        - $ref: '#/definitions/gochat_internal_chat_domain.MessageState'
+          - $ref: '#/definitions/gochat_internal_chat_domain.MessageState'
         example: read
     type: object
   gochat_internal_chat_dto.RoomMessage:
@@ -58,14 +58,14 @@ definitions:
     type: object
   gochat_internal_friendship_domain.FriendRequestState:
     enum:
-    - pending
-    - agreed
-    - refused
+      - pending
+      - agreed
+      - refused
     type: string
     x-enum-varnames:
-    - StatePending
-    - StateAgreed
-    - StateRefused
+      - StatePending
+      - StateAgreed
+      - StateRefused
   gochat_internal_friendship_dto.FriendRequest:
     properties:
       content:
@@ -83,7 +83,7 @@ definitions:
         type: string
       state:
         allOf:
-        - $ref: '#/definitions/gochat_internal_friendship_domain.FriendRequestState'
+          - $ref: '#/definitions/gochat_internal_friendship_domain.FriendRequestState'
         example: pending
       to:
         example: 019b593b-462e-74d6-bfda-0e103a172192
@@ -106,12 +106,12 @@ definitions:
     type: object
   gochat_internal_notification_domain.MessageState:
     enum:
-    - undelivered
-    - delivered
+      - undelivered
+      - delivered
     type: string
     x-enum-varnames:
-    - MessageStateUndelivered
-    - MessageStateDelivered
+      - MessageStateUndelivered
+      - MessageStateDelivered
   gochat_internal_notification_dto.SystemMessage:
     properties:
       content:
@@ -128,7 +128,7 @@ definitions:
         type: string
       state:
         allOf:
-        - $ref: '#/definitions/gochat_internal_notification_domain.MessageState'
+          - $ref: '#/definitions/gochat_internal_notification_domain.MessageState'
         example: delivered
     type: object
   gochat_internal_profile_dto.RoomProfile:
@@ -156,7 +156,7 @@ definitions:
         type: string
       gender:
         allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.Gender'
+          - $ref: '#/definitions/gochat_internal_shared_kernel.Gender'
         example: 1
       id:
         example: 019b593b-462e-74d6-bfda-0e103a172191
@@ -176,22 +176,22 @@ definitions:
     type: object
   gochat_internal_roomship_domain.MemberRequestState:
     enum:
-    - pending
-    - agreed
-    - refused
+      - pending
+      - agreed
+      - refused
     type: string
     x-enum-varnames:
-    - StatePending
-    - StateAgreed
-    - StateRefused
+      - StatePending
+      - StateAgreed
+      - StateRefused
   gochat_internal_roomship_domain.RoomshipRole:
     enum:
-    - owner
-    - member
+      - owner
+      - member
     type: string
     x-enum-varnames:
-    - OwnerRole
-    - MemberRole
+      - OwnerRole
+      - MemberRole
   gochat_internal_roomship_dto.MemberRequest:
     properties:
       applicant_id:
@@ -217,7 +217,7 @@ definitions:
         type: string
       state:
         allOf:
-        - $ref: '#/definitions/gochat_internal_roomship_domain.MemberRequestState'
+          - $ref: '#/definitions/gochat_internal_roomship_domain.MemberRequestState'
         example: pending
     type: object
   gochat_internal_roomship_dto.Roomship:
@@ -230,7 +230,7 @@ definitions:
         type: string
       role:
         allOf:
-        - $ref: '#/definitions/gochat_internal_roomship_domain.RoomshipRole'
+          - $ref: '#/definitions/gochat_internal_roomship_domain.RoomshipRole'
         example: member
       room_id:
         example: 019b593b-462e-74d6-bfda-0e103a172192
@@ -241,29 +241,29 @@ definitions:
     type: object
   gochat_internal_shared_api.Code:
     enum:
-    - 200
-    - 300
-    - 500
-    - 403
-    - 404
-    - 405
-    - 406
-    - 407
+      - 200
+      - 300
+      - 500
+      - 403
+      - 404
+      - 405
+      - 406
+      - 407
     type: integer
     x-enum-varnames:
-    - CodeSuccess
-    - CodeBusinessError
-    - CodeServerError
-    - CodeTimeout
-    - CodeInvalidParam
-    - CodeUnauthorized
-    - CodeNotFound
-    - CodeServiceUnavailable
+      - CodeSuccess
+      - CodeBusinessError
+      - CodeServerError
+      - CodeTimeout
+      - CodeInvalidParam
+      - CodeUnauthorized
+      - CodeNotFound
+      - CodeServiceUnavailable
   gochat_internal_shared_api.Response:
     properties:
       code:
         allOf:
-        - $ref: '#/definitions/gochat_internal_shared_api.Code'
+          - $ref: '#/definitions/gochat_internal_shared_api.Code'
         example: 200
       data:
         type: object
@@ -273,14 +273,14 @@ definitions:
     type: object
   gochat_internal_shared_kernel.Gender:
     enum:
-    - 0
-    - 1
-    - 2
+      - 0
+      - 1
+      - 2
     type: integer
     x-enum-varnames:
-    - UnknownGender
-    - MaleGender
-    - FemaleGender
+      - UnknownGender
+      - MaleGender
+      - FemaleGender
   internal_authorization_port_http.LoginRequest:
     properties:
       number:
@@ -290,8 +290,8 @@ definitions:
         example: your-password
         type: string
     required:
-    - number
-    - password
+      - number
+      - password
     type: object
   internal_authorization_port_http.LoginResponseData:
     properties:
@@ -316,8 +316,8 @@ definitions:
         minLength: 6
         type: string
     required:
-    - email
-    - password
+      - email
+      - password
     type: object
   internal_authorization_port_http.SignUpResponseData:
     properties:
@@ -345,7 +345,7 @@ definitions:
         example: 019b593b-462e-74d6-bfda-0e103a172190
         type: string
     required:
-    - sender_id
+      - sender_id
     type: object
   internal_chat_port_http.ReadRoomMessagesRequest:
     properties:
@@ -353,7 +353,7 @@ definitions:
         example: 019b593b-462e-74d6-bfda-0e103a172190
         type: string
     required:
-    - room_id
+      - room_id
     type: object
   internal_chat_port_http.SendPrivateMessageRequest:
     properties:
@@ -365,8 +365,8 @@ definitions:
         example: 019b593b-462e-74d6-bfda-0e103a172190
         type: string
     required:
-    - content
-    - recipient_id
+      - content
+      - recipient_id
     type: object
   internal_chat_port_http.SendRoomMessageRequest:
     properties:
@@ -378,8 +378,8 @@ definitions:
         example: 019b593b-462e-74d6-bfda-0e103a172190
         type: string
     required:
-    - content
-    - room_id
+      - content
+      - room_id
     type: object
   internal_friendship_port_http.ListFriendRequestsResponseData:
     properties:
@@ -405,8 +405,8 @@ definitions:
         example: 019b593b-462e-74d6-bfda-0e103a172191
         type: string
     required:
-    - content
-    - to_id
+      - content
+      - to_id
     type: object
   internal_notification_port_http.ListSystemMessagesResponseData:
     properties:
@@ -452,11 +452,11 @@ definitions:
         type: string
       gender:
         allOf:
-        - $ref: '#/definitions/gochat_internal_shared_kernel.Gender'
+          - $ref: '#/definitions/gochat_internal_shared_kernel.Gender'
         enum:
-        - 0
-        - 1
-        - 2
+          - 0
+          - 1
+          - 2
         example: 1
       name:
         example: Jack
@@ -517,7 +517,7 @@ definitions:
         example: 019b593b-462e-74d6-bfda-0e103a172192
         type: string
     required:
-    - room_id
+      - room_id
     type: object
 info:
   contact:
@@ -535,48 +535,48 @@ paths:
     post:
       description: 使用账号和密码登录，成功后下发访问令牌与刷新令牌（刷新令牌存于 Cookie）
       parameters:
-      - description: 登录请求体
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/internal_authorization_port_http.LoginRequest'
+        - description: 登录请求体
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/internal_authorization_port_http.LoginRequest'
       responses:
         '200':
           description: 登录成功，返回访问令牌
           schema:
             allOf:
-            - $ref: '#/definitions/gochat_internal_shared_api.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/internal_authorization_port_http.LoginResponseData'
-              type: object
+              - $ref: '#/definitions/gochat_internal_shared_api.Response'
+              - properties:
+                  data:
+                    $ref: '#/definitions/internal_authorization_port_http.LoginResponseData'
+                type: object
       summary: 用户登录
       tags:
-      - Authorization
+        - Authorization
   /auth/sign-up:
     post:
       description: 使用邮箱和密码注册账号，成功后返回系统分配的账号
       parameters:
-      - description: 注册请求体
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/internal_authorization_port_http.SignUpRequest'
+        - description: 注册请求体
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/internal_authorization_port_http.SignUpRequest'
       responses:
         '200':
           description: 注册成功，返回账号
           schema:
             allOf:
-            - $ref: '#/definitions/gochat_internal_shared_api.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/internal_authorization_port_http.SignUpResponseData'
-              type: object
+              - $ref: '#/definitions/gochat_internal_shared_api.Response'
+              - properties:
+                  data:
+                    $ref: '#/definitions/internal_authorization_port_http.SignUpResponseData'
+                type: object
       summary: 用户注册
       tags:
-      - Authorization
+        - Authorization
   /auth/tokens/refresh:
     put:
       description: 使用刷新令牌 Cookie 刷新访问令牌，并重新设置刷新令牌 Cookie
@@ -585,325 +585,325 @@ paths:
           description: 刷新成功，返回新的访问令牌
           schema:
             allOf:
-            - $ref: '#/definitions/gochat_internal_shared_api.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/internal_authorization_port_http.RefreshAccessTokenResponseData'
-              type: object
+              - $ref: '#/definitions/gochat_internal_shared_api.Response'
+              - properties:
+                  data:
+                    $ref: '#/definitions/internal_authorization_port_http.RefreshAccessTokenResponseData'
+                type: object
       summary: 刷新访问令牌
       tags:
-      - Authorization
+        - Authorization
   /chats/private-messages:
     post:
       description: 向指定用户发送一条私聊消息
       parameters:
-      - description: 发送私聊消息请求体
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/internal_chat_port_http.SendPrivateMessageRequest'
+        - description: 发送私聊消息请求体
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/internal_chat_port_http.SendPrivateMessageRequest'
       responses:
         '200':
           description: 发送成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
-      - BearerAuth: []
+        - BearerAuth: [ ]
       summary: 发送私聊消息
       tags:
-      - Chat
+        - Chat
   /chats/private-messages/{user_id}:
     get:
       description: 获取用户和对方聊天记录，可基于 base_id 游标和 limit 分页
       parameters:
-      - description: 私聊对象用户ID
-        in: path
-        name: user_id
-        required: true
-        type: string
-        x-example: 019b5929-65bc-7549-89c6-3f7dc6872577
-      - description: 分页游标
-        in: query
-        name: base_id
-        type: string
-        x-example: 019b593b-462e-74d6-bfda-0e103a172190
-      - default: 20
-        description: 分页大小，默认 20，最大 100
-        in: query
-        maximum: 100
-        minimum: 1
-        name: limit
-        type: integer
-        x-example: 50
+        - description: 私聊对象用户ID
+          in: path
+          name: user_id
+          required: true
+          type: string
+          x-example: 019b5929-65bc-7549-89c6-3f7dc6872577
+        - description: 分页游标
+          in: query
+          name: base_id
+          type: string
+          x-example: 019b593b-462e-74d6-bfda-0e103a172190
+        - default: 20
+          description: 分页大小，默认 20，最大 100
+          in: query
+          maximum: 100
+          minimum: 1
+          name: limit
+          type: integer
+          x-example: 50
       responses:
         '200':
           description: 成功返回私聊消息记录
           schema:
             allOf:
-            - $ref: '#/definitions/gochat_internal_shared_api.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/internal_chat_port_http.ListPrivateMessagesResponseData'
-              type: object
+              - $ref: '#/definitions/gochat_internal_shared_api.Response'
+              - properties:
+                  data:
+                    $ref: '#/definitions/internal_chat_port_http.ListPrivateMessagesResponseData'
+                type: object
       security:
-      - BearerAuth: []
+        - BearerAuth: [ ]
       summary: 获取用户聊天记录
       tags:
-      - Chat
+        - Chat
   /chats/private-messages/read:
     put:
       description: 阅读来自指定用户的所有未读消息
       parameters:
-      - description: 阅读指定用户消息请求体
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/internal_chat_port_http.ReadPrivateMessagesRequest'
+        - description: 阅读指定用户消息请求体
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/internal_chat_port_http.ReadPrivateMessagesRequest'
       responses:
         '200':
           description: 成功已读
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
-      - BearerAuth: []
+        - BearerAuth: [ ]
       summary: 阅读指定用户消息
       tags:
-      - Chat
+        - Chat
   /chats/rooms/messages:
     post:
       description: 向指定房间发送一条消息
       parameters:
-      - description: 发送房间消息请求体
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/internal_chat_port_http.SendRoomMessageRequest'
+        - description: 发送房间消息请求体
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/internal_chat_port_http.SendRoomMessageRequest'
       responses:
         '200':
           description: 发送成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
-      - BearerAuth: []
+        - BearerAuth: [ ]
       summary: 发送房间消息
       tags:
-      - Chat
+        - Chat
   /chats/rooms/messages/{room_id}:
     get:
       description: 获取当前登录用户所在房间的消息记录，可基于 base_id 游标和 limit 分页
       parameters:
-      - description: 群聊对象房间ID
-        in: path
-        name: room_id
-        required: true
-        type: string
-        x-example: 019b5929-65bc-7549-89c6-3f7dc6872577
-      - description: 分页游标
-        in: query
-        name: base_id
-        type: string
-        x-example: 019b593b-462e-74d6-bfda-0e103a172190
-      - default: 20
-        description: 分页大小，默认 20，最大 100
-        in: query
-        maximum: 100
-        minimum: 1
-        name: limit
-        type: integer
-        x-example: 50
+        - description: 群聊对象房间ID
+          in: path
+          name: room_id
+          required: true
+          type: string
+          x-example: 019b5929-65bc-7549-89c6-3f7dc6872577
+        - description: 分页游标
+          in: query
+          name: base_id
+          type: string
+          x-example: 019b593b-462e-74d6-bfda-0e103a172190
+        - default: 20
+          description: 分页大小，默认 20，最大 100
+          in: query
+          maximum: 100
+          minimum: 1
+          name: limit
+          type: integer
+          x-example: 50
       responses:
         '200':
           description: 成功返回房间消息记录
           schema:
             allOf:
-            - $ref: '#/definitions/gochat_internal_shared_api.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/internal_chat_port_http.ListRoomMessagesResponseData'
-              type: object
+              - $ref: '#/definitions/gochat_internal_shared_api.Response'
+              - properties:
+                  data:
+                    $ref: '#/definitions/internal_chat_port_http.ListRoomMessagesResponseData'
+                type: object
       security:
-      - BearerAuth: []
+        - BearerAuth: [ ]
       summary: 获取房间内的消息
       tags:
-      - Chat
+        - Chat
   /chats/rooms/messages/read:
     put:
       description: 阅读指定房间的所有消息
       parameters:
-      - description: 阅读指定房间消息请求体
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/internal_chat_port_http.ReadRoomMessagesRequest'
+        - description: 阅读指定房间消息请求体
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/internal_chat_port_http.ReadRoomMessagesRequest'
       responses:
         '200':
           description: 成功已读
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
-      - BearerAuth: []
+        - BearerAuth: [ ]
       summary: 阅读指定房间消息
       tags:
-      - Chat
+        - Chat
   /friendship-requests:
     get:
       description: 获取当前用户收到的好友请求列表（待处理 / 已处理）列表，可基于 base_id 游标和 limit 分页
       parameters:
-      - description: 分页游标，返回该ID之前的记录
-        in: query
-        name: base_id
-        type: string
-        x-example: 019b593b-462e-74d6-bfda-0e103a172190
-      - default: 20
-        description: 分页大小，默认20，最大100
-        in: query
-        maximum: 100
-        minimum: 1
-        name: limit
-        type: integer
-        x-example: 50
+        - description: 分页游标，返回该ID之前的记录
+          in: query
+          name: base_id
+          type: string
+          x-example: 019b593b-462e-74d6-bfda-0e103a172190
+        - default: 20
+          description: 分页大小，默认20，最大100
+          in: query
+          maximum: 100
+          minimum: 1
+          name: limit
+          type: integer
+          x-example: 50
       responses:
         '200':
           description: 成功返回好友请求列表
           schema:
             allOf:
-            - $ref: '#/definitions/gochat_internal_shared_api.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/internal_friendship_port_http.ListFriendRequestsResponseData'
-              type: object
+              - $ref: '#/definitions/gochat_internal_shared_api.Response'
+              - properties:
+                  data:
+                    $ref: '#/definitions/internal_friendship_port_http.ListFriendRequestsResponseData'
+                type: object
       security:
-      - BearerAuth: []
+        - BearerAuth: [ ]
       summary: 获取当前用户收到的好友请求列表（待处理 / 已处理）
       tags:
-      - Friendship
+        - Friendship
     post:
       description: 向指定用户发送好友请求
       parameters:
-      - description: 发送好友请求体
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/internal_friendship_port_http.SendFriendRequestRequest'
+        - description: 发送好友请求体
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/internal_friendship_port_http.SendFriendRequestRequest'
       responses:
         '200':
           description: 发送成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
-      - BearerAuth: []
+        - BearerAuth: [ ]
       summary: 发送好友请求
       tags:
-      - Friendship
+        - Friendship
   /friendship-requests/{request_id}/agree:
     put:
       description: 同意指定的好友请求，将对方加入好友列表
       parameters:
-      - description: 好友请求ID
-        in: path
-        name: request_id
-        required: true
-        type: string
-        x-example: 019b593b-462e-74d6-bfda-0e103a172190
+        - description: 好友请求ID
+          in: path
+          name: request_id
+          required: true
+          type: string
+          x-example: 019b593b-462e-74d6-bfda-0e103a172190
       responses:
         '200':
           description: 同意成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
-      - BearerAuth: []
+        - BearerAuth: [ ]
       summary: 同意好友请求
       tags:
-      - Friendship
+        - Friendship
   /friendship-requests/{request_id}/refuse:
     put:
       description: 拒绝指定的好友请求
       parameters:
-      - description: 好友请求ID
-        in: path
-        name: request_id
-        required: true
-        type: string
-        x-example: 019b593b-462e-74d6-bfda-0e103a172190
+        - description: 好友请求ID
+          in: path
+          name: request_id
+          required: true
+          type: string
+          x-example: 019b593b-462e-74d6-bfda-0e103a172190
       responses:
         '200':
           description: 拒绝成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
-      - BearerAuth: []
+        - BearerAuth: [ ]
       summary: 拒绝好友请求
       tags:
-      - Friendship
+        - Friendship
   /friendships:
     get:
       description: 获取当前登录用户的好友关系列表，可基于 base_id 游标和 limit 分页
       parameters:
-      - description: 分页游标，返回该ID之前的记录
-        in: query
-        name: base_id
-        type: string
-        x-example: 019b593b-462e-74d6-bfda-0e103a172190
-      - default: 20
-        description: 分页大小，默认20，最大100
-        in: query
-        maximum: 100
-        minimum: 1
-        name: limit
-        type: integer
-        x-example: 50
+        - description: 分页游标，返回该ID之前的记录
+          in: query
+          name: base_id
+          type: string
+          x-example: 019b593b-462e-74d6-bfda-0e103a172190
+        - default: 20
+          description: 分页大小，默认20，最大100
+          in: query
+          maximum: 100
+          minimum: 1
+          name: limit
+          type: integer
+          x-example: 50
       responses:
         '200':
           description: 成功返回好友列表
           schema:
             allOf:
-            - $ref: '#/definitions/gochat_internal_shared_api.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/internal_friendship_port_http.ListFriendshipsResponseData'
-              type: object
+              - $ref: '#/definitions/gochat_internal_shared_api.Response'
+              - properties:
+                  data:
+                    $ref: '#/definitions/internal_friendship_port_http.ListFriendshipsResponseData'
+                type: object
       security:
-      - BearerAuth: []
+        - BearerAuth: [ ]
       summary: 获取好友列表
       tags:
-      - Friendship
+        - Friendship
   /notifications/system-messages:
     get:
       description: 获取当前登录用户的系统通知列表，可基于 base_id 游标和 limit 分页
       parameters:
-      - description: 分页游标，返回该ID之前的消息
-        in: query
-        name: base_id
-        type: string
-        x-example: 019b593b-462e-74d6-bfda-0e103a172190
-      - default: 20
-        description: 分页大小，默认20，最大100
-        in: query
-        maximum: 100
-        minimum: 1
-        name: limit
-        type: integer
-        x-example: 50
+        - description: 分页游标，返回该ID之前的消息
+          in: query
+          name: base_id
+          type: string
+          x-example: 019b593b-462e-74d6-bfda-0e103a172190
+        - default: 20
+          description: 分页大小，默认20，最大100
+          in: query
+          maximum: 100
+          minimum: 1
+          name: limit
+          type: integer
+          x-example: 50
       responses:
         '200':
           description: 成功返回系统通知列表
           schema:
             allOf:
-            - $ref: '#/definitions/gochat_internal_shared_api.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/internal_notification_port_http.ListSystemMessagesResponseData'
-              type: object
+              - $ref: '#/definitions/gochat_internal_shared_api.Response'
+              - properties:
+                  data:
+                    $ref: '#/definitions/internal_notification_port_http.ListSystemMessagesResponseData'
+                type: object
       security:
-      - BearerAuth: []
+        - BearerAuth: [ ]
       summary: 获取系统通知列表
       tags:
-      - Notification
+        - Notification
   /profiles/me:
     get:
       description: 根据token获取本用户资料
@@ -912,295 +912,295 @@ paths:
           description: 成功返回用户资料
           schema:
             allOf:
-            - $ref: '#/definitions/gochat_internal_shared_api.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/internal_profile_port_http.GetMyProfileResponseData'
-              type: object
+              - $ref: '#/definitions/gochat_internal_shared_api.Response'
+              - properties:
+                  data:
+                    $ref: '#/definitions/internal_profile_port_http.GetMyProfileResponseData'
+                type: object
       security:
-      - BearerAuth: []
+        - BearerAuth: [ ]
       summary: 获取本用户资料
       tags:
-      - Profile
+        - Profile
     put:
       description: 更新当前登录用户的基础资料（昵称、邮箱、电话等）
       parameters:
-      - description: 更新用户资料请求体
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/internal_profile_port_http.UpdateUserProfileRequest'
+        - description: 更新用户资料请求体
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/internal_profile_port_http.UpdateUserProfileRequest'
       responses:
         '200':
           description: 更新成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
-      - BearerAuth: []
+        - BearerAuth: [ ]
       summary: 更新当前用户资料
       tags:
-      - Profile
+        - Profile
   /profiles/rooms/{room_id}:
     get:
       description: 根据房间ID获取房间公开资料
       parameters:
-      - description: 房间ID
-        in: path
-        name: room_id
-        required: true
-        type: string
-        x-example: 019b593b-462e-74d6-bfda-0e103a172190
+        - description: 房间ID
+          in: path
+          name: room_id
+          required: true
+          type: string
+          x-example: 019b593b-462e-74d6-bfda-0e103a172190
       responses:
         '200':
           description: 成功返回房间资料
           schema:
             allOf:
-            - $ref: '#/definitions/gochat_internal_shared_api.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/internal_profile_port_http.GetRoomProfileResponseData'
-              type: object
+              - $ref: '#/definitions/gochat_internal_shared_api.Response'
+              - properties:
+                  data:
+                    $ref: '#/definitions/internal_profile_port_http.GetRoomProfileResponseData'
+                type: object
       summary: 获取房间资料
       tags:
-      - Profile
+        - Profile
     put:
       description: 更新指定房间的资料（名称、简介等），需要房主身份
       parameters:
-      - description: 房间ID
-        in: path
-        name: room_id
-        required: true
-        type: string
-        x-example: '"019b593b-462e-74d6-bfda-0e103a172192"'
-      - description: 更新房间资料请求体
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/internal_profile_port_http.UpdateRoomProfileRequestBody'
+        - description: 房间ID
+          in: path
+          name: room_id
+          required: true
+          type: string
+          x-example: '"019b593b-462e-74d6-bfda-0e103a172192"'
+        - description: 更新房间资料请求体
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/internal_profile_port_http.UpdateRoomProfileRequestBody'
       responses:
         '200':
           description: 更新成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
-      - BearerAuth: []
+        - BearerAuth: [ ]
       summary: 更新房间资料
       tags:
-      - Profile
+        - Profile
   /profiles/users/{user_id}:
     get:
       description: 根据用户ID获取用户公开资料
       parameters:
-      - description: 用户ID
-        in: path
-        name: user_id
-        required: true
-        type: string
-        x-example: 019b593b-462e-74d6-bfda-0e103a172190
+        - description: 用户ID
+          in: path
+          name: user_id
+          required: true
+          type: string
+          x-example: 019b593b-462e-74d6-bfda-0e103a172190
       responses:
         '200':
           description: 成功返回用户资料
           schema:
             allOf:
-            - $ref: '#/definitions/gochat_internal_shared_api.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/internal_profile_port_http.GetUserProfileResponseData'
-              type: object
+              - $ref: '#/definitions/gochat_internal_shared_api.Response'
+              - properties:
+                  data:
+                    $ref: '#/definitions/internal_profile_port_http.GetUserProfileResponseData'
+                type: object
       summary: 获取用户资料
       tags:
-      - Profile
+        - Profile
   /rooms:
     get:
       description: 获取当前登录用户加入的房间关系列表，可基于 base_id 游标和 limit 分页
       parameters:
-      - description: 分页游标，返回该ID之前的记录
-        in: query
-        name: base_id
-        type: string
-        x-example: 019b593b-462e-74d6-bfda-0e103a172190
-      - default: 20
-        description: 分页大小，默认20，最大100
-        in: query
-        maximum: 100
-        minimum: 1
-        name: limit
-        type: integer
-        x-example: 50
+        - description: 分页游标，返回该ID之前的记录
+          in: query
+          name: base_id
+          type: string
+          x-example: 019b593b-462e-74d6-bfda-0e103a172190
+        - default: 20
+          description: 分页大小，默认20，最大100
+          in: query
+          maximum: 100
+          minimum: 1
+          name: limit
+          type: integer
+          x-example: 50
       responses:
         '200':
           description: 成功返回房间关系列表
           schema:
             allOf:
-            - $ref: '#/definitions/gochat_internal_shared_api.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/internal_roomship_port_http.ListRoomshipsResponseData'
-              type: object
+              - $ref: '#/definitions/gochat_internal_shared_api.Response'
+              - properties:
+                  data:
+                    $ref: '#/definitions/internal_roomship_port_http.ListRoomshipsResponseData'
+                type: object
       security:
-      - BearerAuth: []
+        - BearerAuth: [ ]
       summary: 获取当前用户所在的房间关系列表
       tags:
-      - Roomship
+        - Roomship
     post:
       description: 创建一个新的房间，当前登录用户将作为房主加入房间
       parameters:
-      - description: 创建房间请求体
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/internal_roomship_port_http.CreateRoomRequest'
+        - description: 创建房间请求体
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/internal_roomship_port_http.CreateRoomRequest'
       responses:
         '200':
           description: 创建成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
-      - BearerAuth: []
+        - BearerAuth: [ ]
       summary: 创建房间
       tags:
-      - Roomship
+        - Roomship
   /rooms/{room_id}/members:
     get:
       description: 根据房间ID获取房间成员列表
       parameters:
-      - description: 房间ID
-        in: path
-        name: room_id
-        required: true
-        type: string
-        x-example: 019b593b-462e-74d6-bfda-0e103a172190
+        - description: 房间ID
+          in: path
+          name: room_id
+          required: true
+          type: string
+          x-example: 019b593b-462e-74d6-bfda-0e103a172190
       responses:
         '200':
           description: 成功返回房间成员列表
           schema:
             allOf:
-            - $ref: '#/definitions/gochat_internal_shared_api.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/internal_roomship_port_http.ListRoomMembersResponseData'
-              type: object
+              - $ref: '#/definitions/gochat_internal_shared_api.Response'
+              - properties:
+                  data:
+                    $ref: '#/definitions/internal_roomship_port_http.ListRoomMembersResponseData'
+                type: object
       summary: 获取房间成员列表
       tags:
-      - Roomship
+        - Roomship
   /rooms/{room_id}/members/me:
     delete:
       description: 当前登录用户退出指定房间
       parameters:
-      - description: 房间ID
-        in: path
-        name: room_id
-        required: true
-        type: string
-        x-example: 019b593b-462e-74d6-bfda-0e103a172190
+        - description: 房间ID
+          in: path
+          name: room_id
+          required: true
+          type: string
+          x-example: 019b593b-462e-74d6-bfda-0e103a172190
       responses:
         '200':
           description: 主动退出指定房间，幂等设计：不在房间也返回成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
-      - BearerAuth: []
+        - BearerAuth: [ ]
       summary: 退出房间
       tags:
-      - Roomship
+        - Roomship
   /rooms/requests:
     get:
       description: 获取当前登录用户管理的房间成员请求列表，可基于 base_id 游标和 limit 分页
       parameters:
-      - description: 分页游标，返回该ID之前的记录
-        in: query
-        name: base_id
-        type: string
-        x-example: 019b593b-462e-74d6-bfda-0e103a172190
-      - default: 20
-        description: 分页大小，默认20，最大100
-        in: query
-        maximum: 100
-        minimum: 1
-        name: limit
-        type: integer
-        x-example: 50
+        - description: 分页游标，返回该ID之前的记录
+          in: query
+          name: base_id
+          type: string
+          x-example: 019b593b-462e-74d6-bfda-0e103a172190
+        - default: 20
+          description: 分页大小，默认20，最大100
+          in: query
+          maximum: 100
+          minimum: 1
+          name: limit
+          type: integer
+          x-example: 50
       responses:
         '200':
           description: 成功返回成员请求列表
           schema:
             allOf:
-            - $ref: '#/definitions/gochat_internal_shared_api.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/internal_roomship_port_http.ListMemberRequestsResponseData'
-              type: object
+              - $ref: '#/definitions/gochat_internal_shared_api.Response'
+              - properties:
+                  data:
+                    $ref: '#/definitions/internal_roomship_port_http.ListMemberRequestsResponseData'
+                type: object
       security:
-      - BearerAuth: []
+        - BearerAuth: [ ]
       summary: 获取属于登录用户处理的请求列表
       tags:
-      - Roomship
+        - Roomship
     post:
       description: 向指定房间发送入群请求，可携带验证信息及密码
       parameters:
-      - description: 发送入群请求体
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/internal_roomship_port_http.SendMemberRequestRequest'
+        - description: 发送入群请求体
+          in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/internal_roomship_port_http.SendMemberRequestRequest'
       responses:
         '200':
           description: 发送成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
-      - BearerAuth: []
+        - BearerAuth: [ ]
       summary: 发送入群请求
       tags:
-      - Roomship
+        - Roomship
   /rooms/requests/{request_id}/agree:
     put:
       description: 同意指定房间成员请求，将对方加入房间
       parameters:
-      - description: 成员请求ID
-        in: path
-        name: request_id
-        required: true
-        type: string
-        x-example: 019b593b-462e-74d6-bfda-0e103a172190
+        - description: 成员请求ID
+          in: path
+          name: request_id
+          required: true
+          type: string
+          x-example: 019b593b-462e-74d6-bfda-0e103a172190
       responses:
         '200':
           description: 同意成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
-      - BearerAuth: []
+        - BearerAuth: [ ]
       summary: 同意入群请求
       tags:
-      - Roomship
+        - Roomship
   /rooms/requests/{request_id}/refuse:
     put:
       description: 拒绝指定房间成员请求
       parameters:
-      - description: 成员请求ID
-        in: path
-        name: request_id
-        required: true
-        type: string
-        x-example: 019b593b-462e-74d6-bfda-0e103a172190
+        - description: 成员请求ID
+          in: path
+          name: request_id
+          required: true
+          type: string
+          x-example: 019b593b-462e-74d6-bfda-0e103a172190
       responses:
         '200':
           description: 拒绝成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
       security:
-      - BearerAuth: []
+        - BearerAuth: [ ]
       summary: 拒绝入群请求
       tags:
-      - Roomship
+        - Roomship
 produces:
-- application/json
+  - application/json
 schemes:
-- http
+  - http
 securityDefinitions:
   BearerAuth:
     description: 认证格式：Bearer {access_token}（注意 Bearer 后加英文空格）

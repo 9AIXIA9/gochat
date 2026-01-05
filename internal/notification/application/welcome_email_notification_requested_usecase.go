@@ -5,7 +5,7 @@ import (
 	"gochat/internal/notification/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 type WelcomeEmailNotificationRequestedUseCase kernel.UseCase[*WelcomeEmailNotificationRequestedInput, *kernel.NoOutput]
@@ -38,7 +38,7 @@ type welcomeEmailNotificationRequestedUseCase struct {
 func NewWelcomeEmailNotificationRequestedUseCase(
 	emailNotifier domain.WelcomeEmailNotifier,
 ) (WelcomeEmailNotificationRequestedUseCase, error) {
-	if err := utils.CheckInterfaces(emailNotifier); err != nil {
+	if err := validate.NotNil(emailNotifier); err != nil {
 		return nil, err
 	}
 

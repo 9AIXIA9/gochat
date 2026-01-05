@@ -5,7 +5,7 @@ import (
 	"gochat/internal/chat/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 type ReadPrivateMessagesUseCase kernel.UseCase[*ReadPrivateMessagesInput, *kernel.NoOutput]
@@ -30,7 +30,7 @@ type readPrivateMessagesUseCase struct {
 func NewReadPrivateMessagesUseCase(
 	updater domain.PrivateMessagesStatesUpdaterByUserID,
 ) (ReadPrivateMessagesUseCase, error) {
-	if err := utils.CheckInterfaces(updater); err != nil {
+	if err := validate.NotNil(updater); err != nil {
 		return nil, err
 	}
 

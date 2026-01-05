@@ -6,7 +6,7 @@ import (
 	"gochat/internal/profile/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 type UpdateUserProfileUseCase kernel.UseCase[*UpdateUserProfileInput, *kernel.NoOutput]
@@ -46,7 +46,7 @@ func NewUpdateUserProfileUseCase(
 	updater domain.UserProfileUpdater,
 	finder domain.UserProfileFinder,
 ) (UpdateUserProfileUseCase, error) {
-	if err := utils.CheckInterfaces(
+	if err := validate.NotNil(
 		updater,
 		finder,
 	); err != nil {

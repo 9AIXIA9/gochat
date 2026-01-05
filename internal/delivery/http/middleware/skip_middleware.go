@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"gochat/pkg/utils"
+	"gochat/internal/shared/collections"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -28,8 +28,8 @@ func SkipMiddleware(paths []string, middleware gin.HandlerFunc) gin.HandlerFunc 
 	}
 }
 
-func buildTrie(paths []string) *utils.TrieNode {
-	trie := utils.NewTrie()
+func buildTrie(paths []string) *collections.Trie {
+	trie := collections.NewTrie()
 	for _, p := range paths {
 		if strings.HasSuffix(p, "*any") {
 			trie.Insert(strings.TrimSuffix(p, "*any"), true)

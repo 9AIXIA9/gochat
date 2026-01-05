@@ -5,7 +5,7 @@ import (
 	"gochat/internal/authorization/domain"
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/shared/api"
-	"gochat/pkg/utils"
+	"gochat/pkg/ctxutil"
 
 	"github.com/gin-gonic/gin"
 
@@ -44,7 +44,7 @@ func NewAuthorizationMiddleware(useCase application.ParseAccessTokenUseCase) gin
 		// 写入到 gin.Context 供 gin handlers 使用
 		ginutils.SetUserID(ginContext, output.UserID)
 		// 同步写入到 request.Context，供标准 http.Handler 使用
-		ginContext.Request = ginContext.Request.WithContext(utils.SetUserID(ginContext.Request.Context(), output.UserID))
+		ginContext.Request = ginContext.Request.WithContext(ctxutil.WithUserID(ginContext.Request.Context(), output.UserID))
 		ginContext.Next()
 	}
 }

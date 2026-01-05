@@ -5,7 +5,7 @@ import (
 	"gochat/internal/friendship/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 const (
@@ -40,7 +40,7 @@ type listFriendshipsUseCase struct {
 func NewListFriendshipsUseCase(
 	friendshipFinder domain.FriendshipsFinderByUserID,
 ) (ListFriendshipsUseCase, error) {
-	if err := utils.CheckInterfaces(friendshipFinder); err != nil {
+	if err := validate.NotNil(friendshipFinder); err != nil {
 		return nil, err
 	}
 	return &listFriendshipsUseCase{

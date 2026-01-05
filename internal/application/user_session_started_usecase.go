@@ -7,7 +7,7 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 type UserSessionStartedUseCase kernel.UseCase[*UserSessionStartedInput, *kernel.NoOutput]
@@ -32,7 +32,7 @@ func NewUserSessionStartedUseCase(
 	idGenerator event.IDGenerator,
 	creator event.UnpublishedEventsCreator,
 ) (UserSessionStartedUseCase, error) {
-	if err := utils.CheckInterfaces(
+	if err := validate.NotNil(
 		idGenerator,
 		creator,
 	); err != nil {
