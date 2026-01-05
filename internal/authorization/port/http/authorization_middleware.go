@@ -41,9 +41,7 @@ func NewAuthorizationMiddleware(useCase application.ParseAccessTokenUseCase) gin
 			return
 		}
 
-		// 写入到 gin.Context 供 gin handlers 使用
-		ginutils.SetUserID(ginContext, output.UserID)
-		// 同步写入到 request.Context，供标准 http.Handler 使用
+		// 写入到 request.Context，供标准 http.Handler 使用
 		ginContext.Request = ginContext.Request.WithContext(ctxutil.WithUserID(ginContext.Request.Context(), output.UserID))
 		ginContext.Next()
 	}

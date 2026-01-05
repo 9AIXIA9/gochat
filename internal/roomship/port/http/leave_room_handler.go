@@ -5,6 +5,7 @@ import (
 	"gochat/internal/roomship/application"
 	_ "gochat/internal/shared/api"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/ctxutil"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,7 +16,7 @@ type LeaveRoomRequest struct {
 }
 
 func (r *LeaveRoomRequest) Bind(ginContext *gin.Context) error {
-	userID := ginutils.GetUserID(ginContext)
+	userID := ctxutil.UserIDFrom(ginContext.Request.Context())
 	r.UserID = userID
 	if err := ginContext.ShouldBindUri(r); err != nil {
 		return err

@@ -5,6 +5,7 @@ import (
 	"gochat/internal/profile/application"
 	"gochat/internal/profile/dto"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/ctxutil"
 
 	_ "gochat/internal/shared/api"
 
@@ -16,7 +17,7 @@ type GetMyProfileRequest struct {
 }
 
 func (r *GetMyProfileRequest) Bind(ginContext *gin.Context) error {
-	r.UserID = ginutils.GetUserID(ginContext)
+	r.UserID = ctxutil.UserIDFrom(ginContext.Request.Context())
 	return nil
 }
 

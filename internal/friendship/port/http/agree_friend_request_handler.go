@@ -5,6 +5,7 @@ import (
 	ginutils "gochat/internal/infrastructure/gin"
 	_ "gochat/internal/shared/api"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/ctxutil"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,7 +16,7 @@ type AgreeFriendRequestRequest struct {
 }
 
 func (r *AgreeFriendRequestRequest) Bind(ginContext *gin.Context) error {
-	userID := ginutils.GetUserID(ginContext)
+	userID := ctxutil.UserIDFrom(ginContext.Request.Context())
 	r.UserID = userID
 	if err := ginContext.ShouldBindUri(r); err != nil {
 		return err

@@ -5,6 +5,7 @@ import (
 	"gochat/internal/profile/application"
 	_ "gochat/internal/shared/api"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/ctxutil"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,7 +22,7 @@ type UpdateRoomProfileRequestBody struct {
 }
 
 func (r *UpdateRoomProfileRequest) Bind(ginContext *gin.Context) error {
-	r.UserID = ginutils.GetUserID(ginContext)
+	r.UserID = ctxutil.UserIDFrom(ginContext.Request.Context())
 
 	// 绑定路径参数
 	if err := ginContext.BindUri(r); err != nil {

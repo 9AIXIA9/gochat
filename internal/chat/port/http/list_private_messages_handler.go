@@ -6,6 +6,7 @@ import (
 	ginutils "gochat/internal/infrastructure/gin"
 	_ "gochat/internal/shared/api"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/ctxutil"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,7 +21,7 @@ type ListPrivateMessagesRequest struct {
 }
 
 func (r *ListPrivateMessagesRequest) Bind(ginContext *gin.Context) error {
-	r.OperatorID = ginutils.GetUserID(ginContext)
+	r.OperatorID = ctxutil.UserIDFrom(ginContext.Request.Context())
 	// 绑定查询参数
 	if err := ginContext.ShouldBindQuery(r); err != nil {
 		return err
