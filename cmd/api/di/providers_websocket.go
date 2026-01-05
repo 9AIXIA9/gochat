@@ -36,9 +36,9 @@ func provideWebsocketRouter(
 	router := websocket.NewRouter(validator)
 
 	router.Use(
-		middleware.NewLoggerMiddleware(),
 		middleware.NewRecoverMiddleware(),
 		middleware.NewTraceMiddleware(appConfig.Name+".websocket"),
+		middleware.NewLoggerMiddleware(),
 	)
 
 	if appConfig.Breaker != nil {
