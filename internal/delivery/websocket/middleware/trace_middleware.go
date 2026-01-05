@@ -21,7 +21,13 @@ func NewTraceMiddleware(serviceName string) websocket.Middleware {
 			topic := websocket.GetTopic(ctx).String()
 			userID := ctxutil.UserIDFrom(ctx).String()
 
-			ctxWithSpan, span := tracer.Start(ctx, topic, trace.WithSpanKind(trace.SpanKindServer))
+			//单独开启一个span，避免和http请求的span混在一起
+			ctxWithSpan, span := tracer.Start(
+				ctx,
+				topic,
+				trace.WithSpanKind(trace.SpanKindServer),
+				trace.WithNewRoot(),
+			)
 			defer span.End()
 
 			span.SetAttributes(
