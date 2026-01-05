@@ -5,7 +5,7 @@ import (
 	"gochat/internal/chat/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 var _ SendPrivateMessageUseCase = (*sendPrivateMessageUseCase)(nil)
@@ -41,7 +41,7 @@ func NewSendPrivateMessageUseCase(
 	notifier domain.PrivateMessageNotifier,
 	messageCreator domain.PrivateMessageCreator,
 ) (SendPrivateMessageUseCase, error) {
-	if err := utils.CheckInterfaces(
+	if err := validate.NotNil(
 		exister,
 		messageIDGenerator,
 		notifier,

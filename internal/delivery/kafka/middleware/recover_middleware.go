@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"gochat/internal/infrastructure/kafka"
 	"gochat/internal/infrastructure/websocket"
-	"gochat/pkg/utils"
+	"gochat/pkg/ctxutil"
 	"runtime/debug"
 
 	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
@@ -21,7 +21,7 @@ func NewRecoverMiddleware() kafka.Middleware {
 					zap.L().Error("panic recovered",
 						zap.Any("panic", r),
 						zap.String("stack", stack),
-						zap.String("user_id", utils.GetUserID(ctx).String()),
+						zap.String("user_id", ctxutil.UserIDFrom(ctx).String()),
 						zap.String("topic", websocket.GetTopic(ctx).String()),
 					)
 					// Return a safe, generic error to the client

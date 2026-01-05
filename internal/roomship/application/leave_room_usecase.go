@@ -6,7 +6,7 @@ import (
 	"gochat/internal/roomship/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 type LeaveRoomUseCase kernel.UseCase[*LeaveRoomInput, *kernel.NoOutput]
@@ -36,7 +36,7 @@ func NewLeaveRoomUseCase(
 	roomshipFinder domain.RoomshipFinderByUserIDAndRoomID,
 	roomshipsFinder domain.RoomshipsFinderByRoomID,
 ) (LeaveRoomUseCase, error) {
-	if err := utils.CheckInterfaces(
+	if err := validate.NotNil(
 		roomshipDeleter, roomshipFinder, roomDeleter, roomshipsFinder,
 	); err != nil {
 		return nil, err

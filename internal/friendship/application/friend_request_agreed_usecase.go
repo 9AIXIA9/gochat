@@ -7,7 +7,7 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 type FriendRequestAgreedUseCase kernel.UseCase[*FriendRequestAgreedInput, *kernel.NoOutput]
@@ -37,7 +37,7 @@ func NewFriendRequestAgreedUseCase(
 	friendshipIDGenerator domain.FriendshipIDGenerator,
 	idGenerator event.IDGenerator,
 ) (FriendRequestAgreedUseCase, error) {
-	if err := utils.CheckInterfaces(
+	if err := validate.NotNil(
 		friendRequestFinderByID, creator, idGenerator, friendshipIDGenerator,
 	); err != nil {
 		return nil, err

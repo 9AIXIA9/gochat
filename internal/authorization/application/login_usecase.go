@@ -6,7 +6,7 @@ import (
 	"gochat/internal/authorization/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 type LoginUseCase kernel.UseCase[*LoginInput, *LoginOutput]
@@ -43,7 +43,7 @@ func NewLoginUseCase(
 	accessTokenGenerator domain.AccessTokenGenerator,
 	refreshTokenGenerator domain.RefreshTokenGenerator,
 ) (LoginUseCase, error) {
-	if err := utils.CheckInterfaces(
+	if err := validate.NotNil(
 		comparator,
 		userFinder,
 		refreshTokenUpserter,

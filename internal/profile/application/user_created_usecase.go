@@ -6,7 +6,7 @@ import (
 	"gochat/internal/profile/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 	"time"
 )
 
@@ -39,7 +39,7 @@ func NewUserCreatedUseCase(
 	userSaver domain.UserSaver,
 	profileCreator domain.UserProfileCreator,
 ) (UserCreatedUseCase, error) {
-	if err := utils.CheckInterfaces(
+	if err := validate.NotNil(
 		userSaver,
 		profileCreator,
 	); err != nil {

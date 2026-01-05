@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"gochat/internal/infrastructure/kafka"
-	"gochat/pkg/utils"
+	"gochat/pkg/retry"
 	"time"
 
 	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
@@ -22,25 +22,25 @@ func NewRetryErrorMiddleware(
 	return func(next kafka.ErrorHandler) kafka.ErrorHandler {
 		return kafka.ErrorHandlerFunc(func(ctx context.Context, err error, message *ckafka.Message) {
 			//进行重试
-			var retry int
+			var retryCount int
 			found := false
 			for i, header := range message.Headers {
 				if header.Key == retryHeaderKey {
 					found = true
-					if _, err := fmt.Sscanf(string(header.Value), "%d", &retry); err != nil {
-						retry = 0
+					if _, err := fmt.Sscanf(string(header.Value), "%d", &retryCount); err != nil {
+						retryCount = 0
 					}
-					message.Headers[i].Value = []byte(fmt.Sprintf("%d", retry+1))
+					message.Headers[i].Value = []byte(fmt.Sprintf("%d", retryCount+1))
 					break
 				}
 			}
 			if !found {
 				// initialize retry header
 				message.Headers = append(message.Headers, ckafka.Header{Key: retryHeaderKey, Value: []byte("1")})
-				retry = 1
+				retryCount = 1
 			}
 
-			if retry >= maxRetry {
+			if retryCount >= maxRetry {
 				next.Handle(ctx, err, message)
 				return
 			}
@@ -50,20 +50,20 @@ func NewRetryErrorMiddleware(
 				TopicPartition: message.TopicPartition,
 				Key:            message.Key,
 				Value:          message.Value,
-				Headers:        append(message.Headers, ckafka.Header{Key: retryHeaderKey, Value: []byte(fmt.Sprintf("%d", retry+1))}),
+				Headers:        append(message.Headers, ckafka.Header{Key: retryHeaderKey, Value: []byte(fmt.Sprintf("%d", retryCount+1))}),
 			}
 
 			//发送消息到Kafka
 			err = producer.Produce(newMessage, nil)
 			if err != nil {
-				utils.BackoffWait(ctx, retry, 100*time.Millisecond)
+				retry.Wait(ctx, retryCount, 100*time.Millisecond)
 				//如果发送失败，调用下一个错误处理器
 				next.Handle(ctx, err, message)
 				return
 			}
 			zap.L().Info(
 				"kafka message retried",
-				zap.Int("retry_count", retry),
+				zap.Int("retry_count", retryCount),
 				zap.String("topic", *message.TopicPartition.Topic),
 				zap.ByteString("key", message.Key),
 			)

@@ -5,7 +5,7 @@ import (
 	"gochat/internal/notification/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 const (
@@ -40,7 +40,7 @@ type listSystemMessagesUseCase struct {
 func NewListSystemMessagesUseCase(
 	finder domain.SystemMessageFinderByUserID,
 ) (ListSystemMessagesUseCase, error) {
-	if err := utils.CheckInterfaces(finder); err != nil {
+	if err := validate.NotNil(finder); err != nil {
 		return nil, err
 	}
 	return &listSystemMessagesUseCase{

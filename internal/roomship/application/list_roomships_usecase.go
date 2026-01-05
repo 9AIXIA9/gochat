@@ -5,7 +5,7 @@ import (
 	"gochat/internal/roomship/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 const (
@@ -40,7 +40,7 @@ type listRoomshipsUseCase struct {
 func NewListRoomshipsUseCase(
 	roomshipFinder domain.RoomshipsFinderByUserID,
 ) (ListRoomshipsUseCase, error) {
-	if err := utils.CheckInterfaces(roomshipFinder); err != nil {
+	if err := validate.NotNil(roomshipFinder); err != nil {
 		return nil, err
 	}
 	return &listRoomshipsUseCase{

@@ -4,7 +4,7 @@ import (
 	"context"
 	"gochat/internal/infrastructure/websocket"
 	"gochat/internal/shared/api"
-	"gochat/pkg/utils"
+	"gochat/pkg/ctxutil"
 
 	"go.uber.org/zap"
 )
@@ -12,7 +12,7 @@ import (
 func NewNotFoundHandler() websocket.HandlerFunc {
 	return func(ctx context.Context, data []byte) *api.Response {
 		zap.L().Warn("websocket topic not found",
-			zap.String("user_id", utils.GetUserID(ctx).String()),
+			zap.String("user_id", ctxutil.UserIDFrom(ctx).String()),
 			zap.String("topic", websocket.GetTopic(ctx).String()),
 		)
 		return api.NewResponse(api.CodeNotFound)

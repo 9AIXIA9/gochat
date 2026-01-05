@@ -6,7 +6,7 @@ import (
 	"gochat/internal/friendship/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 type RefuseFriendRequestUseCase kernel.UseCase[*RefuseFriendRequestInput, *kernel.NoOutput]
@@ -33,7 +33,7 @@ func NewRefuseFriendRequestUseCase(
 	friendRequestFinderByRequestID domain.FriendRequestFinderByID,
 	friendRequestUpdater domain.FriendRequestUpdater,
 ) (RefuseFriendRequestUseCase, error) {
-	if err := utils.CheckInterfaces(
+	if err := validate.NotNil(
 		friendRequestFinderByRequestID, friendRequestUpdater,
 	); err != nil {
 		return nil, err

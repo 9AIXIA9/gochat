@@ -5,7 +5,7 @@ import (
 	"gochat/internal/chat/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 type RoomshipCreatedUseCase kernel.UseCase[*RoomshipCreatedInput, *kernel.NoOutput]
@@ -31,7 +31,7 @@ type roomshipCreatedUseCase struct {
 func NewRoomshipCreatedUseCase(
 	roomshipSaver domain.RoomshipSaver,
 ) (RoomshipCreatedUseCase, error) {
-	if err := utils.CheckInterfaces(roomshipSaver); err != nil {
+	if err := validate.NotNil(roomshipSaver); err != nil {
 		return nil, err
 	}
 

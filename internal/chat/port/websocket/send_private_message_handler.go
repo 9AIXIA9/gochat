@@ -6,7 +6,7 @@ import (
 	"gochat/internal/chat/application"
 	"gochat/internal/infrastructure/websocket"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/ctxutil"
 )
 
 const SendPrivateMessageTopic websocket.Topic = "chat.send_private_message"
@@ -29,7 +29,7 @@ func NewSendPrivateMessageHandler(
 			if err := json.Unmarshal(bytes, &data); err != nil {
 				return nil, err
 			}
-			data.SenderID = utils.GetUserID(ctx)
+			data.SenderID = ctxutil.UserIDFrom(ctx)
 			return &data, nil
 		},
 		func(data *SendPrivateMessageData) *application.SendPrivateMessageInput {

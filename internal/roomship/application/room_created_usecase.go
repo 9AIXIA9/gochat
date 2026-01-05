@@ -9,7 +9,7 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 type RoomCreatedUseCase kernel.UseCase[*RoomCreatedInput, *kernel.NoOutput]
@@ -41,7 +41,7 @@ func NewRoomCreatedUseCase(
 	roomshipCreator domain.RoomshipCreator,
 	eventCreator event.UnpublishedEventsCreator,
 ) (RoomCreatedUseCase, error) {
-	if err := utils.CheckInterfaces(
+	if err := validate.NotNil(
 		roomshipIDGenerator,
 		idGenerator,
 		finder,

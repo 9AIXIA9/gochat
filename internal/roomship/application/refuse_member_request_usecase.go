@@ -6,7 +6,7 @@ import (
 	"gochat/internal/roomship/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 type RefuseMemberRequestUseCase kernel.UseCase[*RefuseMemberRequestInput, *kernel.NoOutput]
@@ -34,7 +34,7 @@ func NewRefuseMemberRequestUseCase(
 	roomshipFinder domain.RoomshipFinderByUserIDAndRoomID,
 	updater domain.MemberRequestUpdater,
 ) (RefuseMemberRequestUseCase, error) {
-	if err := utils.CheckInterfaces(
+	if err := validate.NotNil(
 		requestFinder,
 		roomshipFinder,
 		updater,

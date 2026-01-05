@@ -6,7 +6,7 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 
 	"github.com/go-faster/errors"
 )
@@ -42,7 +42,7 @@ func NewSendFriendRequestUseCase(
 	eventIDGenerator event.IDGenerator,
 	operationIDGenerator kernel.OperationIDGenerator,
 ) (SendFriendRequestUseCase, error) {
-	if err := utils.CheckInterfaces(
+	if err := validate.NotNil(
 		friendshipExisterByUserID,
 		friendRequestExisterByUserID,
 		friendRequestCreator,

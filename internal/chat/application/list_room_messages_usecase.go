@@ -5,7 +5,7 @@ import (
 	"gochat/internal/chat/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 const (
@@ -45,7 +45,7 @@ type listRoomMessagesUseCase struct {
 func NewListRoomMessagesUseCase(
 	finder domain.RoomMessagesFinderByRoomIDAndUserID,
 ) (ListRoomMessagesUseCase, error) {
-	if err := utils.CheckInterfaces(finder); err != nil {
+	if err := validate.NotNil(finder); err != nil {
 		return nil, err
 	}
 	return &listRoomMessagesUseCase{

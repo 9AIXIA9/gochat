@@ -6,7 +6,7 @@ import (
 	"gochat/internal/chat/application"
 	"gochat/internal/infrastructure/websocket"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/ctxutil"
 )
 
 const SendRoomMessageTopic websocket.Topic = "chat.send_room_message"
@@ -29,7 +29,7 @@ func NewSendRoomMessageHandler(
 			if err := json.Unmarshal(bytes, &data); err != nil {
 				return nil, err
 			}
-			data.SenderID = utils.GetUserID(ctx)
+			data.SenderID = ctxutil.UserIDFrom(ctx)
 			return &data, nil
 		},
 		func(data *SendRoomMessageData) *application.SendRoomMessageInput {

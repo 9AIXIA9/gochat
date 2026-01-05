@@ -4,7 +4,7 @@ import (
 	"context"
 	"gochat/internal/infrastructure/websocket"
 	"gochat/internal/shared/api"
-	"gochat/pkg/utils"
+	"gochat/pkg/ctxutil"
 	"time"
 
 	"go.uber.org/zap"
@@ -22,10 +22,10 @@ func NewLoggerMiddleware() websocket.Middleware {
 			dur := time.Since(start)
 			zap.L().Info(
 				"request completed",
-				zap.String("user_id", utils.GetUserID(ctx).String()),
+				zap.String("user_id", ctxutil.UserIDFrom(ctx).String()),
 				zap.String("topic", websocket.GetTopic(ctx).String()),
 				zap.Duration("latency", dur),
-				zap.Error(utils.GetError(ctx)),
+				zap.Error(ctxutil.ErrorFrom(ctx)),
 			)
 			return resp
 		})

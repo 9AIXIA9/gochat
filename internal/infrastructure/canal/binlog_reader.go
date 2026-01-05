@@ -1,7 +1,7 @@
 package canal
 
 import (
-	"gochat/pkg/utils"
+	"gochat/pkg/concurrency"
 	"strings"
 
 	"github.com/go-mysql-org/go-mysql/canal"
@@ -25,7 +25,7 @@ func NewBinlogReader(
 
 func (b *BinlogReader) Start() {
 	//从最新的主位置开始
-	utils.GoSafe(func() {
+	concurrency.GoSafe(func() {
 		pos, err := b.canal.GetMasterPos()
 		if err != nil {
 			zap.L().Error("get master binlog position failed", zap.Error(err))

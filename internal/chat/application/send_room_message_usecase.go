@@ -5,7 +5,7 @@ import (
 	"gochat/internal/chat/domain"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 var _ SendRoomMessageUseCase = (*sendRoomMessageUseCase)(nil)
@@ -41,7 +41,7 @@ func NewSendRoomMessageUseCase(
 	finder domain.RoomshipsFinderByRoomID,
 	messageCreator domain.RoomMessageCreator,
 ) (SendRoomMessageUseCase, error) {
-	if err := utils.CheckInterfaces(
+	if err := validate.NotNil(
 		messageIDGenerator,
 		notifier,
 		finder,

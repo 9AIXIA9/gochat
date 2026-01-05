@@ -7,7 +7,7 @@ import (
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"gochat/pkg/utils"
+	"gochat/pkg/validate"
 )
 
 type SignUpUseCase kernel.UseCase[*SignUpInput, *SignUpOutput]
@@ -43,7 +43,7 @@ func NewSignUpUseCase(
 	encryptor domain.Encryptor,
 	userCreator domain.UserCreator,
 ) (SignUpUseCase, error) {
-	if err := utils.CheckInterfaces(
+	if err := validate.NotNil(
 		eventIDGenerator,
 		userIDGenerator,
 		numberGenerator,
