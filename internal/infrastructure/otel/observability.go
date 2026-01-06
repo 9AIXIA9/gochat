@@ -2,6 +2,7 @@ package otel
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"go.opentelemetry.io/contrib/instrumentation/runtime"
@@ -79,27 +80,27 @@ func Init(conf *Config) (func(context.Context) error, error) {
 	otel.SetTextMapPropagator(propagation.TraceContext{})
 
 	shutdown := func(ctx context.Context) error {
-		//TODO 收集所有错误 而不是只返回第一个
-		err1 := tp.Shutdown(ctx)
-		err2 := traceExporter.Shutdown(ctx)
-		var err3 error
-		var err4 error
+		var errs []error
+		if err := tp.Shutdown(ctx); err != nil {
+			errs = append(errs, err)
+		}
+		if err := traceExporter.Shutdown(ctx); err != nil {
+			errs = append(errs, err)
+		}
 		if meterProvider != nil {
-			err3 = meterProvider.Shutdown(ctx)
+			if err := meterProvider.Shutdown(ctx); err != nil {
+				errs = append(errs, err)
+			}
 		}
 		if metricExporter != nil {
-			err4 = metricExporter.Shutdown(ctx)
+			if err := metricExporter.Shutdown(ctx); err != nil {
+				errs = append(errs, err)
+			}
 		}
-		if err1 != nil {
-			return err1
+		if len(errs) > 0 {
+			return errors.Join(errs...)
 		}
-		if err2 != nil {
-			return err2
-		}
-		if err3 != nil {
-			return err3
-		}
-		return err4
+		return nil
 	}
 	return shutdown, nil
 }
