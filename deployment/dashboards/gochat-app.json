@@ -1,16 +1,124 @@
 {
-  "dashboard": {
-    "id": null,
-    "title": "GoChat Application",
-    "tags": [
-      "gochat"
-    ],
-    "timezone": "browser",
-    "panels": [],
-    "time": {
-      "from": "now-6h",
-      "to": "now"
-    }
+  "id": null,
+  "uid": "gochat-app",
+  "title": "GoChat Application",
+  "tags": [
+    "gochat"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "time": {
+    "from": "now-6h",
+    "to": "now"
   },
+  "templating": {
+    "list": [
+      {
+        "name": "service",
+        "type": "query",
+        "label": "Service",
+        "datasource": { "type": "prometheus", "uid": "Prometheus" },
+        "query": "label_values(process_runtime_go_goroutines, service)",
+        "refresh": 2,
+        "includeAll": false,
+        "multi": false,
+        "current": {
+          "text": "gochat",
+          "value": "gochat"
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "CPU (per instance)",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "rate(process_cpu_seconds_total{service=~\"$service\"}[5m])",
+          "legendFormat": "{{instance}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "percentunit" }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Memory RSS",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "process_resident_memory_bytes{service=~\"$service\"}",
+          "legendFormat": "{{instance}}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes" } }
+    },
+    {
+      "type": "timeseries",
+      "title": "Goroutines",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 7 },
+      "targets": [
+        {
+          "expr": "process_runtime_go_goroutines{service=~\"$service\"}",
+          "legendFormat": "{{instance}}"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "GC Pause p99 (ms)",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 7 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, rate(process_runtime_go_gc_pause_ns_bucket{service=~\"$service\"}[5m])) / 1e6",
+          "legendFormat": "{{instance}}"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Uptime (h)",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 6, "w": 4, "x": 16, "y": 7 },
+      "targets": [
+        {
+          "expr": "runtime_uptime_milliseconds_total{service=~\"$service\"} / 1000 / 3600",
+          "legendFormat": "uptime"
+        }
+      ],
+      "options": { "reduceOptions": { "calcs": ["last"], "values": false } }
+    },
+    {
+      "type": "timeseries",
+      "title": "DB Connections",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 13 },
+      "targets": [
+        { "expr": "go_sql_connections_open{service=~\"$service\"}", "legendFormat": "open {{instance}}" },
+        { "expr": "go_sql_connections_in_use{service=~\"$service\"}", "legendFormat": "in_use {{instance}}" },
+        { "expr": "go_sql_connections_idle{service=~\"$service\"}", "legendFormat": "idle {{instance}}" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "GC Pause Total (ms)",
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 13 },
+      "targets": [
+        {
+          "expr": "process_runtime_go_gc_pause_ns_total{service=~\"$service\"} / 1e6",
+          "legendFormat": "{{instance}}"
+        }
+      ]
+    }
+  ],
   "overwrite": true
 }
