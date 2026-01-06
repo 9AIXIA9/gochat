@@ -32,7 +32,6 @@ import (
 	"gochat/internal/delivery/http/middleware"
 	friendshipHTTP "gochat/internal/friendship/port/http"
 	ginInfra "gochat/internal/infrastructure/gin"
-	infraotel "gochat/internal/infrastructure/otel"
 	notificationHTTP "gochat/internal/notification/port/http"
 	profileHTTP "gochat/internal/profile/port/http"
 	roomshipHTTP "gochat/internal/roomship/port/http"
@@ -46,7 +45,6 @@ var nonBusinessPaths = []string{
 	"/healthz",
 	"/readyz",
 	"/swagger/*any",
-	"/metrics",
 }
 
 var HTTPSet = wire.NewSet(
@@ -121,9 +119,6 @@ func provideHttpRouter(
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	router.Any("/healthz", handler.NewHealthCheckHandler())
 	router.Any("/readyz", handler.NewReadyCheckHandler(isReady))
-	if infraotel.MetricsHandler() != nil {
-		router.GET("/metrics", gin.WrapH(infraotel.MetricsHandler()))
-	}
 
 	// 业务路由
 	router.NoRoute(handler.NewNotFoundHandler())

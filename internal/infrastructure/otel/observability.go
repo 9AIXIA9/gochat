@@ -2,26 +2,22 @@ package otel
 
 import (
 	"context"
-	"net/http"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/runtime"
+
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
-	otelprom "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/propagation"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
-	"google.golang.org/grpc"
 )
 
 var (
-	metricsHandler http.Handler
-	meterProvider  *sdkmetric.MeterProvider
+	meterProvider *sdkmetric.MeterProvider
 )
 
 // Init sets up OpenTelemetry tracer provider, meter provider, and global propagator.
@@ -33,13 +29,24 @@ func Init(conf *Config) (func(context.Context) error, error) {
 	opts := []otlptracegrpc.Option{
 		otlptracegrpc.WithEndpoint(conf.Endpoint),
 	}
+	metricOpts := []otlpmetricgrpc.Option{
+		otlpmetricgrpc.WithEndpoint(conf.Endpoint),
+	}
 	if conf.Insecure {
 		opts = append(opts, otlptracegrpc.WithInsecure())
+		metricOpts = append(metricOpts, otlpmetricgrpc.WithInsecure())
 	} else {
-		opts = append(opts, otlptracegrpc.WithDialOption(grpc.WithBlock()))
+		// 使用 WithTimeout 设置连接超时
+		opts = append(opts, otlptracegrpc.WithTimeout(5*time.Second))
+		metricOpts = append(metricOpts, otlpmetricgrpc.WithTimeout(5*time.Second))
 	}
 
-	exporter, err := otlptracegrpc.New(ctx, opts...)
+	traceExporter, err := otlptracegrpc.New(ctx, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	metricExporter, err := otlpmetricgrpc.New(ctx, metricOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -54,24 +61,17 @@ func Init(conf *Config) (func(context.Context) error, error) {
 		return nil, err
 	}
 
-	// Metrics exporter for Prometheus scrape
-	reg := prometheus.NewRegistry()
-	promExporter, err := otelprom.New(otelprom.WithRegisterer(reg))
-	if err != nil {
-		return nil, err
-	}
 	meterProvider = sdkmetric.NewMeterProvider(
-		sdkmetric.WithReader(promExporter),
+		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(metricExporter)),
 		sdkmetric.WithResource(res),
 	)
 	otel.SetMeterProvider(meterProvider)
 	if err := runtime.Start(runtime.WithMeterProvider(meterProvider)); err != nil {
 		return nil, err
 	}
-	metricsHandler = promhttp.HandlerFor(reg, promhttp.HandlerOpts{})
 
 	tp := sdktrace.NewTracerProvider(
-		sdktrace.WithBatcher(exporter),
+		sdktrace.WithBatcher(traceExporter),
 		sdktrace.WithResource(res),
 	)
 
@@ -79,11 +79,16 @@ func Init(conf *Config) (func(context.Context) error, error) {
 	otel.SetTextMapPropagator(propagation.TraceContext{})
 
 	shutdown := func(ctx context.Context) error {
+		//TODO 收集所有错误 而不是只返回第一个
 		err1 := tp.Shutdown(ctx)
-		err2 := exporter.Shutdown(ctx)
+		err2 := traceExporter.Shutdown(ctx)
 		var err3 error
+		var err4 error
 		if meterProvider != nil {
 			err3 = meterProvider.Shutdown(ctx)
+		}
+		if metricExporter != nil {
+			err4 = metricExporter.Shutdown(ctx)
 		}
 		if err1 != nil {
 			return err1
@@ -91,12 +96,10 @@ func Init(conf *Config) (func(context.Context) error, error) {
 		if err2 != nil {
 			return err2
 		}
-		return err3
+		if err3 != nil {
+			return err3
+		}
+		return err4
 	}
 	return shutdown, nil
-}
-
-// MetricsHandler exposes the Prometheus scrape handler if metrics are initialized.
-func MetricsHandler() http.Handler {
-	return metricsHandler
 }
