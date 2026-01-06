@@ -6,6 +6,7 @@ import (
 	"gochat/internal/notification/dto"
 	_ "gochat/internal/shared/api"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/ctxutil"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,7 +20,7 @@ type ListSystemMessagesRequest struct {
 }
 
 func (r *ListSystemMessagesRequest) Bind(ginContext *gin.Context) error {
-	r.UserID = ginutils.GetUserID(ginContext)
+	r.UserID = ctxutil.UserIDFrom(ginContext.Request.Context())
 	// 绑定查询参数
 	if err := ginContext.ShouldBindQuery(r); err != nil {
 		return err

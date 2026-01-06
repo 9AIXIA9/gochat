@@ -4,6 +4,7 @@ import (
 	"gochat/internal/chat/application"
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/ctxutil"
 
 	_ "gochat/internal/shared/api"
 
@@ -17,7 +18,7 @@ type SendPrivateMessageRequest struct {
 }
 
 func (r *SendPrivateMessageRequest) Bind(ginContext *gin.Context) error {
-	senderID := ginutils.GetUserID(ginContext)
+	senderID := ctxutil.UserIDFrom(ginContext.Request.Context())
 	r.SenderID = senderID
 	return ginContext.BindJSON(r)
 }

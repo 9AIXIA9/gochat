@@ -6,6 +6,7 @@ import (
 	"gochat/internal/roomship/domain"
 	"gochat/internal/roomship/dto"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/ctxutil"
 
 	_ "gochat/internal/shared/api"
 
@@ -21,7 +22,7 @@ type ListRoomshipsRequest struct {
 }
 
 func (r *ListRoomshipsRequest) Bind(ginContext *gin.Context) error {
-	r.UserID = ginutils.GetUserID(ginContext)
+	r.UserID = ctxutil.UserIDFrom(ginContext.Request.Context())
 	// 绑定查询参数
 	if err := ginContext.ShouldBindQuery(r); err != nil {
 		return err

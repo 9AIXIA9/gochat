@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"gochat/internal/infrastructure/kafka"
+	"gochat/pkg/ctxutil"
 	"time"
 
 	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
@@ -19,11 +20,23 @@ func NewLoggerMiddleware() kafka.Middleware {
 			err := next.Handle(ctx, message)
 
 			dur := time.Since(start)
-			zap.L().Info(
-				"request completed",
+
+			fields := []zap.Field{
 				zap.String("topic", *message.TopicPartition.Topic),
 				zap.Duration("latency", dur),
 				zap.Error(err),
+			}
+
+			if traceID, spanID := ctxutil.SpanIDAndTraceIDFrom(ctx); traceID != "" && spanID != "" {
+				fields = append(fields,
+					zap.String("trace_id", traceID),
+					zap.String("span_id", spanID),
+				)
+			}
+
+			zap.L().Info(
+				"request completed",
+				fields...,
 			)
 			return err
 		})

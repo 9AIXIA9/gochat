@@ -6,6 +6,7 @@ import (
 	"gochat/internal/roomship/domain"
 	_ "gochat/internal/shared/api"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/ctxutil"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,7 +18,7 @@ type CreateRoomRequest struct {
 }
 
 func (r *CreateRoomRequest) Bind(ginContext *gin.Context) error {
-	userID := ginutils.GetUserID(ginContext)
+	userID := ctxutil.UserIDFrom(ginContext.Request.Context())
 	r.UserID = userID
 	if err := ginContext.BindJSON(r); err != nil {
 		return err

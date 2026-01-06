@@ -4,6 +4,7 @@ import (
 	"gochat/internal/friendship/application"
 	ginutils "gochat/internal/infrastructure/gin"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/ctxutil"
 
 	_ "gochat/internal/shared/api"
 
@@ -17,7 +18,7 @@ type SendFriendRequestRequest struct {
 }
 
 func (r *SendFriendRequestRequest) Bind(ginContext *gin.Context) error {
-	fromID := ginutils.GetUserID(ginContext)
+	fromID := ctxutil.UserIDFrom(ginContext.Request.Context())
 	r.FromID = fromID
 	return ginContext.BindJSON(r)
 }
