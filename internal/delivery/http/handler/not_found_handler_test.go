@@ -3,17 +3,16 @@ package handler_test
 import (
 	"gochat/internal/delivery/http/handler"
 	"gochat/internal/shared/api"
-	"testing"
-
 	httptestutil "gochat/pkg/httptest"
+	"testing"
 )
 
-func TestNewHealthCheckHandler(t *testing.T) {
+func TestNewNotFoundHandler(t *testing.T) {
 	router := httptestutil.NewTestRouter(t)
-	router.GET("/healthz", handler.NewHealthCheckHandler())
+	router.NoRoute(handler.NewNotFoundHandler())
 	httptestutil.ExecuteRouteTest(t, router, &httptestutil.TestCase{
-		Path:     "/healthz",
+		Path:     "/not-existing-route",
 		Method:   "GET",
-		Response: api.NewResponseWithMessage(api.CodeSuccess, "server is healthy"),
+		Response: api.ResponseNotFound,
 	})
 }
