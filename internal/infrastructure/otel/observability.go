@@ -3,10 +3,11 @@ package otel
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
-
+	
 	"go.opentelemetry.io/contrib/instrumentation/runtime"
-
+	
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
@@ -26,7 +27,7 @@ var (
 func Init(conf *Config) (func(context.Context) error, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-
+	
 	opts := []otlptracegrpc.Option{
 		otlptracegrpc.WithEndpoint(conf.Endpoint),
 	}
@@ -41,17 +42,17 @@ func Init(conf *Config) (func(context.Context) error, error) {
 		opts = append(opts, otlptracegrpc.WithTimeout(5*time.Second))
 		metricOpts = append(metricOpts, otlpmetricgrpc.WithTimeout(5*time.Second))
 	}
-
+	
 	traceExporter, err := otlptracegrpc.New(ctx, opts...)
 	if err != nil {
 		return nil, err
 	}
-
+	
 	metricExporter, err := otlpmetricgrpc.New(ctx, metricOpts...)
 	if err != nil {
 		return nil, err
 	}
-
+	
 	res, err := resource.New(ctx,
 		resource.WithAttributes(
 			semconv.ServiceName(conf.ServiceName),
@@ -61,7 +62,7 @@ func Init(conf *Config) (func(context.Context) error, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	
 	meterProvider = sdkmetric.NewMeterProvider(
 		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(metricExporter)),
 		sdkmetric.WithResource(res),
@@ -70,35 +71,31 @@ func Init(conf *Config) (func(context.Context) error, error) {
 	if err := runtime.Start(runtime.WithMeterProvider(meterProvider)); err != nil {
 		return nil, err
 	}
-
+	
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(traceExporter),
 		sdktrace.WithResource(res),
 	)
-
+	
 	otel.SetTracerProvider(tp)
 	otel.SetTextMapPropagator(propagation.TraceContext{})
-
+	
 	shutdown := func(ctx context.Context) error {
 		var errs []error
 		if err := tp.Shutdown(ctx); err != nil {
 			errs = append(errs, err)
 		}
-		if err := traceExporter.Shutdown(ctx); err != nil {
-			errs = append(errs, err)
-		}
+		
 		if meterProvider != nil {
 			if err := meterProvider.Shutdown(ctx); err != nil {
 				errs = append(errs, err)
 			}
 		}
-		if metricExporter != nil {
-			if err := metricExporter.Shutdown(ctx); err != nil {
-				errs = append(errs, err)
-			}
-		}
+		
 		if len(errs) > 0 {
-			return errors.Join(errs...)
+			err := errors.Join(errs...)
+			fmt.Println("Errors during OTEL shutdown:", err)
+			return err
 		}
 		return nil
 	}
