@@ -1,3 +1,4 @@
+//go:generate mockgen -source=ports.go -destination=./mocks/mock_ports.go -package=mocks
 package gin
 
 import (
@@ -5,11 +6,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
-
-type RequestPointers[Request any] interface {
-	*Request
-	Bindable
-}
 
 type Bindable interface {
 	Bind(ginContext *gin.Context) error
