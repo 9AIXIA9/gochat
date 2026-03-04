@@ -26,18 +26,18 @@ func NewTestRouter(t *testing.T) *gin.Engine {
 	return router
 }
 
-func ExecuteRouteTest(t *testing.T, router *gin.Engine, behavior *TestCase) {
-	if behavior == nil {
-		t.Fatal("behavior is nil")
+func ExecuteRouteTest(t *testing.T, router *gin.Engine, testCase *TestCase) {
+	if testCase == nil {
+		t.Fatal("testCase is nil")
 	}
 
-	req, err := http.NewRequest(behavior.Method, behavior.Path, behavior.Body)
+	req, err := http.NewRequest(testCase.Method, testCase.Path, testCase.Body)
 	require.NoError(t, err)
 
 	w := httptest.NewRecorder()
 
 	router.ServeHTTP(w, req)
 
-	assert.Equal(t, behavior.Response.String(), w.Body.String())
-	assert.Equal(t, behavior.Response.Code.ToHTTPCode(), w.Code)
+	assert.Equal(t, testCase.Response.String(), w.Body.String())
+	assert.Equal(t, testCase.Response.Code.ToHTTPCode(), w.Code)
 }
