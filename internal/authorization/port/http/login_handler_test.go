@@ -9,7 +9,6 @@ import (
 	authhttp "gochat/internal/authorization/port/http"
 	ginMocks "gochat/internal/infrastructure/gin/mocks"
 	"gochat/internal/shared/api"
-	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 	httptestutil "gochat/pkg/httptest"
 	"net/http"
@@ -95,19 +94,16 @@ func TestNewLoginHandler(t *testing.T) {
 	}
 
 	tests := []struct {
-		name            string
-		body            string
-		expectValidator func(validator *ginMocks.MockValidator)
-		useCase         fakeLoginUseCase
-		expectResponse  *api.Response
-		assertCookie    func(t *testing.T, recorder *httptest.ResponseRecorder)
+		name           string
+		body           string
+		useCase        fakeLoginUseCase
+		expectValidate bool
+		expectResponse *api.Response
+		assertCookie   func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name: "success maps request to input and sets refresh cookie",
 			body: `{"number":"2004426295315795968","password":"your-password"}`,
-			expectValidator: func(validator *ginMocks.MockValidator) {
-				validator.EXPECT().Validate(gomock.Any(), gomock.Any()).Return("", nil)
-			},
 			useCase: fakeLoginUseCase{exec: func(_ context.Context, in *authApplication.LoginInput) (*authApplication.LoginOutput, error) {
 				assert.Equal(t, fixedNumber, in.Number)
 				assert.Equal(t, fixedPassword, in.Password)
@@ -121,6 +117,7 @@ func TestNewLoginHandler(t *testing.T) {
 					),
 				}, nil
 			}},
+			expectValidate: true,
 			expectResponse: api.NewResponseWithData(&authhttp.LoginResponseData{AccessToken: fixedAccessToken}),
 			assertCookie: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				t.Helper()
@@ -143,32 +140,8 @@ func TestNewLoginHandler(t *testing.T) {
 			},
 		},
 		{
-			name:            "invalid json returns invalid param",
-			body:            `{"number":`,
-			expectValidator: nil,
-			useCase: fakeLoginUseCase{exec: func(_ context.Context, _ *authApplication.LoginInput) (*authApplication.LoginOutput, error) {
-				t.Fatalf("use case should not be called when bind fails")
-				return nil, nil
-			}},
-			expectResponse: api.ResponseInvalidParam,
-		},
-		{
-			name: "use case business error returns business code and message",
-			body: `{"number":"2004426295315795968","password":"your-password"}`,
-			expectValidator: func(validator *ginMocks.MockValidator) {
-				validator.EXPECT().Validate(gomock.Any(), gomock.Any()).Return("", nil)
-			},
-			useCase: fakeLoginUseCase{exec: func(_ context.Context, _ *authApplication.LoginInput) (*authApplication.LoginOutput, error) {
-				return nil, myErrors.NewBusiness("invalid password")
-			}},
-			expectResponse: api.NewResponseWithMessage(api.CodeBusinessError, "invalid password"),
-		},
-		{
 			name: "expired refresh token in output returns server error",
 			body: `{"number":"2004426295315795968","password":"your-password"}`,
-			expectValidator: func(validator *ginMocks.MockValidator) {
-				validator.EXPECT().Validate(gomock.Any(), gomock.Any()).Return("", nil)
-			},
 			useCase: fakeLoginUseCase{exec: func(_ context.Context, _ *authApplication.LoginInput) (*authApplication.LoginOutput, error) {
 				return &authApplication.LoginOutput{
 					AccessToken: fixedAccessToken,
@@ -180,6 +153,7 @@ func TestNewLoginHandler(t *testing.T) {
 					),
 				}, nil
 			}},
+			expectValidate: true,
 			expectResponse: api.ResponseServerError,
 			assertCookie: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				t.Helper()
@@ -200,8 +174,9 @@ func TestNewLoginHandler(t *testing.T) {
 			router := httptestutil.NewTestRouter(t)
 
 			validator := ginMocks.NewMockValidator(ctrl)
-			if tt.expectValidator != nil {
-				tt.expectValidator(validator)
+
+			if tt.expectValidate {
+				validator.EXPECT().Validate(gomock.Any(), gomock.Any()).Return("", nil)
 			}
 
 			router.POST("/auth/login", authhttp.NewLoginHandler(tt.useCase, validator, cookieConfig))

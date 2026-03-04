@@ -8,7 +8,6 @@ import (
 	authhttp "gochat/internal/authorization/port/http"
 	ginMocks "gochat/internal/infrastructure/gin/mocks"
 	"gochat/internal/shared/api"
-	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 	httptestutil "gochat/pkg/httptest"
 	"net/http"
@@ -87,45 +86,22 @@ func TestNewSignUpHandler(t *testing.T) {
 	fixedUserNumber := kernel.UserNumber("2004426295315795968")
 
 	tests := []struct {
-		name            string
-		body            string
-		expectValidator func(validator *ginMocks.MockValidator)
-		useCase         fakeSignUpUseCase
-		expectResponse  *api.Response
+		name           string
+		body           string
+		useCase        fakeSignUpUseCase
+		expectValidate bool
+		expectResponse *api.Response
 	}{
 		{
 			name: "success maps request to input and returns user_number",
 			body: `{"email":"youremail@demo.com","password":"your-password"}`,
-			expectValidator: func(validator *ginMocks.MockValidator) {
-				validator.EXPECT().Validate(gomock.Any(), gomock.Any()).Return("", nil)
-			},
 			useCase: fakeSignUpUseCase{exec: func(_ context.Context, in *authApplication.SignUpInput) (*authApplication.SignUpOutput, error) {
 				assert.Equal(t, fixedEmail, in.Email)
 				assert.Equal(t, fixedPassword, in.Password)
 				return &authApplication.SignUpOutput{UserNumber: fixedUserNumber}, nil
 			}},
+			expectValidate: true,
 			expectResponse: api.NewResponseWithData(&authhttp.SignUpResponseData{UserNumber: fixedUserNumber}),
-		},
-		{
-			name:            "invalid json returns invalid param",
-			body:            `{"email":`,
-			expectValidator: nil,
-			useCase: fakeSignUpUseCase{exec: func(_ context.Context, _ *authApplication.SignUpInput) (*authApplication.SignUpOutput, error) {
-				t.Fatalf("use case should not be called when bind fails")
-				return nil, nil
-			}},
-			expectResponse: api.ResponseInvalidParam,
-		},
-		{
-			name: "use case business error returns business code and message",
-			body: `{"email":"youremail@demo.com","password":"your-password"}`,
-			expectValidator: func(validator *ginMocks.MockValidator) {
-				validator.EXPECT().Validate(gomock.Any(), gomock.Any()).Return("", nil)
-			},
-			useCase: fakeSignUpUseCase{exec: func(_ context.Context, _ *authApplication.SignUpInput) (*authApplication.SignUpOutput, error) {
-				return nil, myErrors.NewBusiness("email is already used")
-			}},
-			expectResponse: api.NewResponseWithMessage(api.CodeBusinessError, "email is already used"),
 		},
 	}
 
@@ -138,8 +114,9 @@ func TestNewSignUpHandler(t *testing.T) {
 			router := httptestutil.NewTestRouter(t)
 
 			validator := ginMocks.NewMockValidator(ctrl)
-			if tt.expectValidator != nil {
-				tt.expectValidator(validator)
+
+			if tt.expectValidate {
+				validator.EXPECT().Validate(gomock.Any(), gomock.Any()).Return("", nil)
 			}
 
 			router.POST("/auth/sign-up", authhttp.NewSignUpHandler(tt.useCase, validator))

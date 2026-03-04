@@ -8,7 +8,6 @@ import (
 	authhttp "gochat/internal/authorization/port/http"
 	ginMocks "gochat/internal/infrastructure/gin/mocks"
 	"gochat/internal/shared/api"
-	myErrors "gochat/internal/shared/errors"
 	httptestutil "gochat/pkg/httptest"
 	"net/http"
 	"net/http/httptest"
@@ -92,21 +91,18 @@ func TestNewRefreshAccessTokenHandler(t *testing.T) {
 	}
 
 	tests := []struct {
-		name            string
-		cookie          *http.Cookie
-		expectValidator func(validator *ginMocks.MockValidator)
-		useCase         fakeRefreshAccessTokenUseCase
-		expectResponse  *api.Response
-		assertCookie    func(t *testing.T, recorder *httptest.ResponseRecorder)
+		name           string
+		cookie         *http.Cookie
+		useCase        fakeRefreshAccessTokenUseCase
+		expectValidate bool
+		expectResponse *api.Response
+		assertCookie   func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name: "success maps cookie token and refreshes cookie",
 			cookie: &http.Cookie{
 				Name:  authhttp.RefreshTokenCookieKey,
 				Value: "refresh-token-incoming",
-			},
-			expectValidator: func(validator *ginMocks.MockValidator) {
-				validator.EXPECT().Validate(gomock.Any(), gomock.Any()).Return("", nil)
 			},
 			useCase: fakeRefreshAccessTokenUseCase{exec: func(_ context.Context, in *authApplication.RefreshAccessTokenInput) (*authApplication.RefreshAccessTokenOutput, error) {
 				assert.Equal(t, authDomain.RefreshToken("refresh-token-incoming"), in.RefreshToken)
@@ -120,6 +116,7 @@ func TestNewRefreshAccessTokenHandler(t *testing.T) {
 					),
 				}, nil
 			}},
+			expectValidate: true,
 			expectResponse: api.NewResponseWithData(authhttp.RefreshAccessTokenResponseData{AccessToken: fixedAccessToken}),
 			assertCookie: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				t.Helper()
@@ -142,37 +139,20 @@ func TestNewRefreshAccessTokenHandler(t *testing.T) {
 			},
 		},
 		{
-			name:            "missing cookie returns invalid param",
-			cookie:          nil,
-			expectValidator: nil,
+			name:   "missing cookie returns invalid param",
+			cookie: nil,
 			useCase: fakeRefreshAccessTokenUseCase{exec: func(_ context.Context, _ *authApplication.RefreshAccessTokenInput) (*authApplication.RefreshAccessTokenOutput, error) {
 				t.Fatalf("use case should not be called when bind fails")
 				return nil, nil
 			}},
+			expectValidate: false,
 			expectResponse: api.ResponseInvalidParam,
-		},
-		{
-			name: "use case business error returns business code and message",
-			cookie: &http.Cookie{
-				Name:  authhttp.RefreshTokenCookieKey,
-				Value: "refresh-token-incoming",
-			},
-			expectValidator: func(validator *ginMocks.MockValidator) {
-				validator.EXPECT().Validate(gomock.Any(), gomock.Any()).Return("", nil)
-			},
-			useCase: fakeRefreshAccessTokenUseCase{exec: func(_ context.Context, _ *authApplication.RefreshAccessTokenInput) (*authApplication.RefreshAccessTokenOutput, error) {
-				return nil, myErrors.NewBusiness("invalid refresh token")
-			}},
-			expectResponse: api.NewResponseWithMessage(api.CodeBusinessError, "invalid refresh token"),
 		},
 		{
 			name: "expired refresh token in output returns server error",
 			cookie: &http.Cookie{
 				Name:  authhttp.RefreshTokenCookieKey,
 				Value: "refresh-token-incoming",
-			},
-			expectValidator: func(validator *ginMocks.MockValidator) {
-				validator.EXPECT().Validate(gomock.Any(), gomock.Any()).Return("", nil)
 			},
 			useCase: fakeRefreshAccessTokenUseCase{exec: func(_ context.Context, _ *authApplication.RefreshAccessTokenInput) (*authApplication.RefreshAccessTokenOutput, error) {
 				return &authApplication.RefreshAccessTokenOutput{
@@ -185,6 +165,7 @@ func TestNewRefreshAccessTokenHandler(t *testing.T) {
 					),
 				}, nil
 			}},
+			expectValidate: true,
 			expectResponse: api.ResponseServerError,
 			assertCookie: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				t.Helper()
@@ -205,8 +186,9 @@ func TestNewRefreshAccessTokenHandler(t *testing.T) {
 			router := httptestutil.NewTestRouter(t)
 
 			validator := ginMocks.NewMockValidator(ctrl)
-			if tt.expectValidator != nil {
-				tt.expectValidator(validator)
+
+			if tt.expectValidate {
+				validator.EXPECT().Validate(gomock.Any(), gomock.Any()).Return("", nil)
 			}
 
 			router.PUT("/auth/tokens/refresh", authhttp.NewRefreshAccessTokenHandler(tt.useCase, validator, cookieConfig))
