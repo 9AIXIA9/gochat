@@ -1,9 +1,21 @@
 package api
 
+import (
+	"encoding/json"
+)
+
 type Response struct {
 	Code    Code   `json:"code" example:"200"`
 	Message string `json:"message" example:"Success"`
 	Data    any    `json:"data,omitempty" swaggertype:"object"`
+}
+
+func (r *Response) String() string {
+	data, err := json.Marshal(r)
+	if err != nil {
+		return ""
+	}
+	return string(data)
 }
 
 func NewResponse(code Code) *Response {
