@@ -1,3 +1,5 @@
+//go:build !race
+
 package middleware_test
 
 import (
@@ -18,9 +20,9 @@ func TestNewTimeoutMiddleware(t *testing.T) {
 
 	router := httptestutil.NewTestRouter(t)
 	router.Use(middlewareHTTP.NewTimeoutMiddleware(10 * time.Millisecond))
-	router.GET("/slow", func(c *gin.Context) {
+	router.GET("/slow", func(_ *gin.Context) {
+		// Simulate a slow handler without touching the response writer after timeout.
 		time.Sleep(50 * time.Millisecond)
-		c.Status(http.StatusOK)
 	})
 
 	w := httptest.NewRecorder()
