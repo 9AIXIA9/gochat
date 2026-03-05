@@ -103,8 +103,8 @@ func TestNewListFriendRequestsHandler(t *testing.T) {
 	fixedBaseID := kernel.OperationID("request-9")
 	fixedSentAt := time.Date(2026, time.January, 2, 3, 4, 5, 0, time.UTC)
 	fixedRequest := friendshipDomain.LoadFriendRequest(
-		kernel.OperationID("request-10"),
-		kernel.UserID("user-2"),
+		"request-10",
+		"user-2",
 		fixedUserID,
 		"hello",
 		friendshipDomain.StatePending,

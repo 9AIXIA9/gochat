@@ -2,11 +2,11 @@ package http_test
 
 import (
 	"context"
-	friendshipApplication "gochat/internal/friendship/application"
-	friendshipDomain "gochat/internal/friendship/domain"
-	friendshipDTO "gochat/internal/friendship/dto"
-	friendshipHTTP "gochat/internal/friendship/port/http"
 	ginMocks "gochat/internal/infrastructure/gin/mocks"
+	roomshipApplication "gochat/internal/roomship/application"
+	roomshipDomain "gochat/internal/roomship/domain"
+	roomshipDTO "gochat/internal/roomship/dto"
+	roomshipHTTP "gochat/internal/roomship/port/http"
 	"gochat/internal/shared/api"
 	"gochat/internal/shared/kernel"
 	"gochat/pkg/ctxutil"
@@ -22,15 +22,15 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-type fakeListFriendshipsUseCase struct {
-	exec func(ctx context.Context, in *friendshipApplication.ListFriendshipsInput) (*friendshipApplication.ListFriendshipsOutput, error)
+type fakeListMemberRequestsUseCase struct {
+	exec func(ctx context.Context, in *roomshipApplication.ListMemberRequestsInput) (*roomshipApplication.ListMemberRequestsOutput, error)
 }
 
-func (f fakeListFriendshipsUseCase) Execute(ctx context.Context, in *friendshipApplication.ListFriendshipsInput) (*friendshipApplication.ListFriendshipsOutput, error) {
+func (f fakeListMemberRequestsUseCase) Execute(ctx context.Context, in *roomshipApplication.ListMemberRequestsInput) (*roomshipApplication.ListMemberRequestsOutput, error) {
 	return f.exec(ctx, in)
 }
 
-func TestListFriendshipsRequest_Bind(t *testing.T) {
+func TestListMemberRequestsRequest_Bind(t *testing.T) {
 	t.Parallel()
 
 	fixedUserID := kernel.UserID("user-1")
@@ -40,34 +40,26 @@ func TestListFriendshipsRequest_Bind(t *testing.T) {
 		userID    kernel.UserID
 		path      string
 		expectErr bool
-		want      *friendshipHTTP.ListFriendshipsRequest
+		want      *roomshipHTTP.ListMemberRequestsRequest
 	}{
 		{
 			name:      "success with query",
 			userID:    fixedUserID,
-			path:      "/friendships?base_id=friendship-9&limit=50",
+			path:      "/rooms/requests?base_id=request-9&limit=50",
 			expectErr: false,
-			want: &friendshipHTTP.ListFriendshipsRequest{
-				UserID: fixedUserID,
-				BaseID: friendshipDomain.FriendshipID("friendship-9"),
-				Limit:  50,
-			},
+			want:      &roomshipHTTP.ListMemberRequestsRequest{UserID: fixedUserID, BaseID: kernel.OperationID("request-9"), Limit: 50},
 		},
 		{
 			name:      "default limit",
 			userID:    fixedUserID,
-			path:      "/friendships",
+			path:      "/rooms/requests",
 			expectErr: false,
-			want: &friendshipHTTP.ListFriendshipsRequest{
-				UserID: fixedUserID,
-				BaseID: "",
-				Limit:  20,
-			},
+			want:      &roomshipHTTP.ListMemberRequestsRequest{UserID: fixedUserID, BaseID: "", Limit: 20},
 		},
 		{
 			name:      "invalid limit",
 			userID:    fixedUserID,
-			path:      "/friendships?limit=bad",
+			path:      "/rooms/requests?limit=bad",
 			expectErr: true,
 		},
 	}
@@ -83,7 +75,7 @@ func TestListFriendshipsRequest_Bind(t *testing.T) {
 			req = req.WithContext(ctxutil.WithUserID(req.Context(), tt.userID))
 			ginContext.Request = req
 
-			request := &friendshipHTTP.ListFriendshipsRequest{}
+			request := &roomshipHTTP.ListMemberRequestsRequest{}
 			err = request.Bind(ginContext)
 			if tt.expectErr {
 				require.Error(t, err)
@@ -96,17 +88,21 @@ func TestListFriendshipsRequest_Bind(t *testing.T) {
 	}
 }
 
-func TestNewListFriendshipsHandler(t *testing.T) {
+func TestNewListMemberRequestsHandler(t *testing.T) {
 	t.Parallel()
 
 	fixedUserID := kernel.UserID("user-1")
-	fixedBaseID := friendshipDomain.FriendshipID("friendship-9")
-	fixedCreatedAt := time.Date(2026, time.January, 2, 3, 4, 5, 0, time.UTC)
-	fixedFriendship := friendshipDomain.LoadFriendship(
-		"friendship-10",
-		fixedUserID,
+	fixedBaseID := kernel.OperationID("request-9")
+	fixedTime := time.Date(2026, time.January, 2, 3, 4, 5, 0, time.UTC)
+	fixedRequest := roomshipDomain.LoadMemberRequest(
+		"request-10",
+		roomshipDomain.StatePending,
 		"user-2",
-		fixedCreatedAt,
+		"room-1",
+		"join please",
+		"",
+		fixedTime,
+		fixedTime,
 	)
 
 	tests := []struct {
@@ -114,28 +110,28 @@ func TestNewListFriendshipsHandler(t *testing.T) {
 		injectUserID   kernel.UserID
 		path           string
 		expectValidate bool
-		useCase        fakeListFriendshipsUseCase
+		useCase        fakeListMemberRequestsUseCase
 		expectResponse *api.Response
 	}{
 		{
-			name:           "success maps request to input and returns friendship list",
+			name:           "success maps request to input and returns member request list",
 			injectUserID:   fixedUserID,
-			path:           "/friendships?base_id=friendship-9&limit=30",
+			path:           "/rooms/requests?base_id=request-9&limit=30",
 			expectValidate: true,
-			useCase: fakeListFriendshipsUseCase{exec: func(_ context.Context, in *friendshipApplication.ListFriendshipsInput) (*friendshipApplication.ListFriendshipsOutput, error) {
+			useCase: fakeListMemberRequestsUseCase{exec: func(_ context.Context, in *roomshipApplication.ListMemberRequestsInput) (*roomshipApplication.ListMemberRequestsOutput, error) {
 				assert.Equal(t, fixedUserID, in.UserID)
 				assert.Equal(t, fixedBaseID, in.BaseID)
 				assert.Equal(t, 30, in.Limit)
-				return &friendshipApplication.ListFriendshipsOutput{Friendships: []*friendshipDomain.Friendship{fixedFriendship}}, nil
+				return &roomshipApplication.ListMemberRequestsOutput{Requests: []*roomshipDomain.MemberRequest{fixedRequest}}, nil
 			}},
-			expectResponse: api.NewResponseWithData(&friendshipHTTP.ListFriendshipsResponseData{Friendships: friendshipDTO.ToFriendshipDTOs([]*friendshipDomain.Friendship{fixedFriendship})}),
+			expectResponse: api.NewResponseWithData(&roomshipHTTP.ListMemberRequestsResponseData{Requests: roomshipDTO.ToMemberRequestDTOs([]*roomshipDomain.MemberRequest{fixedRequest})}),
 		},
 		{
 			name:           "invalid limit returns invalid param",
 			injectUserID:   fixedUserID,
-			path:           "/friendships?limit=bad",
+			path:           "/rooms/requests?limit=bad",
 			expectValidate: false,
-			useCase: fakeListFriendshipsUseCase{exec: func(_ context.Context, _ *friendshipApplication.ListFriendshipsInput) (*friendshipApplication.ListFriendshipsOutput, error) {
+			useCase: fakeListMemberRequestsUseCase{exec: func(_ context.Context, _ *roomshipApplication.ListMemberRequestsInput) (*roomshipApplication.ListMemberRequestsOutput, error) {
 				t.Fatalf("use case should not be called when bind fails")
 				return nil, nil
 			}},
@@ -160,7 +156,7 @@ func TestNewListFriendshipsHandler(t *testing.T) {
 				validator.EXPECT().Validate(gomock.Any(), gomock.Any()).Return("", nil)
 			}
 
-			router.GET("/friendships", friendshipHTTP.NewListFriendshipsHandler(tt.useCase, validator))
+			router.GET("/rooms/requests", roomshipHTTP.NewListMemberRequestsHandler(tt.useCase, validator))
 
 			req, err := http.NewRequest(http.MethodGet, tt.path, nil)
 			require.NoError(t, err)
