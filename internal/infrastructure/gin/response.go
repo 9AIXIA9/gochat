@@ -25,6 +25,8 @@ func Response(ginContext *gin.Context, code api.Code) {
 		ginContext.JSON(api.CodeNotFound.ToHTTPCode(), api.ResponseNotFound)
 	case api.CodeBusinessError:
 		ginContext.JSON(api.CodeBusinessError.ToHTTPCode(), api.ResponseBusinessError)
+	case api.CodeLimitExceeded:
+		ginContext.JSON(api.CodeLimitExceeded.ToHTTPCode(), api.ResponseLimitExceeded)
 	default:
 		zap.L().Debug("Unhandled business code", zap.Int("code", int(code)))
 		ginContext.JSON(code.ToHTTPCode(), api.NewResponse(code))
