@@ -24,13 +24,18 @@ func NewLoggerMiddleware() kafka.Middleware {
 			fields := []zap.Field{
 				zap.String("topic", *message.TopicPartition.Topic),
 				zap.Duration("latency", dur),
-				zap.Error(err),
 			}
 
 			if traceID, spanID := ctxutil.SpanIDAndTraceIDFrom(ctx); traceID != "" && spanID != "" {
 				fields = append(fields,
 					zap.String("trace_id", traceID),
 					zap.String("span_id", spanID),
+				)
+			}
+
+			if err != nil {
+				fields = append(fields,
+					zap.Error(err),
 				)
 			}
 

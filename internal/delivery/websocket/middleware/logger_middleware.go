@@ -25,7 +25,6 @@ func NewLoggerMiddleware() websocket.Middleware {
 				zap.String("user_id", ctxutil.UserIDFrom(ctx).String()),
 				zap.String("topic", websocket.GetTopic(ctx).String()),
 				zap.Duration("latency", dur),
-				zap.Error(ctxutil.ErrorFrom(ctx)),
 			}
 
 			if requestID := ctxutil.RequestIDFrom(ctx).String(); requestID != "" {
@@ -36,6 +35,12 @@ func NewLoggerMiddleware() websocket.Middleware {
 				fields = append(fields,
 					zap.String("trace_id", traceID),
 					zap.String("span_id", spanID),
+				)
+			}
+
+			if err := ctxutil.ErrorFrom(ctx); err != nil {
+				fields = append(fields,
+					zap.Error(err),
 				)
 			}
 
