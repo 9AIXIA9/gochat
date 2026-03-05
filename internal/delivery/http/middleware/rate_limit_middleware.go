@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	ginutils "gochat/internal/infrastructure/gin"
+	"gochat/internal/shared/api"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -34,5 +36,7 @@ func NewRateLimitMiddleware(client redis.Client, config *RateLimitConfig) gin.Ha
 
 	// 创建限流实例并返回 gin 中间件
 	instance := limiter.New(store, rate)
-	return ginmiddleware.NewMiddleware(instance)
+	return ginmiddleware.NewMiddleware(instance, ginmiddleware.WithLimitReachedHandler(func(c *gin.Context) {
+		ginutils.Response(c, api.CodeLimitExceeded)
+	}))
 }

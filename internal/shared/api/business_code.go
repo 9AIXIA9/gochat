@@ -14,6 +14,7 @@ const (
 	CodeUnauthorized
 	CodeNotFound
 	CodeServiceUnavailable
+	CodeLimitExceeded
 )
 
 func (c Code) ToHTTPCode() int {
@@ -34,6 +35,8 @@ func (c Code) ToHTTPCode() int {
 		return http.StatusNotFound
 	case CodeServiceUnavailable:
 		return http.StatusServiceUnavailable
+	case CodeLimitExceeded:
+		return http.StatusTooManyRequests
 	default:
 		return http.StatusInternalServerError
 	}
@@ -57,6 +60,9 @@ func (c Code) DefaultMessage() string {
 		return "not found"
 	case CodeServiceUnavailable:
 		return "service unavailable"
+	case CodeLimitExceeded:
+		return "limit exceeded"
+
 	default:
 		return "unknown error"
 	}

@@ -9,4 +9,5 @@ var (
 	ResponseServiceUnavailable = NewResponse(CodeServiceUnavailable)
 	ResponseNotFound           = NewResponse(CodeNotFound)
 	ResponseBusinessError      = NewResponse(CodeBusinessError)
+	ResponseLimitExceeded      = NewResponse(CodeLimitExceeded)
 )
