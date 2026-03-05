@@ -39,7 +39,6 @@ const (
 
 func main() {
 	baseConfigPath := flag.String("config", defaultConfigFilePath, "config file path")
-	localConfigPath := flag.String("local_config", "", "local config file path")
 	overrideConfigPath := flag.String("override_config", "", "override config file path")
 
 	env := flag.String("env", "", "env file path")
@@ -51,7 +50,7 @@ func main() {
 		}
 	}
 
-	conf, err := viper.LoadConfigFile(*baseConfigPath, *localConfigPath, *overrideConfigPath)
+	conf, err := viper.LoadConfigFile(*baseConfigPath, *overrideConfigPath)
 	if err != nil {
 		log.Fatalf("load config file failed,err:%v", err)
 	}

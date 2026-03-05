@@ -24,7 +24,6 @@ func NewLoggerMiddleware() gin.HandlerFunc {
 			zap.String("query", c.Request.URL.RawQuery),
 			zap.Int("status", c.Writer.Status()),
 			zap.Duration("latency", dur),
-			zap.Error(c.Errors.Last()),
 		}
 
 		if requestID := ctxutil.RequestIDFrom(c.Request.Context()).String(); requestID != "" {
@@ -35,6 +34,12 @@ func NewLoggerMiddleware() gin.HandlerFunc {
 			fields = append(fields,
 				zap.String("trace_id", traceID),
 				zap.String("span_id", spanID),
+			)
+		}
+
+		if err := c.Errors.Last(); err != nil {
+			fields = append(fields,
+				zap.Error(err),
 			)
 		}
 
