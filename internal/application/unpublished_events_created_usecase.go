@@ -6,6 +6,7 @@ import (
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"gochat/pkg/validate"
+	"sync/atomic"
 	"time"
 
 	"go.uber.org/zap"
@@ -18,6 +19,7 @@ type UnpublishedEventsCreatedUseCase kernel.UseCase[*kernel.NoInput, *kernel.NoO
 type unpublishedEventsCreatedUseCase struct {
 	publisher event.Publisher
 	lister    event.UnpublishedEventsLister
+	running   atomic.Bool
 }
 
 func NewUnpublishedEventsCreatedUseCase(
@@ -37,6 +39,12 @@ func NewUnpublishedEventsCreatedUseCase(
 }
 
 func (uc *unpublishedEventsCreatedUseCase) Execute(ctx context.Context, _ *kernel.NoInput) (*kernel.NoOutput, error) {
+	if !uc.running.CompareAndSwap(false, true) {
+		zap.L().Debug("Skip outbox processing because a previous execution is still running")
+		return nil, nil
+	}
+	defer uc.running.Store(false)
+
 	evs, err := uc.lister.ListUnpublishedEvents(ctx, processDuration)
 	if err != nil {
 		return nil, err
