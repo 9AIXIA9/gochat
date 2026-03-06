@@ -11,6 +11,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 var _ event.Repository = (*EventRepository)(nil)
@@ -52,11 +53,12 @@ func (repo *EventRepository) CreateUnpublishedEvents(ctx context.Context, evs []
 
 func (repo *EventRepository) ListUnpublishedEvents(ctx context.Context, lease time.Duration) ([]event.Event, error) {
 	var models []*model.Event
+	now := time.Now().UTC()
+	leaseUntil := now.Add(lease)
 
 	if err := repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		// Select unpublished and not processing events
-		if err := tx.Where("published = ? AND processing_until IS NOT NULL AND processing_until < ?",
-			false, time.Now().UTC()).
+		if err := tx.Where("published = ? AND processing_until <= ?", false, now).
+			Clauses(clause.Locking{Strength: "UPDATE", Options: "SKIP LOCKED"}).
 			Find(&models).
 			Error; err != nil {
 			return gormutils.TranslateError(err)
@@ -71,10 +73,10 @@ func (repo *EventRepository) ListUnpublishedEvents(ctx context.Context, lease ti
 			ids = append(ids, m.ID)
 		}
 
-		// 添加租约时间
-		if err := tx.Model(&model.Event{}).Where("id IN ?", ids).Updates(map[string]interface{}{
-			"processing_until": time.Now().UTC().Add(lease),
-		}).Error; err != nil {
+		if err := tx.Model(&model.Event{}).
+			Where("id IN ?", ids).
+			Update("processing_until", leaseUntil).
+			Error; err != nil {
 			return gormutils.TranslateError(err)
 		}
 		return nil
@@ -85,10 +87,14 @@ func (repo *EventRepository) ListUnpublishedEvents(ctx context.Context, lease ti
 }
 
 func (repo *EventRepository) MarkAsPublished(ctx context.Context, ID event.ID) error {
-	return gormutils.TranslateError(repo.db.WithContext(ctx).Model(&model.Event{}).Where("id = ?", ID).Updates(map[string]interface{}{
-		"published":    true,
-		"published_at": time.Now().UTC(),
-	}).Error)
+	return gormutils.TranslateError(
+		repo.db.WithContext(ctx).
+			Model(&model.Event{}).
+			Where("id = ? AND published = false", ID).
+			Updates(map[string]interface{}{
+				"published":    true,
+				"published_at": time.Now().UTC(),
+			}).Error)
 }
 
 func (repo *EventRepository) CreateDeadLetter(ctx context.Context, e event.Event, reason error) error {
