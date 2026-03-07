@@ -1,86 +1,95 @@
-# GoChat 后端项目评估报告
+# GoChat 后端项目评估与优化建议（现状版）
 
-更新时间：2025-12-26
+更新时间：2026-03-07
 
-本报告基于仓库结构与关键实现的审阅（如 `cmd/api/main.go`、`cmd/api/di/*`、`internal/*`、`deployment/*`、`db/migrations/*`
-等），聚焦当前能力与工程成熟度评估，仅保留评估内容与长板/短板。
+本报告基于仓库当前实现进行再评估，聚焦三件事：
+1) 当前完成度；2) 关键风险；3) 下一步优化优先级。
 
-## 评估范围与依据
+## 评估依据（代码证据）
 
-- 代码结构：DDD 风格分层与上下文边界；Wire 依赖注入；多通道交付（HTTP/WebSocket/Kafka/Binlog）。
-- 基础设施：MySQL（Gorm）、Redis、Kafka、OTEL/Prometheus/Grafana、Zap、Viper、Swagger、Docker/Compose。
-- 运行与关停：主进程优雅关机；HTTP 健康检查通过 Handler 提供；HTTP 已有限流中间件。
-- 测试：应用层与领域层已覆盖，shared/kernel 与 shared/event 已覆盖；端口层与基础设施层测试不足；缺少集成/E2E 体系。
+- 路由与健康检查：`cmd/api/di/providers_http.go`
+- 启停与关停流程：`cmd/api/main.go`
+- Kafka 消费与生产：`internal/infrastructure/kafka/consumer.go`、`internal/infrastructure/kafka/event_publisher.go`
+- WebSocket 连接管理：`internal/infrastructure/websocket/manager.go`
+- 工程命令与迁移：`Makefile`
+- CI 流水线：`.github/workflows/go.yml`
+- 文档与接口：`docs/swagger.yaml`
 
-## 架构与技术栈评估
+## 总体评估结论
 
-- 分层与边界
-	- DDD 目录清晰，`application | domain | infrastructure | port` 分层明确；上下文包括授权、聊天、好友、房间、通知等，边界清楚。
-	- 通过 Wire 在 `cmd/api/di` 进行依赖注入，`InfraSet/RepoSet/UseCase*Set/HTTPSet/WebsocketSet/KafkaSet/BinlogSet`
-	  模块化良好，依赖关系可追踪。
+- 架构成熟度：**较高**（DDD 分层与 DI 落地完整，多上下文边界清晰）。
+- 交付能力：**较高**（HTTP/WS/Kafka/Binlog 同时具备，工程化基础扎实）。
+- 工程质量：**中等偏上**（测试与 CI 有基础，但并发门禁、E2E 和覆盖率目标未完全闭环）。
+- 运行可靠性：**中等**（关机流程完整，但 Consumer/WS 关停细节存在尾部风险）。
+- 安全与治理：**中等**（HTTP 限流已落地，跨通道流控、错误契约与审计治理仍有缺口）。
 
-- 交付通道
-	- HTTP：Gin 路由与中间件完善；Swagger 注解齐全，便于文档生成。
-	- WebSocket：Gorilla 实现，Manager/Client/Router 职责划分清晰，心跳/读写协程分离，具备基本健壮性。
-	- Kafka：Producer/Consumer 抽象完善，支持手动提交、错误处理与分区暂停/恢复；路由解耦良好。
-	- Binlog：Canal 对接清晰；从主位点启动与异常处理逻辑合理。
+## 完成度盘点（已完成 / 部分完成 / 未完成）
 
-- 数据与配置
-	- 数据层使用 Gorm，仓储抽象到位；Redis 用于缓存/会话等；SQL 迁移集中管理。
-	- 配置使用 Viper + YAML + .env，配置结构体清晰，便于环境化。
+- 已完成
+  - DDD + 端口适配器 + Wire 注入体系。
+  - `/healthz`、`/readyz` 路由与依赖就绪探测。
+  - HTTP 限流中间件接入业务路由。
+  - 优雅关停主流程（HTTP、Kafka Producer/Consumer、Binlog、OTEL）。
+  - Make 常用研发命令（测试、lint、Swagger、迁移）。
+  - CI 的构建、常规测试、lint。
 
-- 可观测性与日志
-	- OTEL 接入 HTTP；Prometheus/Grafana 仪表盘配置具备；Zap 结构化日志贯穿。
-	- 需在 Kafka/WebSocket 及关键用例内进一步补充 Trace/Metric 颗粒度与命名规范。
+- 部分完成
+  - Readiness 与关停联动（缺少显式“摘流状态位”）。
+  - 可观测性（HTTP 较完整，Kafka/WS 业务指标深度不足）。
+  - 测试结构（应用层较好，端口/基础设施层覆盖不足）。
 
-- 运行与编排
-	- Docker/Docker-Compose 支撑本地与演示环境；Makefile 辅助构建运行；监控链路（Prom/OTEL/Grafana）具备。
-	- main.go 已实现优雅关机：捕获信号并依次关闭 HTTP（Shutdown）、EmailNotifier、Kafka Producer、Kafka Consumers（逆序）、Binlog
-	  Reader，并调用 OTEL 关闭；流程合理。
-	- 健康检查由 HTTP Handler 返回状态；建议根据需要区分 liveness/readiness 并进行依赖探测（详见演进文档）。
+- 未完成
+  - Kafka Consumer 退出等待与超时控制（防止 goroutine 残留）。
+  - WS Manager 的 `CloseAll()` 与全量连接回收。
+  - 跨通道统一错误 Envelope（HTTP/WS/Kafka）。
+  - WS/Kafka/Binlog 统一限流与背压策略。
+  - CI 并发门禁（`-race -shuffle`）、覆盖率阈值、E2E 流程。
+  - Swagger 中统一错误模型与 429 等典型错误响应示例。
 
-## 工程实践评估
+## 关键风险与影响（按严重度）
 
-- 模块化与可维护性：
-	- 采用端口/适配器模式，领域与基础设施解耦；DI 保持显式依赖注入，便于测试与替换。
-	- 目录清晰，跨上下文事件与用例划分明确。
+- P0 高风险
+  - 关停尾部风险：Consumer 与 WS 缺少“可等待关闭”的完整闭环，可能导致进程退出时资源未完全释放。
+  - 契约不一致：跨通道错误语义未统一，客户端重试策略与排障路径容易分叉。
 
-- 测试覆盖：
-	- 已覆盖：所有上下文的 Application/Domain；shared/kernel 与 shared/event。
-	- 待补充：Port 层（HTTP/WebSocket/Kafka）与 Infrastructure 层（Gorm/Redis/Kafka/WebSocket/Canal）；缺少 docker-compose
-	  驱动的集成/E2E 测试。
+- P1 中风险
+  - 可观测盲区：Kafka/WS 的队列积压、失败分布、延迟分位不可见，容量规划难度较高。
+  - 质量门禁缺口：CI 缺 `-race -shuffle` 与 E2E，隐藏并发问题和集成回归。
 
-- 错误处理与一致性：
-	- 共享错误模型存在，HTTP 封装较规范；日志使用 Zap，错误语境较完整。
-	- 不足：跨通道（HTTP/WS/Kafka）错误响应/回执不完全统一，给排障与客户端一致性带来成本。
+- P2 可优化项
+  - 安全治理深度：缺少统一配额、密钥轮换、审计日志等长期治理能力。
+  - 交付体系：缺少面向 K8s 的标准化发布与 SLO 告警体系。
 
-- 可观测性：
-	- HTTP 侧有基础 Trace；Prometheus/Grafana 仪表盘可用。
-	- Kafka/WebSocket 及业务用例内的自定义 Span/Metric 不足，难以形成端到端链路和容量视图。
+## 优化建议（可执行）
 
-- 安全：
-	- JWT、bcrypt、Redis ACL 基本安全面已具备；HTTP 已接入限流中间件。
-	- 提升空间：跨域与 WS Origin 校验策略、Cookie 策略统一、各通道（WS/Kafka/Binlog）速率/背压策略拓展、密钥管理与轮换机制。
+- 第一阶段（1-2 周，P0）
+  - 为 `Consumer` 增加 WaitGroup/退出信号/关停超时。
+  - 为 `Manager` 增加 `CloseAll()` 并在关机流程调用。
+  - 增加 readiness 关停态（收到信号后立刻返回 503）。
+  - 定义并落地统一错误 Envelope（先覆盖最核心链路）。
 
-- 运维与可靠性：
-	- 优雅关机已实现；Compose/监控链路具备；迁移管理完整。
-	- Kafka 消费退出缺乏显式等待（WaitGroup/完成信号）；WS Manager 无全量下线接口；健康检查建议进一步区分与旁路中间件；重试/退避策略需要参数化与观测。
+- 第二阶段（3-6 周，P1）
+  - CI 增加 `go test -race -shuffle=on ./...`。
+  - 建立最小 E2E（注册->登录->发消息->WS 接收->补偿）。
+  - 按模块补 Port/Infrastructure 测试，逐步达到覆盖率目标。
+  - 增加 Kafka/WS 指标与 Trace 标签，形成可观测闭环。
 
-## 长板（Strengths）
+- 第三阶段（6-12 周，P2）
+  - 定义 API/WS/Kafka 的 SLO 与告警规则。
+  - 建立 K8s/Helm 发布与回滚模板。
+  - 推进配额治理、密钥轮换、审计日志与性能基线。
 
-- 架构清晰：DDD 分层与端口/适配器模式落地，依赖注入与仓储抽象完善。
-- 多通道能力：HTTP/WebSocket/Kafka/Binlog 全覆盖，事件驱动与消息路由健全。
-- 工程化完备：配置、日志、文档（Swagger）、容器与监控栈具备；main 优雅关机流程完整。
-- 测试基础好：已覆盖 Application/Domain 与 shared 核心库，便于在此基础上扩展。
+## 建议的度量指标（用于复盘）
 
-## 短板与风险（Weaknesses）
+- 稳定性：部署后 7 天内异常重启次数、关停超时率、未清理连接数。
+- 质量：CI 失败类型分布（lint/test/race/e2e）、回归缺陷数、覆盖率趋势。
+- 观测：Kafka lag、WS 在线连接、P95 延迟、错误率。
+- 效率：PR 到上线周期、缺陷修复 lead time、发布回滚次数。
 
-- 测试短板：Port/Infrastructure 层测试不足，缺少集成/E2E 体系与 race 检测门禁。
-- 错误与契约：跨通道错误响应/回执不统一，影响客户端与排障一致性。
-- 可观测性深度：Kafka/WS 与核心用例的 Trace/Metric 不足，容量与瓶颈不可见。
-- 安全与流控：限流仅覆盖 HTTP，WS/Kafka/Binlog 缺乏节流/背压策略；CORS/WS Origin/Cookie 策略需要统一显式化。
-- 关停细节：Kafka 消费 goroutine 无退出等待；WS Manager 缺少 CloseAll，存在半开连接与资源回收隐患。
+## 结语
 
-——
+当前项目已经具备“可用且可扩展”的工程基础，下一步重点不是继续堆功能，而是优先补齐“稳定性闭环 + 契约一致性 + 质量门禁”三件核心能力。完成这些后，再推进 SLO 与规模化运维，性价比最高。
 
-注：后续演进方向、阶段性目标与度量指标，见《docs/code_evolution.md》。
+---
+
+对应演进路径见 `docs/code_evolution.md`。
