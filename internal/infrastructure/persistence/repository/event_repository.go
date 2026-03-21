@@ -51,7 +51,7 @@ func (repo *EventRepository) CreateUnpublishedEvents(ctx context.Context, evs []
 	return nil
 }
 
-func (repo *EventRepository) ListUnpublishedEvents(ctx context.Context, lease time.Duration) ([]event.Event, error) {
+func (repo *EventRepository) ListUnpublishedEvents(ctx context.Context, lease time.Duration, limit int) ([]event.Event, error) {
 	var models []*model.Event
 	now := time.Now().UTC()
 	leaseUntil := now.Add(lease)
@@ -59,7 +59,7 @@ func (repo *EventRepository) ListUnpublishedEvents(ctx context.Context, lease ti
 	if err := repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where("processing_until <= ?", now).
 			Clauses(clause.Locking{Strength: "UPDATE", Options: "SKIP LOCKED"}).
-			Limit(1000).
+			Limit(limit).
 			Find(&models).
 			Error; err != nil {
 			return gormutils.TranslateError(err)

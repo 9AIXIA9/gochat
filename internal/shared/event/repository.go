@@ -18,7 +18,7 @@ type UnpublishedEventsCreator interface {
 }
 
 type UnpublishedEventsLister interface {
-	ListUnpublishedEvents(ctx context.Context, lease time.Duration) ([]Event, error)
+	ListUnpublishedEvents(ctx context.Context, lease time.Duration, limit int) ([]Event, error)
 }
 
 type PublishedMarker interface {

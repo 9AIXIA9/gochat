@@ -16,6 +16,7 @@ import (
 )
 
 const fixedEventLen = 10
+const eventsLimit = 1000
 
 func TestNewUnpublishedEventsCreatedUseCase(t *testing.T) {
 	ctrl := gomock.NewController(t)
@@ -68,7 +69,7 @@ func TestUnpublishedEventsCreatedUseCase_Execute(t *testing.T) {
 	}
 
 	gomock.InOrder(
-		mockLister.EXPECT().ListUnpublishedEvents(context.Background(), time.Minute).Return(mockEvents, nil),
+		mockLister.EXPECT().ListUnpublishedEvents(context.Background(), time.Minute, eventsLimit).Return(mockEvents, nil),
 		mockPublisher.EXPECT().Publish(gomock.Any(), gomock.Any()).Times(fixedEventLen).Return(nil),
 	)
 
@@ -77,7 +78,7 @@ func TestUnpublishedEventsCreatedUseCase_Execute(t *testing.T) {
 
 	//无事件情况
 	gomock.InOrder(
-		mockLister.EXPECT().ListUnpublishedEvents(context.Background(), time.Minute).Return([]event.Event{}, nil),
+		mockLister.EXPECT().ListUnpublishedEvents(context.Background(), time.Minute, eventsLimit).Return([]event.Event{}, nil),
 	)
 
 	_, err = useCase.Execute(context.Background(), nil)
@@ -85,7 +86,7 @@ func TestUnpublishedEventsCreatedUseCase_Execute(t *testing.T) {
 
 	// 超时情况
 	gomock.InOrder(
-		mockLister.EXPECT().ListUnpublishedEvents(context.Background(), time.Minute).Return(mockEvents, nil),
+		mockLister.EXPECT().ListUnpublishedEvents(context.Background(), time.Minute, eventsLimit).Return(mockEvents, nil),
 		mockPublisher.EXPECT().Publish(gomock.Any(), gomock.Any()).Return(context.DeadlineExceeded),
 	)
 	_, err = useCase.Execute(context.Background(), nil)
