@@ -71,18 +71,18 @@ func (mr *MockRepositoryMockRecorder) CreateUnpublishedEvents(ctx, evs any) *gom
 }
 
 // ListUnpublishedEvents mocks base method.
-func (m *MockRepository) ListUnpublishedEvents(ctx context.Context, lease time.Duration) ([]event.Event, error) {
+func (m *MockRepository) ListUnpublishedEvents(ctx context.Context, lease time.Duration, limit int) ([]event.Event, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListUnpublishedEvents", ctx, lease)
+	ret := m.ctrl.Call(m, "ListUnpublishedEvents", ctx, lease, limit)
 	ret0, _ := ret[0].([]event.Event)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListUnpublishedEvents indicates an expected call of ListUnpublishedEvents.
-func (mr *MockRepositoryMockRecorder) ListUnpublishedEvents(ctx, lease any) *gomock.Call {
+func (mr *MockRepositoryMockRecorder) ListUnpublishedEvents(ctx, lease, limit any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUnpublishedEvents", reflect.TypeOf((*MockRepository)(nil).ListUnpublishedEvents), ctx, lease)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUnpublishedEvents", reflect.TypeOf((*MockRepository)(nil).ListUnpublishedEvents), ctx, lease, limit)
 }
 
 // MarkAsPublished mocks base method.
@@ -162,18 +162,18 @@ func (m *MockUnpublishedEventsLister) EXPECT() *MockUnpublishedEventsListerMockR
 }
 
 // ListUnpublishedEvents mocks base method.
-func (m *MockUnpublishedEventsLister) ListUnpublishedEvents(ctx context.Context, lease time.Duration) ([]event.Event, error) {
+func (m *MockUnpublishedEventsLister) ListUnpublishedEvents(ctx context.Context, lease time.Duration, limit int) ([]event.Event, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListUnpublishedEvents", ctx, lease)
+	ret := m.ctrl.Call(m, "ListUnpublishedEvents", ctx, lease, limit)
 	ret0, _ := ret[0].([]event.Event)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListUnpublishedEvents indicates an expected call of ListUnpublishedEvents.
-func (mr *MockUnpublishedEventsListerMockRecorder) ListUnpublishedEvents(ctx, lease any) *gomock.Call {
+func (mr *MockUnpublishedEventsListerMockRecorder) ListUnpublishedEvents(ctx, lease, limit any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUnpublishedEvents", reflect.TypeOf((*MockUnpublishedEventsLister)(nil).ListUnpublishedEvents), ctx, lease)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUnpublishedEvents", reflect.TypeOf((*MockUnpublishedEventsLister)(nil).ListUnpublishedEvents), ctx, lease, limit)
 }
 
 // MockPublishedMarker is a mock of PublishedMarker interface.

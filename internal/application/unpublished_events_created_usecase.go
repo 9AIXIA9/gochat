@@ -11,7 +11,10 @@ import (
 	"go.uber.org/zap"
 )
 
-const processDuration = 1 * time.Minute
+const (
+	processDuration = 1 * time.Minute
+	eventsLimit     = 1000
+)
 
 type UnpublishedEventsCreatedUseCase kernel.UseCase[*kernel.NoInput, *kernel.NoOutput]
 
@@ -37,7 +40,7 @@ func NewUnpublishedEventsCreatedUseCase(
 }
 
 func (uc *unpublishedEventsCreatedUseCase) Execute(ctx context.Context, _ *kernel.NoInput) (*kernel.NoOutput, error) {
-	evs, err := uc.lister.ListUnpublishedEvents(ctx, processDuration)
+	evs, err := uc.lister.ListUnpublishedEvents(ctx, processDuration, eventsLimit)
 	if err != nil {
 		return nil, err
 	}

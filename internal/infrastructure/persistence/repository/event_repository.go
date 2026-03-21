@@ -51,14 +51,15 @@ func (repo *EventRepository) CreateUnpublishedEvents(ctx context.Context, evs []
 	return nil
 }
 
-func (repo *EventRepository) ListUnpublishedEvents(ctx context.Context, lease time.Duration) ([]event.Event, error) {
+func (repo *EventRepository) ListUnpublishedEvents(ctx context.Context, lease time.Duration, limit int) ([]event.Event, error) {
 	var models []*model.Event
 	now := time.Now().UTC()
 	leaseUntil := now.Add(lease)
 
 	if err := repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Where("published = ? AND processing_until <= ?", false, now).
+		if err := tx.Where("processing_until <= ?", now).
 			Clauses(clause.Locking{Strength: "UPDATE", Options: "SKIP LOCKED"}).
+			Limit(limit).
 			Find(&models).
 			Error; err != nil {
 			return gormutils.TranslateError(err)
@@ -89,12 +90,10 @@ func (repo *EventRepository) ListUnpublishedEvents(ctx context.Context, lease ti
 func (repo *EventRepository) MarkAsPublished(ctx context.Context, ID event.ID) error {
 	return gormutils.TranslateError(
 		repo.db.WithContext(ctx).
-			Model(&model.Event{}).
-			Where("id = ? AND published = false", ID).
-			Updates(map[string]interface{}{
-				"published":    true,
-				"published_at": time.Now().UTC(),
-			}).Error)
+			Where("id = ?", ID).
+			Delete(&model.Event{}).
+			Error,
+	)
 }
 
 func (repo *EventRepository) CreateDeadLetter(ctx context.Context, e event.Event, reason error) error {
@@ -123,12 +122,10 @@ func (repo *EventRepository) toModel(e event.Event) (*model.Event, error) {
 		ID:              e.ID(),
 		AggregateID:     e.AggregateID(),
 		Topic:           e.Topic(),
-		Published:       false,
 		ProcessingUntil: time.Now().UTC(),
 		Payload:         e.Payload(),
 		Headers:         data,
 		CreatedAt:       e.OccurredAt(),
-		PublishedAt:     nil,
 	}, nil
 }
 
