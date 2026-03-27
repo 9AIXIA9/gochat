@@ -1,156 +1,155 @@
-# GoChat 后端
+# GoChat Backend
 
-一个采用 DDD 风格的聊天/好友/房间管理后端，支持 HTTP、WebSocket 与 Kafka 三种交付通道。以 Go 构建，具备完善的依赖注入、持久化与可观测性能力。
+## 项目介绍
 
-## 功能特性
+GoChat Backend 是一个面向即时通讯场景的后端服务，提供用户认证、好友关系、房间管理、消息收发、通知等核心能力。
 
-- 授权认证：注册/登录/刷新/解析（JWT + bcrypt）
-- 聊天：私聊与房间消息（HTTP + WebSocket + Kafka）
-- 好友与房间：好友请求、好友关系、房间成员管理
-- 通知：系统消息与未送达消息通知
-- 事件驱动：跨上下文的 Kafka 事件处理
-- 可观测性：OpenTelemetry Traces、Prometheus 指标、Grafana 仪表盘
+项目采用领域化分层设计（`internal/*` 按业务域拆分），支持：
 
-## 技术栈
+- RESTful API（HTTP）
+- 实时消息通道（WebSocket）
+- 事件驱动处理（Kafka + MySQL Binlog）
+- 可观测性链路（Tracing / Metrics / Logging）
 
-- Go，Gin（HTTP），Gorilla WebSocket（WS）
-- Kafka（confluent-kafka-go），MySQL（Gorm），Redis
-- Google Wire 进行依赖注入
-- Viper + YAML + .env 进行配置管理
-- Zap 结构化日志
-- Swagger 文档（基于注解）
-- Docker 与 docker-compose
+默认 API 前缀为 `/api/v1`，并内置 Swagger 文档与健康检查接口，便于本地开发和联调。
+
+## 核心技术栈
+
+- **语言与运行时**: Go `1.24`
+- **Web 框架**: Gin
+- **依赖注入**: Google Wire
+- **配置管理**: Viper + dotenv
+- **数据存储**: MySQL 8 + GORM
+- **缓存**: Redis 7
+- **消息队列**: Kafka (apache/kafka-native)
+- **实时通信**: Gorilla WebSocket
+- **服务治理**: 限流（Redis）、超时控制、断路器（gobreaker）
+- **可观测性**: OpenTelemetry + Jaeger + Prometheus + Grafana
+- **日志**: Zap + Lumberjack
+- **API 文档**: Swaggo (Swagger)
+- **容器化与编排**: Docker + Docker Compose
+- **数据库迁移**: Goose
+
+## 核心亮点
+
+1. **领域化分层清晰**
+   - 按 `authorization/chat/friendship/profile/roomship/notification` 等业务域隔离。
+   - 每个业务域遵循 `application/domain/infrastructure/port` 结构，便于维护与扩展。
+
+2. **多通道通信能力**
+   - HTTP 提供标准 RESTful API。
+   - WebSocket 提供实时消息会话能力，适配 IM 高实时场景。
+
+3. **事件驱动架构**
+   - 引入 Kafka 进行事件发布与消费。
+   - 结合 MySQL Binlog Reader 构建异步事件链路，降低业务耦合。
+
+4. **完善的可观测性体系**
+   - 通过 OTel 统一采集 Trace/Metric。
+   - 可直接使用 Jaeger、Prometheus、Grafana 进行链路追踪与指标可视化。
+
+5. **工程化与可运维性**
+   - `Makefile` 集成构建、启动、测试、迁移、Swagger 生成等常用操作。
+   - 提供 Docker Compose 一键拉起完整依赖（MySQL / Redis / Kafka / OTel / Prometheus / Grafana / Jaeger / App）。
+
+## 快速启动
+
+### 1) 环境准备
+
+建议安装：
+
+- Docker Desktop（含 Docker Compose）
+- GNU Make（如需使用 `make` 命令）
+- Go 1.24（仅本地裸跑或开发调试时需要）
+
+### 2) 初始化本地配置
+
+在项目根目录执行（Windows `cmd` 示例）：
+
+```bat
+copy .env.example .env
+copy config\config.override.example.yaml config\config.override.yaml
+copy config\config.local.example.yaml config\config.local.yaml
+```
+
+然后按需修改：
+
+- `.env`
+- `config/config.override.yaml`
+- `config/config.local.yaml`
+
+> 说明：`config/config.yaml` 提供基础默认值，`override/local` 用于按环境覆盖。
+
+### 3) 一键启动（推荐）
+
+```bat
+make up-fast
+make ps
+```
+
+如果本机未安装 `make`，可直接使用 Docker Compose：
+
+```bat
+docker compose -f docker-compose.yml -p backend up -d --build
+docker compose -f docker-compose.yml -p backend ps
+```
+
+### 4) 访问入口
+
+- API Base: `http://localhost:8080/api/v1`
+- Swagger: `http://localhost:8080/swagger/index.html`
+- Health Check: `http://localhost:8080/healthz`
+- Readiness: `http://localhost:8080/readyz`
+- Jaeger: `http://localhost:16686`
+- Prometheus: `http://localhost:9090`
+- Grafana: `http://localhost:3000`（默认账号 `admin`，密码见 `docker-compose.yml` 中 `GRAFANA_PASSWORD` 配置）
+
+### 5) 常用命令
+
+```bat
+make logs-app
+make test-all
+make lint
+make migrate-status-host
+make migrate-up-host
+make swagger
+```
 
 ## 项目结构
 
-- `cmd/api`：应用入口与依赖注入装配（DI）
-- `internal/{context}`：DDD 分层（`application`、`domain`、`infrastructure`、`port`）
-- `internal/delivery`：HTTP/Kafka/WebSocket 适配层
-- `db/migrations`：SQL 迁移脚本
-- `deployment`：OTEL Collector、Prometheus、Grafana、告警与各类初始化脚本
-- `docs`：API 文档、评估与演进路线文档
-
-## 使用 Makefile 快速上手
-
-推荐通过 Makefile 执行常用操作（Windows 需安装 GNU make）：
-
-```bash
-# 启动（不使用构建缓存）
-make up
-
-# 快速启动（使用构建缓存）
-make up-fast
-
-# 查看应用日志
-make logs-app
-
-# 查看当前服务状态
-make status
-
-# 停止并移除容器
-make down
-
-# 彻底清理（容器、镜像、卷）
-make destroy
-
-# 本地运行测试（race 检测 + 随机化）
-make test-all
-
-# 代码静态检查（需安装 golangci-lint）
-make lint
-
-# 生成 Swagger 文档（基于注解）
-make swagger
-
-# 数据库迁移（容器网络 DSN）
-make migrate-status
-make migrate-up
-make migrate-down
-make migrate-reset
-
-# 数据库迁移（宿主机端口 127.0.0.1:13306）
-make migrate-status-host
-make migrate-up-host
-make migrate-down-host
-make migrate-reset-host
+```text
+backend/
+├─ cmd/
+│  └─ api/                     # 程序入口、依赖注入（Wire）、HTTP 路由装配
+├─ config/                     # 基础配置与环境覆盖配置
+├─ db/
+│  └─ migrations/              # Goose 数据库迁移脚本
+├─ deployment/                 # 监控与可观测性组件配置（Prometheus/Grafana/OTel）
+├─ docs/                       # Swagger 产物与文档
+├─ internal/
+│  ├─ authorization/           # 认证与授权域
+│  ├─ chat/                    # 聊天消息域
+│  ├─ friendship/              # 好友关系域
+│  ├─ notification/            # 通知域
+│  ├─ profile/                 # 用户/房间资料域
+│  ├─ roomship/                # 房间与成员关系域
+│  ├─ delivery/                # 对外交付层（HTTP/Kafka/WebSocket/Binlog）
+│  ├─ infrastructure/          # 基础设施适配层（DB/Redis/Kafka/OTel/Logger 等）
+│  └─ shared/                  # 通用组件与共享内核
+├─ pkg/                        # 可复用工具包
+├─ scripts/                    # 开发脚本（如 websocket 压测）
+├─ docker-compose.yml          # 本地集成环境编排
+├─ Dockerfile                  # 应用镜像构建
+├─ Makefile                    # 常用开发与运维命令
+└─ go.mod                      # Go 模块定义
 ```
 
-> 备注：仍可使用 docker-compose 作为备选方式，见下文“快速开始”。
+---
 
-## 快速开始
+如果你是第一次接触这个项目，建议按以下顺序阅读：
 
-前置条件：已安装 Docker 与 docker-compose
+1. `cmd/api/main.go`（启动流程）
+2. `cmd/api/di/`（依赖注入与路由装配）
+3. `internal/<业务域>/application`（核心用例）
+4. `internal/<业务域>/domain`（领域模型与规则）
 
-```bash
-# 构建并启动（如需调整 compose 文件路径，请先适配）
-docker-compose up --build -d
-
-# 查看日志
-docker-compose logs -f app
-
-# 停止
-docker-compose down
-```
-
-默认地址：
-
-- HTTP：`http://localhost:8080`
-- BasePath：`/api/v1`
-- Swagger：参见 `docs/swagger.yaml` 以及 `cmd/api/main.go` 中的注解
-
-## 健康与就绪
-
-- 健康检查：通过 HTTP Handler 返回状态
-- 优雅关机：`cmd/api/main.go` 基于信号触发，依次关闭 HTTP、Kafka Producer/Consumers、Binlog、Email、OTEL
-
-## 开发
-
-```bash
-# 运行测试
-go test ./...
-
-# 生成 Swagger（基于注解）
-go generate ./cmd/api/main.go
-
-# Lint（如已安装 golangci-lint）
-golangci-lint run ./...
-```
-
-## 配置
-
-- 基础默认：`config/config.yaml`（不展开环境变量，用作完整默认值）
-- 可选覆盖：`config.local.yaml`（gitignored，本地开发）、`config.override.yaml`（gitignored，部署环境）。覆盖文件会展开环境变量以便注入敏感值。
-- 环境文件：`-env` 标志加载 `.env` 或指定文件；也可直接使用进程环境。
-- 加载顺序：基础 -> 本地覆盖 -> 部署覆盖；后者键覆盖前者。
-- 容器部署：`docker-compose.yml` 挂载 `config.yaml` 与 `config.override.yaml`，敏感值通过环境变量传入覆盖文件中的占位符。
-
-## 文档导航
-
-- 概览与评估
-	- 项目评估报告：`docs/project_evaluation_optimization.md`
-	- 代码演进与路线图：`docs/code_evolution.md`
-	- 项目演进路线图（版本迭代记录）：`docs/roadmap.md`
-- API 文档
-	- Swagger YAML：`docs/swagger.yaml`
-	- Swagger JSON：`docs/swagger.json`
-	- 注解入口：`cmd/api/main.go`
-- 实时通信
-	- WebSocket 说明：`docs/websocket.md`
-- 部署与监控
-	- docker-compose：`docker-compose.yml`
-	- Dockerfile：`Dockerfile`
-	- OTEL 采集器：`deployment/otel-collector-config.yaml`
-	- Prometheus：`deployment/prometheus.yml`
-	- Grafana 数据源与仪表：`deployment/grafana-datasources.yml`、`deployment/grafana-dashboards/gochat-app.json`
-	- 告警：`deployment/prometheus-alerts.yml`
-- 数据库与初始化
-	- SQL 迁移：`db/migrations/`
-	- MySQL 初始化：`deployment/grafana-dashboards/mysql-init/init_users.sh`
-	- Redis ACL 初始化：`deployment/redis_init/init_users.acl`
-- 构建与脚本
-	- Makefile：`Makefile`（常用：`make up`、`make up-fast`、`make logs-app`、`make test-all`、`make migrate-up`）
-	- 统计代码行数：`scripts/count_golang_code_lines.ps1`
-
-## 许可协议
-
-MIT
