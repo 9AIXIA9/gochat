@@ -144,6 +144,172 @@ backend/
 └─ go.mod                      # Go 模块定义
 ```
 
+## 系统架构图（Mermaid）
+
+下面用 4 张图分开展示：系统上下文、应用内组件、同步请求链路、异步事件链路，便于按场景阅读。
+
+### 1) 系统上下文图（容器与外部依赖）
+
+```mermaid
+flowchart LR
+    Client[Client\nWeb / Mobile / Script]
+
+    subgraph GoChatBackend[GoChat Backend]
+        App[Go API Service\nGin + Wire + Domain Modules]
+    end
+
+    MySQL[(MySQL 8)]
+    Redis[(Redis 7)]
+    Kafka[(Kafka)]
+
+    subgraph Observability[Observability]
+        OTel[OTel Collector]
+        Prom[Prometheus]
+        Jaeger[Jaeger]
+        Grafana[Grafana]
+    end
+
+    Client -->|HTTP /api/v1| App
+    Client -->|WebSocket /api/v1/ws| App
+
+    App --> MySQL
+    App --> Redis
+    App --> Kafka
+
+    App -->|OTLP Trace/Metrics| OTel
+    OTel --> Jaeger
+    OTel --> Prom
+    Grafana --> Prom
+```
+
+### 2) 应用内分层组件图（`internal/` + `cmd/api/di`）
+
+```mermaid
+flowchart TB
+    Main[cmd/api/main.go]
+    DI[cmd/api/di\nWire Providers]
+
+    Main --> DI
+
+    subgraph Delivery[Delivery Layer]
+        HTTP[HTTP Delivery\ninternal/delivery/http]
+        WS[WebSocket Delivery\ninternal/delivery/websocket]
+        KHD[Kafka Delivery\ninternal/delivery/kafka]
+        BHD[Binlog Delivery\ninternal/delivery/binlog]
+    end
+
+    subgraph UseCase[Application Use Cases]
+        AU[authorization/application]
+        CU[chat/application]
+        FU[friendship/application]
+        NU[notification/application]
+        PU[profile/application]
+        RU[roomship/application]
+        SU["internal/application\nshared use cases"]
+    end
+
+    subgraph Domain[Domain + Ports]
+        D1[authorization/chat/friendship/profile/notification/roomship\ndomain + port]
+    end
+
+    subgraph Infra[Infrastructure Adapters]
+        DB[(gorm/mysql)]
+        Cache[(redis)]
+        MQ[(kafka)]
+        WSI[websocket manager/router]
+        OI[otel + zap + validator + viper]
+    end
+
+    DI --> HTTP
+    DI --> WS
+    DI --> KHD
+    DI --> BHD
+
+    HTTP --> UseCase
+    WS --> UseCase
+    KHD --> UseCase
+    BHD --> SU
+
+    UseCase --> Domain
+    Domain --> Infra
+
+    Infra --> DB
+    Infra --> Cache
+    Infra --> MQ
+    Infra --> WSI
+    Infra --> OI
+```
+
+### 3) 同步请求链路（HTTP + WebSocket）
+
+```mermaid
+flowchart LR
+    C[Client]
+
+    subgraph HTTPPath[HTTP Path]
+        R[gin Router\nmiddleware: trace/request-id/logger/rate-limit/timeout]
+        H[HTTP Handler]
+        U[UseCase]
+        Repo[Repository]
+        DB[(MySQL/Redis)]
+    end
+
+    subgraph WSPath[WebSocket Path]
+        WSEntry["/api/v1/ws"]
+        Mgr[Connection Manager]
+        WSR[WS Router + middleware]
+        WSH[WS Handler]
+    end
+
+    C -->|REST| R --> H --> U --> Repo --> DB
+    C -->|WS Frame| WSEntry --> Mgr --> WSR --> WSH --> U
+    U -->|push notify| Mgr
+    Mgr -->|real-time message| C
+```
+
+### 4) 异步事件链路（Outbox + Binlog + Kafka）
+
+```mermaid
+flowchart LR
+    UC[Domain UseCase]
+    TX[(MySQL Transaction)]
+    Outbox[(unpublished_events)]
+    Binlog[Binlog Reader\nCanal]
+    Pub[Kafka Event Publisher]
+    K[(Kafka Topics)]
+
+    subgraph Consumers[Kafka Consumers by Context]
+        CA[authorization]
+        CP[profile]
+        CC[chat]
+        CF[friendship]
+        CR[roomship]
+        CN[notification]
+    end
+
+    DLQ[(dead letter / retry)]
+    Notifier[Email/WebSocket Notifier]
+
+    UC --> TX --> Outbox
+    Outbox -->|row change| Binlog
+    Binlog --> Pub --> K
+    K --> CA
+    K --> CP
+    K --> CC
+    K --> CF
+    K --> CR
+    K --> CN
+
+    CA -->|on error| DLQ
+    CP -->|on error| DLQ
+    CC -->|on error| DLQ
+    CF -->|on error| DLQ
+    CR -->|on error| DLQ
+    CN --> Notifier
+```
+
+> 说明：异步链路对应 `internal/infrastructure/persistence/repository.EventRepository`（事件存储）、`internal/delivery/binlog`（Outbox 读取）、`internal/infrastructure/kafka`（发布/消费）与各业务域事件处理器。
+
 ---
 
 如果你是第一次接触这个项目，建议按以下顺序阅读：
