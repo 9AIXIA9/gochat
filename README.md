@@ -52,6 +52,45 @@ GoChat Backend 是一个面向即时通讯场景的后端服务，提供用户�
    - `Makefile` 集成构建、启动、测试、迁移、Swagger 生成等常用操作。
    - 提供 Docker Compose 一键拉起完整依赖（MySQL / Redis / Kafka / OTel / Prometheus / Grafana / Jaeger / App）。
 
+## 最简快速体验（建议先走这一段）
+
+如果你第一次接触本项目，建议先用 Docker Compose 跑通最小链路（无需先安装 Go/Make）。
+
+### 1) 复制最小配置文件
+
+```bat
+copy .env.example .env
+copy config\config.override.example.yaml config\config.override.yaml
+copy config\config.local.example.yaml config\config.local.yaml
+```
+
+### 2) 一条命令启动
+
+```bat
+docker compose -f docker-compose.yml -p backend up -d --build
+```
+
+### 3) 确认容器与服务已就绪
+
+```bat
+docker compose -f docker-compose.yml -p backend ps
+curl http://localhost:8080/healthz
+curl http://localhost:8080/readyz
+```
+
+当 `app` 容器状态为 `Up`，且 `healthz/readyz` 可访问时，可认为后端已正确启动。
+
+### 4) 打开接口文档开始体验
+
+- Swagger: `http://localhost:8080/swagger/index.html`
+- API Base: `http://localhost:8080/api/v1`
+
+如果启动失败，可先看应用日志：
+
+```bat
+docker compose -f docker-compose.yml -p backend logs app
+```
+
 ## 快速启动
 
 ### 1) 环境准备
