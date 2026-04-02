@@ -1,6 +1,7 @@
 # Example deploy override (gitignored as config.override.yaml). Use for cluster-specific tweaks.
 # Only include keys you want to override. Overlays expand env vars so you can inject secrets at runtime.
 Env: production
+DisableSessionStartedEvent: false
 
 Logger:
   Mode: release
@@ -22,6 +23,10 @@ AccessToken:
   Secret: ${JWT_SECRET}
 Mysql:
   Password: ${DB_PASSWORD}
+  MaxOpenConns: 200
+  MaxIdleConns: 100
+  ConnMaxLifetimeSec: 600
+  ConnMaxIdleTimeSec: 120
 Redis:
   Password: ${REDIS_PASSWORD}
 Email:

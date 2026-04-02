@@ -15,10 +15,11 @@ import (
 )
 
 type WebsocketHandler struct {
-	upgrader                  *websocket.Upgrader
-	manager                   *websocketInfra.Manager
-	router                    *websocketInfra.Router
-	userSessionStartedUseCase application.UserSessionStartedUseCase
+	upgrader                   *websocket.Upgrader
+	manager                    *websocketInfra.Manager
+	router                     *websocketInfra.Router
+	userSessionStartedUseCase  application.UserSessionStartedUseCase
+	disableSessionStartedEvent bool
 }
 
 func NewWebsocketHandler(
@@ -26,12 +27,14 @@ func NewWebsocketHandler(
 	manager *websocketInfra.Manager,
 	router *websocketInfra.Router,
 	userSessionStartedUseCase application.UserSessionStartedUseCase,
+	disableSessionStartedEvent bool,
 ) *WebsocketHandler {
 	return &WebsocketHandler{
-		upgrader:                  upgrader,
-		manager:                   manager,
-		router:                    router,
-		userSessionStartedUseCase: userSessionStartedUseCase,
+		upgrader:                   upgrader,
+		manager:                    manager,
+		router:                     router,
+		userSessionStartedUseCase:  userSessionStartedUseCase,
+		disableSessionStartedEvent: disableSessionStartedEvent,
 	}
 }
 
@@ -70,14 +73,16 @@ func (s *WebsocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.manager.Register(userID, client)
 	client.Start()
 
-	if _, err := s.userSessionStartedUseCase.Execute(r.Context(), &application.UserSessionStartedInput{
-		UserID: userID,
-	}); err != nil {
-		zap.L().Debug(
-			"failed to execute user session started use case",
-			zap.String("userID", userID.String()),
-			zap.Error(err),
-		)
+	if !s.disableSessionStartedEvent {
+		if _, err := s.userSessionStartedUseCase.Execute(r.Context(), &application.UserSessionStartedInput{
+			UserID: userID,
+		}); err != nil {
+			zap.L().Debug(
+				"failed to execute user session started use case",
+				zap.String("userID", userID.String()),
+				zap.Error(err),
+			)
+		}
 	}
 	<-r.Context().Done()
 }

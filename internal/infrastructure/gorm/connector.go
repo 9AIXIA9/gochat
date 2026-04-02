@@ -2,6 +2,7 @@ package gorm
 
 import (
 	"fmt"
+	"time"
 
 	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
@@ -37,5 +38,23 @@ func ConnectToMysql(config *MysqlConfig) (*gorm.DB, error) {
 	if err := db.Use(tracing.NewPlugin()); err != nil {
 		return nil, fmt.Errorf("register gorm otel plugin failed: %w", err)
 	}
+
+	sqlDB, err := db.DB()
+	if err != nil {
+		return nil, fmt.Errorf("get mysql sql.DB failed: %w", err)
+	}
+	if config.MaxOpenConns > 0 {
+		sqlDB.SetMaxOpenConns(config.MaxOpenConns)
+	}
+	if config.MaxIdleConns > 0 {
+		sqlDB.SetMaxIdleConns(config.MaxIdleConns)
+	}
+	if config.ConnMaxLifetimeSec > 0 {
+		sqlDB.SetConnMaxLifetime(time.Duration(config.ConnMaxLifetimeSec) * time.Second)
+	}
+	if config.ConnMaxIdleTimeSec > 0 {
+		sqlDB.SetConnMaxIdleTime(time.Duration(config.ConnMaxIdleTimeSec) * time.Second)
+	}
+
 	return db, nil
 }

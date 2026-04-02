@@ -247,6 +247,7 @@ func provideHttpServer(appConfig *config.App, router *gin.Engine) *ginInfra.Serv
 }
 
 func provideWebsocketHandler(
+	appConfig *config.App,
 	upgrader *gorillaWebsocket.Upgrader,
 	manager *websocket.Manager,
 	router *websocket.Router,
@@ -257,6 +258,7 @@ func provideWebsocketHandler(
 		manager,
 		router,
 		userSessionStartedUseCase,
+		appConfig.DisableSessionStartedEvent,
 	)
 }
 

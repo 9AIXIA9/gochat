@@ -10,6 +10,8 @@ import (
 	"go.uber.org/zap"
 )
 
+const defaultBaseClientsCount = 10000
+
 type Manager struct {
 	mu      sync.RWMutex
 	clients map[kernel.UserID]*Client
@@ -17,7 +19,7 @@ type Manager struct {
 
 func NewManager() *Manager {
 	return &Manager{
-		clients: make(map[kernel.UserID]*Client),
+		clients: make(map[kernel.UserID]*Client, defaultBaseClientsCount),
 	}
 }
 

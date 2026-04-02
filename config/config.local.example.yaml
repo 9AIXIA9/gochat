@@ -2,6 +2,7 @@
 # Base config already provides full defaults; include only keys you need to change.
 Port: 8081
 Env: local
+DisableSessionStartedEvent: false
 
 Mysql:
   Host: 127.0.0.1
@@ -9,6 +10,10 @@ Mysql:
   Username: root
   Password: ${DB_PASSWORD}
   Database: gochat_local
+  MaxOpenConns: 120
+  MaxIdleConns: 60
+  ConnMaxLifetimeSec: 600
+  ConnMaxIdleTimeSec: 120
 
 Redis:
   Database: 1

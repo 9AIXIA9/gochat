@@ -12,6 +12,10 @@ type MysqlConfig struct {
 	Password            string `mapstructure:"Password"`
 	Database            string `mapstructure:"Database"`
 	SlowThresholdMillis int    `mapstructure:"SlowThresholdMillis"`
+	MaxOpenConns        int    `mapstructure:"MaxOpenConns"`
+	MaxIdleConns        int    `mapstructure:"MaxIdleConns"`
+	ConnMaxLifetimeSec  int    `mapstructure:"ConnMaxLifetimeSec"`
+	ConnMaxIdleTimeSec  int    `mapstructure:"ConnMaxIdleTimeSec"`
 }
 
 func (c *MysqlConfig) Validate() error {
@@ -32,6 +36,21 @@ func (c *MysqlConfig) Validate() error {
 	}
 	if c.SlowThresholdMillis < 0 || c.SlowThresholdMillis > 60_000 {
 		return fmt.Errorf("%w: Mysql.SlowThresholdMillis must be in [0,60000], got %d", myErrors.ErrInvalidNumber, c.SlowThresholdMillis)
+	}
+	if c.MaxOpenConns < 0 {
+		return fmt.Errorf("%w: Mysql.MaxOpenConns must be >= 0, got %d", myErrors.ErrInvalidNumber, c.MaxOpenConns)
+	}
+	if c.MaxIdleConns < 0 {
+		return fmt.Errorf("%w: Mysql.MaxIdleConns must be >= 0, got %d", myErrors.ErrInvalidNumber, c.MaxIdleConns)
+	}
+	if c.MaxOpenConns > 0 && c.MaxIdleConns > c.MaxOpenConns {
+		return fmt.Errorf("%w: Mysql.MaxIdleConns(%d) cannot be greater than MaxOpenConns(%d)", myErrors.ErrInvalidNumber, c.MaxIdleConns, c.MaxOpenConns)
+	}
+	if c.ConnMaxLifetimeSec < 0 {
+		return fmt.Errorf("%w: Mysql.ConnMaxLifetimeSec must be >= 0, got %d", myErrors.ErrInvalidNumber, c.ConnMaxLifetimeSec)
+	}
+	if c.ConnMaxIdleTimeSec < 0 {
+		return fmt.Errorf("%w: Mysql.ConnMaxIdleTimeSec must be >= 0, got %d", myErrors.ErrInvalidNumber, c.ConnMaxIdleTimeSec)
 	}
 	return nil
 }

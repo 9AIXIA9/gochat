@@ -6,6 +6,7 @@ Host: 0.0.0.0
 Port: 8080
 MachineNode: 1
 Timeout: 10s
+DisableSessionStartedEvent: false
 
 Cookie:
   Domain: ""
@@ -50,6 +51,10 @@ Mysql:
   Password: ""
   Database: gochat
   SlowThresholdMillis: 200
+  MaxOpenConns: 200
+  MaxIdleConns: 100
+  ConnMaxLifetimeSec: 600
+  ConnMaxIdleTimeSec: 120
 
 Redis:
   User: ""
