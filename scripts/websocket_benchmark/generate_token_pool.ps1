@@ -8,7 +8,8 @@ param(
     [string]$OutFile = "scripts/benchmark/tokens.txt",
     [string]$DetailFile = "scripts/benchmark/token_pool.jsonl",
     [int]$ThrottleMs = 20,
-    [switch]$DryRun
+    [switch]$DryRun,
+    [switch]$Overwrite
 )
 
 Set-StrictMode -Version Latest
@@ -16,6 +17,8 @@ $ErrorActionPreference = "Stop"
 
 if ($Count -le 0) { throw "Count must be > 0" }
 if ([string]::IsNullOrWhiteSpace($BaseUrl)) { throw "BaseUrl is required" }
+
+$BaseUrl = $BaseUrl.TrimEnd('/')
 
 $root = Resolve-Path (Join-Path $PSScriptRoot "..\..")
 $tokenPath = Join-Path $root $OutFile
@@ -26,8 +29,14 @@ $detailDir = Split-Path -Parent $detailPath
 if (-not (Test-Path $tokenDir)) { New-Item -ItemType Directory -Path $tokenDir | Out-Null }
 if (-not (Test-Path $detailDir)) { New-Item -ItemType Directory -Path $detailDir | Out-Null }
 
-Set-Content -Path $tokenPath -Value "" -NoNewline
-Set-Content -Path $detailPath -Value "" -NoNewline
+if ($Overwrite) {
+    Set-Content -Path $tokenPath -Value "" -NoNewline
+    Set-Content -Path $detailPath -Value "" -NoNewline
+}
+else {
+    if (-not (Test-Path $tokenPath)) { New-Item -ItemType File -Path $tokenPath | Out-Null }
+    if (-not (Test-Path $detailPath)) { New-Item -ItemType File -Path $detailPath | Out-Null }
+}
 
 $signupUrl = "$BaseUrl/auth/sign-up"
 $loginUrl = "$BaseUrl/auth/login"
