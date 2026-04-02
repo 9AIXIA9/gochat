@@ -88,3 +88,92 @@
 5. **稳定性保障**：实现服务熔断、错误重试与优雅降级机制，避免单连接异常、单节点故障扩散，保障高并发下的服务整体稳定性
 
 ---
+
+## 五、关键原始参数与结果摘录（可核验）
+
+说明：以下数据均来自原始压测日志逐行摘录，用于支撑结论并方便第三方复核。
+
+### 场景A：1000连接-短时连接稳定性（10s）
+
+- 原始启动参数（日志原文）
+	- start websocket benchmark url=ws://localhost:8080/api/v1/ws/ clients=1000 duration=10s connect_rate=500/s max_threads=50000 ping_interval=5s send_interval=0s
+- 原始结果（日志原文）
+	- attempted connections: 1000
+	- successful connections: 1000
+	- connection success rate: 100.00%
+	- active peak connections: 1000
+	- retained connections: 1000
+	- retained connection rate: 100.00%
+	- unexpected closed connections: 0
+	- avg connect latency: 3.73ms
+	- connect latency p50/p95/p99: 2.09ms / 13.30ms / 22.79ms
+	- pings sent(success/fail): 1000 / 0
+	- read errors: 0
+
+### 场景B：1000连接-消息收发（1m，1s发送）
+
+- 原始启动参数（日志原文）
+	- start websocket benchmark url=ws://localhost:8080/api/v1/ws/ clients=1000 duration=1m0s connect_rate=200/s max_threads=50000 ping_interval=0s send_interval=1s
+- 原始结果（日志原文）
+	- successful connections: 1000
+	- retained connections: 1000
+	- messages sent(success/fail): 56995 / 0
+	- messages received: 56995
+	- message send/recv throughput(tps): 949.23 / 949.23
+	- message receive delivery rate(received/sent): 100.00%
+	- read errors: 0
+
+### 场景C：5000连接-中负载消息收发（1m，2s发送）
+
+- 原始启动参数（日志原文）
+	- start websocket benchmark url=ws://localhost:8080/api/v1/ws/ clients=5000 duration=1m0s connect_rate=500/s max_threads=50000 ping_interval=0s send_interval=2s
+- 原始结果（日志原文）
+	- successful connections: 5000
+	- retained connections: 5000
+	- messages sent(success/fail): 134967 / 0
+	- messages received: 134967
+	- message send/recv throughput(tps): 2238.89 / 2238.89
+	- message receive delivery rate(received/sent): 100.00%
+	- read errors: 0
+
+### 场景D：10000连接-高负载稳定性（2m，5s发送）
+
+- 原始启动参数（日志原文）
+	- start websocket benchmark url=ws://localhost:8080/api/v1/ws/ clients=10000 duration=2m0s connect_rate=500/s max_threads=50000 ping_interval=0s send_interval=5s
+- 原始结果（日志原文）
+	- successful connections: 10000
+	- retained connections: 10000
+	- messages sent(success/fail): 214886 / 0
+	- messages received: 214886
+	- message send/recv throughput(tps): 1779.23 / 1779.23
+	- message receive delivery rate(received/sent): 100.00%
+	- read errors: 0
+
+### 场景E：63000连接-极限长连接保活（15m）
+
+- 原始启动参数（日志原文）
+	- start websocket benchmark url=ws://localhost:8080/api/v1/ws/ clients=63000 duration=15m0s connect_rate=100/s max_threads=50000 ping_interval=30s send_interval=0s
+- 关键进度摘录（日志原文）
+	- 14:35:37 progress attempted=63000 connected=63000 active=63000 peak=63000 ... ping_ok=649327 ping_fail=0
+	- 14:39:57 progress attempted=63000 connected=63000 active=63000 peak=63000 ... ping_ok=1195192 ping_fail=0
+- 原始结果（日志原文）
+	- successful connections: 63000
+	- active peak connections: 63000
+	- retained connections: 63000
+	- retained connection rate: 100.00%
+	- unexpected closed connections: 0
+	- avg connect latency: 5.28ms
+	- connect latency p50/p95/p99: 3.74ms / 8.71ms / 19.86ms
+	- pings sent(success/fail): 1195196 / 0
+	- read errors: 0
+
+---
+
+## 六、附录A：原始日志文件索引
+
+- 说明：见 `docs/test_report/raw_logs/README.md`
+- 场景A：`docs/test_report/raw_logs/20260320_ws_1000_10s_keepalive.log`
+- 场景B：`docs/test_report/raw_logs/20260320_ws_1000_1m_send1s.log`
+- 场景C：`docs/test_report/raw_logs/20260320_ws_5000_1m_send2s.log`
+- 场景D：`docs/test_report/raw_logs/20260320_ws_10000_2m_send5s.log`
+- 场景E：`docs/test_report/raw_logs/20260320_ws_63000_15m_keepalive.log`

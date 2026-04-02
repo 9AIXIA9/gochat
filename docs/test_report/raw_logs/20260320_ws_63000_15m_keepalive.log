@@ -1,0 +1,116 @@
+# 场景：63000 连接，15 分钟，仅保活
+
+2026/03/20 14:24:57 loaded 100000 tokens from ./scripts/benchmark/tokens.txt
+2026/03/20 14:24:57 runtime max threads set: 50000 (previous: 10000)
+2026/03/20 14:24:57 start websocket benchmark url=ws://localhost:8080/api/v1/ws/ clients=63000 duration=15m0s connect_rate=100/s max_threads=50000 ping_interval=30s send_interval=0s
+2026/03/20 14:25:07 progress attempted=1000 connected=999 active=999 peak=999 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=0 ping_fail=0
+2026/03/20 14:25:17 progress attempted=1999 connected=1999 active=1999 peak=1999 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=0 ping_fail=0
+2026/03/20 14:25:27 progress attempted=2999 connected=2999 active=2999 peak=2999 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=0 ping_fail=0
+2026/03/20 14:25:37 progress attempted=3990 connected=3989 active=3989 peak=3989 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=999 ping_fail=0
+2026/03/20 14:25:47 progress attempted=4987 connected=4986 active=4986 peak=4986 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=1999 ping_fail=0
+2026/03/20 14:25:57 progress attempted=5986 connected=5985 active=5985 peak=5985 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=2999 ping_fail=0
+2026/03/20 14:26:07 progress attempted=6986 connected=6985 active=6985 peak=6985 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=4988 ping_fail=0
+2026/03/20 14:26:17 progress attempted=7980 connected=7980 active=7980 peak=7980 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=6985 ping_fail=0
+2026/03/20 14:26:27 progress attempted=8980 connected=8980 active=8980 peak=8980 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=8984 ping_fail=0
+2026/03/20 14:26:37 progress attempted=9980 connected=9979 active=9979 peak=9979 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=11972 ping_fail=0
+2026/03/20 14:26:47 progress attempted=10977 connected=10976 active=10976 peak=10976 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=14967 ping_fail=0
+2026/03/20 14:26:57 progress attempted=11976 connected=11975 active=11975 peak=11975 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=17965 ping_fail=0
+2026/03/20 14:27:07 progress attempted=12975 connected=12975 active=12975 peak=12975 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=21951 ping_fail=0
+2026/03/20 14:27:17 progress attempted=13975 connected=13975 active=13975 peak=13975 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=25941 ping_fail=0
+2026/03/20 14:27:27 progress attempted=14973 connected=14973 active=14973 peak=14973 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=29939 ping_fail=0
+2026/03/20 14:27:37 progress attempted=15972 connected=15971 active=15971 peak=15971 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=34927 ping_fail=0
+2026/03/20 14:27:47 progress attempted=16972 connected=16971 active=16971 peak=16971 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=39916 ping_fail=0
+2026/03/20 14:27:57 progress attempted=17970 connected=17970 active=17970 peak=17970 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=44912 ping_fail=0
+2026/03/20 14:28:07 progress attempted=18970 connected=18970 active=18970 peak=18970 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=50898 ping_fail=0
+2026/03/20 14:28:17 progress attempted=19954 connected=19954 active=19954 peak=19954 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=56887 ping_fail=0
+2026/03/20 14:28:27 progress attempted=20954 connected=20954 active=20954 peak=20954 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=62882 ping_fail=0
+2026/03/20 14:28:37 progress attempted=21950 connected=21949 active=21949 peak=21949 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=69867 ping_fail=0
+2026/03/20 14:28:47 progress attempted=22945 connected=22944 active=22944 peak=22944 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=76841 ping_fail=0
+2026/03/20 14:28:57 progress attempted=23943 connected=23942 active=23942 peak=23942 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=83836 ping_fail=0
+2026/03/20 14:29:07 progress attempted=24942 connected=24941 active=24941 peak=24941 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=91817 ping_fail=0
+2026/03/20 14:29:17 progress attempted=25936 connected=25935 active=25935 peak=25935 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=99785 ping_fail=0
+2026/03/20 14:29:27 progress attempted=26936 connected=26934 active=26934 peak=26934 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=107782 ping_fail=0
+2026/03/20 14:29:37 progress attempted=27934 connected=27934 active=27934 peak=27934 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=116757 ping_fail=0
+2026/03/20 14:29:47 progress attempted=28931 connected=28931 active=28931 peak=28931 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=125720 ping_fail=0
+2026/03/20 14:29:57 progress attempted=29929 connected=29928 active=29928 peak=29928 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=134712 ping_fail=0
+2026/03/20 14:30:07 progress attempted=30922 connected=30921 active=30921 peak=30921 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=144692 ping_fail=0
+2026/03/20 14:30:17 progress attempted=31905 connected=31904 active=31904 peak=31904 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=154651 ping_fail=0
+2026/03/20 14:30:27 progress attempted=32901 connected=32901 active=32901 peak=32901 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=164640 ping_fail=0
+2026/03/20 14:30:37 progress attempted=33900 connected=33899 active=33899 peak=33899 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=175612 ping_fail=0
+2026/03/20 14:30:47 progress attempted=34896 connected=34896 active=34896 peak=34896 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=186555 ping_fail=0
+2026/03/20 14:30:57 progress attempted=35897 connected=35896 active=35896 peak=35896 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=197541 ping_fail=0
+2026/03/20 14:31:07 progress attempted=36897 connected=36896 active=36896 peak=36896 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=209512 ping_fail=0
+2026/03/20 14:31:17 progress attempted=37897 connected=37896 active=37896 peak=37896 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=221451 ping_fail=0
+2026/03/20 14:31:27 progress attempted=38895 connected=38895 active=38895 peak=38895 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=233437 ping_fail=0
+2026/03/20 14:31:37 progress attempted=39894 connected=39893 active=39893 peak=39893 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=246408 ping_fail=0
+2026/03/20 14:31:47 progress attempted=40892 connected=40892 active=40892 peak=40892 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=259346 ping_fail=0
+2026/03/20 14:31:57 progress attempted=41891 connected=41891 active=41891 peak=41891 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=272332 ping_fail=0
+2026/03/20 14:32:07 progress attempted=42891 connected=42891 active=42891 peak=42891 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=286300 ping_fail=0
+2026/03/20 14:32:17 progress attempted=43892 connected=43891 active=43891 peak=43891 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=300239 ping_fail=0
+2026/03/20 14:32:27 progress attempted=44889 connected=44889 active=44889 peak=44889 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=314222 ping_fail=0
+2026/03/20 14:32:37 progress attempted=45889 connected=45888 active=45888 peak=45888 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=329192 ping_fail=0
+2026/03/20 14:32:47 progress attempted=46889 connected=46888 active=46888 peak=46888 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=344130 ping_fail=0
+2026/03/20 14:32:57 progress attempted=47884 connected=47884 active=47884 peak=47884 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=359111 ping_fail=0
+2026/03/20 14:33:07 progress attempted=48875 connected=48875 active=48875 peak=48875 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=375079 ping_fail=0
+2026/03/20 14:33:17 progress attempted=49865 connected=49865 active=49865 peak=49865 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=391017 ping_fail=0
+2026/03/20 14:33:27 progress attempted=50863 connected=50863 active=50863 peak=50863 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=406995 ping_fail=0
+2026/03/20 14:33:37 progress attempted=51862 connected=51861 active=51861 peak=51861 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=423954 ping_fail=0
+2026/03/20 14:33:47 progress attempted=52855 connected=52854 active=52854 peak=52854 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=440882 ping_fail=0
+2026/03/20 14:33:57 progress attempted=53849 connected=53848 active=53848 peak=53848 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=457859 ping_fail=0
+2026/03/20 14:34:07 progress attempted=54848 connected=54847 active=54847 peak=54847 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=475816 ping_fail=0
+2026/03/20 14:34:17 progress attempted=55844 connected=55844 active=55844 peak=55844 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=493737 ping_fail=0
+2026/03/20 14:34:27 progress attempted=56840 connected=56839 active=56839 peak=56839 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=511706 ping_fail=0
+2026/03/20 14:34:37 progress attempted=57836 connected=57836 active=57836 peak=57836 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=530662 ping_fail=0
+2026/03/20 14:34:47 progress attempted=58834 connected=58834 active=58834 peak=58834 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=549580 ping_fail=0
+2026/03/20 14:34:57 progress attempted=59830 connected=59830 active=59830 peak=59830 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=568545 ping_fail=0
+2026/03/20 14:35:07 progress attempted=60829 connected=60828 active=60828 peak=60828 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=588499 ping_fail=0
+2026/03/20 14:35:17 progress attempted=61825 connected=61825 active=61825 peak=61825 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=608415 ping_fail=0
+2026/03/20 14:35:27 progress attempted=62816 connected=62816 active=62816 peak=62816 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=628375 ping_fail=0
+2026/03/20 14:35:37 progress attempted=63000 connected=63000 active=63000 peak=63000 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=649327 ping_fail=0
+2026/03/20 14:35:47 progress attempted=63000 connected=63000 active=63000 peak=63000 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=670240 ping_fail=0
+2026/03/20 14:35:57 progress attempted=63000 connected=63000 active=63000 peak=63000 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=691191 ping_fail=0
+2026/03/20 14:36:07 progress attempted=63000 connected=63000 active=63000 peak=63000 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=712326 ping_fail=0
+2026/03/20 14:36:17 progress attempted=63000 connected=63000 active=63000 peak=63000 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=733239 ping_fail=0
+2026/03/20 14:36:27 progress attempted=63000 connected=63000 active=63000 peak=63000 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=754191 ping_fail=0
+2026/03/20 14:36:37 progress attempted=63000 connected=63000 active=63000 peak=63000 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=775327 ping_fail=0
+2026/03/20 14:36:47 progress attempted=63000 connected=63000 active=63000 peak=63000 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=796240 ping_fail=0
+2026/03/20 14:36:57 progress attempted=63000 connected=63000 active=63000 peak=63000 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=817192 ping_fail=0
+2026/03/20 14:37:07 progress attempted=63000 connected=63000 active=63000 peak=63000 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=838326 ping_fail=0
+2026/03/20 14:37:17 progress attempted=63000 connected=63000 active=63000 peak=63000 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=859239 ping_fail=0
+2026/03/20 14:37:27 progress attempted=63000 connected=63000 active=63000 peak=63000 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=880191 ping_fail=0
+2026/03/20 14:37:37 progress attempted=63000 connected=63000 active=63000 peak=63000 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=901326 ping_fail=0
+2026/03/20 14:37:47 progress attempted=63000 connected=63000 active=63000 peak=63000 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=922240 ping_fail=0
+2026/03/20 14:37:57 progress attempted=63000 connected=63000 active=63000 peak=63000 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=943191 ping_fail=0
+2026/03/20 14:38:07 progress attempted=63000 connected=63000 active=63000 peak=63000 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=964326 ping_fail=0
+2026/03/20 14:38:17 progress attempted=63000 connected=63000 active=63000 peak=63000 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=985239 ping_fail=0
+2026/03/20 14:38:27 progress attempted=63000 connected=63000 active=63000 peak=63000 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=1006192 ping_fail=0
+2026/03/20 14:38:37 progress attempted=63000 connected=63000 active=63000 peak=63000 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=1027327 ping_fail=0
+2026/03/20 14:38:47 progress attempted=63000 connected=63000 active=63000 peak=63000 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=1048239 ping_fail=0
+2026/03/20 14:38:57 progress attempted=63000 connected=63000 active=63000 peak=63000 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=1069191 ping_fail=0
+2026/03/20 14:39:07 progress attempted=63000 connected=63000 active=63000 peak=63000 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=1090326 ping_fail=0
+2026/03/20 14:39:17 progress attempted=63000 connected=63000 active=63000 peak=63000 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=1111239 ping_fail=0
+2026/03/20 14:39:27 progress attempted=63000 connected=63000 active=63000 peak=63000 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=1132191 ping_fail=0
+2026/03/20 14:39:37 progress attempted=63000 connected=63000 active=63000 peak=63000 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=1153327 ping_fail=0
+2026/03/20 14:39:47 progress attempted=63000 connected=63000 active=63000 peak=63000 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=1174240 ping_fail=0
+2026/03/20 14:39:57 progress attempted=63000 connected=63000 active=63000 peak=63000 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=1195192 ping_fail=0
+2026/03/20 14:40:29 benchmark complete
+2026/03/20 14:40:29 url: ws://localhost:8080/api/v1/ws/
+2026/03/20 14:40:29 duration: 15m31.2944215s
+2026/03/20 14:40:29 attempted connections: 63000
+2026/03/20 14:40:29 successful connections: 63000
+2026/03/20 14:40:29 connection success rate: 100.00%
+2026/03/20 14:40:29 active peak connections: 63000
+2026/03/20 14:40:29 retained connections: 63000
+2026/03/20 14:40:29 retained connection rate: 100.00%
+2026/03/20 14:40:29 unexpected closed connections: 0
+2026/03/20 14:40:29 chaos dropped connections: 0
+2026/03/20 14:40:29 avg connect latency: 5.28ms
+2026/03/20 14:40:29 connect latency p50/p95/p99: 3.74ms / 8.71ms / 19.86ms
+2026/03/20 14:40:29 messages sent(success/fail): 0 / 0
+2026/03/20 14:40:29 message send success rate: 0.00%
+2026/03/20 14:40:29 messages received: 0
+2026/03/20 14:40:29 message send/recv throughput(tps): 0.00 / 0.00
+2026/03/20 14:40:29 message receive delivery rate(received/sent): 0.00%
+2026/03/20 14:40:29 latency matched messages: 0 (match rate 0.00%, field=bench_ts_ns)
+2026/03/20 14:40:29 pings sent(success/fail): 1195196 / 0
+2026/03/20 14:40:29 read errors: 0

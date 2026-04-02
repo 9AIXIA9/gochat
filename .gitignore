@@ -1,6 +1,8 @@
 # ----- 语言无关通用规则 ----- #
 # 日志文件
 *.log
+# 压测日志文件
+!docs/test_report/raw_logs/**/*.log
 # 滚动日志文件
 *.log.*
 npm-debug.log*
@@ -56,11 +58,6 @@ Desktop.ini
 *.zip
 
 
-# ----- Go 语言专属规则 ----- #
-# 可执行文件
-# 项目根目录生成的可执行文件
-/shortender
-
 # 测试相关
 # Go 测试二进制文件
 *.test
@@ -100,15 +97,6 @@ go.work
 *.sqlite
 # 数据库种子文件
 *.seed
-
-
-# ----- 项目特定规则 ----- #
-# 本地开发配置覆盖
-/etc/shortener-api.local.yaml
-
-# 自动生成代码（如果不需要提交）
-# internal/model/*_gen.go
-
 
 # ----- 文档生成 ----- #
 _site/
