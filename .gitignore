@@ -2,7 +2,7 @@
 # 日志文件
 *.log
 # 压测日志文件
-!docs/test_report/raw_logs/
+!docs/test_report/raw_logs/**/*.log
 # 滚动日志文件
 *.log.*
 npm-debug.log*

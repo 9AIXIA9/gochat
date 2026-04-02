@@ -1,0 +1,49 @@
+# 场景：10000 连接，2 分钟，发送间隔 5 秒
+
+2026/03/20 13:43:36 loaded 100000 tokens from ./scripts/benchmark/tokens.txt
+2026/03/20 13:43:36 runtime max threads set: 50000 (previous: 10000)
+2026/03/20 13:43:36 start websocket benchmark url=ws://localhost:8080/api/v1/ws/ clients=10000 duration=2m0s connect_rate=500/s max_threads=50000 ping_interval=0s send_interval=5s
+2026/03/20 13:43:41 progress attempted=2484 connected=2483 active=2483 peak=2483 retained=0 unexpected=0 msg_send_ok=0 msg_send_fail=0 msg_recv=0 ping_ok=0 ping_fail=0
+2026/03/20 13:43:46 progress attempted=4975 connected=4973 active=4973 peak=4973 retained=0 unexpected=0 msg_send_ok=2482 msg_send_fail=0 msg_recv=2482 ping_ok=0 ping_fail=0
+2026/03/20 13:43:51 progress attempted=7471 connected=7470 active=7470 peak=7470 retained=0 unexpected=0 msg_send_ok=7456 msg_send_fail=0 msg_recv=7456 ping_ok=0 ping_fail=0
+2026/03/20 13:43:56 progress attempted=9963 connected=9961 active=9961 peak=9961 retained=0 unexpected=0 msg_send_ok=14926 msg_send_fail=0 msg_recv=14926 ping_ok=0 ping_fail=0
+2026/03/20 13:44:01 progress attempted=10000 connected=10000 active=10000 peak=10000 retained=0 unexpected=0 msg_send_ok=24885 msg_send_fail=0 msg_recv=24877 ping_ok=0 ping_fail=0
+2026/03/20 13:44:06 progress attempted=10000 connected=10000 active=10000 peak=10000 retained=0 unexpected=0 msg_send_ok=34887 msg_send_fail=0 msg_recv=34887 ping_ok=0 ping_fail=0
+2026/03/20 13:44:11 progress attempted=10000 connected=10000 active=10000 peak=10000 retained=0 unexpected=0 msg_send_ok=44887 msg_send_fail=0 msg_recv=44887 ping_ok=0 ping_fail=0
+2026/03/20 13:44:16 progress attempted=10000 connected=10000 active=10000 peak=10000 retained=0 unexpected=0 msg_send_ok=54889 msg_send_fail=0 msg_recv=54884 ping_ok=0 ping_fail=0
+2026/03/20 13:44:21 progress attempted=10000 connected=10000 active=10000 peak=10000 retained=0 unexpected=0 msg_send_ok=64887 msg_send_fail=0 msg_recv=64887 ping_ok=0 ping_fail=0
+2026/03/20 13:44:26 progress attempted=10000 connected=10000 active=10000 peak=10000 retained=0 unexpected=0 msg_send_ok=74887 msg_send_fail=0 msg_recv=74887 ping_ok=0 ping_fail=0
+2026/03/20 13:44:31 progress attempted=10000 connected=10000 active=10000 peak=10000 retained=0 unexpected=0 msg_send_ok=84887 msg_send_fail=0 msg_recv=84887 ping_ok=0 ping_fail=0
+2026/03/20 13:44:36 progress attempted=10000 connected=10000 active=10000 peak=10000 retained=0 unexpected=0 msg_send_ok=94894 msg_send_fail=0 msg_recv=94889 ping_ok=0 ping_fail=0
+2026/03/20 13:44:41 progress attempted=10000 connected=10000 active=10000 peak=10000 retained=0 unexpected=0 msg_send_ok=104887 msg_send_fail=0 msg_recv=104887 ping_ok=0 ping_fail=0
+2026/03/20 13:44:46 progress attempted=10000 connected=10000 active=10000 peak=10000 retained=0 unexpected=0 msg_send_ok=114886 msg_send_fail=0 msg_recv=114886 ping_ok=0 ping_fail=0
+2026/03/20 13:44:51 progress attempted=10000 connected=10000 active=10000 peak=10000 retained=0 unexpected=0 msg_send_ok=124887 msg_send_fail=0 msg_recv=124887 ping_ok=0 ping_fail=0
+2026/03/20 13:44:56 progress attempted=10000 connected=10000 active=10000 peak=10000 retained=0 unexpected=0 msg_send_ok=134886 msg_send_fail=0 msg_recv=134884 ping_ok=0 ping_fail=0
+2026/03/20 13:45:01 progress attempted=10000 connected=10000 active=10000 peak=10000 retained=0 unexpected=0 msg_send_ok=144886 msg_send_fail=0 msg_recv=144886 ping_ok=0 ping_fail=0
+2026/03/20 13:45:06 progress attempted=10000 connected=10000 active=10000 peak=10000 retained=0 unexpected=0 msg_send_ok=154883 msg_send_fail=0 msg_recv=154883 ping_ok=0 ping_fail=0
+2026/03/20 13:45:11 progress attempted=10000 connected=10000 active=10000 peak=10000 retained=0 unexpected=0 msg_send_ok=164887 msg_send_fail=0 msg_recv=164887 ping_ok=0 ping_fail=0
+2026/03/20 13:45:16 progress attempted=10000 connected=10000 active=10000 peak=10000 retained=0 unexpected=0 msg_send_ok=174886 msg_send_fail=0 msg_recv=174886 ping_ok=0 ping_fail=0
+2026/03/20 13:45:21 progress attempted=10000 connected=10000 active=10000 peak=10000 retained=0 unexpected=0 msg_send_ok=184887 msg_send_fail=0 msg_recv=184887 ping_ok=0 ping_fail=0
+2026/03/20 13:45:26 progress attempted=10000 connected=10000 active=10000 peak=10000 retained=0 unexpected=0 msg_send_ok=194887 msg_send_fail=0 msg_recv=194887 ping_ok=0 ping_fail=0
+2026/03/20 13:45:31 progress attempted=10000 connected=10000 active=10000 peak=10000 retained=0 unexpected=0 msg_send_ok=204887 msg_send_fail=0 msg_recv=204887 ping_ok=0 ping_fail=0
+2026/03/20 13:45:37 benchmark complete
+2026/03/20 13:45:37 url: ws://localhost:8080/api/v1/ws/
+2026/03/20 13:45:37 duration: 2m0.774784s
+2026/03/20 13:45:37 attempted connections: 10000
+2026/03/20 13:45:37 successful connections: 10000
+2026/03/20 13:45:37 connection success rate: 100.00%
+2026/03/20 13:45:37 active peak connections: 10000
+2026/03/20 13:45:37 retained connections: 10000
+2026/03/20 13:45:37 retained connection rate: 100.00%
+2026/03/20 13:45:37 unexpected closed connections: 0
+2026/03/20 13:45:37 chaos dropped connections: 0
+2026/03/20 13:45:37 avg connect latency: 2.93ms
+2026/03/20 13:45:37 connect latency p50/p95/p99: 2.24ms / 5.29ms / 16.52ms
+2026/03/20 13:45:37 messages sent(success/fail): 214886 / 0
+2026/03/20 13:45:37 message send success rate: 100.00%
+2026/03/20 13:45:37 messages received: 214886
+2026/03/20 13:45:37 message send/recv throughput(tps): 1779.23 / 1779.23
+2026/03/20 13:45:37 message receive delivery rate(received/sent): 100.00%
+2026/03/20 13:45:37 latency matched messages: 0 (match rate 0.00%, field=ts)
+2026/03/20 13:45:37 pings sent(success/fail): 0 / 0
+2026/03/20 13:45:37 read errors: 0
