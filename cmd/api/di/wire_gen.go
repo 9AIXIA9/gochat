@@ -179,7 +179,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	websocketHandler := provideWebsocketHandler(upgrader, manager, router, userSessionStartedUseCase)
+	websocketHandler := provideWebsocketHandler(appConfig, upgrader, manager, router, userSessionStartedUseCase)
 	producer, err := provideKafkaProducer(appConfig)
 	if err != nil {
 		return nil, err
