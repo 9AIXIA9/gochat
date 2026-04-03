@@ -34,6 +34,12 @@ var (
 	binlogOnce sync.Once
 
 	binlogRunTotal metric.Int64Counter
+
+	outboxOnce sync.Once
+
+	outboxProcessTotal    metric.Int64Counter
+	outboxEventsTotal     metric.Int64Counter
+	outboxProcessDuration metric.Float64Histogram
 )
 
 func initWebsocketInstruments() {
@@ -62,6 +68,13 @@ func initKafkaInstruments() {
 func initBinlogInstruments() {
 	m := otel.Meter("gochat.binlog")
 	binlogRunTotal, _ = m.Int64Counter("binlog_reader_run_total")
+}
+
+func initOutboxInstruments() {
+	m := otel.Meter("gochat.outbox")
+	outboxProcessTotal, _ = m.Int64Counter("outbox_process_total")
+	outboxEventsTotal, _ = m.Int64Counter("outbox_events_total")
+	outboxProcessDuration, _ = m.Float64Histogram("outbox_process_duration_seconds")
 }
 
 func WSHandshake(ctx context.Context, result string) {
@@ -207,5 +220,39 @@ func BinlogReaderRun(ctx context.Context, result string, errorType string) {
 	binlogRunTotal.Add(ctx, 1, metric.WithAttributes(
 		attribute.String("result", result),
 		attribute.String("error_type", errorType),
+	))
+}
+
+func OutboxProcess(ctx context.Context, stage string, result string, errorType string) {
+	outboxOnce.Do(initOutboxInstruments)
+	if outboxProcessTotal == nil {
+		return
+	}
+	outboxProcessTotal.Add(ctx, 1, metric.WithAttributes(
+		attribute.String("stage", stage),
+		attribute.String("result", result),
+		attribute.String("error_type", errorType),
+	))
+}
+
+func OutboxEvents(ctx context.Context, stage string, result string, count int) {
+	outboxOnce.Do(initOutboxInstruments)
+	if outboxEventsTotal == nil || count <= 0 {
+		return
+	}
+	outboxEventsTotal.Add(ctx, int64(count), metric.WithAttributes(
+		attribute.String("stage", stage),
+		attribute.String("result", result),
+	))
+}
+
+func OutboxProcessDuration(ctx context.Context, stage string, result string, seconds float64) {
+	outboxOnce.Do(initOutboxInstruments)
+	if outboxProcessDuration == nil {
+		return
+	}
+	outboxProcessDuration.Record(ctx, seconds, metric.WithAttributes(
+		attribute.String("stage", stage),
+		attribute.String("result", result),
 	))
 }

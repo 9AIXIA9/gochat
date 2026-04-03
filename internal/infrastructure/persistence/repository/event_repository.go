@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	gormutils "gochat/internal/infrastructure/gorm"
+	"gochat/internal/infrastructure/metrics"
 	"gochat/internal/infrastructure/persistence/model"
 	"gochat/internal/shared/event"
 	"time"
@@ -42,12 +43,16 @@ func (repo *EventRepository) CreateUnpublishedEvents(ctx context.Context, evs []
 
 	evModel, err := repo.toModels(evs)
 	if err != nil {
+		metrics.OutboxProcess(ctx, "create_unpublished", "failed", "to_models")
 		return err
 	}
 
 	if err := gormutils.TranslateError(tx.WithContext(ctx).Create(evModel).Error); err != nil {
+		metrics.OutboxProcess(ctx, "create_unpublished", "failed", "db_create")
 		return err
 	}
+	metrics.OutboxProcess(ctx, "create_unpublished", "ok", "")
+	metrics.OutboxEvents(ctx, "create_unpublished", "ok", len(evModel))
 	return nil
 }
 
@@ -82,9 +87,18 @@ func (repo *EventRepository) ListUnpublishedEvents(ctx context.Context, lease ti
 		}
 		return nil
 	}); err != nil {
+		metrics.OutboxProcess(ctx, "list_unpublished", "failed", "db_transaction")
 		return nil, err
 	}
-	return repo.toEvents(models)
+
+	evs, err := repo.toEvents(models)
+	if err != nil {
+		metrics.OutboxProcess(ctx, "list_unpublished", "failed", "to_events")
+		return nil, err
+	}
+	metrics.OutboxProcess(ctx, "list_unpublished", "ok", "")
+	metrics.OutboxEvents(ctx, "list_unpublished", "ok", len(evs))
+	return evs, nil
 }
 
 func (repo *EventRepository) MarkAsPublished(ctx context.Context, ID event.ID) error {
