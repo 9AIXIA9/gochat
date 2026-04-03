@@ -1,7 +1,9 @@
 package websocket
 
 import (
+	"context"
 	"encoding/json"
+	"gochat/internal/infrastructure/metrics"
 	myErrors "gochat/internal/shared/errors"
 	"sync"
 
@@ -35,8 +37,10 @@ func (m *Manager) Register(id kernel.UserID, c *Client) {
 	m.mu.Unlock()
 
 	if toClose != nil {
+		metrics.WSDisconnect(context.Background(), "replaced")
 		toClose.Close()
 	}
+	metrics.WSConnectionDelta(context.Background(), 1)
 }
 
 func (m *Manager) Unregister(id kernel.UserID) {
@@ -48,6 +52,8 @@ func (m *Manager) Unregister(id kernel.UserID) {
 	m.mu.Unlock()
 
 	if ok {
+		metrics.WSConnectionDelta(context.Background(), -1)
+		metrics.WSDisconnect(context.Background(), "unregister")
 		zap.L().Debug(
 			"websocket manager: unregistered client",
 			zap.String("userID", id.String()),
@@ -70,6 +76,8 @@ func (m *Manager) UnregisterClient(target *Client) (id kernel.UserID, found bool
 	m.mu.Unlock()
 
 	if found {
+		metrics.WSConnectionDelta(context.Background(), -1)
+		metrics.WSDisconnect(context.Background(), "unregister_by_pointer")
 		zap.L().Debug("websocket manager: unregistered client by pointer", zap.String("userID", id.String()))
 	}
 	return
@@ -78,6 +86,7 @@ func (m *Manager) UnregisterClient(target *Client) (id kernel.UserID, found bool
 func (m *Manager) SendTo(id kernel.UserID, msg *Message) error {
 	msgBytes, err := json.Marshal(msg)
 	if err != nil {
+		metrics.WSMessageOut(context.Background(), "manager_sendto", "marshal_failed")
 		return err
 	}
 
@@ -86,16 +95,20 @@ func (m *Manager) SendTo(id kernel.UserID, msg *Message) error {
 	m.mu.RUnlock()
 	if ok {
 		if err := c.Send(msgBytes); err != nil {
+			metrics.WSMessageOut(context.Background(), "manager_sendto", "send_failed")
 			return err
 		}
+		metrics.WSMessageOut(context.Background(), "manager_sendto", "ok")
 		return nil
 	}
+	metrics.WSMessageOut(context.Background(), "manager_sendto", "not_found")
 	return myErrors.ErrNotFound
 }
 
 func (m *Manager) Broadcast(ids []kernel.UserID, msg *Message) ([]kernel.UserID, error) {
 	msgBytes, err := json.Marshal(msg)
 	if err != nil {
+		metrics.WSMessageOut(context.Background(), "manager_broadcast", "marshal_failed")
 		return nil, err
 	}
 
@@ -106,9 +119,13 @@ func (m *Manager) Broadcast(ids []kernel.UserID, msg *Message) ([]kernel.UserID,
 	for _, id := range ids {
 		if c, ok := m.clients[id]; ok {
 			if err := c.Send(msgBytes); err != nil {
+				metrics.WSMessageOut(context.Background(), "manager_broadcast", "send_failed")
 				continue
 			}
+			metrics.WSMessageOut(context.Background(), "manager_broadcast", "ok")
 			idsSuccess = append(idsSuccess, id)
+		} else {
+			metrics.WSMessageOut(context.Background(), "manager_broadcast", "not_found")
 		}
 	}
 

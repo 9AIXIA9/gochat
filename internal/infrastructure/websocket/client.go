@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"gochat/internal/infrastructure/metrics"
 	"sync"
 	"time"
 
@@ -72,6 +73,7 @@ func (c *Client) Send(b []byte) error {
 	case c.sendChan <- b:
 		return nil
 	default:
+		metrics.WSSendFailure(c.ctx, "send_channel_full")
 		return myErrors.ErrChanIsFull
 	}
 }
@@ -104,8 +106,10 @@ func (c *Client) readPump() {
 		if err != nil {
 			var closeErr *websocket.CloseError
 			if errors.As(err, &closeErr) {
+				metrics.WSReadError(c.ctx, "close_frame")
 				return
 			}
+			metrics.WSReadError(c.ctx, "read_failed")
 			zap.L().Error("websocket client read message failed", zap.Error(err))
 			return
 		}
@@ -114,11 +118,15 @@ func (c *Client) readPump() {
 		if msg != nil {
 			msgBytes, err := json.Marshal(msg)
 			if err != nil {
+				metrics.WSMessageOut(c.ctx, "route_reply", "marshal_failed")
 				zap.L().Error("websocket client marshal message failed", zap.Error(err))
 				continue
 			}
 			if err := c.Send(msgBytes); err != nil {
+				metrics.WSMessageOut(c.ctx, "route_reply", "send_failed")
 				zap.L().Error("websocket client send message failed", zap.Error(err))
+			} else {
+				metrics.WSMessageOut(c.ctx, "route_reply", "ok")
 			}
 		}
 	}
@@ -138,12 +146,14 @@ func (c *Client) writePump() {
 		case b := <-c.sendChan:
 			_ = c.conn.SetWriteDeadline(time.Now().UTC().Add(writeWait))
 			if err := c.conn.WriteMessage(websocket.TextMessage, b); err != nil {
+				metrics.WSWriteError(c.ctx, "write_message_failed")
 				return
 			}
 		case <-ticker.C:
 			// 统一在单写协程里发送 ping，避免并发写
 			_ = c.conn.SetWriteDeadline(time.Now().UTC().Add(writeWait))
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				metrics.WSWriteError(c.ctx, "ping_failed")
 				return
 			}
 		}

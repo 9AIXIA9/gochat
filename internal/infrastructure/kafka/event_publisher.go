@@ -3,7 +3,9 @@ package kafka
 import (
 	"context"
 	"fmt"
+	"gochat/internal/infrastructure/metrics"
 	myErrors "gochat/internal/shared/errors"
+	"strings"
 	"sync"
 	"sync/atomic"
 
@@ -64,13 +66,19 @@ func (p *EventPublisher) Publish(ctx context.Context, ev event.Event) error {
 	// 超时检测
 	select {
 	case <-ctx.Done():
+		metrics.KafkaProduce(ctx, "failed", "context_done")
 		return fmt.Errorf("publish event timeout: %w", ctx.Err())
 	default:
 		if err := p.producer.Produce(message, p.publishResultChan); err != nil {
+			metrics.KafkaProduce(ctx, "failed", "produce_error")
+			if strings.Contains(err.Error(), "Queue full") {
+				metrics.KafkaQueueFull(ctx)
+			}
 			zap.L().Error("produce message failed", zap.Error(err))
 			return err
 		}
 	}
+	metrics.KafkaProduce(ctx, "ok", "")
 	return nil
 }
 
