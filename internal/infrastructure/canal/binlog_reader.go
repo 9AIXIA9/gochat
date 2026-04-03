@@ -1,6 +1,8 @@
 package canal
 
 import (
+	"context"
+	"gochat/internal/infrastructure/metrics"
 	"gochat/pkg/concurrency"
 	"strings"
 
@@ -28,10 +30,13 @@ func (b *BinlogReader) Start() {
 	concurrency.GoSafe(func() {
 		pos, err := b.canal.GetMasterPos()
 		if err != nil {
+			metrics.BinlogReaderRun(context.Background(), "failed", "get_master_pos")
 			zap.L().Error("get master binlog position failed", zap.Error(err))
 			return
 		}
+		metrics.BinlogReaderRun(context.Background(), "started", "")
 		if err := b.canal.RunFrom(pos); err != nil && !strings.Contains(err.Error(), "context canceled") {
+			metrics.BinlogReaderRun(context.Background(), "failed", "run_from")
 			zap.L().Error("binlog canal run failed", zap.Error(err))
 		}
 	})

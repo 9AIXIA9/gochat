@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"gochat/internal/infrastructure/metrics"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/pkg/concurrency"
 	"time"
@@ -95,9 +96,16 @@ func (c *Consumer) processMessage() {
 
 		switch m := ev.(type) {
 		case *ckafka.Message:
+			topic := "unknown"
+			if m.TopicPartition.Topic != nil {
+				topic = *m.TopicPartition.Topic
+			}
+			start := time.Now()
 			// Route the message
 			err := c.router.Route(c.ctx, m)
 			if err != nil {
+				metrics.KafkaConsume(c.ctx, "handle_failed", topic)
+				metrics.KafkaHandleDuration(c.ctx, topic, "handle_failed", time.Since(start).Seconds())
 				// Log / handle the processing error
 				if c.errorHandler != nil {
 					c.errorHandler.Handle(c.ctx, err, m)
@@ -118,12 +126,16 @@ func (c *Consumer) processMessage() {
 				// Do NOT commit on error
 			}
 			if err == nil {
+				metrics.KafkaConsume(c.ctx, "ok", topic)
+				metrics.KafkaHandleDuration(c.ctx, topic, "ok", time.Since(start).Seconds())
 				// Commit only on successful handling
 				if _, cerr := c.consumer.CommitMessage(m); cerr != nil {
+					metrics.KafkaCommitFail(c.ctx, topic)
 					zap.L().Warn("kafka manual commit failed", zap.Error(cerr))
 				}
 			}
 		case ckafka.Error:
+			metrics.KafkaConsumerError(c.ctx, m.Code().String())
 			// Consumer-level error
 			zap.L().Error("kafka consumer error", zap.Error(m))
 		default:

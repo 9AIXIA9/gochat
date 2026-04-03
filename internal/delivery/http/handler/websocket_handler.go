@@ -2,6 +2,7 @@ package handler
 
 import (
 	"gochat/internal/application"
+	"gochat/internal/infrastructure/metrics"
 	websocketInfra "gochat/internal/infrastructure/websocket"
 	"gochat/pkg/ctxutil"
 	"net/http"
@@ -52,6 +53,7 @@ func (s *WebsocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	conn, err := s.upgrader.Upgrade(w, r, nil)
 	if err != nil {
+		metrics.WSHandshake(r.Context(), "upgrade_failed")
 		span.RecordError(err)
 		span.SetStatus(codes.Error, "upgrade failed")
 		span.End()
@@ -62,6 +64,7 @@ func (s *WebsocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		)
 		return
 	}
+	metrics.WSHandshake(r.Context(), "ok")
 	span.End()
 
 	client := websocketInfra.NewClient(ctxConn, conn, s.router)

@@ -3,7 +3,9 @@ package websocket
 import (
 	"context"
 	"encoding/json"
+	"gochat/internal/infrastructure/metrics"
 	"gochat/internal/shared/api"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -42,8 +44,12 @@ func (r *Router) Handle(topic Topic, h Handler, middlewares ...Middleware) {
 }
 
 func (r *Router) Route(ctx context.Context, payload []byte) *Message {
+	start := time.Now()
+	metrics.WSMessageIn(ctx, "client")
+
 	request := new(Request)
 	if err := json.Unmarshal(payload, request); err != nil {
+		metrics.WSRouteDuration(ctx, "unknown", "invalid_json", time.Since(start).Seconds())
 		return &Message{
 			Body: api.NewResponse(api.CodeInvalidParam),
 		}
@@ -51,6 +57,7 @@ func (r *Router) Route(ctx context.Context, payload []byte) *Message {
 
 	msg, err := r.validator.Validate(ctx, request)
 	if err != nil {
+		metrics.WSRouteDuration(ctx, request.Topic.String(), "validate_error", time.Since(start).Seconds())
 		return &Message{
 			Topic: request.Topic,
 			Body:  api.NewResponse(api.CodeServerError),
@@ -58,6 +65,7 @@ func (r *Router) Route(ctx context.Context, payload []byte) *Message {
 	}
 
 	if len(msg) != 0 {
+		metrics.WSRouteDuration(ctx, request.Topic.String(), "invalid_param", time.Since(start).Seconds())
 		return &Message{
 			Topic: request.Topic,
 			Body:  api.NewResponseWithMessage(api.CodeInvalidParam, msg),
@@ -70,6 +78,7 @@ func (r *Router) Route(ctx context.Context, payload []byte) *Message {
 			h = r.notFound
 		} else {
 			zap.L().Warn("websocket: topic is not found", zap.String("topic", request.Topic.String()))
+			metrics.WSRouteDuration(ctx, request.Topic.String(), "not_found", time.Since(start).Seconds())
 			return &Message{
 				Topic: request.Topic,
 				Body:  api.NewResponse(api.CodeNotFound),
@@ -77,6 +86,7 @@ func (r *Router) Route(ctx context.Context, payload []byte) *Message {
 		}
 	}
 
+	metrics.WSRouteDuration(ctx, request.Topic.String(), "ok", time.Since(start).Seconds())
 	return &Message{
 		Topic: request.Topic,
 		Body:  h.Handle(SetTopic(ctx, request.Topic), request.Payload),
