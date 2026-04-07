@@ -18,6 +18,7 @@ import (
 	kafkautil "gochat/internal/infrastructure/kafka"
 	infraotel "gochat/internal/infrastructure/otel"
 	redisInfra "gochat/internal/infrastructure/redis"
+	"gochat/internal/infrastructure/ulule"
 	"gochat/internal/infrastructure/uuid"
 	validatorInfra "gochat/internal/infrastructure/validator"
 	"gochat/internal/infrastructure/websocket"
@@ -32,6 +33,7 @@ import (
 
 	"github.com/google/wire"
 	"github.com/redis/go-redis/v9"
+	"github.com/ulule/limiter/v3"
 	"go.uber.org/zap"
 	"gopkg.in/gomail.v2"
 	"gorm.io/gorm"
@@ -48,6 +50,7 @@ var InfraSet = wire.NewSet(
 	provideRedisConnection,
 	provideKafkaPublisher,
 	provideValidator,
+	provideLimiter,
 	// Generators & managers (concrete providers)
 	provideEventIDGenerator,
 	provideAuthorizationUserIDGenerator,
@@ -113,6 +116,9 @@ func provideRedisConnection(appConfig *config.App) (*redis.Client, error) {
 }
 
 func provideValidator() (*validatorInfra.Validator, error) { return validatorInfra.NewValidator() }
+func provideLimiter(client *redis.Client, conf *config.App) *limiter.Limiter {
+	return ulule.NewLimiter(client, conf.RateLimit)
+}
 
 func provideEventIDGenerator() *uuid.EventIDGenerator {
 	return uuid.NewEventIDGenerator()

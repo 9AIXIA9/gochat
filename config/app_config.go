@@ -12,6 +12,7 @@ import (
 	"gochat/internal/infrastructure/kafka"
 	"gochat/internal/infrastructure/otel"
 	"gochat/internal/infrastructure/redis"
+	"gochat/internal/infrastructure/ulule"
 	"gochat/internal/infrastructure/zap"
 	"gochat/internal/notification/infrastructure/gomail"
 	myErrors "gochat/internal/shared/errors"
@@ -42,7 +43,7 @@ type App struct {
 	Redis        *redis.Config               `mapstructure:"Redis"`
 	Kafka        *kafka.Config               `mapstructure:"Kafka"`
 	Logger       *zap.LoggerConfig           `mapstructure:"Logger"`
-	RateLimit    *middleware.RateLimitConfig `mapstructure:"RateLimit"`
+	RateLimit    *ulule.Config               `mapstructure:"RateLimit"`
 	BinlogReader *canal.BinlogReaderConfig   `mapstructure:"BinlogReader"`
 	Email        *gomail.EmailNotifierConfig `mapstructure:"Email"`
 	Breaker      *breaker.Config             `mapstructure:"Breaker"`

@@ -21,6 +21,7 @@ import (
 	"github.com/google/wire"
 	gorillaWebsocket "github.com/gorilla/websocket"
 	"github.com/redis/go-redis/v9"
+	"github.com/ulule/limiter/v3"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -85,7 +86,7 @@ func provideHttpRouter(
 	listFriendRequests friendshipApp.ListFriendRequestsUseCase,
 	listSystemMessages notificationApp.ListSystemMessagesUseCase,
 	validator ginInfra.Validator,
-	redisClient *redis.Client,
+	limiter *limiter.Limiter,
 	websocketHandler *handler.WebsocketHandler,
 	isReady func() bool,
 	_ OTELShutdown,
@@ -125,7 +126,7 @@ func provideHttpRouter(
 
 	baseGroup := router.Group("/api/v1")
 	baseGroup.Use(
-		middleware.NewRateLimitMiddleware(redisClient, appConfig.RateLimit),
+		middleware.NewRateLimitMiddleware(limiter),
 	)
 
 	// 断路器中间件
