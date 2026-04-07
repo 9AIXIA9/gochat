@@ -38,6 +38,7 @@ func provideWebsocketRouter(
 	router.Use(
 		middleware.NewRecoverMiddleware(),
 		middleware.NewTraceMiddleware(appConfig.Name+".websocket"),
+		middleware.NewTimeoutMiddleware(appConfig.Timeout),
 		middleware.NewLoggerMiddleware(),
 	)
 

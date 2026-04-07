@@ -95,6 +95,7 @@ func buildKafkaConsumer(
 	router.Use(
 		middleware.NewRecoverMiddleware(),
 		middleware.NewTraceMiddleware(appConfig.Name+"."+contextName+".kafka_consumer"),
+		middleware.NewTimeoutMiddleware(appConfig.Timeout),
 		middleware.NewLoggerMiddleware(),
 	)
 
