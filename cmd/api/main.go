@@ -21,6 +21,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"gochat/cmd/api/di"
 	"gochat/internal/infrastructure/godotenv"
 	"gochat/internal/infrastructure/viper"
@@ -28,6 +29,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	"go.uber.org/zap"
@@ -35,6 +37,7 @@ import (
 
 const (
 	defaultConfigFilePath = "./config/config.yaml"
+	shutdownTimeout       = 30 * time.Second
 )
 
 func main() {
@@ -64,50 +67,76 @@ func main() {
 		log.Fatalf("initialize dependencies failed,err:%v", err)
 	}
 
+	if err := startComponents(dependencies); err != nil {
+		zap.L().Error("start components failed", zap.Error(err))
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+		defer cancel()
+		shutdownComponents(shutdownCtx, dependencies)
+		log.Fatalf("server startup failed, rolled back: %v", err)
+	}
+
 	zap.L().Info("server started", zap.String("app", conf.Name))
 
-	//启动各个组件
+	// Use context-based signal handling for one-shot graceful shutdown.
+	sigCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	<-sigCtx.Done()
+
+	zap.L().Info("server is shutting down...", zap.Duration("timeout", shutdownTimeout))
+
+	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	defer cancel()
+
+	shutdownComponents(ctx, dependencies)
+	zap.L().Info("server exited properly")
+}
+
+func startComponents(dependencies *di.Dependencies) error {
 	dependencies.EmailNotifier.Start()
 	dependencies.KafkaEventPublisher.Start()
+
+	startedConsumers := 0
 	for _, c := range dependencies.KafkaConsumers {
-		if c == nil { // safety
+		if c == nil {
 			continue
 		}
 		if err := c.Start(); err != nil {
-			zap.L().Fatal("start kafka event subscriber failed", zap.Error(err))
+			for i := startedConsumers - 1; i >= 0; i-- {
+				if dependencies.KafkaConsumers[i] != nil {
+					dependencies.KafkaConsumers[i].Close()
+				}
+			}
+			dependencies.KafkaEventPublisher.Close()
+			dependencies.EmailNotifier.Close()
+			return fmt.Errorf("start kafka event subscriber failed: %w", err)
 		}
+		startedConsumers++
 	}
+
 	dependencies.BinlogReader.Start()
 	dependencies.HttpServer.Start()
+	return nil
+}
 
-	//优雅关机
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt)
-	<-quit
-
-	zap.L().Info("server is shutting down...")
-
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
-	defer cancel()
-
+func shutdownComponents(ctx context.Context, dependencies *di.Dependencies) {
 	if err := dependencies.HttpServer.Close(ctx); err != nil {
 		zap.L().Error("shutdown http server failed", zap.Error(err))
 	}
 
-	dependencies.EmailNotifier.Close()
-	dependencies.KafkaEventPublisher.Close()
+	dependencies.BinlogReader.Close()
+
 	for i := len(dependencies.KafkaConsumers) - 1; i >= 0; i-- {
 		if dependencies.KafkaConsumers[i] != nil {
 			dependencies.KafkaConsumers[i].Close()
 		}
 	}
-	dependencies.BinlogReader.Close()
+
+	dependencies.KafkaEventPublisher.Close()
+	dependencies.EmailNotifier.Close()
 
 	if dependencies.OTELShutdown != nil {
 		if err := dependencies.OTELShutdown(ctx); err != nil {
 			zap.L().Error("shutdown otel failed", zap.Error(err))
 		}
 	}
-
-	zap.L().Info("server exited properly")
 }
