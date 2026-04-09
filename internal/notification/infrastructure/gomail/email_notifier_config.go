@@ -6,6 +6,7 @@ import (
 )
 
 type EmailNotifierConfig struct {
+	Enable   bool   `mapstructure:"Enable"`
 	Host     string `mapstructure:"Host"`
 	Username string `mapstructure:"Username"`
 	Password string `mapstructure:"Password"`
@@ -16,6 +17,10 @@ func (c *EmailNotifierConfig) Validate() error {
 	if c == nil {
 		return errors.ErrEmptyPointer
 	}
+	if !c.Enable {
+		return nil
+	}
+
 	if c.Host == "" {
 		return fmt.Errorf("%w: EmailNotifierConfig.Host is empty", errors.ErrEmptyInput)
 	}

@@ -203,7 +203,9 @@ func provideNotificationEventConsumer(
 ) (NotificationKafkaConsumer, error) {
 	consumer, err := buildKafkaConsumer(appConfig, kafkaLimiter, reproducer, eventRepo, "notification",
 		func(r *kafkaInfra.Router) {
-			if emailAvailable {
+			if !appConfig.Email.Enable {
+				zap.L().Info("Skipping subscription to WelcomeEmailNotificationRequested topic as email notifier is disabled in config")
+			} else if emailAvailable {
 				r.EventHandle(notificationDomain.TopicWelcomeEmailNotificationRequested, notificationEvent.NewWelcomeEmailNotificationRequestedEventHandler(notificationWelcomeEmailNotificationRequested))
 			} else {
 				zap.L().Info("Skipping subscription to WelcomeEmailNotificationRequested topic as email dialer is not connected")

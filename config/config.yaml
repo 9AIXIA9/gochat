@@ -6,6 +6,7 @@ Host: 0.0.0.0
 Port: 8080
 MachineNode: 1
 Timeout: 10s
+
 DisableSessionStartedEvent: false
 
 Cookie:
@@ -83,6 +84,7 @@ Hasher:
   Cost: 10
 
 Email:
+  Enable: true
   Host: smtp.example.com
   Port: 587
   Username: noreply@example.com
