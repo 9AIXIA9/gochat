@@ -11,7 +11,12 @@ import (
 
 // NewRateLimitMiddleware 限流中间件
 func NewRateLimitMiddleware(instance *limiter.Limiter) gin.HandlerFunc {
-	// 创建限流实例并返回 gin 中间件
+	if instance == nil {
+		return func(c *gin.Context) {
+			c.Next()
+		}
+	}
+
 	return ginmiddleware.NewMiddleware(instance, ginmiddleware.WithLimitReachedHandler(func(c *gin.Context) {
 		ginutils.Response(c, api.CodeLimitExceeded)
 	}))

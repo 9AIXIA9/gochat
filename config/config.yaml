@@ -40,9 +40,17 @@ AccessToken:
   Secret: "dev-secret-change-me"
   ValidityDuration: 1h
 
-RateLimit:
+HTTPRateLimit:
   Period: 1s
-  Limit: 10
+  Limit: 100
+
+WebsocketRateLimit:
+  Period: 1s
+  Limit: 1000
+
+KafkaRateLimit:
+  Period: 1s
+  Limit: 1000
 
 Mysql:
   Host: 127.0.0.1

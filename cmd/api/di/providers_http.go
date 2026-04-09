@@ -62,6 +62,7 @@ func provideHttpRouter(
 	refreshAccessToken authApp.RefreshAccessTokenUseCase,
 	parseAccessToken authApp.ParseAccessTokenUseCase,
 	getUserProfile profileApp.GetUserProfileUseCase,
+	httpLimiter *HTTPLimiter,
 	getRoomProfile profileApp.GetRoomProfileUseCase,
 	updateUserProfile profileApp.UpdateUserProfileUseCase,
 	updateRoomProfile profileApp.UpdateRoomProfileUseCase,
@@ -86,7 +87,6 @@ func provideHttpRouter(
 	listFriendRequests friendshipApp.ListFriendRequestsUseCase,
 	listSystemMessages notificationApp.ListSystemMessagesUseCase,
 	validator ginInfra.Validator,
-	limiter *limiter.Limiter,
 	websocketHandler *handler.WebsocketHandler,
 	isReady func() bool,
 	_ OTELShutdown,
@@ -125,9 +125,7 @@ func provideHttpRouter(
 	router.NoRoute(handler.NewNotFoundHandler())
 
 	baseGroup := router.Group("/api/v1")
-	baseGroup.Use(
-		middleware.NewRateLimitMiddleware(limiter),
-	)
+	baseGroup.Use(middleware.NewRateLimitMiddleware((*limiter.Limiter)(httpLimiter)))
 
 	// 断路器中间件
 	if appConfig.Breaker != nil {

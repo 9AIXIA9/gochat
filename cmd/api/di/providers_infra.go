@@ -42,6 +42,9 @@ import (
 type (
 	emailServiceAvailable bool
 	OTELShutdown          func(context.Context) error
+	HTTPLimiter           limiter.Limiter
+	WebsocketLimiter      limiter.Limiter
+	KafkaLimiter          limiter.Limiter
 )
 
 var InfraSet = wire.NewSet(
@@ -50,7 +53,9 @@ var InfraSet = wire.NewSet(
 	provideRedisConnection,
 	provideKafkaPublisher,
 	provideValidator,
-	provideLimiter,
+	provideHTTPLimiter,
+	provideWebsocketLimiter,
+	provideKafkaLimiter,
 	// Generators & managers (concrete providers)
 	provideEventIDGenerator,
 	provideAuthorizationUserIDGenerator,
@@ -116,8 +121,15 @@ func provideRedisConnection(appConfig *config.App) (*redis.Client, error) {
 }
 
 func provideValidator() (*validatorInfra.Validator, error) { return validatorInfra.NewValidator() }
-func provideLimiter(client *redis.Client, conf *config.App) *limiter.Limiter {
-	return ulule.NewLimiter(client, conf.RateLimit)
+
+func provideHTTPLimiter(client *redis.Client, conf *config.App) *HTTPLimiter {
+	return (*HTTPLimiter)(ulule.NewLimiter(client, conf.HTTPRateLimit))
+}
+func provideWebsocketLimiter(client *redis.Client, conf *config.App) *WebsocketLimiter {
+	return (*WebsocketLimiter)(ulule.NewLimiter(client, conf.WebsocketRateLimit))
+}
+func provideKafkaLimiter(client *redis.Client, conf *config.App) *KafkaLimiter {
+	return (*KafkaLimiter)(ulule.NewLimiter(client, conf.KafkaRateLimit))
 }
 
 func provideEventIDGenerator() *uuid.EventIDGenerator {
