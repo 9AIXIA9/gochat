@@ -12,6 +12,7 @@ import (
 	"gochat/internal/infrastructure/kafka"
 	"gochat/internal/infrastructure/otel"
 	"gochat/internal/infrastructure/redis"
+	"gochat/internal/infrastructure/ulule"
 	"gochat/internal/infrastructure/zap"
 	"gochat/internal/notification/infrastructure/gomail"
 	myErrors "gochat/internal/shared/errors"
@@ -33,20 +34,22 @@ type App struct {
 	MachineNode                int64         `mapstructure:"MachineNode"`
 	DisableSessionStartedEvent bool          `mapstructure:"DisableSessionStartedEvent"`
 
-	Cookie       *Cookie                     `mapstructure:"Cookie"`
-	CORS         *middleware.CORSConfig      `mapstructure:"CORS"`
-	AccessToken  *jwt.AccessTokenConfig      `mapstructure:"AccessToken"`
-	RefreshToken *crypto.RefreshTokenConfig  `mapstructure:"RefreshToken"`
-	Hasher       *bcrypt.HasherConfig        `mapstructure:"Hasher"`
-	Mysql        *gorm.MysqlConfig           `mapstructure:"Mysql"`
-	Redis        *redis.Config               `mapstructure:"Redis"`
-	Kafka        *kafka.Config               `mapstructure:"Kafka"`
-	Logger       *zap.LoggerConfig           `mapstructure:"Logger"`
-	RateLimit    *middleware.RateLimitConfig `mapstructure:"RateLimit"`
-	BinlogReader *canal.BinlogReaderConfig   `mapstructure:"BinlogReader"`
-	Email        *gomail.EmailNotifierConfig `mapstructure:"Email"`
-	Breaker      *breaker.Config             `mapstructure:"Breaker"`
-	OTEL         *otel.Config                `mapstructure:"OTEL"`
+	Cookie             *Cookie                     `mapstructure:"Cookie"`
+	CORS               *middleware.CORSConfig      `mapstructure:"CORS"`
+	AccessToken        *jwt.AccessTokenConfig      `mapstructure:"AccessToken"`
+	RefreshToken       *crypto.RefreshTokenConfig  `mapstructure:"RefreshToken"`
+	Hasher             *bcrypt.HasherConfig        `mapstructure:"Hasher"`
+	Mysql              *gorm.MysqlConfig           `mapstructure:"Mysql"`
+	Redis              *redis.Config               `mapstructure:"Redis"`
+	Kafka              *kafka.Config               `mapstructure:"Kafka"`
+	Logger             *zap.LoggerConfig           `mapstructure:"Logger"`
+	HTTPRateLimit      *ulule.Config               `mapstructure:"HTTPRateLimit"`
+	WebsocketRateLimit *ulule.Config               `mapstructure:"WebsocketRateLimit"`
+	KafkaRateLimit     *ulule.Config               `mapstructure:"KafkaRateLimit"`
+	BinlogReader       *canal.BinlogReaderConfig   `mapstructure:"BinlogReader"`
+	Email              *gomail.EmailNotifierConfig `mapstructure:"Email"`
+	Breaker            *breaker.Config             `mapstructure:"Breaker"`
+	OTEL               *otel.Config                `mapstructure:"OTEL"`
 }
 
 func (c *App) Validate() error {
@@ -100,8 +103,14 @@ func (c *App) Validate() error {
 	if err := c.Logger.Validate(); err != nil {
 		return fmt.Errorf("App.Logger: %w", err)
 	}
-	if err := c.RateLimit.Validate(); err != nil {
-		return fmt.Errorf("App.RateLimit: %w", err)
+	if err := c.HTTPRateLimit.Validate(); err != nil {
+		return fmt.Errorf("App.HTTPRatelimit: %w", err)
+	}
+	if err := c.WebsocketRateLimit.Validate(); err != nil {
+		return fmt.Errorf("App.WebsocketRateLimit: %w", err)
+	}
+	if err := c.KafkaRateLimit.Validate(); err != nil {
+		return fmt.Errorf("App.KafkaRateLimit: %w", err)
 	}
 	if err := c.Email.Validate(); err != nil {
 		return fmt.Errorf("App.Email: %w", err)

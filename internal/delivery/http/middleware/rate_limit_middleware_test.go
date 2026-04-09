@@ -2,6 +2,7 @@ package middleware_test
 
 import (
 	middlewareHTTP "gochat/internal/delivery/http/middleware"
+	"gochat/internal/infrastructure/ulule"
 	httptestutil "gochat/pkg/httptest"
 	"net/http"
 	"net/http/httptest"
@@ -16,10 +17,11 @@ func TestNewRateLimitMiddleware(t *testing.T) {
 	t.Parallel()
 
 	router := httptestutil.NewTestRouter(t)
-	router.Use(middlewareHTTP.NewRateLimitMiddleware(nil, &middlewareHTTP.RateLimitConfig{
+	instance := ulule.NewLimiter(nil, &ulule.Config{
 		Period: time.Second,
 		Limit:  1,
-	}))
+	})
+	router.Use(middlewareHTTP.NewRateLimitMiddleware(instance))
 	router.GET("/limited", func(c *gin.Context) { c.Status(http.StatusOK) })
 
 	req1 := httptest.NewRequest(http.MethodGet, "/limited", nil)

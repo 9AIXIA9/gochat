@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/wire"
 	gorillaWebsocket "github.com/gorilla/websocket"
+	"github.com/ulule/limiter/v3"
 )
 
 var WebsocketSet = wire.NewSet(
@@ -28,6 +29,7 @@ func provideWebsocketManager() *websocket.Manager {
 
 func provideWebsocketRouter(
 	appConfig *config.App,
+	websocketLimiter *WebsocketLimiter,
 	validator websocket.Validator,
 	chatSendPrivateMessage chatApp.SendPrivateMessageUseCase,
 	chatSendRoomMessage chatApp.SendRoomMessageUseCase,
@@ -38,6 +40,8 @@ func provideWebsocketRouter(
 	router.Use(
 		middleware.NewRecoverMiddleware(),
 		middleware.NewTraceMiddleware(appConfig.Name+".websocket"),
+		middleware.NewRateLimitMiddleware((*limiter.Limiter)(websocketLimiter)),
+		middleware.NewTimeoutMiddleware(appConfig.Timeout),
 		middleware.NewLoggerMiddleware(),
 	)
 

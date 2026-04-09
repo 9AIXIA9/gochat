@@ -18,6 +18,7 @@ import (
 	kafkautil "gochat/internal/infrastructure/kafka"
 	infraotel "gochat/internal/infrastructure/otel"
 	redisInfra "gochat/internal/infrastructure/redis"
+	"gochat/internal/infrastructure/ulule"
 	"gochat/internal/infrastructure/uuid"
 	validatorInfra "gochat/internal/infrastructure/validator"
 	"gochat/internal/infrastructure/websocket"
@@ -32,6 +33,7 @@ import (
 
 	"github.com/google/wire"
 	"github.com/redis/go-redis/v9"
+	"github.com/ulule/limiter/v3"
 	"go.uber.org/zap"
 	"gopkg.in/gomail.v2"
 	"gorm.io/gorm"
@@ -40,6 +42,9 @@ import (
 type (
 	emailServiceAvailable bool
 	OTELShutdown          func(context.Context) error
+	HTTPLimiter           limiter.Limiter
+	WebsocketLimiter      limiter.Limiter
+	KafkaLimiter          limiter.Limiter
 )
 
 var InfraSet = wire.NewSet(
@@ -48,6 +53,9 @@ var InfraSet = wire.NewSet(
 	provideRedisConnection,
 	provideKafkaPublisher,
 	provideValidator,
+	provideHTTPLimiter,
+	provideWebsocketLimiter,
+	provideKafkaLimiter,
 	// Generators & managers (concrete providers)
 	provideEventIDGenerator,
 	provideAuthorizationUserIDGenerator,
@@ -113,6 +121,16 @@ func provideRedisConnection(appConfig *config.App) (*redis.Client, error) {
 }
 
 func provideValidator() (*validatorInfra.Validator, error) { return validatorInfra.NewValidator() }
+
+func provideHTTPLimiter(client *redis.Client, conf *config.App) *HTTPLimiter {
+	return (*HTTPLimiter)(ulule.NewLimiter(client, conf.HTTPRateLimit))
+}
+func provideWebsocketLimiter(client *redis.Client, conf *config.App) *WebsocketLimiter {
+	return (*WebsocketLimiter)(ulule.NewLimiter(client, conf.WebsocketRateLimit))
+}
+func provideKafkaLimiter(client *redis.Client, conf *config.App) *KafkaLimiter {
+	return (*KafkaLimiter)(ulule.NewLimiter(client, conf.KafkaRateLimit))
+}
 
 func provideEventIDGenerator() *uuid.EventIDGenerator {
 	return uuid.NewEventIDGenerator()
