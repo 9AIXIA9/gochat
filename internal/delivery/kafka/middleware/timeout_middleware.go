@@ -23,6 +23,11 @@ func NewTimeoutMiddleware(duration time.Duration) kafka.Middleware {
 
 			errCh := make(chan error, 1)
 			go func() {
+				defer func() {
+					if r := recover(); r != nil {
+						errCh <- fmt.Errorf("kafka handler panic recovered in timeout middleware: %v", r)
+					}
+				}()
 				errCh <- next.Handle(ctxWithTimeout, message)
 			}()
 

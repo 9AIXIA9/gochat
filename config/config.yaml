@@ -1,7 +1,7 @@
 # Base defaults. Override via config.local.yaml or config.override.yaml (gitignored), and env vars for sensitive values.
 # Base file keeps literal defaults and does NOT expand env vars.
 Name: gochat
-Env: debug
+Env: release
 Host: 0.0.0.0
 Port: 8080
 MachineNode: 1

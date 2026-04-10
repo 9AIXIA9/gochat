@@ -26,6 +26,9 @@ func NewCircuitBreakMiddleware(conf *breaker.Config) gin.HandlerFunc {
 		})
 
 		if err != nil {
+			if ginContext.Writer.Written() {
+				return
+			}
 			ginutils.ResponseWithMessage(ginContext, api.CodeServiceUnavailable, "service unavailable")
 			ginContext.Abort()
 			return
