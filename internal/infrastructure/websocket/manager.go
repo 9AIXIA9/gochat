@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const defaultBaseClientsCount = 10000
+const defaultBaseClientsCount = 70000
 
 type Manager struct {
 	mu      sync.RWMutex
