@@ -21,6 +21,11 @@ func NewTimeoutMiddleware(duration time.Duration) websocket.Middleware {
 
 			respCh := make(chan *api.Response, 1)
 			go func() {
+				defer func() {
+					if r := recover(); r != nil {
+						respCh <- api.ResponseServerError
+					}
+				}()
 				respCh <- next.Handle(ctxWithTimeout, data)
 			}()
 

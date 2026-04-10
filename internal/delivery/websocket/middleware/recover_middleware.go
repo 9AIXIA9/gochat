@@ -12,7 +12,7 @@ import (
 
 func NewRecoverMiddleware() websocket.Middleware {
 	return func(next websocket.Handler) websocket.Handler {
-		return websocket.HandlerFunc(func(ctx context.Context, data []byte) *api.Response {
+		return websocket.HandlerFunc(func(ctx context.Context, data []byte) (resp *api.Response) {
 			defer func() {
 				if r := recover(); r != nil {
 					stack := string(debug.Stack())
@@ -22,10 +22,12 @@ func NewRecoverMiddleware() websocket.Middleware {
 						zap.String("user_id", ctxutil.UserIDFrom(ctx).String()),
 						zap.String("topic", websocket.GetTopic(ctx).String()),
 					)
+					resp = api.ResponseServerError
 				}
 			}()
 
-			return next.Handle(ctx, data)
+			resp = next.Handle(ctx, data)
+			return resp
 		})
 	}
 }

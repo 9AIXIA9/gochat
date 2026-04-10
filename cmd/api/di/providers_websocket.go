@@ -38,10 +38,10 @@ func provideWebsocketRouter(
 	router := websocket.NewRouter(validator)
 
 	router.Use(
-		middleware.NewRecoverMiddleware(),
 		middleware.NewTraceMiddleware(appConfig.Name+".websocket"),
 		middleware.NewRateLimitMiddleware((*limiter.Limiter)(websocketLimiter)),
 		middleware.NewTimeoutMiddleware(appConfig.Timeout),
+		middleware.NewRecoverMiddleware(),
 		middleware.NewLoggerMiddleware(),
 	)
 
