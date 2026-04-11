@@ -19,6 +19,8 @@ help:
 	@echo "  make destroy      - Stop and remove containers, images, and named volumes"
 	@echo "  make rebuild      - Remove old app image and rebuild with no cache"
 	@echo "  make restart      - Restart services using build cache"
+	@echo "  make kafka-init   - Create Kafka topics before starting the app"
+	@echo "  make db-migrate   - Apply DB migrations using host port"
 	@echo "  make logs         - Tail app logs"
 	@echo "  make logs-app     - Tail only app logs"
 	@echo "  make ps           - Show service status"
@@ -48,8 +50,11 @@ help:
 .PHONY: up
 up: ## Build (no cache) and up -d
 	-$(DC) down
-	$(DC) build --no-cache
-	$(DC) up -d
+	$(DC) build --no-cache mysql redis kafka jaeger prometheus grafana otel-collector
+	$(MAKE) kafka-init
+	$(MAKE) db-migrate
+	$(DC) build --no-cache app
+	$(DC) up -d --remove-orphans mysql redis kafka jaeger prometheus grafana otel-collector app
 
 .PHONY: down
 down: ## Stop and remove containers (keep volumes)
@@ -78,7 +83,18 @@ ps:
 
 .PHONY: restart
 restart: ## Restart using build cache (no --no-cache)
-	$(DC) up -d --build
+	$(DC) up -d --build mysql redis kafka jaeger prometheus grafana otel-collector
+	$(MAKE) kafka-init
+	$(MAKE) db-migrate
+	$(DC) up -d --remove-orphans --build app
+
+.PHONY: kafka-init
+kafka-init: ## Create Kafka topics using a one-off container
+	docker run --rm --network $(PROJECT_NAME)_default -v "$(CURDIR)/deployment/kafka-init/init_topics.sh:/init_topics.sh:ro" -v "$(CURDIR)/deployment/kafka-init/topics.txt:/topics.txt:ro" docker.io/confluentinc/cp-kafka:8.0.0 sh /init_topics.sh
+
+.PHONY: db-migrate
+db-migrate: ## Apply DB migrations using host port
+	$(MAKE) migrate-up-host
 
 .PHONY: hooks
 hooks: ## Configure Git to use the versioned hooks in .githooks
@@ -133,7 +149,10 @@ COMPOSE_FILE_DIR := .
 
 .PHONY: up-fast
 up-fast: ## Up using build cache
-	$(DC) up -d --build
+	$(DC) up -d --build mysql redis kafka jaeger prometheus grafana otel-collector
+	$(MAKE) kafka-init
+	$(MAKE) db-migrate
+	$(DC) up -d --remove-orphans --build app
 
 .PHONY: logs-app
 logs-app: ## Tail only app logs
