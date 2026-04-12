@@ -134,6 +134,20 @@ func shutdownComponents(ctx context.Context, dependencies *di.Dependencies) {
 	dependencies.KafkaEventPublisher.Close()
 	dependencies.EmailNotifier.Close()
 
+	if dependencies.MysqlDB != nil {
+		if sqlDB, err := dependencies.MysqlDB.DB(); err != nil {
+			zap.L().Error("get mysql sql.DB failed during shutdown", zap.Error(err))
+		} else if err := sqlDB.Close(); err != nil {
+			zap.L().Error("shutdown mysql failed", zap.Error(err))
+		}
+	}
+
+	if dependencies.RedisClient != nil {
+		if err := dependencies.RedisClient.Close(); err != nil {
+			zap.L().Error("shutdown redis failed", zap.Error(err))
+		}
+	}
+
 	if dependencies.OTELShutdown != nil {
 		if err := dependencies.OTELShutdown(ctx); err != nil {
 			zap.L().Error("shutdown otel failed", zap.Error(err))

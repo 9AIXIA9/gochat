@@ -329,7 +329,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	}
 	eventHandler := provideCanalBinlogReaderHandler(unpublishedEventsCreatedUseCase)
 	binlogReader := provideCanalBinlogReader(canal, eventHandler)
-	dependencies, err := BuildDependencies(server, eventPublisher, v, binlogReader, emailNotifier, otelShutdown, diEmailServiceAvailable)
+	dependencies, err := BuildDependencies(server, db, client, eventPublisher, v, binlogReader, emailNotifier, otelShutdown, diEmailServiceAvailable)
 	if err != nil {
 		return nil, err
 	}
