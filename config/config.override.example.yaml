@@ -18,6 +18,10 @@ CORS:
 Kafka:
   BootstrapServers: kafka:9092
 
+OTEL:
+  Enabled: true
+  Endpoint: otel-collector:4317
+
 # Sensitive values: set via env in overrides
 AccessToken:
   Secret: ${JWT_SECRET}

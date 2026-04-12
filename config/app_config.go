@@ -121,8 +121,8 @@ func (c *App) Validate() error {
 	if err := c.Breaker.Validate(); err != nil {
 		return fmt.Errorf("App.Breaker: %w", err)
 	}
-	// OTEL is optional; validate only if provided
-	if c.OTEL != nil {
+	// OTEL is optional; validate only when explicitly enabled
+	if c.OTEL != nil && c.OTEL.Enabled {
 		if c.OTEL.Endpoint == "" {
 			return fmt.Errorf("App.OTEL.Endpoint: %w", myErrors.ErrEmptyInput)
 		}

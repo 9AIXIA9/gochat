@@ -94,13 +94,16 @@ func buildKafkaConsumer(
 ) (*kafkaInfra.Consumer, error) {
 	router := kafkaInfra.NewRouter()
 	// Order matters: timeout wraps recover so panic inside timeout goroutine is still recoverable.
-	router.Use(
-		middleware.NewTraceMiddleware(appConfig.Name+"."+contextName+".kafka_consumer"),
+	middlewares := []kafkaInfra.Middleware{
 		middleware.NewRateLimitMiddleware((*limiter.Limiter)(kafkaLimiter)),
 		middleware.NewTimeoutMiddleware(appConfig.Timeout),
 		middleware.NewRecoverMiddleware(),
 		middleware.NewLoggerMiddleware(),
-	)
+	}
+	if appConfig.OTEL != nil && appConfig.OTEL.Enabled {
+		middlewares = append([]kafkaInfra.Middleware{middleware.NewTraceMiddleware(appConfig.Name + "." + contextName + ".kafka_consumer")}, middlewares...)
+	}
+	router.Use(middlewares...)
 
 	if appConfig.Breaker != nil {
 		conf := *appConfig.Breaker

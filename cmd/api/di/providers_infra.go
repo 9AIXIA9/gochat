@@ -107,17 +107,22 @@ var InfraSet = wire.NewSet(
 )
 
 func provideObservability(cfg *config.App) (OTELShutdown, error) {
-	if cfg.OTEL == nil {
+	if cfg.OTEL == nil || !cfg.OTEL.Enabled {
 		return func(context.Context) error { return nil }, nil
 	}
-	return infraotel.Init(cfg.OTEL)
+	shutdown, err := infraotel.Init(cfg.OTEL)
+	if err != nil {
+		zap.L().Warn("OTEL disabled because initialization failed; check OTEL endpoint configuration and ensure the collector is running", zap.Error(err))
+		return func(context.Context) error { return nil }, nil
+	}
+	return shutdown, nil
 }
 
 func provideMysqlConnection(appConfig *config.App) (*gorm.DB, error) {
-	return gormInfra.ConnectToMysql(appConfig.Mysql)
+	return gormInfra.ConnectToMysql(appConfig.Mysql, appConfig.OTEL != nil && appConfig.OTEL.Enabled)
 }
 func provideRedisConnection(appConfig *config.App) (*redis.Client, error) {
-	return redisInfra.ConnectToRedis(appConfig.Redis)
+	return redisInfra.ConnectToRedis(appConfig.Redis, appConfig.OTEL != nil && appConfig.OTEL.Enabled)
 }
 
 func provideValidator() (*validatorInfra.Validator, error) { return validatorInfra.NewValidator() }

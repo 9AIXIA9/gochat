@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/redis/go-redis/extra/redisotel/v9" // 添加这行
+	"github.com/redis/go-redis/extra/redisotel/v9"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
 
-func ConnectToRedis(config *Config) (*redis.Client, error) {
+func ConnectToRedis(config *Config, enableOTEL bool) (*redis.Client, error) {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", config.Host, config.Port),
 		Username: config.User,
@@ -17,8 +17,10 @@ func ConnectToRedis(config *Config) (*redis.Client, error) {
 		DB:       config.Database,
 	})
 
-	if err := redisotel.InstrumentTracing(rdb); err != nil {
-		return nil, fmt.Errorf("instrument redis client failed, err:%w", err)
+	if enableOTEL {
+		if err := redisotel.InstrumentTracing(rdb); err != nil {
+			return nil, fmt.Errorf("instrument redis client failed, err:%w", err)
+		}
 	}
 
 	_, err := rdb.Ping(context.Background()).Result()
