@@ -37,13 +37,16 @@ func provideWebsocketRouter(
 ) *websocket.Router {
 	router := websocket.NewRouter(validator)
 
-	router.Use(
-		middleware.NewTraceMiddleware(appConfig.Name+".websocket"),
+	middlewares := []websocket.Middleware{
 		middleware.NewRateLimitMiddleware((*limiter.Limiter)(websocketLimiter)),
 		middleware.NewTimeoutMiddleware(appConfig.Timeout),
 		middleware.NewRecoverMiddleware(),
 		middleware.NewLoggerMiddleware(),
-	)
+	}
+	if appConfig.OTEL != nil && appConfig.OTEL.Enabled {
+		middlewares = append([]websocket.Middleware{middleware.NewTraceMiddleware(appConfig.Name + ".websocket")}, middlewares...)
+	}
+	router.Use(middlewares...)
 
 	if appConfig.Breaker != nil {
 		appConfig.Breaker.Name = appConfig.Name + "_websocket_circuit_breaker"

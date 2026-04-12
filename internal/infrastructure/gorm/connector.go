@@ -10,7 +10,7 @@ import (
 	"gorm.io/plugin/opentelemetry/tracing"
 )
 
-func ConnectToMysql(config *MysqlConfig) (*gorm.DB, error) {
+func ConnectToMysql(config *MysqlConfig, enableOTEL bool) (*gorm.DB, error) {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true",
 		config.Username,
 		config.Password,
@@ -35,8 +35,10 @@ func ConnectToMysql(config *MysqlConfig) (*gorm.DB, error) {
 		}()
 		return nil, fmt.Errorf("connect to mysql failed,err:%w", err)
 	}
-	if err := db.Use(tracing.NewPlugin()); err != nil {
-		return nil, fmt.Errorf("register gorm otel plugin failed: %w", err)
+	if enableOTEL {
+		if err := db.Use(tracing.NewPlugin()); err != nil {
+			return nil, fmt.Errorf("register gorm otel plugin failed: %w", err)
+		}
 	}
 
 	sqlDB, err := db.DB()

@@ -97,8 +97,10 @@ func provideHttpRouter(
 	// 初始化Gin路由器
 	router := gin.New()
 
-	// 链路追踪中间件）
-	router.Use(middleware.SkipMiddleware(nonBusinessPaths, otelgin.Middleware(appConfig.Name)))
+	// 仅在显式启用 OTEL 时挂载链路追踪中间件
+	if appConfig.OTEL != nil && appConfig.OTEL.Enabled {
+		router.Use(middleware.SkipMiddleware(nonBusinessPaths, otelgin.Middleware(appConfig.Name)))
+	}
 
 	// 请求ID中间件，确保每个请求都有可追踪的request_id
 
