@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 type Server struct {
@@ -25,9 +25,9 @@ func NewServer(router *gin.Engine, server *http.Server) *Server {
 func (s *Server) Start() {
 	// 启动 HTTP 服务器
 	go func() {
-		log.Printf("starting http server on %s", s.Server.Addr)
+		zap.L().Info("starting http server", zap.String("addr", s.Server.Addr))
 		if err := s.Server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Fatalf("start http server failed: %s\n", err)
+			zap.L().Error("start http server failed", zap.Error(err))
 		}
 	}()
 }

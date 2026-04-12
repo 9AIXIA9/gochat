@@ -7,6 +7,8 @@ import (
 	"gochat/internal/infrastructure/metrics"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/pkg/concurrency"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
@@ -26,7 +28,9 @@ type Consumer struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
-	running bool
+	running   atomic.Bool
+	closeOnce sync.Once
+	wg        sync.WaitGroup
 
 	// pause duration when circuit breaker is open before resuming the partition
 	breakerPause time.Duration
@@ -53,38 +57,41 @@ func NewConsumer(config *Config, router *Router) (*Consumer, error) {
 		errorHandler: nil,
 		ctx:          ctx,
 		cancel:       cancel,
-		running:      false,
 		breakerPause: 0,
 	}, nil
 }
 
 func (c *Consumer) Start() error {
-	if c.running {
+	if !c.running.CompareAndSwap(false, true) {
 		return nil
 	}
 	topics := c.router.Topics()
 	if len(topics) == 0 {
+		c.running.Store(false)
 		return fmt.Errorf("kafka consumer router topics is empty %w", myErrors.ErrEmptyInput)
 	}
 
 	if err := c.consumer.SubscribeTopics(topics, nil); err != nil {
+		c.running.Store(false)
 		return fmt.Errorf("subscribe topics failed: %w", err)
 	}
 
-	c.running = true
 	zap.L().Info("kafka consumer started", zap.Strings("topics", topics), zap.Bool("auto_commit", true))
 
+	c.wg.Add(1)
 	concurrency.GoSafe(c.processMessage)
 
 	return nil
 }
 
 func (c *Consumer) processMessage() {
-	for c.running {
+	defer c.wg.Done()
+	defer c.running.Store(false)
+
+	for c.running.Load() {
 		// Handle ctx cancellation
 		select {
 		case <-c.ctx.Done():
-			c.running = false
 			return
 		default:
 		}
@@ -149,11 +156,14 @@ func (c *Consumer) SetErrorHandler(h ErrorHandler, middlewares ...ErrorMiddlewar
 }
 
 func (c *Consumer) Close() {
-	c.running = false
-	c.cancel()
-	if c.consumer != nil {
-		_ = c.consumer.Close()
-	}
+	c.closeOnce.Do(func() {
+		c.running.Store(false)
+		c.cancel()
+		c.wg.Wait()
+		if c.consumer != nil {
+			_ = c.consumer.Close()
+		}
+	})
 }
 
 // SetBreakerPause configures how long to pause partitions when the circuit is open.
