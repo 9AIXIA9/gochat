@@ -65,7 +65,7 @@ func NewRetryErrorMiddleware(
 				"kafka message retried",
 				zap.Int("retry_count", retryCount),
 				zap.String("topic", *message.TopicPartition.Topic),
-				zap.ByteString("key", message.Key),
+				zap.Binary("key", message.Key),
 			)
 		})
 	}
