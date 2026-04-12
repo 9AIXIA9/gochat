@@ -14,9 +14,9 @@ func NewLoggerErrorHandler() kafka.ErrorHandlerFunc {
 			zap.String("topic", *message.TopicPartition.Topic),
 			zap.Int32("partition", message.TopicPartition.Partition),
 			zap.Int64("offset", int64(message.TopicPartition.Offset)),
-			zap.ByteString("key", message.Key),
-			zap.ByteString("value", message.Value),
-			zap.Error(ctx.Err()),
+			zap.Binary("key", message.Key),
+			zap.Binary("value", message.Value),
+			zap.Error(err),
 		)
 	}
 }

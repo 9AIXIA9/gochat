@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"gochat/internal/infrastructure/metrics"
+	"net"
+	"strings"
 	"sync"
 	"time"
 
@@ -109,6 +111,16 @@ func (c *Client) readPump() {
 				metrics.WSReadError(c.ctx, "close_frame")
 				return
 			}
+			if c.ctx.Err() != nil || isExpectedReadCloseError(err) {
+				metrics.WSReadError(c.ctx, "connection_closed")
+				return
+			}
+			var netErr net.Error
+			if errors.As(err, &netErr) && netErr.Timeout() {
+				metrics.WSReadError(c.ctx, "read_timeout")
+				zap.L().Debug("websocket client read timeout", zap.Error(err))
+				return
+			}
 			metrics.WSReadError(c.ctx, "read_failed")
 			zap.L().Error("websocket client read message failed", zap.Error(err))
 			return
@@ -130,6 +142,16 @@ func (c *Client) readPump() {
 			}
 		}
 	}
+}
+
+func isExpectedReadCloseError(err error) bool {
+	if errors.Is(err, net.ErrClosed) {
+		return true
+	}
+	errMsg := strings.ToLower(err.Error())
+	return strings.Contains(errMsg, "forcibly closed by the remote host") ||
+		strings.Contains(errMsg, "use of closed network connection") ||
+		strings.Contains(errMsg, "connection reset by peer")
 }
 
 func (c *Client) writePump() {
