@@ -67,10 +67,10 @@ func (s *WebsocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	metrics.WSHandshake(r.Context(), "ok")
 	span.End()
 
-	client := websocketInfra.NewClient(ctxConn, conn, s.router)
+	client := websocketInfra.NewClient(ctxConn, conn, s.router, userID)
 	client.WithOnClose(func() {
 		// Unregister by pointer to avoid removing a newly registered client when replacing connections.
-		s.manager.UnregisterClient(client)
+		s.manager.Unregister(client)
 	})
 
 	s.manager.Register(userID, client)
