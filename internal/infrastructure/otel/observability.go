@@ -25,10 +25,6 @@ var (
 	enabled       atomic.Bool
 )
 
-func Enabled() bool {
-	return enabled.Load()
-}
-
 // Init sets up OpenTelemetry tracer provider, meter provider, and global propagator.
 // Returns a shutdown function to flush and cleanup providers.
 func Init(conf *Config) (func(context.Context) error, error) {
