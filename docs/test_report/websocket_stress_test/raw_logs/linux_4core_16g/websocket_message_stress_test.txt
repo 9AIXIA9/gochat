@@ -1,0 +1,30 @@
+2026/04/25 14:03:54 loaded 10000 tokens from ./scripts/websocket_benchmark/tokens.txt
+2026/04/25 14:03:54 runtime max threads set: 50000 (previous: 10000)
+2026/04/25 14:03:54 start websocket benchmark url=ws://172.16.0.12:8080/api/v1/ws/ clients=10000 duration=1m0s connect_rate=500/s max_threads=50000 ping_interval=5s send_interval=1s
+2026/04/25 14:04:04 progress attempted=4964 connected=4963 active=4963 peak=4963 retained=0 unexpected=0 msg_send_ok=22298 msg_send_fail=0 msg_recv=22296 ping_ok=2477 ping_fail=0
+2026/04/25 14:04:14 progress attempted=9930 connected=9930 active=9930 peak=9930 retained=0 unexpected=0 msg_send_ok=94297 msg_send_fail=0 msg_recv=94290 ping_ok=14886 ping_fail=0
+2026/04/25 14:04:24 progress attempted=10000 connected=10000 active=10000 peak=10000 retained=0 unexpected=0 msg_send_ok=194220 msg_send_fail=0 msg_recv=194220 ping_ok=34815 ping_fail=0
+2026/04/25 14:04:34 progress attempted=10000 connected=10000 active=10000 peak=10000 retained=0 unexpected=0 msg_send_ok=294215 msg_send_fail=0 msg_recv=294214 ping_ok=54814 ping_fail=0
+2026/04/25 14:04:44 progress attempted=10000 connected=10000 active=10000 peak=10000 retained=0 unexpected=0 msg_send_ok=394220 msg_send_fail=0 msg_recv=394220 ping_ok=74815 ping_fail=0
+2026/04/25 14:04:54 progress attempted=10000 connected=10000 active=10000 peak=10000 retained=0 unexpected=0 msg_send_ok=494218 msg_send_fail=0 msg_recv=494214 ping_ok=94814 ping_fail=0
+2026/04/25 14:04:55 benchmark complete
+2026/04/25 14:04:55 url: ws://172.16.0.12:8080/api/v1/ws/
+2026/04/25 14:04:55 duration: 1m0.29008878s
+2026/04/25 14:04:55 attempted connections: 10000
+2026/04/25 14:04:55 successful connections: 10000
+2026/04/25 14:04:55 connection success rate: 100.00%
+2026/04/25 14:04:55 active peak connections: 10000
+2026/04/25 14:04:55 retained connections: 10000
+2026/04/25 14:04:55 retained connection rate: 100.00%
+2026/04/25 14:04:55 unexpected closed connections: 0
+2026/04/25 14:04:55 chaos dropped connections: 0
+2026/04/25 14:04:55 avg connect latency: 0.58ms
+2026/04/25 14:04:55 connect latency p50/p95/p99: 0.53ms / 0.64ms / 0.77ms
+2026/04/25 14:04:55 messages sent(success/fail): 494222 / 0
+2026/04/25 14:04:55 message send success rate: 100.00%
+2026/04/25 14:04:55 messages received: 494222
+2026/04/25 14:04:55 message send/recv throughput(tps): 8197.40 / 8197.40
+2026/04/25 14:04:55 message receive delivery rate(received/sent): 100.00%
+2026/04/25 14:04:55 latency matched messages: 0 (match rate 0.00%, field=bench_ts_ns)
+2026/04/25 14:04:55 pings sent(success/fail): 94815 / 0
+2026/04/25 14:04:55 read errors: 0
