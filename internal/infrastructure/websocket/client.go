@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"gochat/internal/infrastructure/metrics"
+	"gochat/internal/shared/kernel"
 	"net"
 	"strings"
 	"sync"
@@ -17,13 +18,14 @@ import (
 )
 
 const (
-	// 建议：ping 间隔必须小于读超时（pongWait）
-	writeWait  = 2 * time.Second  // 每次写操作超时
-	pongWait   = 15 * time.Second // 期待下一次 pong 的最大间隔（读超时）
-	pingPeriod = 10 * time.Second // 发送 ping 的间隔，应严格小于 pongWait
+	// 高并发长连接场景下需要更宽松的心跳窗口，避免调度抖动触发误判超时。
+	writeWait  = 5 * time.Second
+	pongWait   = 2 * time.Minute
+	pingPeriod = 30 * time.Second
 )
 
 type Client struct {
+	id     kernel.UserID
 	conn   *websocket.Conn
 	router *Router
 
@@ -35,9 +37,10 @@ type Client struct {
 	closeOnce sync.Once
 }
 
-func NewClient(ctx context.Context, conn *websocket.Conn, router *Router) *Client {
+func NewClient(ctx context.Context, conn *websocket.Conn, router *Router, id kernel.UserID) *Client {
 	clientCtx, cancel := context.WithCancel(ctx)
 	return &Client{
+		id:       id,
 		conn:     conn,
 		router:   router,
 		ctx:      clientCtx,
@@ -83,9 +86,20 @@ func (c *Client) Send(b []byte) error {
 func (c *Client) readPump() {
 	defer c.Close()
 
-	_ = c.conn.SetReadDeadline(time.Now().UTC().Add(pongWait))
-	c.conn.SetPongHandler(func(string) error {
+	refreshReadDeadline := func() error {
 		return c.conn.SetReadDeadline(time.Now().UTC().Add(pongWait))
+	}
+
+	_ = refreshReadDeadline()
+	c.conn.SetPongHandler(func(string) error {
+		return refreshReadDeadline()
+	})
+	c.conn.SetPingHandler(func(appData string) error {
+		if err := refreshReadDeadline(); err != nil {
+			return err
+		}
+		_ = c.conn.SetWriteDeadline(time.Now().UTC().Add(writeWait))
+		return c.conn.WriteControl(websocket.PongMessage, []byte(appData), time.Now().UTC().Add(writeWait))
 	})
 
 	c.conn.SetCloseHandler(func(code int, text string) error {

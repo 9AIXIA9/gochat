@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const defaultBaseClientsCount = 70000
+const defaultBaseClientsCount = 100000
 
 type Manager struct {
 	mu      sync.RWMutex
@@ -31,8 +31,13 @@ func (m *Manager) Register(id kernel.UserID, c *Client) {
 
 	m.mu.Lock()
 	if old, ok := m.clients[id]; ok {
+		if old == c {
+			m.mu.Unlock()
+			return
+		}
 		toClose = old
 	}
+	c.id = id
 	m.clients[id] = c
 	m.mu.Unlock()
 
@@ -43,35 +48,17 @@ func (m *Manager) Register(id kernel.UserID, c *Client) {
 	metrics.WSConnectionDelta(context.Background(), 1)
 }
 
-func (m *Manager) Unregister(id kernel.UserID) {
+func (m *Manager) Unregister(target *Client) {
+	if target == nil || target.id == "" {
+		return
+	}
+
+	id, found := target.id, false
+
 	m.mu.Lock()
-	c, ok := m.clients[id]
-	if ok {
+	if c, ok := m.clients[id]; ok && c == target {
 		delete(m.clients, id)
-	}
-	m.mu.Unlock()
-
-	if ok {
-		metrics.WSConnectionDelta(context.Background(), -1)
-		metrics.WSDisconnect(context.Background(), "unregister")
-		zap.L().Debug(
-			"websocket manager: unregistered client",
-			zap.String("userID", id.String()),
-		)
-		c.Close()
-	}
-}
-
-// UnregisterClient removes a client by pointer and returns its user ID if found.
-func (m *Manager) UnregisterClient(target *Client) (id kernel.UserID, found bool) {
-	m.mu.Lock()
-	for uid, c := range m.clients {
-		if c == target {
-			delete(m.clients, uid)
-			id = uid
-			found = true
-			break
-		}
+		found = true
 	}
 	m.mu.Unlock()
 
@@ -80,7 +67,6 @@ func (m *Manager) UnregisterClient(target *Client) (id kernel.UserID, found bool
 		metrics.WSDisconnect(context.Background(), "unregister_by_pointer")
 		zap.L().Debug("websocket manager: unregistered client by pointer", zap.String("userID", id.String()))
 	}
-	return
 }
 
 func (m *Manager) SendTo(id kernel.UserID, msg *Message) error {
