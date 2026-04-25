@@ -1,179 +1,120 @@
-# GoChat项目-WebSocket压测性能报告
+# GoChat WebSocket 压测性能报告
 
-## 报告说明
+## 1. 报告信息
 
-本报告针对GoChat聊天项目的WebSocket长连接服务开展多梯度压测，验证服务在高并发场景下的连接稳定性、消息收发性能与长连接保活能力，为项目高并发设计能力提供量化数据佐证。
+- 报告日期：2026-04-25
+- 测试对象：GoChat WebSocket 服务（`/api/v1/ws/`）
+- 测试工具：`scripts/websocket_benchmark/websocket.go`
+- 原始日志目录：`docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/`
 
----
+## 2. 测试目标
 
-## 一、核心压测成果总览
+- 验证高并发连接建立与长连接保持稳定性。
+- 验证高并发下心跳与消息收发吞吐能力。
+- 识别当前压测口径下的瓶颈与后续优化方向。
 
-### 核心亮点
+## 3. 测试环境与口径
 
-1. **极限并发能力**：单实例服务稳定支撑**63000个并发WebSocket长连接**，连接成功率100%，全程无意外断连、无服务崩溃
-2. **超低连接延迟**：全场景平均连接延迟≤5.28ms，6.3万极限并发下P99连接延迟仅19.86ms
-3. **高可靠消息投递**：5000并发场景下消息收发峰值TPS达2238，消息投递成功率100%，无消息丢失
-4. **全场景稳定性**：覆盖1000-63000并发梯度，全场景连接保活成功率100%，读写错误率为0
+### 3.1 环境
 
-### 梯度压测核心指标汇总
+- 环境标识：`linux_4core_16g`
+- 目标地址：`ws://172.16.0.12:808x/api/v1/ws/`
+- 并发线程上限：`max_threads=50000`
 
-# 本地 14核 16GB内存环境，单实例部署，压测脚本与服务同机运行，排除网络带宽干扰
+### 3.2 场景设计
 
-| 压测场景       | 并发连接数 | 核心测试目标         | 连接成功率 | 核心性能指标                                                 |
-|------------|-------|----------------|-------|--------------------------------------------------------|
-| 基础连接稳定性测试  | 1000  | 短连接建立与保活能力     | 100%  | 平均连接延迟3.73ms，P99延迟22.79ms，保活成功率100%                    |
-| 低负载消息收发测试  | 1000  | 低并发下消息收发吞吐量    | 100%  | 消息发送成功率100%，投递率99.93%，峰值TPS 879                        |
-| 中负载消息收发测试  | 5000  | 中并发下消息收发稳定性    | 100%  | 消息收发TPS 2238，投递率100%，全程无断连、无读写错误                       |
-| 高负载连接稳定性测试 | 10000 | 高并发下长连接保活与消息能力 | 100%  | 平均连接延迟2.93ms，消息投递率100%，长连接留存率100%                      |
-| 极限并发连接压测   | 63000 | 单实例极限长连接承载能力   | 100%  | 平均连接延迟5.28ms，P99延迟19.86ms，15分钟长连接留存率100%，ping保活成功率100% |
+场景 A：连接与保活稳定性测试（10 端口并行）
 
----
+- 端口范围：`8080` - `8089`
+- 单端口连接数：`26000`
+- 总连接数：`260000`
+- 测试时长：`10m`
+- 建连速率：`500/s`
+- 心跳：关闭（`ping_interval=0s`）
+- 消息发送：关闭（`send_interval=0s`）
 
-## 二、压测环境与方案设计
+场景 B：消息吞吐与心跳测试（单端口）
 
-### 压测环境
+- 端口：`8080`
+- 连接数：`10000`
+- 测试时长：`60s`
+- 建连速率：`500/s`
+- 心跳：开启（`ping_interval=5s`）
+- 消息发送：开启（`send_interval=1s`）
 
-| 环境项   | 详细配置                                                    |
-|-------|---------------------------------------------------------|
-| 服务部署  | GoChat后端单实例，Docker容器化部署                                 |
-| 依赖中间件 | MySQL、Redis、Kafka 单实例容器化部署，与服务同机运行                      |
-| 压测工具  | 项目自研WebSocket基准测试脚本（路径：`./scripts/websocket_benchmark`） |
-| 压测模式  | 本地单机压测，压测脚本与服务部署在同一宿主机，排除网络带宽干扰                         |
-| 服务配置  | 运行时最大线程数50000，适配高并发连接调度；WebSocket心跳保活机制按需配置             |
+## 4. 测试结果
 
-### 压测方案设计
+### 4.1 场景 A：连接稳定性（260000 总连接）
 
-本次压测采用**梯度加压+场景化验证**的策略，贴合IM聊天服务的真实业务场景，覆盖3类核心验证维度：
+汇总日志：`websocket_connection_stress_test/websocket_stress_summary.txt`
 
-1. **连接稳定性验证**：从1000到63000梯度提升并发连接数，验证服务的连接建立能力、长连接保活能力、异常断连控制
-2. **消息收发性能验证**：在不同并发量级下，按固定间隔发送聊天消息，验证消息吞吐量、投递成功率、端到端延迟
-3. **极限负载验证**：63000并发长连接持续15分钟保活，验证服务在极限负载下的内存稳定性、CPU调度能力、无状态退化
+| 指标 | 结果 |
+| --- | --- |
+| 总尝试连接数 | 260000 |
+| 总成功连接数 | 260000 |
+| 总连接成功率 | 100.00% |
+| 峰值在线连接数 | 260000 |
+| 保留连接数 | 260000 |
+| 保留连接率 | 100.00% |
+| 异常关闭连接 | 0 |
+| 读错误（read errors） | 0 |
+| 任务完成状态 | 10/10 端口全部 `NORMAL` |
 
----
+连接时延（各端口范围）
 
-## 三、关键性能指标详细分析
+- 平均建连时延：`0.57ms` - `0.77ms`
+- P50：`0.49ms` - `0.60ms`
+- P95：`0.58ms` - `0.88ms`
+- P99：`0.97ms` - `6.92ms`
 
-### 1. 连接稳定性表现
+结论：在当前环境和口径下，系统可稳定承载 26 万长连接，未出现连接失败扩散、异常断开或读错误。
 
-- 全梯度压测场景下，**连接建立成功率100%**，无连接超时、连接拒绝问题
-- 63000极限并发场景下，15分钟测试周期内**长连接留存率100%**，无意外关闭连接、无主动断开情况
-- 全场景读写错误率为0，无网络IO异常、包解析失败等问题，服务鲁棒性符合生产级要求
+### 4.2 场景 B：消息吞吐与心跳（10000 连接）
 
-### 2. 连接延迟表现
+日志：`websocket_message_stress_test.txt`
 
-| 并发量级         | 平均连接延迟 | P50延迟  | P95延迟   | P99延迟   |
-|--------------|--------|--------|---------|---------|
-| 1000连接       | 3.73ms | 2.09ms | 13.30ms | 22.79ms |
-| 1000连接（消息收发） | 2.77ms | 2.10ms | 6.78ms  | 10.89ms |
-| 5000连接       | 1.94ms | 1.57ms | 3.62ms  | 11.07ms |
-| 10000连接      | 2.93ms | 2.24ms | 5.29ms  | 16.52ms |
-| 63000连接      | 5.28ms | 3.74ms | 8.71ms  | 19.86ms |
+| 指标 | 结果 |
+| --- | --- |
+| 尝试连接数 | 10000 |
+| 成功连接数 | 10000 |
+| 连接成功率 | 100.00% |
+| 保留连接数 | 10000 |
+| 保留连接率 | 100.00% |
+| 异常关闭连接 | 0 |
+| 平均建连时延 | 0.58ms |
+| 建连时延 P50/P95/P99 | 0.53ms / 0.64ms / 0.77ms |
+| 发送成功消息数 | 494222 |
+| 发送失败消息数 | 0 |
+| 消息发送成功率 | 100.00% |
+| 接收消息数 | 494222 |
+| 投递率（received/sent） | 100.00% |
+| 发送吞吐（TPS） | 8197.40 |
+| 接收吞吐（TPS） | 8197.40 |
+| 心跳成功/失败 | 94815 / 0 |
+| 读错误（read errors） | 0 |
 
-### 3. 消息收发能力表现
+补充说明：日志中 `latency matched messages: 0`，表示当前返回消息里未成功匹配 `bench_ts_ns` 字段，无法得出端到端消息延迟分位值。
 
-- 5000并发、2s消息发送间隔场景下，**消息发送成功率100%，消息投递率100%**，无消息丢失、乱序问题
-- 10000并发、5s消息发送间隔场景下，持续2分钟测试，消息收发TPS稳定在1779，投递成功率100%
-- 全场景消息发送无失败记录，服务异步化消息处理机制有效避免了高并发下的消息阻塞与丢失
+## 5. 综合结论
 
----
+- 连接能力：通过。系统在 26 万并发连接压测下表现稳定，连接成功率和保活率均为 100%。
+- 消息能力：通过。在 1 万连接、每秒持续发送条件下，消息收发吞吐约 8.2k TPS，发送成功率与投递率均为 100%。
+- 稳定性：通过。两个场景均未出现异常断连放大、读错误、心跳失败。
 
-## 四、性能优化闭环说明
-
-本次压测的优异表现，与项目的架构设计与性能优化策略强相关，核心优化点如下：
-
-1. **WebSocket连接优化**：基于Gorilla WebSocket框架实现连接池化管理，优化连接握手流程，降低单连接内存开销，支撑海量长连接承载
-2. **全链路异步化设计**：通过Kafka实现消息收发的解耦，采用异步IO处理消息持久化与推送，避免同步阻塞导致的性能瓶颈
-3. **调度与资源优化**：合理配置Go运行时GOMAXPROCS与最大线程数，优化goroutine调度模型，适配高并发连接的CPU调度需求
-4. **保活机制优化**：按需配置心跳间隔，避免无效网络包传输，在保障长连接活性的同时，降低服务CPU与带宽开销
-5. **稳定性保障**：实现服务熔断、错误重试与优雅降级机制，避免单连接异常、单节点故障扩散，保障高并发下的服务整体稳定性
-
----
-
-## 五、关键原始参数与结果摘录（可核验）
-
-说明：以下数据均来自原始压测日志逐行摘录，用于支撑结论并方便第三方复核。
-
-### 场景A：1000连接-短时连接稳定性（10s）
-
-- 原始启动参数（日志原文）
-	- start websocket benchmark url=ws://localhost:8080/api/v1/ws/ clients=1000 duration=10s connect_rate=500/s max_threads=50000 ping_interval=5s send_interval=0s
-- 原始结果（日志原文）
-	- attempted connections: 1000
-	- successful connections: 1000
-	- connection success rate: 100.00%
-	- active peak connections: 1000
-	- retained connections: 1000
-	- retained connection rate: 100.00%
-	- unexpected closed connections: 0
-	- avg connect latency: 3.73ms
-	- connect latency p50/p95/p99: 2.09ms / 13.30ms / 22.79ms
-	- pings sent(success/fail): 1000 / 0
-	- read errors: 0
-
-### 场景B：1000连接-消息收发（1m，1s发送）
-
-- 原始启动参数（日志原文）
-	- start websocket benchmark url=ws://localhost:8080/api/v1/ws/ clients=1000 duration=1m0s connect_rate=200/s max_threads=50000 ping_interval=0s send_interval=1s
-- 原始结果（日志原文）
-	- successful connections: 1000
-	- retained connections: 1000
-	- messages sent(success/fail): 56995 / 0
-	- messages received: 56995
-	- message send/recv throughput(tps): 949.23 / 949.23
-	- message receive delivery rate(received/sent): 100.00%
-	- read errors: 0
-
-### 场景C：5000连接-中负载消息收发（1m，2s发送）
-
-- 原始启动参数（日志原文）
-	- start websocket benchmark url=ws://localhost:8080/api/v1/ws/ clients=5000 duration=1m0s connect_rate=500/s max_threads=50000 ping_interval=0s send_interval=2s
-- 原始结果（日志原文）
-	- successful connections: 5000
-	- retained connections: 5000
-	- messages sent(success/fail): 134967 / 0
-	- messages received: 134967
-	- message send/recv throughput(tps): 2238.89 / 2238.89
-	- message receive delivery rate(received/sent): 100.00%
-	- read errors: 0
-
-### 场景D：10000连接-高负载稳定性（2m，5s发送）
-
-- 原始启动参数（日志原文）
-	- start websocket benchmark url=ws://localhost:8080/api/v1/ws/ clients=10000 duration=2m0s connect_rate=500/s max_threads=50000 ping_interval=0s send_interval=5s
-- 原始结果（日志原文）
-	- successful connections: 10000
-	- retained connections: 10000
-	- messages sent(success/fail): 214886 / 0
-	- messages received: 214886
-	- message send/recv throughput(tps): 1779.23 / 1779.23
-	- message receive delivery rate(received/sent): 100.00%
-	- read errors: 0
-
-### 场景E：63000连接-极限长连接保活（15m）
-
-- 原始启动参数（日志原文）
-	- start websocket benchmark url=ws://localhost:8080/api/v1/ws/ clients=63000 duration=15m0s connect_rate=100/s max_threads=50000 ping_interval=30s send_interval=0s
-- 关键进度摘录（日志原文）
-	- 14:35:37 progress attempted=63000 connected=63000 active=63000 peak=63000 ... ping_ok=649327 ping_fail=0
-	- 14:39:57 progress attempted=63000 connected=63000 active=63000 peak=63000 ... ping_ok=1195192 ping_fail=0
-- 原始结果（日志原文）
-	- successful connections: 63000
-	- active peak connections: 63000
-	- retained connections: 63000
-	- retained connection rate: 100.00%
-	- unexpected closed connections: 0
-	- avg connect latency: 5.28ms
-	- connect latency p50/p95/p99: 3.74ms / 8.71ms / 19.86ms
-	- pings sent(success/fail): 1195196 / 0
-	- read errors: 0
 
 ---
 
-## 六、附录A：原始日志文件索引
+原始数据来源：
 
-- 说明：见 `docs/test_report/raw_logs/README.md`
-- 场景A：`docs/test_report/raw_logs/20260320_ws_1000_10s_keepalive.log`
-- 场景B：`docs/test_report/raw_logs/20260320_ws_1000_1m_send1s.log`
-- 场景C：`docs/test_report/raw_logs/20260320_ws_5000_1m_send2s.log`
-- 场景D：`docs/test_report/raw_logs/20260320_ws_10000_2m_send5s.log`
-- 场景E：`docs/test_report/raw_logs/20260320_ws_63000_15m_keepalive.log`
+- `docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_summary.txt`
+- `docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8080.txt`
+- `docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8081.txt`
+- `docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8082.txt`
+- `docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8083.txt`
+- `docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8084.txt`
+- `docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8085.txt`
+- `docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8086.txt`
+- `docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8087.txt`
+- `docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8088.txt`
+- `docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8089.txt`
+- `docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_message_stress_test.txt`
