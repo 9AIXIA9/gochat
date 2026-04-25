@@ -48,17 +48,17 @@
 
 汇总日志：`websocket_connection_stress_test/websocket_stress_summary.txt`
 
-| 指标 | 结果 |
-| --- | --- |
-| 总尝试连接数 | 260000 |
-| 总成功连接数 | 260000 |
-| 总连接成功率 | 100.00% |
-| 峰值在线连接数 | 260000 |
-| 保留连接数 | 260000 |
-| 保留连接率 | 100.00% |
-| 异常关闭连接 | 0 |
-| 读错误（read errors） | 0 |
-| 任务完成状态 | 10/10 端口全部 `NORMAL` |
+| 指标               | 结果                  |
+|------------------|---------------------|
+| 总尝试连接数           | 260000              |
+| 总成功连接数           | 260000              |
+| 总连接成功率           | 100.00%             |
+| 峰值在线连接数          | 260000              |
+| 保留连接数            | 260000              |
+| 保留连接率            | 100.00%             |
+| 异常关闭连接           | 0                   |
+| 读错误（read errors） | 0                   |
+| 任务完成状态           | 10/10 端口全部 `NORMAL` |
 
 连接时延（各端口范围）
 
@@ -73,27 +73,25 @@
 
 日志：`websocket_message_stress_test.txt`
 
-| 指标 | 结果 |
-| --- | --- |
-| 尝试连接数 | 10000 |
-| 成功连接数 | 10000 |
-| 连接成功率 | 100.00% |
-| 保留连接数 | 10000 |
-| 保留连接率 | 100.00% |
-| 异常关闭连接 | 0 |
-| 平均建连时延 | 0.58ms |
-| 建连时延 P50/P95/P99 | 0.53ms / 0.64ms / 0.77ms |
-| 发送成功消息数 | 494222 |
-| 发送失败消息数 | 0 |
-| 消息发送成功率 | 100.00% |
-| 接收消息数 | 494222 |
-| 投递率（received/sent） | 100.00% |
-| 发送吞吐（TPS） | 8197.40 |
-| 接收吞吐（TPS） | 8197.40 |
-| 心跳成功/失败 | 94815 / 0 |
-| 读错误（read errors） | 0 |
-
-补充说明：日志中 `latency matched messages: 0`，表示当前返回消息里未成功匹配 `bench_ts_ns` 字段，无法得出端到端消息延迟分位值。
+| 指标                 | 结果                       |
+|--------------------|--------------------------|
+| 尝试连接数              | 10000                    |
+| 成功连接数              | 10000                    |
+| 连接成功率              | 100.00%                  |
+| 保留连接数              | 10000                    |
+| 保留连接率              | 100.00%                  |
+| 异常关闭连接             | 0                        |
+| 平均建连时延             | 0.58ms                   |
+| 建连时延 P50/P95/P99   | 0.53ms / 0.64ms / 0.77ms |
+| 发送成功消息数            | 494222                   |
+| 发送失败消息数            | 0                        |
+| 消息发送成功率            | 100.00%                  |
+| 接收消息数              | 494222                   |
+| 投递率（received/sent） | 100.00%                  |
+| 发送吞吐（TPS）          | 8197.40                  |
+| 接收吞吐（TPS）          | 8197.40                  |
+| 心跳成功/失败            | 94815 / 0                |
+| 读错误（read errors）   | 0                        |
 
 ## 5. 综合结论
 
@@ -101,20 +99,32 @@
 - 消息能力：通过。在 1 万连接、每秒持续发送条件下，消息收发吞吐约 8.2k TPS，发送成功率与投递率均为 100%。
 - 稳定性：通过。两个场景均未出现异常断连放大、读错误、心跳失败。
 
-
 ---
 
 原始数据来源：
 
-- `docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_summary.txt`
-- `docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8080.txt`
-- `docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8081.txt`
-- `docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8082.txt`
-- `docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8083.txt`
-- `docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8084.txt`
-- `docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8085.txt`
-- `docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8086.txt`
-- `docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8087.txt`
-- `docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8088.txt`
-- `docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8089.txt`
+-
+
+`docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_summary.txt`
+-
+`docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8080.txt`
+-
+`docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8081.txt`
+-
+`docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8082.txt`
+-
+`docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8083.txt`
+-
+`docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8084.txt`
+-
+`docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8085.txt`
+-
+`docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8086.txt`
+-
+`docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8087.txt`
+-
+`docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8088.txt`
+-
+`docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_connection_stress_test/websocket_stress_report_8089.txt`
+
 - `docs/test_report/websocket_stress_test/raw_logs/linux_4core_16g/websocket_message_stress_test.txt`
