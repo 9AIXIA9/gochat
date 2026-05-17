@@ -58,7 +58,7 @@ func TestCreateSystemMessage(t *testing.T) {
 
 	assert.Equal(t, fixedMessageID, message.ID())
 	assert.Equal(t, fixedRecipientID, message.RecipientID())
-	assert.Equal(t, domain.MessageStateDelivered, message.State())
+	assert.Equal(t, domain.MessageStateUndelivered, message.State())
 	assert.Equal(t, fixedContent, message.Content())
 	assert.WithinDuration(t, start, message.SentAt(), timeTolerance)
 
@@ -92,33 +92,4 @@ func TestCreateSystemMessage(t *testing.T) {
 	)
 	require.ErrorIs(t, err, domain.ErrEmptyContent)
 	require.Nil(t, messageWithEmptyContent)
-}
-
-func TestSystemMessage_Deliver(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockNotifier := mocks.NewMockSystemMessageNotifier(ctrl)
-
-	//正常情况
-	message := domain.LoadSystemMessage(
-		fixedMessageID,
-		fixedRecipientID,
-		domain.MessageStateUndelivered,
-		fixedContent,
-		time.Now().UTC(),
-	)
-
-	mockNotifier.EXPECT().
-		Notify(message).
-		Return(nil).
-		Times(1)
-
-	err := message.Deliver(mockNotifier)
-	require.NoError(t, err)
-	assert.Equal(t, domain.MessageStateDelivered, message.State())
-
-	//消息状态不是未发送
-	err = message.Deliver(mockNotifier)
-	require.NoError(t, err)
 }

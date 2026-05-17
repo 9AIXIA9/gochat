@@ -78,22 +78,6 @@ func CreatePrivateMessage(
 	return message, nil
 }
 
-func (m *PrivateMessage) Deliver(
-	notifier PrivateMessageNotifier,
-) error {
-	if m.state != MessageStateUndelivered {
-		return nil
-	}
-
-	if err := notifier.Notify(m); err != nil {
-		return err
-	}
-
-	m.state = MessageStateDelivered
-
-	return nil
-}
-
 func (m *PrivateMessage) ID() kernel.MessageID {
 	return m.id
 }

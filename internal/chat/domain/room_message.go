@@ -124,25 +124,6 @@ func createRoomMessageByRoomships(
 	return message, nil
 }
 
-func (m *RoomMessage) Deliver(
-	userID kernel.UserID,
-	notifier RoomMessageNotifier,
-) error {
-	if state, ok := m.states[userID]; !ok || state != MessageStateUndelivered {
-		return nil
-	}
-
-	ids, err := notifier.Notify(m, []kernel.UserID{userID})
-	if err != nil {
-		return err
-	}
-
-	for _, id := range ids {
-		m.states[id] = MessageStateDelivered
-	}
-	return nil
-}
-
 func (m *RoomMessage) ID() kernel.MessageID {
 	return m.id
 }
@@ -169,6 +150,16 @@ func (m *RoomMessage) States() map[kernel.UserID]MessageState {
 
 func (m *RoomMessage) State(id kernel.UserID) MessageState {
 	return m.states[id]
+}
+
+func (m *RoomMessage) UndeliveredRecipientIDs() []kernel.UserID {
+	recipientIDs := make([]kernel.UserID, 0)
+	for recipientID, state := range m.states {
+		if state == MessageStateUndelivered {
+			recipientIDs = append(recipientIDs, recipientID)
+		}
+	}
+	return recipientIDs
 }
 
 func (m *RoomMessage) GetEvents() []event.Event {
