@@ -44,12 +44,14 @@
 
 ## 3. 全部 WebSocket 接口清单
 
-项目当前一共 4 个 WebSocket 相关 topic：
+项目当前一共 8 个 WebSocket 相关 topic：
 
-- 客户端可主动调用（2 个）
-- 服务端主动推送（2 个）
+- 客户端可主动调用（5 个）
+- 服务端主动推送（3 个）
 
-### 3.1 chat.send_private_message（客户端发送私聊消息）
+### 3.1 客户端可调用接口
+
+#### 3.1.1 chat.send_private_message（客户端发送私聊消息）
 
 请求：
 
@@ -87,7 +89,7 @@
 
 ---
 
-### 3.2 chat.send_room_message（客户端发送群聊消息）
+#### 3.1.2 chat.send_room_message（客户端发送群聊消息）
 
 请求：
 
@@ -126,53 +128,9 @@
 
 ---
 
-### 3.3 chat.notify_private_message（服务端私聊消息推送）
 
-这是服务端主动发给在线接收方用户的通知，客户端不能主动调用该 topic。
 
-推送示例：
-
-~~~json
-{
-  "topic": "chat.notify_private_message",
-  "body": {
-    "id": "m_123",
-    "sender_id": "u_1001",
-    "state": "sent",
-    "content": "你好",
-    "sent_at": "2026-04-09T10:00:00Z"
-  }
-}
-~~~
-
----
-
-### 3.4 chat.notify_room_message（服务端群聊消息推送）
-
-这是服务端主动广播给房间在线成员（不含发送者）的通知，客户端不能主动调用该 topic。
-
-推送示例：
-
-~~~json
-{
-  "topic": "chat.notify_room_message",
-  "body": {
-    "id": "m_456",
-    "sender_id": "u_1001",
-    "room_id": "r_9001",
-    "states": {
-      "u_1002": "sent",
-      "u_1003": "sent"
-    },
-    "content": "开会了",
-    "sent_at": "2026-04-09T10:01:00Z"
-  }
-}
-~~~
-
----
-
-### 3.5 chat.confirm_private_messages（客户端确认私聊消息已收到/已送达 Delivered）
+#### 3.1.3 chat.confirm_private_messages（客户端确认私聊消息已收到/已送达 Delivered）
 
 用途：客户端收到服务端推送的 `chat.notify_private_message` 后，把对应消息 ID 回传确认，服务端会把这些消息状态更新为
 `delivered`。
@@ -209,7 +167,7 @@
 
 ---
 
-### 3.6 chat.confirm_room_messages（客户端确认群聊消息已收到/已送达 Delivered）
+#### 3.1.4 chat.confirm_room_messages（客户端确认群聊消息已收到/已送达 Delivered）
 
 用途：客户端收到服务端推送的 `chat.notify_room_message` 后，把对应消息 ID 回传确认，服务端会把这些消息状态更新为
 `delivered`。
@@ -248,7 +206,7 @@
 
 ---
 
-### 3.7 notification.confirm_system_messages（客户端确认系统消息已收到/已送达 Delivered）
+#### 3.1.5 notification.confirm_system_messages（客户端确认系统消息已收到/已送达 Delivered）
 
 用途：客户端收到服务端推送的 `notification.notify_system_message` 后，把对应消息 ID 回传确认，服务端会把这些系统消息状态更新为
 `delivered`。
@@ -279,6 +237,72 @@
   "body": {
     "code": 200,
     "message": "success"
+  }
+}
+~~~
+
+---
+
+### 3.2 服务端主动推送接口
+
+#### 3.2.1 chat.notify_private_message（服务端私聊消息推送）
+
+这是服务端主动发给在线接收方用户的通知，客户端不能主动调用该 topic。
+
+推送示例：
+
+~~~json
+{
+  "topic": "chat.notify_private_message",
+  "body": {
+    "id": "m_123",
+    "sender_id": "u_1001",
+    "state": "delivered",
+    "content": "你好",
+    "sent_at": "2026-04-09T10:00:00Z"
+  }
+}
+~~~
+
+---
+
+#### 3.2.2 chat.notify_room_message（服务端群聊消息推送）
+
+这是服务端主动广播给房间在线成员（不含发送者）的通知，客户端不能主动调用该 topic。
+
+推送示例：
+
+~~~json
+{
+  "topic": "chat.notify_room_message",
+  "body": {
+    "id": "m_456",
+    "sender_id": "u_1001",
+    "room_id": "r_9001",
+    "states": {
+      "u_1002": "delivered",
+      "u_1003": "delivered"
+    },
+    "content": "开会了",
+    "sent_at": "2026-04-09T10:01:00Z"
+  }
+}
+~~~
+
+#### 3.2.3 notification.notify_system_message（服务端系统消息推送）
+
+这是服务端主动发给在线接收方用户的系统通知，客户端不能主动调用该 topic。
+
+推送示例：
+
+~~~json
+{
+  "topic": "notification.notify_system_message",
+  "body": {
+    "id": "m_123",
+    "state": "delivered",
+    "content": "你的好友请求被接受了",
+    "sent_at": "2026-04-09T10:00:00Z"
   }
 }
 ~~~

@@ -48,26 +48,9 @@ func CreateSystemMessage(
 	}
 
 	//尝试投递消息，投递失败不影响消息创建
-	_ = message.Deliver(notifier)
+	_ = notifier.Notify(message)
 
 	return message, nil
-}
-
-func (m *SystemMessage) Deliver(
-	notifier SystemMessageNotifier,
-) error {
-	if m.state != MessageStateUndelivered {
-		return nil
-	}
-
-	m.state = MessageStateDelivered
-
-	if err := notifier.Notify(m); err != nil {
-		m.state = MessageStateUndelivered
-		return err
-	}
-
-	return nil
 }
 
 func (m *SystemMessage) ID() kernel.MessageID {

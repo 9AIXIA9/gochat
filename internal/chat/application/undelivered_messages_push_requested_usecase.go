@@ -62,9 +62,7 @@ func (uc *undeliveredMessagesPushRequestedUseCase) Execute(ctx context.Context, 
 
 	if len(privateMessages) > 0 {
 		for _, message := range privateMessages {
-			if err := message.Deliver(uc.privateMessageNotifier); err != nil {
-				return nil, err
-			}
+			_ = uc.privateMessageNotifier.Notify(message)
 		}
 	}
 
@@ -75,9 +73,8 @@ func (uc *undeliveredMessagesPushRequestedUseCase) Execute(ctx context.Context, 
 
 	if len(roomMessages) > 0 {
 		for _, message := range roomMessages {
-			if err := message.Deliver(input.UserID, uc.roomMessageNotifier); err != nil {
-				return nil, err
-			}
+			_, _ = uc.roomMessageNotifier.Notify(message, message.UndeliveredRecipientIDs())
+
 		}
 	}
 

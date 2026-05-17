@@ -55,10 +55,7 @@ func (uc *undeliveredMessagesNotificationRequestedUseCase) Execute(ctx context.C
 	}
 
 	for _, message := range systemMessages {
-		if err := uc.systemMessageNotifier.Notify(message); err != nil {
-			return nil, err
-		}
+		_ = uc.systemMessageNotifier.Notify(message)
 	}
-
 	return nil, nil
 }
