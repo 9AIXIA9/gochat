@@ -19,7 +19,7 @@
   "topic": "chat.send_private_message",
   "payload": {
     "recipient_id": "u_1002",
-    "content": "你好" 
+    "content": "你好"
   }
 }
 ~~~
@@ -84,7 +84,8 @@
 
 - 参数缺失/格式错误：`code=401`（invalid parameter）
 - 非好友发送私聊：`code=200`，`message` 为业务错误描述（例如 not friends）
-- 服务内部异常：`code=500`
+
+---
 
 ### 3.2 chat.send_room_message（客户端发送群聊消息）
 
@@ -123,6 +124,8 @@
 - 不是房间成员、房间不存在：`code=200`，`message` 为业务错误描述
 - 服务内部异常：`code=500`
 
+---
+
 ### 3.3 chat.notify_private_message（服务端私聊消息推送）
 
 这是服务端主动发给在线接收方用户的通知，客户端不能主动调用该 topic。
@@ -141,6 +144,8 @@
   }
 }
 ~~~
+
+---
 
 ### 3.4 chat.notify_room_message（服务端群聊消息推送）
 
@@ -164,6 +169,84 @@
   }
 }
 ~~~
+
+---
+
+### 3.5 chat.confirm_private_messages（客户端确认私聊消息已收到/已送达 Delivered）
+
+用途：客户端收到服务端推送的 `chat.notify_private_message` 后，把对应消息 ID 回传确认，服务端会把这些消息状态更新为
+`delivered`。
+
+请求：
+
+~~~json
+{
+  "topic": "chat.confirm_private_messages",
+  "payload": {
+    "message_ids": [
+      "m_1001",
+      "m_1002"
+    ]
+  }
+}
+~~~
+
+字段：
+
+- `message_ids`：消息 ID 列表，必填，至少 1 个。
+
+成功响应：
+
+~~~json
+{
+  "topic": "chat.confirm_private_messages",
+  "body": {
+    "code": 200,
+    "message": "success"
+  }
+}
+~~~
+
+---
+
+### 3.6 chat.confirm_room_messages（客户端确认群聊消息已收到/已送达 Delivered）
+
+用途：客户端收到服务端推送的 `chat.notify_room_message` 后，把对应消息 ID 回传确认，服务端会把这些消息状态更新为
+`delivered`。
+
+请求：
+
+~~~json
+{
+  "topic": "chat.confirm_room_messages",
+  "payload": {
+    "message_ids": [
+      "m_2001",
+      "m_2002"
+    ]
+  }
+}
+~~~
+
+字段：
+
+- `message_ids`：消息 ID 列表，必填，至少 1 个。
+
+成功响应：
+
+~~~json
+{
+  "topic": "chat.confirm_room_messages",
+  "body": {
+    "code": 200,
+    "message": "success"
+  }
+}
+~~~
+
+- 服务内部异常：`code=500`
+
+---
 
 ## 4. 未定义 topic 的行为
 

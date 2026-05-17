@@ -95,6 +95,16 @@ func (repo *PrivateMessageRepository) UpdatesByUserID(ctx context.Context, sende
 		Update("state", state).Error)
 }
 
+func (repo *PrivateMessageRepository) UpdatesByMessageIDs(ctx context.Context, userID kernel.UserID, ids []kernel.MessageID, state domain.MessageState) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	return gormutils.TranslateError(repo.db.WithContext(ctx).Model(&model.PrivateMessage{}).
+		Where("recipient_id = ? AND id IN ?", userID, ids).
+		Update("state", state).Error)
+}
+
 func (repo *PrivateMessageRepository) FindsByUserIDs(ctx context.Context, userID1, userID2 kernel.UserID, limit int, baseID kernel.MessageID) ([]*domain.PrivateMessage, error) {
 	var messages []model.PrivateMessage
 

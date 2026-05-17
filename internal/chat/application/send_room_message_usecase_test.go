@@ -52,12 +52,12 @@ func TestNewSendRoomMessageUseCase(t *testing.T) {
 	mockMessageIDGenerator := kernelmocks.NewMockMessageIDGenerator(ctrl)
 	mockMessageCreator := mocks.NewMockRoomMessageCreator(ctrl)
 	mockNotifier := mocks.NewMockRoomMessageNotifier(ctrl)
-	mockFinder := mocks.NewMockRoomshipsFinderByRoomID(ctrl)
+	finder := mocks.NewMockRoomshipsFinderByRoomID(ctrl)
 
 	useCase, err := application.NewSendRoomMessageUseCase(
 		mockMessageIDGenerator,
 		mockNotifier,
-		mockFinder,
+		finder,
 		mockMessageCreator,
 	)
 
@@ -79,12 +79,12 @@ func TestSendRoomMessageUseCase_Execute(t *testing.T) {
 	mockMessageIDGenerator := kernelmocks.NewMockMessageIDGenerator(ctrl)
 	mockMessageCreator := mocks.NewMockRoomMessageCreator(ctrl)
 	mockNotifier := mocks.NewMockRoomMessageNotifier(ctrl)
-	mockFinder := mocks.NewMockRoomshipsFinderByRoomID(ctrl)
+	finder := mocks.NewMockRoomshipsFinderByRoomID(ctrl)
 
 	useCase, err := application.NewSendRoomMessageUseCase(
 		mockMessageIDGenerator,
 		mockNotifier,
-		mockFinder,
+		finder,
 		mockMessageCreator,
 	)
 	require.NoError(t, err)
@@ -106,14 +106,35 @@ func TestSendRoomMessageUseCase_Execute(t *testing.T) {
 		fixedUserID,
 		fixedRoomID,
 	))
+	mockRoomshipsWithoutSender := mockRoomships[:len(mockRoomships)-1]
 
-	// 正常情况
+	// 统一按真实调用顺序设置期望：
+	// 1) finder -> 2) Generate -> 3) Notify(若有其他成员) -> 4) Create
+	singleRoomship := domain.LoadRoomship(
+		fixedRoomshipID,
+		fixedUserID,
+		fixedRoomID,
+	)
 	gomock.InOrder(
-		mockFinder.EXPECT().FindsByRoomID(nil, fixedRoomID).Return(mockRoomships, nil).Times(1),
+		// 正常情况
+		finder.EXPECT().FindsByRoomID(nil, fixedRoomID).Return(mockRoomships, nil).Times(1),
 		mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1),
 		mockNotifier.EXPECT().Notify(gomock.Any(), mockMembers).Return(mockMembers, nil).Times(1),
-		mockMessageCreator.EXPECT().Create(nil, gomock.Any()).Times(1),
+		mockMessageCreator.EXPECT().Create(nil, gomock.Any()).Return(nil).Times(1),
+
+		// 不是成员
+		finder.EXPECT().FindsByRoomID(nil, fixedRoomID).Return(mockRoomshipsWithoutSender, nil).Times(1),
+
+		// 房间不存在
+		finder.EXPECT().FindsByRoomID(nil, fixedRoomID).Return([]*domain.Roomship{}, nil).Times(1),
+
+		// 房间只有自己
+		finder.EXPECT().FindsByRoomID(nil, fixedRoomID).Return([]*domain.Roomship{singleRoomship}, nil).Times(1),
+		mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1),
+		mockMessageCreator.EXPECT().Create(nil, gomock.Any()).Return(nil).Times(1),
 	)
+
+	// 正常情况
 	_, err = useCase.Execute(nil, &application.SendRoomMessageInput{
 		SenderID: fixedUserID,
 		RoomID:   fixedRoomID,
@@ -122,11 +143,6 @@ func TestSendRoomMessageUseCase_Execute(t *testing.T) {
 	require.NoError(t, err)
 
 	// 不是成员
-	mockRoomships = mockRoomships[:len(mockRoomships)-1]
-
-	gomock.InOrder(
-		mockFinder.EXPECT().FindsByRoomID(nil, fixedRoomID).Return(mockRoomships, nil).Times(1),
-	)
 	_, err = useCase.Execute(nil, &application.SendRoomMessageInput{
 		SenderID: fixedUserID,
 		RoomID:   fixedRoomID,
@@ -134,19 +150,15 @@ func TestSendRoomMessageUseCase_Execute(t *testing.T) {
 	})
 	require.ErrorIs(t, err, domain.ErrNotMember)
 
+	// 房间不存在
+	_, err = useCase.Execute(nil, &application.SendRoomMessageInput{
+		SenderID: fixedUserID,
+		RoomID:   fixedRoomID,
+		Content:  fixedContent,
+	})
+	require.ErrorIs(t, err, domain.ErrRoomNotFound)
+
 	// 房间只有自己
-	singleRoomship := domain.LoadRoomship(
-		fixedRoomshipID,
-		fixedUserID,
-		fixedRoomID,
-	)
-	gomock.InOrder(
-		mockFinder.EXPECT().FindsByRoomID(nil, fixedRoomID).Return([]*domain.Roomship{
-			singleRoomship,
-		}, nil).Times(1),
-		mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1),
-		mockMessageCreator.EXPECT().Create(nil, gomock.Any()).Times(1),
-	)
 	_, err = useCase.Execute(nil, &application.SendRoomMessageInput{
 		SenderID: fixedUserID,
 		RoomID:   fixedRoomID,

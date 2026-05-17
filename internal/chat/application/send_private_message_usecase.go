@@ -58,23 +58,14 @@ func NewSendPrivateMessageUseCase(
 }
 
 func (uc *sendPrivateMessageUseCase) Execute(ctx context.Context, input *SendPrivateMessageInput) (*kernel.NoOutput, error) {
-	if input.SenderID != input.RecipientID {
-		exist, err := uc.exister.ExistByUserID(ctx, input.SenderID, input.RecipientID)
-		if err != nil {
-			return nil, err
-		}
-
-		if !exist {
-			return nil, domain.ErrNotFriends
-		}
-	}
-
 	message, err := domain.CreatePrivateMessage(
+		ctx,
 		input.RecipientID,
 		input.SenderID,
 		input.Content,
 		uc.messageIDGenerator,
 		uc.notifier,
+		uc.exister,
 	)
 	if err != nil {
 		return nil, err

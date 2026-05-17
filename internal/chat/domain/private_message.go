@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"time"
@@ -37,14 +38,27 @@ func LoadPrivateMessage(
 }
 
 func CreatePrivateMessage(
+	ctx context.Context,
 	recipientID kernel.UserID,
 	senderID kernel.UserID,
 	content string,
 	messageIDGenerator kernel.MessageIDGenerator,
 	notifier PrivateMessageNotifier,
+	exister FriendshipExisterByUserID,
 ) (*PrivateMessage, error) {
 	if len(content) == 0 {
 		return nil, ErrEmptyMessageContent
+	}
+
+	if senderID != recipientID {
+		exist, err := exister.ExistByUserID(ctx, senderID, recipientID)
+		if err != nil {
+			return nil, err
+		}
+
+		if !exist {
+			return nil, ErrNotFriends
+		}
 	}
 
 	message := &PrivateMessage{
@@ -57,16 +71,9 @@ func CreatePrivateMessage(
 		eventManager: event.NewEventManager(),
 	}
 
-	if recipientID == senderID {
-		message.state = MessageStateDelivered
-		return message, nil
-	}
-
 	if err := notifier.Notify(message); err != nil {
 		return message, nil
 	}
-
-	message.state = MessageStateDelivered
 
 	return message, nil
 }

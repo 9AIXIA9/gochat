@@ -59,16 +59,15 @@ func NewSendRoomMessageUseCase(
 }
 
 func (uc *sendRoomMessageUseCase) Execute(ctx context.Context, input *SendRoomMessageInput) (*kernel.NoOutput, error) {
-	roomships, err := uc.finder.FindsByRoomID(ctx, input.RoomID)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(roomships) == 0 {
-		return nil, myErrors.NewBusiness("room not found")
-	}
-
-	message, err := uc.createRoomMessage(roomships, input)
+	message, err := domain.CreateRoomMessage(
+		ctx,
+		input.RoomID,
+		input.SenderID,
+		input.Content,
+		uc.finder,
+		uc.messageIDGenerator,
+		uc.notifier,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -78,45 +77,4 @@ func (uc *sendRoomMessageUseCase) Execute(ctx context.Context, input *SendRoomMe
 	}
 
 	return nil, nil
-}
-
-func (uc *sendRoomMessageUseCase) createRoomMessage(roomships []*domain.Roomship, input *SendRoomMessageInput) (*domain.RoomMessage, error) {
-	// 房间内没有其他成员
-	if len(roomships) == 1 {
-		// 仅有自己
-		if roomships[0].UserID() == input.SenderID {
-			return domain.CreateRoomMessage(
-				input.RoomID,
-				input.SenderID,
-				nil,
-				input.Content,
-				uc.messageIDGenerator,
-				uc.notifier,
-			)
-		}
-		return nil, domain.ErrNotMember
-	}
-
-	var exist bool
-	recipientIDs := make([]kernel.UserID, 0, len(roomships)-1)
-	for _, roomship := range roomships {
-		if roomship.UserID() == input.SenderID {
-			exist = true
-			continue
-		}
-		recipientIDs = append(recipientIDs, roomship.UserID())
-	}
-
-	if !exist {
-		return nil, domain.ErrNotMember
-	}
-
-	return domain.CreateRoomMessage(
-		input.RoomID,
-		input.SenderID,
-		recipientIDs,
-		input.Content,
-		uc.messageIDGenerator,
-		uc.notifier,
-	)
 }

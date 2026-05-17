@@ -27,27 +27,21 @@ func (r *UndeliveredMessagesPushRequestedInput) Validate() error {
 type undeliveredMessagesPushRequestedUseCase struct {
 	privateMessagesFinder  domain.PrivateMessagesFinderByRecipientIDAndState
 	privateMessageNotifier domain.PrivateMessageNotifier
-	privateMessagesUpdater domain.PrivateMessagesUpdater
 	roomMessagesFinder     domain.RoomMessagesFinderByRecipientIDAndState
 	roomMessageNotifier    domain.RoomMessageNotifier
-	roomMessagesUpdater    domain.RoomMessagesUpdater
 }
 
 func NewUndeliveredMessagesPushRequestedUseCase(
 	privateMessagesFinder domain.PrivateMessagesFinderByRecipientIDAndState,
 	privateMessageNotifier domain.PrivateMessageNotifier,
-	privateMessagesUpdater domain.PrivateMessagesUpdater,
 	roomMessagesFinder domain.RoomMessagesFinderByRecipientIDAndState,
 	roomMessageNotifier domain.RoomMessageNotifier,
-	roomMessagesUpdater domain.RoomMessagesUpdater,
 ) (UndeliveredMessagesPushRequestedUseCase, error) {
 	if err := validate.NotNil(
 		privateMessagesFinder,
 		privateMessageNotifier,
-		privateMessagesUpdater,
 		roomMessagesFinder,
 		roomMessageNotifier,
-		roomMessagesUpdater,
 	); err != nil {
 		return nil, err
 	}
@@ -55,10 +49,8 @@ func NewUndeliveredMessagesPushRequestedUseCase(
 	return &undeliveredMessagesPushRequestedUseCase{
 		privateMessagesFinder:  privateMessagesFinder,
 		privateMessageNotifier: privateMessageNotifier,
-		privateMessagesUpdater: privateMessagesUpdater,
 		roomMessagesFinder:     roomMessagesFinder,
 		roomMessageNotifier:    roomMessageNotifier,
-		roomMessagesUpdater:    roomMessagesUpdater,
 	}, nil
 }
 
@@ -74,10 +66,6 @@ func (uc *undeliveredMessagesPushRequestedUseCase) Execute(ctx context.Context, 
 				return nil, err
 			}
 		}
-
-		if err := uc.privateMessagesUpdater.Updates(ctx, privateMessages); err != nil {
-			return nil, err
-		}
 	}
 
 	roomMessages, err := uc.roomMessagesFinder.FindRoomMessagesByRecipientIDAndState(ctx, input.UserID, domain.MessageStateUndelivered, messageCountLimit)
@@ -91,15 +79,6 @@ func (uc *undeliveredMessagesPushRequestedUseCase) Execute(ctx context.Context, 
 				return nil, err
 			}
 		}
-
-		if err := uc.roomMessagesUpdater.Updates(ctx, roomMessages); err != nil {
-			return nil, err
-		}
-	}
-
-	if len(privateMessages) >= messageCountLimit || len(roomMessages) >= messageCountLimit {
-		//还有未送达的消息，继续请求推送
-		return uc.Execute(ctx, input)
 	}
 
 	return nil, nil

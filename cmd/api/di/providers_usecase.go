@@ -55,6 +55,8 @@ var UseCaseWebsocketSet = wire.NewSet(
 	provideWebsocketUserSessionStartedUseCase,
 	provideChatReadRoomMessagesUseCase,
 	provideChatReadPrivateMessagesUseCase,
+	provideChatConfirmPrivateMessagesUseCase,
+	provideChatConfirmRoomMessagesUseCase,
 )
 
 var UseCaseKafkaSet = wire.NewSet(
@@ -514,12 +516,27 @@ func provideChatUndeliveredMessagesPushRequestedUseCase(
 	return chatApp.NewUndeliveredMessagesPushRequestedUseCase(
 		privateMessageRepo,
 		privateMessageNotifier,
-		privateMessageRepo,
 		roomMessageRepo,
 		roomMessageNotifier,
-		roomMessageRepo,
 	)
 }
+
+func provideChatConfirmPrivateMessagesUseCase(
+	messageRepo chatDomain.PrivateMessageRepository,
+) (chatApp.ConfirmPrivateMessagesUseCase, error) {
+	return chatApp.NewConfirmPrivateMessagesUseCase(
+		messageRepo,
+	)
+}
+
+func provideChatConfirmRoomMessagesUseCase(
+	messageRepo chatDomain.RoomMessageRepository,
+) (chatApp.ConfirmRoomMessagesUseCase, error) {
+	return chatApp.NewConfirmRoomMessagesUseCase(
+		messageRepo,
+	)
+}
+
 func provideNotificationWelcomeEmailNotificationRequestedUseCase(
 	emailNotifier notificationDomain.WelcomeEmailNotifier,
 ) (notificationApp.WelcomeEmailNotificationRequestedUseCase, error) {

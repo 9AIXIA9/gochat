@@ -1,6 +1,7 @@
 package domain_test
 
 import (
+	"context"
 	"gochat/internal/chat/domain"
 	"gochat/internal/chat/domain/mocks"
 	"gochat/internal/shared/kernel"
@@ -47,23 +48,63 @@ func TestCreateRoomMessage(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	finder := mocks.NewMockRoomshipsFinderByRoomID(ctrl)
 	mockMessageIDGenerator := kernelmocks.NewMockMessageIDGenerator(ctrl)
 	mockNotifier := mocks.NewMockRoomMessageNotifier(ctrl)
 
-	mockRecipients := make([]kernel.UserID, 10)
+	roomships := make([]*domain.Roomship, 0, fixedRoomMemberCount+1)
+	mockRecipients := make([]kernel.UserID, 0, fixedRoomMemberCount)
 	for i := 0; i < fixedRoomMemberCount; i++ {
-		mockRecipients[i] = kernel.UserID("user-" + strconv.Itoa(i+1))
+		roomships = append(roomships, domain.LoadRoomship(
+			domain.RoomshipID("roomship-"+strconv.Itoa(i+1)),
+			kernel.UserID("user-"+strconv.Itoa(i+1)),
+			fixedRoomID,
+		))
+		mockRecipients = append(mockRecipients, roomships[i].UserID())
 	}
+	roomships = append(roomships, domain.LoadRoomship(
+		fixedRoomshipID,
+		fixedUserID,
+		fixedRoomID,
+	))
+	roomshipsWithoutSender := roomships[:fixedRoomMemberCount]
 
-	mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1)
-	mockNotifier.EXPECT().Notify(gomock.Any(), mockRecipients).Return(mockRecipients, nil).Times(1)
+	gomock.InOrder(
+		// 正常情况
+		finder.EXPECT().FindsByRoomID(gomock.Any(), fixedRoomID).Return(roomships, nil).Times(1),
+		mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1),
+		mockNotifier.EXPECT().Notify(gomock.Any(), mockRecipients).Return(mockRecipients, nil).Times(1),
+
+		// content 为空（仍然会先查 roomships）
+		finder.EXPECT().FindsByRoomID(gomock.Any(), fixedRoomID).Return(roomships, nil).Times(1),
+
+		// 部分未成功
+		finder.EXPECT().FindsByRoomID(gomock.Any(), fixedRoomID).Return(roomships, nil).Times(1),
+		mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1),
+		mockNotifier.EXPECT().Notify(gomock.Any(), mockRecipients).Return(mockRecipients[:5], nil).Times(1),
+
+		// 不是成员
+		finder.EXPECT().FindsByRoomID(gomock.Any(), fixedRoomID).Return(roomshipsWithoutSender, nil).Times(1),
+
+		// 只有自己
+		finder.EXPECT().FindsByRoomID(gomock.Any(), fixedRoomID).Return([]*domain.Roomship{domain.LoadRoomship(
+			fixedRoomshipID,
+			fixedUserID,
+			fixedRoomID,
+		)}, nil).Times(1),
+		mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1),
+
+		// room not found
+		finder.EXPECT().FindsByRoomID(gomock.Any(), fixedRoomID).Return([]*domain.Roomship{}, nil).Times(1),
+	)
 
 	start := time.Now().UTC()
 	message, err := domain.CreateRoomMessage(
+		context.Background(),
 		fixedRoomID,
 		fixedUserID,
-		mockRecipients,
 		"Hello, Room!",
+		finder,
 		mockMessageIDGenerator,
 		mockNotifier,
 	)
@@ -76,15 +117,16 @@ func TestCreateRoomMessage(t *testing.T) {
 	assert.WithinDuration(t, start, message.SentAt(), timeTolerance)
 
 	for _, state := range message.States() {
-		assert.Equal(t, domain.MessageStateDelivered, state)
+		assert.Equal(t, domain.MessageStateUndelivered, state)
 	}
 
 	// content 为空
 	message, err = domain.CreateRoomMessage(
+		context.Background(),
 		fixedRoomID,
 		fixedUserID,
-		mockRecipients,
 		"",
+		finder,
 		mockMessageIDGenerator,
 		mockNotifier,
 	)
@@ -92,36 +134,47 @@ func TestCreateRoomMessage(t *testing.T) {
 	require.Nil(t, message)
 
 	// 部分未成功
-	mockSuccessIDs := mockRecipients[:5]
-	mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1)
-	mockNotifier.EXPECT().Notify(gomock.Any(), mockRecipients).Return(mockSuccessIDs, nil).Times(1)
-
+	start = time.Now().UTC()
 	message, err = domain.CreateRoomMessage(
+		context.Background(),
 		fixedRoomID,
 		fixedUserID,
-		mockRecipients,
 		"Hello again, Room!",
+		finder,
 		mockMessageIDGenerator,
 		mockNotifier,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, message)
+	assert.WithinDuration(t, start, message.SentAt(), timeTolerance)
 
-	for _, id := range mockSuccessIDs {
-		assert.Equal(t, domain.MessageStateDelivered, message.State(id))
+	for _, id := range mockRecipients[:5] {
+		assert.Equal(t, domain.MessageStateUndelivered, message.State(id))
 	}
 	for _, id := range mockRecipients[5:] {
 		assert.Equal(t, domain.MessageStateUndelivered, message.State(id))
 	}
 
-	// 只有自己
-	mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1)
-
-	message, err = domain.CreateRoomMessage(
+	// 不是成员
+	_, err = domain.CreateRoomMessage(
+		context.Background(),
 		fixedRoomID,
 		fixedUserID,
-		[]kernel.UserID{fixedUserID},
+		"Hello, Room!",
+		finder,
+		mockMessageIDGenerator,
+		mockNotifier,
+	)
+	require.ErrorIs(t, err, domain.ErrNotMember)
+
+	// 只有自己
+	start = time.Now().UTC()
+	message, err = domain.CreateRoomMessage(
+		context.Background(),
+		fixedRoomID,
+		fixedUserID,
 		"Hello to myself!",
+		finder,
 		mockMessageIDGenerator,
 		mockNotifier,
 	)
@@ -134,6 +187,19 @@ func TestCreateRoomMessage(t *testing.T) {
 	assert.WithinDuration(t, start, message.SentAt(), timeTolerance)
 	assert.Empty(t, message.States())
 	assert.Empty(t, message.GetEvents())
+
+	// room not found
+	message, err = domain.CreateRoomMessage(
+		context.Background(),
+		fixedRoomID,
+		fixedUserID,
+		"Hello!",
+		finder,
+		mockMessageIDGenerator,
+		mockNotifier,
+	)
+	require.ErrorIs(t, err, domain.ErrRoomNotFound)
+	require.Nil(t, message)
 }
 
 func TestRoomMessage_Deliver(t *testing.T) {

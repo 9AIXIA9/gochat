@@ -114,6 +114,17 @@ func (repo *RoomMessageRepository) UpdatesByUserIDAndRoomID(ctx context.Context,
 		Update("chat_room_message_states.state", state).Error
 }
 
+func (repo *RoomMessageRepository) UpdatesByMessageIDs(ctx context.Context, userID kernel.UserID, ids []kernel.MessageID, state domain.MessageState) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	return gormutils.TranslateError(repo.db.WithContext(ctx).
+		Model(&model.RoomMessageState{}).
+		Where("user_id = ? AND message_id IN ?", userID, ids).
+		Update("state", state).Error)
+}
+
 func (repo *RoomMessageRepository) FindsByRoomIDAndUserID(ctx context.Context, roomID kernel.RoomID, userID kernel.UserID, limit int, baseID kernel.MessageID) ([]*domain.RoomMessage, error) {
 	var messages []model.RoomMessage
 
