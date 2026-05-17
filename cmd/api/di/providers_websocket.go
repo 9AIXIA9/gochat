@@ -7,6 +7,8 @@ import (
 	websocketDelivery "gochat/internal/delivery/websocket/handler"
 	"gochat/internal/delivery/websocket/middleware"
 	"gochat/internal/infrastructure/websocket"
+	notificationApp "gochat/internal/notification/application"
+	notificationWebsocket "gochat/internal/notification/port/websocket"
 
 	"github.com/google/wire"
 	gorillaWebsocket "github.com/gorilla/websocket"
@@ -35,6 +37,7 @@ func provideWebsocketRouter(
 	chatSendRoomMessage chatApp.SendRoomMessageUseCase,
 	chatConfirmPrivateMessages chatApp.ConfirmPrivateMessagesUseCase,
 	chatConfirmRoomMessages chatApp.ConfirmRoomMessagesUseCase,
+	notificationConfirmSystemMessages notificationApp.ConfirmSystemMessagesUseCase,
 
 ) *websocket.Router {
 	router := websocket.NewRouter(validator)
@@ -62,6 +65,7 @@ func provideWebsocketRouter(
 		router.Handle(chatWebsocket.SendRoomMessageTopic, chatWebsocket.NewSendRoomMessageHandler(chatSendRoomMessage, validator))
 		router.Handle(chatWebsocket.ConfirmPrivateMessagesTopic, chatWebsocket.NewConfirmPrivateMessagesHandler(chatConfirmPrivateMessages, validator))
 		router.Handle(chatWebsocket.ConfirmRoomMessagesTopic, chatWebsocket.NewConfirmRoomMessagesHandler(chatConfirmRoomMessages, validator))
+		router.Handle(notificationWebsocket.ConfirmSystemMessagesTopic, notificationWebsocket.NewConfirmSystemMessagesHandler(notificationConfirmSystemMessages, validator))
 	}
 	return router
 }

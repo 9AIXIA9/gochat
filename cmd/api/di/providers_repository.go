@@ -48,6 +48,7 @@ var RepoSet = wire.NewSet(
 	wire.Bind(new(chatDomain.RoomMessageRepository), new(*chatRepo.RoomMessageRepository)),
 
 	wire.Bind(new(notificationDomain.SystemMessageRepository), new(*notificationRepo.SystemMessageRepository)),
+	wire.Bind(new(notificationDomain.SystemMessagesStatesUpdaterByMessageIDs), new(*notificationRepo.SystemMessageRepository)),
 
 	wire.Bind(new(friendshipDomain.UserRepository), new(*friendshipRepo.UserRepository)),
 	wire.Bind(new(friendshipDomain.FriendRequestRepository), new(*friendshipRepo.FriendRequestRepository)),

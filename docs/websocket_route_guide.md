@@ -248,6 +248,43 @@
 
 ---
 
+### 3.7 notification.confirm_system_messages（客户端确认系统消息已收到/已送达 Delivered）
+
+用途：客户端收到服务端推送的 `notification.notify_system_message` 后，把对应消息 ID 回传确认，服务端会把这些系统消息状态更新为
+`delivered`。
+
+请求：
+
+~~~json
+{
+  "topic": "notification.confirm_system_messages",
+  "payload": {
+    "message_ids": [
+      "m_3001",
+      "m_3002"
+    ]
+  }
+}
+~~~
+
+字段：
+
+- `message_ids`：消息 ID 列表，必填，至少 1 个。
+
+成功响应：
+
+~~~json
+{
+  "topic": "notification.confirm_system_messages",
+  "body": {
+    "code": 200,
+    "message": "success"
+  }
+}
+~~~
+
+---
+
 ## 4. 未定义 topic 的行为
 
 如果你发送了不存在的 topic（例如 `chat.xxx`），服务端会返回：

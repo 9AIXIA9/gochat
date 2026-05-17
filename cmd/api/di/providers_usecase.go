@@ -57,6 +57,7 @@ var UseCaseWebsocketSet = wire.NewSet(
 	provideChatReadPrivateMessagesUseCase,
 	provideChatConfirmPrivateMessagesUseCase,
 	provideChatConfirmRoomMessagesUseCase,
+	provideNotificationConfirmSystemMessagesUseCase,
 )
 
 var UseCaseKafkaSet = wire.NewSet(
@@ -388,6 +389,12 @@ func provideChatReadRoomMessagesUseCase(
 	)
 }
 
+func provideNotificationConfirmSystemMessagesUseCase(
+	updater notificationDomain.SystemMessagesStatesUpdaterByMessageIDs,
+) (notificationApp.ConfirmSystemMessagesUseCase, error) {
+	return notificationApp.NewConfirmSystemMessagesUseCase(updater)
+}
+
 // -------------------- Event UseCases (Kafka consumer side) --------------------
 
 func provideAuthUserCreatedUseCase(
@@ -560,7 +567,6 @@ func provideNotificationUndeliveredMessagesNotificationRequestedUseCase(
 	systemMessageNotifier notificationDomain.SystemMessageNotifier,
 ) (notificationApp.UndeliveredMessagesNotificationRequestedUseCase, error) {
 	return notificationApp.NewUndeliveredMessagesNotificationRequestedUseCase(
-		systemMessageRepo,
 		systemMessageRepo,
 		systemMessageNotifier,
 	)

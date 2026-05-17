@@ -184,7 +184,11 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	router := provideWebsocketRouter(appConfig, websocketLimiter, validator, sendPrivateMessageUseCase, sendRoomMessageUseCase, confirmPrivateMessagesUseCase, confirmRoomMessagesUseCase)
+	confirmSystemMessagesUseCase, err := provideNotificationConfirmSystemMessagesUseCase(systemMessageRepository)
+	if err != nil {
+		return nil, err
+	}
+	router := provideWebsocketRouter(appConfig, websocketLimiter, validator, sendPrivateMessageUseCase, sendRoomMessageUseCase, confirmPrivateMessagesUseCase, confirmRoomMessagesUseCase, confirmSystemMessagesUseCase)
 	userSessionStartedUseCase, err := provideWebsocketUserSessionStartedUseCase(eventIDGenerator, eventRepository)
 	if err != nil {
 		return nil, err
