@@ -55,6 +55,9 @@ var UseCaseWebsocketSet = wire.NewSet(
 	provideWebsocketUserSessionStartedUseCase,
 	provideChatReadRoomMessagesUseCase,
 	provideChatReadPrivateMessagesUseCase,
+	provideChatConfirmPrivateMessagesUseCase,
+	provideChatConfirmRoomMessagesUseCase,
+	provideNotificationConfirmSystemMessagesUseCase,
 )
 
 var UseCaseKafkaSet = wire.NewSet(
@@ -386,6 +389,12 @@ func provideChatReadRoomMessagesUseCase(
 	)
 }
 
+func provideNotificationConfirmSystemMessagesUseCase(
+	updater notificationDomain.SystemMessagesStatesUpdaterByMessageIDs,
+) (notificationApp.ConfirmSystemMessagesUseCase, error) {
+	return notificationApp.NewConfirmSystemMessagesUseCase(updater)
+}
+
 // -------------------- Event UseCases (Kafka consumer side) --------------------
 
 func provideAuthUserCreatedUseCase(
@@ -514,12 +523,27 @@ func provideChatUndeliveredMessagesPushRequestedUseCase(
 	return chatApp.NewUndeliveredMessagesPushRequestedUseCase(
 		privateMessageRepo,
 		privateMessageNotifier,
-		privateMessageRepo,
 		roomMessageRepo,
 		roomMessageNotifier,
-		roomMessageRepo,
 	)
 }
+
+func provideChatConfirmPrivateMessagesUseCase(
+	messageRepo chatDomain.PrivateMessageRepository,
+) (chatApp.ConfirmPrivateMessagesUseCase, error) {
+	return chatApp.NewConfirmPrivateMessagesUseCase(
+		messageRepo,
+	)
+}
+
+func provideChatConfirmRoomMessagesUseCase(
+	messageRepo chatDomain.RoomMessageRepository,
+) (chatApp.ConfirmRoomMessagesUseCase, error) {
+	return chatApp.NewConfirmRoomMessagesUseCase(
+		messageRepo,
+	)
+}
+
 func provideNotificationWelcomeEmailNotificationRequestedUseCase(
 	emailNotifier notificationDomain.WelcomeEmailNotifier,
 ) (notificationApp.WelcomeEmailNotificationRequestedUseCase, error) {
@@ -543,7 +567,6 @@ func provideNotificationUndeliveredMessagesNotificationRequestedUseCase(
 	systemMessageNotifier notificationDomain.SystemMessageNotifier,
 ) (notificationApp.UndeliveredMessagesNotificationRequestedUseCase, error) {
 	return notificationApp.NewUndeliveredMessagesNotificationRequestedUseCase(
-		systemMessageRepo,
 		systemMessageRepo,
 		systemMessageNotifier,
 	)

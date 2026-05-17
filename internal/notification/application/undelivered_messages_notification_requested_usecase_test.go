@@ -35,18 +35,17 @@ func TestNewUndeliveredMessagesNotificationRequestedUseCase(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockFinder := mocks.NewMockUserSystemMessagesFinderByState(ctrl)
-	mockUpdater := mocks.NewMockSystemMessagesUpdater(ctrl)
 	mockNotifier := mocks.NewMockSystemMessageNotifier(ctrl)
 
 	useCase, err := application.NewUndeliveredMessagesNotificationRequestedUseCase(
-		mockFinder, mockUpdater, mockNotifier,
+		mockFinder, mockNotifier,
 	)
 
 	require.NoError(t, err)
 	require.NotNil(t, useCase)
 
 	useCaseWithNil, err := application.NewUndeliveredMessagesNotificationRequestedUseCase(
-		nil, nil, nil,
+		nil, nil,
 	)
 
 	require.ErrorIs(t, err, myErrors.ErrEmptyPointer)
@@ -58,11 +57,10 @@ func TestUndeliveredMessagesNotificationRequestedUseCase_Execute(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockFinder := mocks.NewMockUserSystemMessagesFinderByState(ctrl)
-	mockUpdater := mocks.NewMockSystemMessagesUpdater(ctrl)
 	mockNotifier := mocks.NewMockSystemMessageNotifier(ctrl)
 
 	useCase, err := application.NewUndeliveredMessagesNotificationRequestedUseCase(
-		mockFinder, mockUpdater, mockNotifier,
+		mockFinder, mockNotifier,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, useCase)
@@ -82,7 +80,6 @@ func TestUndeliveredMessagesNotificationRequestedUseCase_Execute(t *testing.T) {
 	gomock.InOrder(
 		mockFinder.EXPECT().FindsByState(nil, fixedUserID, domain.MessageStateUndelivered, limit).Return(mockMessages, nil).Times(1),
 		mockNotifier.EXPECT().Notify(gomock.Any()).Return(nil).Times(limit-1),
-		mockUpdater.EXPECT().Updates(nil, mockMessages).Return(nil).Times(1),
 	)
 
 	_, err = useCase.Execute(nil, &application.UndeliveredMessagesNotificationRequestedInput{
@@ -100,7 +97,7 @@ func TestUndeliveredMessagesNotificationRequestedUseCase_Execute(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	//多次通知的情况
+	// messageCountLimit 达到上限时也不再递归（状态由客户端确认更新）。
 	mockMessages = make([]*domain.SystemMessage, 0, limit)
 	for i := 0; i < limit; i++ {
 		message := domain.LoadSystemMessage(
@@ -116,12 +113,8 @@ func TestUndeliveredMessagesNotificationRequestedUseCase_Execute(t *testing.T) {
 	gomock.InOrder(
 		mockFinder.EXPECT().FindsByState(nil, fixedUserID, domain.MessageStateUndelivered, limit).Return(mockMessages, nil).Times(1),
 		mockNotifier.EXPECT().Notify(gomock.Any()).Return(nil).Times(limit),
-		mockUpdater.EXPECT().Updates(nil, mockMessages).Return(nil).Times(1),
-		mockFinder.EXPECT().FindsByState(nil, fixedUserID, domain.MessageStateUndelivered, limit).Return(nil, nil).Times(1),
 	)
 
-	_, err = useCase.Execute(nil, &application.UndeliveredMessagesNotificationRequestedInput{
-		UserID: fixedUserID,
-	})
+	_, err = useCase.Execute(nil, &application.UndeliveredMessagesNotificationRequestedInput{UserID: fixedUserID})
 	require.NoError(t, err)
 }

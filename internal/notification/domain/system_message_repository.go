@@ -8,23 +8,18 @@ import (
 
 type SystemMessageRepository interface {
 	SystemMessageCreator
-	SystemMessageUpdater
-	SystemMessagesUpdater
+	SystemMessagesStatesUpdaterByMessageIDs
 	SystemMessageFinderByID
 	UserSystemMessagesFinderByState
 	SystemMessageFinderByUserID
 }
 
+type SystemMessagesStatesUpdaterByMessageIDs interface {
+	UpdatesByMessageIDs(ctx context.Context, userID kernel.UserID, ids []kernel.MessageID, state MessageState) error
+}
+
 type SystemMessageCreator interface {
 	Create(ctx context.Context, message *SystemMessage) error
-}
-
-type SystemMessageUpdater interface {
-	Update(ctx context.Context, message *SystemMessage) error
-}
-
-type SystemMessagesUpdater interface {
-	Updates(ctx context.Context, messages []*SystemMessage) error
 }
 
 type SystemMessageFinderByID interface {

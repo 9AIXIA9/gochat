@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"context"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"time"
@@ -37,21 +38,58 @@ func LoadRoomMessage(
 }
 
 func CreateRoomMessage(
+	ctx context.Context,
 	roomID kernel.RoomID,
 	senderID kernel.UserID,
-	recipientIDs []kernel.UserID,
+	content string,
+	finder RoomshipsFinderByRoomID,
+	messageIDGenerator kernel.MessageIDGenerator,
+	notifier RoomMessageNotifier,
+) (*RoomMessage, error) {
+	roomships, err := finder.FindsByRoomID(ctx, roomID)
+	if err != nil {
+		return nil, err
+	}
+
+	message, err := createRoomMessageByRoomships(roomships, roomID, senderID, content, messageIDGenerator, notifier)
+	if err != nil {
+		return nil, err
+	}
+
+	return message, nil
+}
+
+func createRoomMessageByRoomships(
+	roomships []*Roomship,
+	roomID kernel.RoomID,
+	senderID kernel.UserID,
 	content string,
 	messageIDGenerator kernel.MessageIDGenerator,
 	notifier RoomMessageNotifier,
 ) (*RoomMessage, error) {
+	if len(roomships) == 0 {
+		return nil, ErrRoomNotFound
+	}
+
 	if len(content) == 0 {
 		return nil, ErrEmptyMessageContent
 	}
 
-	if len(recipientIDs) == 0 ||
-		(len(recipientIDs) == 1 && recipientIDs[0] == senderID) ||
-		recipientIDs == nil {
-		//不用通知任何人
+	recipientIDs := make([]kernel.UserID, 0, len(roomships)-1)
+	exist := false
+	for _, roomship := range roomships {
+		if roomship.UserID() == senderID {
+			exist = true
+			continue
+		}
+		recipientIDs = append(recipientIDs, roomship.UserID())
+	}
+
+	if !exist {
+		return nil, ErrNotMember
+	}
+
+	if len(recipientIDs) == 0 {
 		return &RoomMessage{
 			id:           messageIDGenerator.Generate(),
 			senderID:     senderID,
@@ -65,9 +103,7 @@ func CreateRoomMessage(
 
 	states := make(map[kernel.UserID]MessageState, len(recipientIDs))
 	for _, recipientID := range recipientIDs {
-		if recipientID != senderID {
-			states[recipientID] = MessageStateUndelivered
-		}
+		states[recipientID] = MessageStateUndelivered
 	}
 
 	message := &RoomMessage{
@@ -80,13 +116,9 @@ func CreateRoomMessage(
 		eventManager: event.NewEventManager(),
 	}
 
-	ids, err := notifier.Notify(message, recipientIDs)
+	_, err := notifier.Notify(message, recipientIDs)
 	if err != nil {
 		return message, nil
-	}
-
-	for _, id := range ids {
-		message.states[id] = MessageStateDelivered
 	}
 
 	return message, nil

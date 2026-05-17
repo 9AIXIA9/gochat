@@ -95,6 +95,24 @@ func (repo *PrivateMessageRepository) UpdatesByUserID(ctx context.Context, sende
 		Update("state", state).Error)
 }
 
+func (repo *PrivateMessageRepository) UpdatesByMessageIDs(ctx context.Context, userID kernel.UserID, ids []kernel.MessageID, state domain.MessageState) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	query := repo.db.WithContext(ctx).
+		Model(&model.PrivateMessage{}).
+		Where("recipient_id = ? AND id IN ?", userID, ids)
+
+	// 状态保护：确认收到只应把 undelivered -> delivered。
+	// 如果消息已经是 read，则不做任何修改。
+	if state == domain.MessageStateDelivered {
+		query = query.Where("state = ?", domain.MessageStateUndelivered)
+	}
+
+	return gormutils.TranslateError(query.Update("state", state).Error)
+}
+
 func (repo *PrivateMessageRepository) FindsByUserIDs(ctx context.Context, userID1, userID2 kernel.UserID, limit int, baseID kernel.MessageID) ([]*domain.PrivateMessage, error) {
 	var messages []model.PrivateMessage
 

@@ -115,6 +115,20 @@ func (mr *MockPrivateMessageRepositoryMockRecorder) Updates(ctx, messages any) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Updates", reflect.TypeOf((*MockPrivateMessageRepository)(nil).Updates), ctx, messages)
 }
 
+// UpdatesByMessageIDs mocks base method.
+func (m *MockPrivateMessageRepository) UpdatesByMessageIDs(ctx context.Context, userID kernel.UserID, ids []kernel.MessageID, state domain.MessageState) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdatesByMessageIDs", ctx, userID, ids, state)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdatesByMessageIDs indicates an expected call of UpdatesByMessageIDs.
+func (mr *MockPrivateMessageRepositoryMockRecorder) UpdatesByMessageIDs(ctx, userID, ids, state any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatesByMessageIDs", reflect.TypeOf((*MockPrivateMessageRepository)(nil).UpdatesByMessageIDs), ctx, userID, ids, state)
+}
+
 // UpdatesByUserID mocks base method.
 func (m *MockPrivateMessageRepository) UpdatesByUserID(ctx context.Context, senderID, recipientID kernel.UserID, state domain.MessageState) error {
 	m.ctrl.T.Helper()
@@ -319,6 +333,44 @@ func (m *MockPrivateMessagesStatesUpdaterByUserID) UpdatesByUserID(ctx context.C
 func (mr *MockPrivateMessagesStatesUpdaterByUserIDMockRecorder) UpdatesByUserID(ctx, senderID, recipientID, state any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatesByUserID", reflect.TypeOf((*MockPrivateMessagesStatesUpdaterByUserID)(nil).UpdatesByUserID), ctx, senderID, recipientID, state)
+}
+
+// MockPrivateMessagesStatesUpdaterByMessageIDs is a mock of PrivateMessagesStatesUpdaterByMessageIDs interface.
+type MockPrivateMessagesStatesUpdaterByMessageIDs struct {
+	ctrl     *gomock.Controller
+	recorder *MockPrivateMessagesStatesUpdaterByMessageIDsMockRecorder
+	isgomock struct{}
+}
+
+// MockPrivateMessagesStatesUpdaterByMessageIDsMockRecorder is the mock recorder for MockPrivateMessagesStatesUpdaterByMessageIDs.
+type MockPrivateMessagesStatesUpdaterByMessageIDsMockRecorder struct {
+	mock *MockPrivateMessagesStatesUpdaterByMessageIDs
+}
+
+// NewMockPrivateMessagesStatesUpdaterByMessageIDs creates a new mock instance.
+func NewMockPrivateMessagesStatesUpdaterByMessageIDs(ctrl *gomock.Controller) *MockPrivateMessagesStatesUpdaterByMessageIDs {
+	mock := &MockPrivateMessagesStatesUpdaterByMessageIDs{ctrl: ctrl}
+	mock.recorder = &MockPrivateMessagesStatesUpdaterByMessageIDsMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockPrivateMessagesStatesUpdaterByMessageIDs) EXPECT() *MockPrivateMessagesStatesUpdaterByMessageIDsMockRecorder {
+	return m.recorder
+}
+
+// UpdatesByMessageIDs mocks base method.
+func (m *MockPrivateMessagesStatesUpdaterByMessageIDs) UpdatesByMessageIDs(ctx context.Context, userID kernel.UserID, ids []kernel.MessageID, state domain.MessageState) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdatesByMessageIDs", ctx, userID, ids, state)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdatesByMessageIDs indicates an expected call of UpdatesByMessageIDs.
+func (mr *MockPrivateMessagesStatesUpdaterByMessageIDsMockRecorder) UpdatesByMessageIDs(ctx, userID, ids, state any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatesByMessageIDs", reflect.TypeOf((*MockPrivateMessagesStatesUpdaterByMessageIDs)(nil).UpdatesByMessageIDs), ctx, userID, ids, state)
 }
 
 // MockPrivateMessagesFinderByUserIDs is a mock of PrivateMessagesFinderByUserIDs interface.

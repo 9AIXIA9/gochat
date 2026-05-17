@@ -114,6 +114,7 @@ func TestSendPrivateMessageUseCase_Execute(t *testing.T) {
 	// 发送给自己
 	gomock.InOrder(
 		mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1),
+		mockNotifier.EXPECT().Notify(gomock.Any()).Return(nil).Times(1),
 		mockMessageCreator.EXPECT().Create(nil, gomock.Any()).Return(nil).Times(1),
 	)
 	_, err = useCase.Execute(nil, &application.SendPrivateMessageInput{

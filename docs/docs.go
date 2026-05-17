@@ -219,7 +219,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "x-example": "019b5929-65bc-7549-89c6-3f7dc6872577",
+                        "example": "019b5929-65bc-7549-89c6-3f7dc6872577",
                         "description": "私聊对象用户ID",
                         "name": "user_id",
                         "in": "path",
@@ -227,7 +227,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "分页游标",
                         "name": "base_id",
                         "in": "query"
@@ -237,7 +237,7 @@ const docTemplate = `{
                         "minimum": 1,
                         "type": "integer",
                         "default": 20,
-                        "x-example": 50,
+                        "example": 50,
                         "description": "分页大小，默认 20，最大 100",
                         "name": "limit",
                         "in": "query"
@@ -346,7 +346,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "x-example": "019b5929-65bc-7549-89c6-3f7dc6872577",
+                        "example": "019b5929-65bc-7549-89c6-3f7dc6872577",
                         "description": "群聊对象房间ID",
                         "name": "room_id",
                         "in": "path",
@@ -354,7 +354,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "分页游标",
                         "name": "base_id",
                         "in": "query"
@@ -364,7 +364,7 @@ const docTemplate = `{
                         "minimum": 1,
                         "type": "integer",
                         "default": 20,
-                        "x-example": 50,
+                        "example": 50,
                         "description": "分页大小，默认 20，最大 100",
                         "name": "limit",
                         "in": "query"
@@ -407,7 +407,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "分页游标，返回该ID之前的记录",
                         "name": "base_id",
                         "in": "query"
@@ -417,7 +417,7 @@ const docTemplate = `{
                         "minimum": 1,
                         "type": "integer",
                         "default": 20,
-                        "x-example": 50,
+                        "example": 50,
                         "description": "分页大小，默认20，最大100",
                         "name": "limit",
                         "in": "query"
@@ -491,7 +491,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "好友请求ID",
                         "name": "request_id",
                         "in": "path",
@@ -523,7 +523,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "好友请求ID",
                         "name": "request_id",
                         "in": "path",
@@ -555,7 +555,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "分页游标，返回该ID之前的记录",
                         "name": "base_id",
                         "in": "query"
@@ -565,7 +565,7 @@ const docTemplate = `{
                         "minimum": 1,
                         "type": "integer",
                         "default": 20,
-                        "x-example": 50,
+                        "example": 50,
                         "description": "分页大小，默认20，最大100",
                         "name": "limit",
                         "in": "query"
@@ -608,7 +608,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "分页游标，返回该ID之前的消息",
                         "name": "base_id",
                         "in": "query"
@@ -618,7 +618,7 @@ const docTemplate = `{
                         "minimum": 1,
                         "type": "integer",
                         "default": 20,
-                        "x-example": 50,
+                        "example": 50,
                         "description": "分页大小，默认20，最大100",
                         "name": "limit",
                         "in": "query"
@@ -721,7 +721,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "房间ID",
                         "name": "room_id",
                         "in": "path",
@@ -763,7 +763,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "x-example": "\"019b593b-462e-74d6-bfda-0e103a172192\"",
+                        "example": "\"019b593b-462e-74d6-bfda-0e103a172192\"",
                         "description": "房间ID",
                         "name": "room_id",
                         "in": "path",
@@ -799,7 +799,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "用户ID",
                         "name": "user_id",
                         "in": "path",
@@ -843,7 +843,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "分页游标，返回该ID之前的记录",
                         "name": "base_id",
                         "in": "query"
@@ -853,7 +853,7 @@ const docTemplate = `{
                         "minimum": 1,
                         "type": "integer",
                         "default": 20,
-                        "x-example": 50,
+                        "example": 50,
                         "description": "分页大小，默认20，最大100",
                         "name": "limit",
                         "in": "query"
@@ -927,7 +927,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "分页游标，返回该ID之前的记录",
                         "name": "base_id",
                         "in": "query"
@@ -937,7 +937,7 @@ const docTemplate = `{
                         "minimum": 1,
                         "type": "integer",
                         "default": 20,
-                        "x-example": 50,
+                        "example": 50,
                         "description": "分页大小，默认20，最大100",
                         "name": "limit",
                         "in": "query"
@@ -1011,7 +1011,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "成员请求ID",
                         "name": "request_id",
                         "in": "path",
@@ -1043,7 +1043,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "成员请求ID",
                         "name": "request_id",
                         "in": "path",
@@ -1070,7 +1070,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "房间ID",
                         "name": "room_id",
                         "in": "path",
@@ -1114,7 +1114,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "房间ID",
                         "name": "room_id",
                         "in": "path",
@@ -1484,7 +1484,8 @@ const docTemplate = `{
                 404,
                 405,
                 406,
-                407
+                407,
+                408
             ],
             "x-enum-varnames": [
                 "CodeSuccess",
@@ -1494,7 +1495,8 @@ const docTemplate = `{
                 "CodeInvalidParam",
                 "CodeUnauthorized",
                 "CodeNotFound",
-                "CodeServiceUnavailable"
+                "CodeServiceUnavailable",
+                "CodeLimitExceeded"
             ]
         },
         "gochat_internal_shared_api.Response": {

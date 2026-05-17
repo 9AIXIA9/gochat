@@ -114,6 +114,24 @@ func (repo *RoomMessageRepository) UpdatesByUserIDAndRoomID(ctx context.Context,
 		Update("chat_room_message_states.state", state).Error
 }
 
+func (repo *RoomMessageRepository) UpdatesByMessageIDs(ctx context.Context, userID kernel.UserID, ids []kernel.MessageID, state domain.MessageState) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	query := repo.db.WithContext(ctx).
+		Model(&model.RoomMessageState{}).
+		Where("user_id = ? AND message_id IN ?", userID, ids)
+
+	// 状态保护：确认收到只应把 undelivered -> delivered。
+	// 如果该用户对某条消息的状态已经是 read，则不做任何修改。
+	if state == domain.MessageStateDelivered {
+		query = query.Where("state = ?", domain.MessageStateUndelivered)
+	}
+
+	return gormutils.TranslateError(query.Update("state", state).Error)
+}
+
 func (repo *RoomMessageRepository) FindsByRoomIDAndUserID(ctx context.Context, roomID kernel.RoomID, userID kernel.UserID, limit int, baseID kernel.MessageID) ([]*domain.RoomMessage, error) {
 	var messages []model.RoomMessage
 

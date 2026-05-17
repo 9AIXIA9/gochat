@@ -27,22 +27,6 @@ func (repo *SystemMessageRepository) Create(ctx context.Context, message *domain
 	return nil
 }
 
-func (repo *SystemMessageRepository) Update(ctx context.Context, message *domain.SystemMessage) error {
-	if err := repo.db.WithContext(ctx).Updates(repo.toModel(message)).Error; err != nil {
-		return gormutils.TranslateError(err)
-	}
-	return nil
-}
-
-func (repo *SystemMessageRepository) Updates(ctx context.Context, messages []*domain.SystemMessage) error {
-	for _, message := range messages {
-		if err := repo.db.WithContext(ctx).Updates(repo.toModel(message)).Error; err != nil {
-			return gormutils.TranslateError(err)
-		}
-	}
-	return nil
-}
-
 func (repo *SystemMessageRepository) FindByID(ctx context.Context, messageID kernel.MessageID) (*domain.SystemMessage, error) {
 	var message model.SystemMessage
 	if err := repo.db.WithContext(ctx).First(&message, "id = ?", messageID).Error; err != nil {
@@ -82,6 +66,26 @@ func (repo *SystemMessageRepository) FindsByUserID(ctx context.Context, userID k
 		return nil, gormutils.TranslateError(err)
 	}
 	return repo.toDomains(messages), nil
+}
+
+func (repo *SystemMessageRepository) UpdatesByMessageIDs(
+	ctx context.Context,
+	userID kernel.UserID,
+	ids []kernel.MessageID,
+	state domain.MessageState,
+) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	if err := repo.db.WithContext(ctx).
+		Model(&model.SystemMessage{}).
+		Where("recipient_id = ?", userID).
+		Where("id IN ?", ids).
+		Update("state", state).
+		Error; err != nil {
+		return gormutils.TranslateError(err)
+	}
+	return nil
 }
 
 func (repo *SystemMessageRepository) toModel(message *domain.SystemMessage) *model.SystemMessage {

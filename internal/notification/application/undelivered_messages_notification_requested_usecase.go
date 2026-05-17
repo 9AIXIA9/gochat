@@ -25,25 +25,21 @@ func (r *UndeliveredMessagesNotificationRequestedInput) Validate() error {
 
 type undeliveredMessagesNotificationRequestedUseCase struct {
 	systemMessagesFinderByState domain.UserSystemMessagesFinderByState
-	systemMessagesUpdater       domain.SystemMessagesUpdater
 	systemMessageNotifier       domain.SystemMessageNotifier
 }
 
 func NewUndeliveredMessagesNotificationRequestedUseCase(
 	systemMessagesFinderByState domain.UserSystemMessagesFinderByState,
-	systemMessagesUpdater domain.SystemMessagesUpdater,
 	systemMessageNotifier domain.SystemMessageNotifier,
 ) (UndeliveredMessagesNotificationRequestedUseCase, error) {
 	if err := validate.NotNil(
 		systemMessagesFinderByState,
-		systemMessagesUpdater,
 		systemMessageNotifier,
 	); err != nil {
 		return nil, err
 	}
 	return &undeliveredMessagesNotificationRequestedUseCase{
 		systemMessagesFinderByState: systemMessagesFinderByState,
-		systemMessagesUpdater:       systemMessagesUpdater,
 		systemMessageNotifier:       systemMessageNotifier,
 	}, nil
 }
@@ -59,17 +55,9 @@ func (uc *undeliveredMessagesNotificationRequestedUseCase) Execute(ctx context.C
 	}
 
 	for _, message := range systemMessages {
-		if err := message.Deliver(uc.systemMessageNotifier); err != nil {
+		if err := uc.systemMessageNotifier.Notify(message); err != nil {
 			return nil, err
 		}
-	}
-
-	if err := uc.systemMessagesUpdater.Updates(ctx, systemMessages); err != nil {
-		return nil, err
-	}
-
-	if len(systemMessages) >= messageCountLimit {
-		return uc.Execute(ctx, input)
 	}
 
 	return nil, nil

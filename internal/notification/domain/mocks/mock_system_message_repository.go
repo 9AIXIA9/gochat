@@ -101,32 +101,56 @@ func (mr *MockSystemMessageRepositoryMockRecorder) FindsByUserID(ctx, userID, li
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByUserID", reflect.TypeOf((*MockSystemMessageRepository)(nil).FindsByUserID), ctx, userID, limit, baseID)
 }
 
-// Update mocks base method.
-func (m *MockSystemMessageRepository) Update(ctx context.Context, message *domain.SystemMessage) error {
+// UpdatesByMessageIDs mocks base method.
+func (m *MockSystemMessageRepository) UpdatesByMessageIDs(ctx context.Context, userID kernel.UserID, ids []kernel.MessageID, state domain.MessageState) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", ctx, message)
+	ret := m.ctrl.Call(m, "UpdatesByMessageIDs", ctx, userID, ids, state)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Update indicates an expected call of Update.
-func (mr *MockSystemMessageRepositoryMockRecorder) Update(ctx, message any) *gomock.Call {
+// UpdatesByMessageIDs indicates an expected call of UpdatesByMessageIDs.
+func (mr *MockSystemMessageRepositoryMockRecorder) UpdatesByMessageIDs(ctx, userID, ids, state any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockSystemMessageRepository)(nil).Update), ctx, message)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatesByMessageIDs", reflect.TypeOf((*MockSystemMessageRepository)(nil).UpdatesByMessageIDs), ctx, userID, ids, state)
 }
 
-// Updates mocks base method.
-func (m *MockSystemMessageRepository) Updates(ctx context.Context, messages []*domain.SystemMessage) error {
+// MockSystemMessagesStatesUpdaterByMessageIDs is a mock of SystemMessagesStatesUpdaterByMessageIDs interface.
+type MockSystemMessagesStatesUpdaterByMessageIDs struct {
+	ctrl     *gomock.Controller
+	recorder *MockSystemMessagesStatesUpdaterByMessageIDsMockRecorder
+	isgomock struct{}
+}
+
+// MockSystemMessagesStatesUpdaterByMessageIDsMockRecorder is the mock recorder for MockSystemMessagesStatesUpdaterByMessageIDs.
+type MockSystemMessagesStatesUpdaterByMessageIDsMockRecorder struct {
+	mock *MockSystemMessagesStatesUpdaterByMessageIDs
+}
+
+// NewMockSystemMessagesStatesUpdaterByMessageIDs creates a new mock instance.
+func NewMockSystemMessagesStatesUpdaterByMessageIDs(ctrl *gomock.Controller) *MockSystemMessagesStatesUpdaterByMessageIDs {
+	mock := &MockSystemMessagesStatesUpdaterByMessageIDs{ctrl: ctrl}
+	mock.recorder = &MockSystemMessagesStatesUpdaterByMessageIDsMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockSystemMessagesStatesUpdaterByMessageIDs) EXPECT() *MockSystemMessagesStatesUpdaterByMessageIDsMockRecorder {
+	return m.recorder
+}
+
+// UpdatesByMessageIDs mocks base method.
+func (m *MockSystemMessagesStatesUpdaterByMessageIDs) UpdatesByMessageIDs(ctx context.Context, userID kernel.UserID, ids []kernel.MessageID, state domain.MessageState) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Updates", ctx, messages)
+	ret := m.ctrl.Call(m, "UpdatesByMessageIDs", ctx, userID, ids, state)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// Updates indicates an expected call of Updates.
-func (mr *MockSystemMessageRepositoryMockRecorder) Updates(ctx, messages any) *gomock.Call {
+// UpdatesByMessageIDs indicates an expected call of UpdatesByMessageIDs.
+func (mr *MockSystemMessagesStatesUpdaterByMessageIDsMockRecorder) UpdatesByMessageIDs(ctx, userID, ids, state any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Updates", reflect.TypeOf((*MockSystemMessageRepository)(nil).Updates), ctx, messages)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatesByMessageIDs", reflect.TypeOf((*MockSystemMessagesStatesUpdaterByMessageIDs)(nil).UpdatesByMessageIDs), ctx, userID, ids, state)
 }
 
 // MockSystemMessageCreator is a mock of SystemMessageCreator interface.
@@ -165,82 +189,6 @@ func (m *MockSystemMessageCreator) Create(ctx context.Context, message *domain.S
 func (mr *MockSystemMessageCreatorMockRecorder) Create(ctx, message any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockSystemMessageCreator)(nil).Create), ctx, message)
-}
-
-// MockSystemMessageUpdater is a mock of SystemMessageUpdater interface.
-type MockSystemMessageUpdater struct {
-	ctrl     *gomock.Controller
-	recorder *MockSystemMessageUpdaterMockRecorder
-	isgomock struct{}
-}
-
-// MockSystemMessageUpdaterMockRecorder is the mock recorder for MockSystemMessageUpdater.
-type MockSystemMessageUpdaterMockRecorder struct {
-	mock *MockSystemMessageUpdater
-}
-
-// NewMockSystemMessageUpdater creates a new mock instance.
-func NewMockSystemMessageUpdater(ctrl *gomock.Controller) *MockSystemMessageUpdater {
-	mock := &MockSystemMessageUpdater{ctrl: ctrl}
-	mock.recorder = &MockSystemMessageUpdaterMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockSystemMessageUpdater) EXPECT() *MockSystemMessageUpdaterMockRecorder {
-	return m.recorder
-}
-
-// Update mocks base method.
-func (m *MockSystemMessageUpdater) Update(ctx context.Context, message *domain.SystemMessage) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", ctx, message)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Update indicates an expected call of Update.
-func (mr *MockSystemMessageUpdaterMockRecorder) Update(ctx, message any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockSystemMessageUpdater)(nil).Update), ctx, message)
-}
-
-// MockSystemMessagesUpdater is a mock of SystemMessagesUpdater interface.
-type MockSystemMessagesUpdater struct {
-	ctrl     *gomock.Controller
-	recorder *MockSystemMessagesUpdaterMockRecorder
-	isgomock struct{}
-}
-
-// MockSystemMessagesUpdaterMockRecorder is the mock recorder for MockSystemMessagesUpdater.
-type MockSystemMessagesUpdaterMockRecorder struct {
-	mock *MockSystemMessagesUpdater
-}
-
-// NewMockSystemMessagesUpdater creates a new mock instance.
-func NewMockSystemMessagesUpdater(ctrl *gomock.Controller) *MockSystemMessagesUpdater {
-	mock := &MockSystemMessagesUpdater{ctrl: ctrl}
-	mock.recorder = &MockSystemMessagesUpdaterMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockSystemMessagesUpdater) EXPECT() *MockSystemMessagesUpdaterMockRecorder {
-	return m.recorder
-}
-
-// Updates mocks base method.
-func (m *MockSystemMessagesUpdater) Updates(ctx context.Context, messages []*domain.SystemMessage) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Updates", ctx, messages)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Updates indicates an expected call of Updates.
-func (mr *MockSystemMessagesUpdaterMockRecorder) Updates(ctx, messages any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Updates", reflect.TypeOf((*MockSystemMessagesUpdater)(nil).Updates), ctx, messages)
 }
 
 // MockSystemMessageFinderByID is a mock of SystemMessageFinderByID interface.
