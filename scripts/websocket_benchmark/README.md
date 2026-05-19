@@ -44,11 +44,13 @@ pwsh .\scripts\websocket_benchmark\generate_token_pool.ps1 -BaseUrl http://local
 
 - `scripts/websocket_benchmark/tokens.txt`
 - `scripts/websocket_benchmark/token_pool.jsonl`
+- `scripts/websocket_benchmark/recipients.txt`
 
 PowerShell 版默认是续写模式（append），不会清空已有文件，方便失败后补量重跑。
 如果你需要从空文件重新生成，请增加 `-Overwrite`。
 
 其中 `tokens.txt` 每行一个 token，格式可以是 `Bearer <token>` 或裸 token，脚本都会自动处理。
+`recipients.txt` 每行一个 `userID`，来自 token 对应的 JWT `UserID` claim，可直接用于 `-recipients-file`。
 
 ### 大规模生成（推荐 Go 并发版）
 
@@ -72,7 +74,8 @@ go run ./scripts/websocket_benchmark/token_pool_generator ^
 	-timeout 12s ^
 	-append=true ^
 	-out-file scripts/websocket_benchmark/tokens.txt ^
-	-detail-file scripts/websocket_benchmark/token_pool.jsonl
+	-detail-file scripts/websocket_benchmark/token_pool.jsonl ^
+	-recipient-file scripts/websocket_benchmark/recipients.txt
 ```
 
 调参建议：
