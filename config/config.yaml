@@ -73,12 +73,7 @@ Redis:
   Database: 0
 
 Logger:
-  Mode: debug
   Level: info
-  Filename: logs/app.log
-  MaxSize: 100
-  MaxAge: 7
-  MaxBackups: 3
 
 Hasher:
   Cost: 10

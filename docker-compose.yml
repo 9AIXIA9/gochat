@@ -185,7 +185,6 @@ services:
     volumes:
       - ./config/config.yaml:/app/config/config.yaml:ro
       - ./config/config.override.yaml:/app/config/config.override.yaml:ro
-      - ./logs:/app/logs
     command: [ "/app/server", "-config", "./config/config.yaml","-override_config","./config/config.override.yaml" ]
 
 volumes:

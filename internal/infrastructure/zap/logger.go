@@ -3,19 +3,11 @@ package zap
 import (
 	"os"
 
-	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 func Initialize(config *LoggerConfig) error {
-	writeSyncer := getLogWriter(
-		config.Filename,
-		config.MaxSize,
-		config.MaxBackups,
-		config.MaxAge,
-	)
 	encoder := getEncoder()
 	var l = new(zapcore.Level)
 	err := l.UnmarshalText([]byte(config.Level))
@@ -23,19 +15,7 @@ func Initialize(config *LoggerConfig) error {
 		return err
 	}
 
-	var core zapcore.Core
-	if config.Mode == gin.DebugMode {
-		//开发模式,日志输出到终端
-		consoleEncoder := zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig())
-		core = zapcore.NewTee(
-			//两个core，前一个写到文件，后一个写到终端
-			zapcore.NewCore(encoder, writeSyncer, l),
-			zapcore.NewCore(consoleEncoder, zapcore.Lock(os.Stdout), zap.DebugLevel),
-		)
-	} else {
-		core = zapcore.NewCore(encoder, writeSyncer, l)
-	}
-	lg := zap.New(core, zap.AddCaller())
+	lg := zap.New(zapcore.NewCore(encoder, zapcore.Lock(os.Stdout), l), zap.AddCaller())
 
 	//替换全局 logger对象
 	zap.ReplaceGlobals(lg)
@@ -51,15 +31,4 @@ func getEncoder() zapcore.Encoder {
 	encoderConfig.EncodeDuration = zapcore.SecondsDurationEncoder //设置持续时间以秒为单位输出
 	encoderConfig.EncodeCaller = zapcore.ShortCallerEncoder       //设置调用者信息以简短形式输出（文件名和行号）
 	return zapcore.NewJSONEncoder(encoderConfig)
-}
-
-// 设置日志文件
-func getLogWriter(filename string, maxSize, maxBackup, maxAge int) zapcore.WriteSyncer {
-	lumberJackLogger := &lumberjack.Logger{ //用于分割日志
-		Filename:   filename,
-		MaxSize:    maxSize,
-		MaxBackups: maxBackup,
-		MaxAge:     maxAge,
-	}
-	return zapcore.AddSync(lumberJackLogger)
 }
