@@ -25,7 +25,7 @@ GoChat Backend 是一个面向即时通讯场景的后端服务，提供用户�
 - **实时通信**: Gorilla WebSocket
 - **服务治理**: 限流（Redis）、超时控制、断路器（gobreaker）
 - **可观测性**: OpenTelemetry + Jaeger + Prometheus + Grafana
-- **日志**: Zap + Lumberjack
+- **日志**: Zap（终端输出）
 - **API 文档**: Swaggo (Swagger)
 - **容器化与编排**: Docker + Docker Compose
 - **数据库迁移**: Goose
@@ -85,7 +85,7 @@ curl http://localhost:8080/readyz
 - Swagger: `http://localhost:8080/swagger/index.html`
 - API Base: `http://localhost:8080/api/v1`
 
-如果启动失败，可先看应用日志：
+如果启动失败，可先看应用容器输出：
 
 ```bat
 docker compose -f docker-compose.yml -p backend logs app
