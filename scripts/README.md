@@ -8,6 +8,7 @@
 - `websocket_benchmark/websocket.go`
 - `websocket_benchmark/generate_token_pool.ps1`
 - `websocket_benchmark/token_pool_generator/main.go`
+- `websocket_benchmark/friendship_warmup/main.go`
 
 ## 使用约定
 
@@ -168,6 +169,7 @@ pwsh .\scripts\websocket_benchmark\generate_token_pool.ps1 -BaseUrl http://local
 - `-EmailPrefix` / `-EmailDomain`：邮箱生成规则
 - `-OutFile`：token 输出路径
 - `-DetailFile`：详情 JSONL 输出路径
+- `-RecipientFile`：接收者 `userID` 输出路径
 - `-ThrottleMs`：每次请求间隔（毫秒）
 - `-DryRun`：仅生成模拟 token
 - `-Overwrite`：覆盖输出文件（默认不覆盖，按续写模式追加）
@@ -176,6 +178,8 @@ pwsh .\scripts\websocket_benchmark\generate_token_pool.ps1 -BaseUrl http://local
 
 - `scripts/websocket_benchmark/tokens.txt`
 - `scripts/websocket_benchmark/token_pool.jsonl`
+- `scripts/websocket_benchmark/recipients.txt`
+- `scripts/websocket_benchmark/recipients.txt`
 
 ---
 
@@ -208,7 +212,7 @@ go run ./scripts/websocket_benchmark/token_pool_generator -dry-run -count 1000 -
 2. 真实生成（10 万示例）
 
 ```bash
-go run ./scripts/websocket_benchmark/token_pool_generator -base-url http://localhost:8080/api/v1 -count 100000 -workers 300 -max-retries 2 -retry-backoff 250ms -timeout 12s -out-file scripts/websocket_benchmark/tokens.txt -detail-file scripts/websocket_benchmark/token_pool.jsonl
+go run ./scripts/websocket_benchmark/token_pool_generator -base-url http://localhost:8080/api/v1 -count 100000 -workers 300 -max-retries 2 -retry-backoff 250ms -timeout 12s -out-file scripts/websocket_benchmark/tokens.txt -detail-file scripts/websocket_benchmark/token_pool.jsonl -recipient-file scripts/websocket_benchmark/recipients.txt
 ```
 
 ### 关键参数
@@ -225,7 +229,21 @@ go run ./scripts/websocket_benchmark/token_pool_generator -base-url http://local
 - `-progress-interval`：进度输出间隔
 - `-dry-run`：模拟生成
 - `-append`：是否续写输出文件（默认 `true`）
-- `-out-file` / `-detail-file`：输出路径
+- `-out-file` / `-detail-file` / `-recipient-file`：输出路径
+
+---
+
+## 5) websocket_benchmark/friendship_warmup/main.go
+
+### 作用
+
+在 `paired` 私聊压测前批量预热好友关系（发送端发起请求，接收端同意）。
+
+### 命令示例
+
+```bash
+go run ./scripts/websocket_benchmark/friendship_warmup -base-url http://localhost:8080/api/v1 -tokens-file scripts/websocket_benchmark/tokens.txt -recipients-file scripts/websocket_benchmark/recipients.txt -pairs 100 -workers 20
+```
 
 ### 调参建议
 

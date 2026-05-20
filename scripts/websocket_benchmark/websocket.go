@@ -42,6 +42,10 @@ type config struct {
 	recipientsFile string
 	chaosDropRatio float64
 	chaosDropAfter time.Duration
+	// paired mode: "paired" enables sender/receiver pairing where
+	// the first N tokens/recipients are receivers and the next N are senders.
+	mode  string
+	pairs int
 }
 
 type metrics struct {
@@ -66,6 +70,12 @@ type metrics struct {
 	mu              sync.Mutex
 	connectLatencyS []float64
 	messageLatencyS []float64
+
+	// Paired-mode delivery metrics
+	deliverySuccess atomic.Int64
+	deliveryFailed  atomic.Int64
+	duplicates      atomic.Int64
+	orderErrors     atomic.Int64
 }
 
 func main() {
@@ -118,6 +128,58 @@ func main() {
 	elapsed := time.Since(start)
 
 	printSummary(cfg, &m, elapsed)
+	// generate markdown report file
+	if err := writeReport(cfg, &m, elapsed); err != nil {
+		log.Printf("write report failed: %v", err)
+	}
+}
+
+func writeReport(cfg config, m *metrics, elapsed time.Duration) error {
+	ts := time.Now().UTC().Format("20060102-150405")
+	reportPath := fmt.Sprintf("websocket_benchmark_report_%s.md", ts)
+
+	attempted := m.attempted.Load()
+	connected := m.connected.Load()
+	msgSent := m.messagesSent.Load()
+	msgRecv := m.messagesReceived.Load()
+	deliverySucc := m.deliverySuccess.Load()
+	deliveryFail := m.deliveryFailed.Load()
+	dup := m.duplicates.Load()
+	orderErr := m.orderErrors.Load()
+
+	connP50, connP95, connP99 := connectLatencyPercentiles(m)
+	msgP50, msgP95, msgP99 := messageLatencyPercentiles(m)
+
+	content := fmt.Sprintf(`# GoChat 压测报告
+
+测试时间: %s UTC
+测试时长: %s
+URL: %s
+Clients: %d
+ConnectRate: %d/s
+
+核心指标
+--------
+- attempted connections: %d
+- successful connections: %d
+- messages sent: %d
+- messages received: %d
+- delivery success/fail: %d / %d
+- duplicate messages: %d
+- order errors: %d
+
+延迟指标
+--------
+- connect latency p50/p95/p99: %.2fms / %.2fms / %.2fms
+- message latency p50/p95/p99: %.2fms / %.2fms / %.2fms
+
+`, ts, elapsed, cfg.url, cfg.clients, cfg.connectRate, attempted, connected, msgSent, msgRecv, deliverySucc, deliveryFail, dup, orderErr, connP50*1000, connP95*1000, connP99*1000, msgP50*1000, msgP95*1000, msgP99*1000)
+
+	if err := os.WriteFile(reportPath, []byte(content), 0o644); err != nil {
+		return err
+	}
+	log.Printf("report written: %s", reportPath)
+	return nil
 }
 
 func parseFlags() config {
@@ -129,6 +191,8 @@ func parseFlags() config {
 	flag.IntVar(&cfg.connectRate, "connect-rate", 200, "new connections per second (0 means no ramp-up)")
 	flag.DurationVar(&cfg.connectTimeout, "connect-timeout", 5*time.Second, "dial timeout")
 	flag.IntVar(&cfg.maxThreads, "max-threads", 50000, "Go runtime max OS threads for this process; increase for very high concurrency benchmark")
+	flag.StringVar(&cfg.mode, "mode", "", "optional mode: paired")
+	flag.IntVar(&cfg.pairs, "pairs", 0, "number of sender/receiver pairs when -mode paired; defaults to clients/2 if 0")
 	flag.DurationVar(&cfg.pingInterval, "ping-interval", 5*time.Second, "ping interval (0 disables ping)")
 	flag.DurationVar(&cfg.sendInterval, "send-interval", 0, "text message send interval (0 disables send)")
 	flag.StringVar(&cfg.sendMode, "send-mode", "raw", "send mode: raw or private")
@@ -194,6 +258,25 @@ func validateConfig(cfg config, tokenCount int, recipientCount int) error {
 	}
 	if tokenCount == 0 && strings.TrimSpace(cfg.authHeader) == "" && strings.TrimSpace(cfg.cookie) == "" {
 		return fmt.Errorf("provide one of -tokens-file, -auth, or -cookie")
+	}
+	// paired mode specific checks
+	if strings.EqualFold(cfg.mode, "paired") {
+		if recipientCount == 0 {
+			return fmt.Errorf("paired mode requires -recipients-file with userIDs")
+		}
+		if cfg.pairs < 0 {
+			return fmt.Errorf("pairs must be >= 0")
+		}
+		if cfg.pairs == 0 {
+			// require clients to be even
+			if cfg.clients%2 != 0 {
+				return fmt.Errorf("clients must be even when using paired mode and pairs not set")
+			}
+		} else {
+			if cfg.clients != cfg.pairs*2 {
+				return fmt.Errorf("clients must equal pairs*2 when pairs is set")
+			}
+		}
 	}
 	return nil
 }
@@ -266,6 +349,27 @@ func runClient(ctx context.Context, id int, cfg config, tokens []string, recipie
 	m.connectLatencyS = append(m.connectLatencyS, lat.Seconds())
 	m.mu.Unlock()
 
+	// Paired mode detection and local state for receivers
+	isPaired := strings.EqualFold(cfg.mode, "paired")
+	pairs := cfg.pairs
+	if pairs <= 0 {
+		pairs = cfg.clients / 2
+	}
+	isReceiver := false
+	isSender := false
+	var expectedSenderUserID string
+	if isPaired {
+		if id < pairs {
+			isReceiver = true
+			senderIdx := pairs + id
+			if senderIdx >= 0 && senderIdx < len(recipients) {
+				expectedSenderUserID = recipients[senderIdx]
+			}
+		} else {
+			isSender = true
+		}
+	}
+
 	var closeOnce sync.Once
 	closeConn := func() {
 		closeOnce.Do(func() {
@@ -279,6 +383,9 @@ func runClient(ctx context.Context, id int, cfg config, tokens []string, recipie
 	var readUnexpected atomic.Bool
 	go func() {
 		defer close(readDone)
+		// receiver-side state
+		lastSeq := make(map[string]int64)
+		seenMsg := make(map[string]struct{})
 		for {
 			msgType, payload, readErr := conn.ReadMessage()
 			if readErr != nil {
@@ -291,14 +398,86 @@ func runClient(ctx context.Context, id int, cfg config, tokens []string, recipie
 			}
 			if msgType == websocket.TextMessage || msgType == websocket.BinaryMessage {
 				m.messagesReceived.Add(1)
-				if tsNs, ok := extractLatencyTimestamp(payload, cfg.latencyField); ok {
-					deltaNs := time.Now().UnixNano() - tsNs
-					if deltaNs >= 0 {
-						m.latencyMatched.Add(1)
-						m.messageLatencyNs.Add(deltaNs)
-						m.mu.Lock()
-						m.messageLatencyS = append(m.messageLatencyS, float64(deltaNs)/float64(time.Second))
-						m.mu.Unlock()
+
+				// try to parse as JSON message wrapper
+				var decoded any
+				if err := json.Unmarshal(payload, &decoded); err == nil {
+					if docMap, ok := decoded.(map[string]any); ok {
+						if topicRaw, ok := docMap["topic"]; ok {
+							if topicStr, ok := topicRaw.(string); ok {
+								// server push topic for private messages
+								if topicStr == "chat.notify_private_message" {
+									if body, ok := docMap["body"].(map[string]any); ok {
+										msgID, _ := body["id"].(string)
+										senderID, _ := body["sender_id"].(string)
+										content, _ := body["content"].(string)
+
+										if isReceiver {
+											// verify sender mapping in paired mode
+											if expectedSenderUserID != "" && senderID != expectedSenderUserID {
+												m.deliveryFailed.Add(1)
+												continue
+											}
+
+											if msgID != "" {
+												if _, seen := seenMsg[msgID]; seen {
+													m.duplicates.Add(1)
+													continue
+												}
+												seenMsg[msgID] = struct{}{}
+											}
+
+											// order check from content template fields: bench_seq and sender identity
+											seqVal, hasSeq := parseKVIntFromString(content, "bench_seq")
+											if hasSeq {
+												last := lastSeq[senderID]
+												if last != 0 && seqVal != last+1 {
+													m.orderErrors.Add(1)
+												}
+												lastSeq[senderID] = seqVal
+											}
+
+											if tsNs, ok := parseKVIntFromString(content, "bench_ts_ns"); ok {
+												deltaNs := time.Now().UnixNano() - tsNs
+												if deltaNs >= 0 {
+													m.latencyMatched.Add(1)
+													m.messageLatencyNs.Add(deltaNs)
+													m.mu.Lock()
+													m.messageLatencyS = append(m.messageLatencyS, float64(deltaNs)/float64(time.Second))
+													m.mu.Unlock()
+												}
+											}
+
+											m.deliverySuccess.Add(1)
+										} else {
+											// for non-receiver clients, still collect latency if possible
+											if tsNs, ok := parseKVIntFromString(content, "bench_ts_ns"); ok {
+												deltaNs := time.Now().UnixNano() - tsNs
+												if deltaNs >= 0 {
+													m.latencyMatched.Add(1)
+													m.messageLatencyNs.Add(deltaNs)
+													m.mu.Lock()
+													m.messageLatencyS = append(m.messageLatencyS, float64(deltaNs)/float64(time.Second))
+													m.mu.Unlock()
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				} else {
+					// not JSON; try to extract latency field as before
+					if tsNs, ok := extractLatencyTimestamp(payload, cfg.latencyField); ok {
+						deltaNs := time.Now().UnixNano() - tsNs
+						if deltaNs >= 0 {
+							m.latencyMatched.Add(1)
+							m.messageLatencyNs.Add(deltaNs)
+							m.mu.Lock()
+							m.messageLatencyS = append(m.messageLatencyS, float64(deltaNs)/float64(time.Second))
+							m.mu.Unlock()
+						}
 					}
 				}
 			}
@@ -313,8 +492,11 @@ func runClient(ctx context.Context, id int, cfg config, tokens []string, recipie
 
 	var sendTicker *time.Ticker
 	if cfg.sendInterval > 0 {
-		sendTicker = time.NewTicker(cfg.sendInterval)
-		defer sendTicker.Stop()
+		// in paired mode only sender side should send
+		if !isPaired || isSender {
+			sendTicker = time.NewTicker(cfg.sendInterval)
+			defer sendTicker.Stop()
+		}
 	}
 
 	var chaosTimer *time.Timer
@@ -497,12 +679,39 @@ func buildSendPayload(cfg config, clientID int, seq int64, now time.Time, recipi
 		return buildPayload(cfg.payload, clientID, seq, now)
 	}
 
-	recipient := pickRecipient(cfg, clientID, seq, recipients)
+	// determine recipient: in paired mode we map sender clients to receivers deterministically
+	var recipient string
+	if strings.EqualFold(cfg.mode, "paired") {
+		// number of pairs
+		pairs := cfg.pairs
+		if pairs <= 0 {
+			pairs = cfg.clients / 2
+		}
+		if clientID >= pairs {
+			// sender side: map to receiver index
+			idx := clientID - pairs
+			if idx >= 0 && idx < len(recipients) {
+				recipient = recipients[idx]
+			}
+		}
+		// if recipient still empty, fall back to default picker
+		if recipient == "" {
+			recipient = pickRecipient(cfg, clientID, seq, recipients)
+		}
+	} else {
+		recipient = pickRecipient(cfg, clientID, seq, recipients)
+	}
+
+	// build payload with metadata for paired verification
 	body := map[string]any{
 		"topic": "chat.send_private_message",
 		"payload": map[string]any{
-			"recipient_id": recipient,
-			"content":      string(buildPayload(cfg.content, clientID, seq, now)),
+			"recipient_id":  recipient,
+			"sender_client": clientID,
+			"seq":           seq,
+			"message_id":    fmt.Sprintf("%d-%d-%d", clientID, seq, now.UnixNano()),
+			"ts_ns":         now.UnixNano(),
+			"content":       string(buildPayload(cfg.content, clientID, seq, now)),
 		},
 	}
 	b, err := json.Marshal(body)
@@ -596,6 +805,22 @@ func findLatencyInStrings(v any, field string) (int64, bool) {
 }
 
 func parseLatencyFromString(s string, field string) (int64, bool) {
+	for _, token := range strings.FieldsFunc(s, func(r rune) bool {
+		return r == ';' || r == ',' || r == '|' || r == ' ' || r == '\n' || r == '\t'
+	}) {
+		parts := strings.SplitN(strings.TrimSpace(token), "=", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		if strings.TrimSpace(parts[0]) != field {
+			continue
+		}
+		return toInt64(strings.TrimSpace(parts[1]))
+	}
+	return 0, false
+}
+
+func parseKVIntFromString(s, field string) (int64, bool) {
 	for _, token := range strings.FieldsFunc(s, func(r rune) bool {
 		return r == ';' || r == ',' || r == '|' || r == ' ' || r == '\n' || r == '\t'
 	}) {
@@ -706,6 +931,14 @@ func printSummary(cfg config, m *metrics, elapsed time.Duration) {
 	if m.latencyMatched.Load() > 0 {
 		log.Printf("avg end-to-end message latency: %.2fms", avgMsgLatencyMs)
 		log.Printf("message latency p50/p95/p99: %.2fms / %.2fms / %.2fms", msgP50*1000, msgP95*1000, msgP99*1000)
+	}
+	// Paired-mode delivery metrics (if applicable)
+	if m.deliverySuccess.Load()+m.deliveryFailed.Load() > 0 {
+		totalDelivery := m.deliverySuccess.Load() + m.deliveryFailed.Load()
+		deliveryRate := float64(m.deliverySuccess.Load()) / float64(totalDelivery) * 100
+		log.Printf("delivery success/fail: %d / %d (success_rate=%.2f%%)", m.deliverySuccess.Load(), m.deliveryFailed.Load(), deliveryRate)
+		log.Printf("duplicate messages: %d", m.duplicates.Load())
+		log.Printf("order errors: %d", m.orderErrors.Load())
 	}
 	log.Printf("pings sent(success/fail): %d / %d", m.pingsSent.Load(), m.pingFailed.Load())
 	log.Printf("read errors: %d", m.readErrors.Load())

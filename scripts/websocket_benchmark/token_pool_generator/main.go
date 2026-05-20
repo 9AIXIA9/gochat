@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -27,6 +28,7 @@ type config struct {
 	emailDomain      string
 	outFile          string
 	detailFile       string
+	recipientFile    string
 	workers          int
 	timeout          time.Duration
 	maxRetries       int
@@ -58,6 +60,7 @@ type result struct {
 	idx         int
 	email       string
 	userNumber  string
+	recipientID string
 	accessToken string
 	err         error
 }
@@ -66,6 +69,7 @@ type detailLine struct {
 	Index       int    `json:"index"`
 	Email       string `json:"email"`
 	UserNumber  string `json:"user_number"`
+	RecipientID string `json:"user_id"`
 	AccessToken string `json:"access_token"`
 }
 
@@ -82,7 +86,8 @@ func main() {
 
 	outPath := resolvePath(root, cfg.outFile)
 	detailPath := resolvePath(root, cfg.detailFile)
-	if err := ensureParentDirs(outPath, detailPath); err != nil {
+	recipientPath := resolvePath(root, cfg.recipientFile)
+	if err := ensureParentDirs(outPath, detailPath, recipientPath); err != nil {
 		log.Fatalf("prepare output directories failed: %v", err)
 	}
 
@@ -91,7 +96,7 @@ func main() {
 
 	res := run(cfg)
 
-	if err := writeOutputs(outPath, detailPath, res, cfg.append); err != nil {
+	if err := writeOutputs(outPath, detailPath, recipientPath, res, cfg.append); err != nil {
 		log.Fatalf("write output failed: %v", err)
 	}
 
@@ -108,6 +113,7 @@ func main() {
 	log.Printf("failed:  %d", failCount)
 	log.Printf("token file:  %s", outPath)
 	log.Printf("detail file: %s", detailPath)
+	log.Printf("recipient file: %s", recipientPath)
 
 	if failCount > 0 {
 		sampled := 0
@@ -133,6 +139,7 @@ func parseFlags() config {
 	flag.StringVar(&cfg.emailDomain, "email-domain", "example.com", "email domain")
 	flag.StringVar(&cfg.outFile, "out-file", "scripts/websocket_benchmark/tokens.txt", "output token file path")
 	flag.StringVar(&cfg.detailFile, "detail-file", "scripts/websocket_benchmark/token_pool.jsonl", "output detail jsonl path")
+	flag.StringVar(&cfg.recipientFile, "recipient-file", "scripts/websocket_benchmark/recipients.txt", "output recipient text path")
 	flag.BoolVar(&cfg.append, "append", true, "append results to output files; set -append=false to overwrite")
 	flag.IntVar(&cfg.workers, "workers", 200, "number of concurrent workers")
 	flag.DurationVar(&cfg.timeout, "timeout", 12*time.Second, "single HTTP request timeout")
@@ -176,6 +183,9 @@ func validateConfig(cfg config) error {
 	}
 	if strings.TrimSpace(cfg.emailDomain) == "" {
 		return errors.New("email-domain is required")
+	}
+	if strings.TrimSpace(cfg.recipientFile) == "" {
+		return errors.New("recipient-file is required")
 	}
 	return nil
 }
@@ -253,13 +263,15 @@ func run(cfg config) []result {
 
 func processOne(cfg config, client *http.Client, t task) result {
 	if cfg.dryRun {
-		token := fmt.Sprintf("dry-token-%d", t.idx)
+		recipientID := fmt.Sprintf("dryrun-%d", t.idx)
+		token := buildDryRunAccessToken(recipientID)
 		email := fmt.Sprintf("%s.dryrun.%d@%s", cfg.emailPrefix, t.idx, cfg.emailDomain)
 		return result{
 			index:       t.index,
 			idx:         t.idx,
 			email:       email,
 			userNumber:  fmt.Sprintf("dryrun-%d", t.idx),
+			recipientID: recipientID,
 			accessToken: token,
 		}
 	}
@@ -281,11 +293,19 @@ func processOne(cfg config, client *http.Client, t task) result {
 			continue
 		}
 
+		recipientID, err := extractRecipientID(accessToken)
+		if err != nil {
+			lastErr = fmt.Errorf("extract recipient id failed: %w", err)
+			sleepBackoff(cfg.retryBackoff, attempt)
+			continue
+		}
+
 		return result{
 			index:       t.index,
 			idx:         t.idx,
 			email:       email,
 			userNumber:  userNumber,
+			recipientID: recipientID,
 			accessToken: accessToken,
 		}
 	}
@@ -296,6 +316,50 @@ func processOne(cfg config, client *http.Client, t task) result {
 		email: buildEmail(cfg.emailPrefix, cfg.emailDomain, t.idx, cfg.maxRetries),
 		err:   fmt.Errorf("all retries failed: %w", lastErr),
 	}
+}
+
+func buildDryRunAccessToken(recipientID string) string {
+	headers := map[string]string{
+		"alg": "none",
+		"typ": "JWT",
+	}
+	payload := map[string]any{
+		"UserID": recipientID,
+		"iat":    time.Now().UTC().Unix(),
+		"exp":    time.Now().UTC().Add(24 * time.Hour).Unix(),
+	}
+
+	headersJSON, _ := json.Marshal(headers)
+	payloadJSON, _ := json.Marshal(payload)
+	return base64.RawURLEncoding.EncodeToString(headersJSON) + "." + base64.RawURLEncoding.EncodeToString(payloadJSON) + "."
+}
+
+func extractRecipientID(accessToken string) (string, error) {
+	parts := strings.Split(strings.TrimSpace(accessToken), ".")
+	if len(parts) < 2 {
+		return "", fmt.Errorf("invalid jwt format")
+	}
+
+	payloadBytes, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil {
+		return "", fmt.Errorf("decode jwt payload failed: %w", err)
+	}
+
+	var claims map[string]json.RawMessage
+	if err := json.Unmarshal(payloadBytes, &claims); err != nil {
+		return "", fmt.Errorf("unmarshal jwt payload failed: %w", err)
+	}
+
+	for _, key := range []string{"UserID", "user_id", "sub"} {
+		if raw, ok := claims[key]; ok {
+			var value string
+			if err := json.Unmarshal(raw, &value); err == nil && strings.TrimSpace(value) != "" {
+				return strings.TrimSpace(value), nil
+			}
+		}
+	}
+
+	return "", errors.New("jwt payload user id is empty")
 }
 
 func buildEmail(prefix, domain string, idx, attempt int) string {
@@ -377,15 +441,18 @@ func sleepBackoff(base time.Duration, attempt int) {
 	time.Sleep(time.Duration(factor) * base)
 }
 
-func writeOutputs(tokenPath, detailPath string, results []result, appendMode bool) error {
+func writeOutputs(tokenPath, detailPath, recipientPath string, results []result, appendMode bool) error {
 	tokenFlags := os.O_CREATE | os.O_WRONLY
 	detailFlags := os.O_CREATE | os.O_WRONLY
+	recipientFlags := os.O_CREATE | os.O_WRONLY
 	if appendMode {
 		tokenFlags |= os.O_APPEND
 		detailFlags |= os.O_APPEND
+		recipientFlags |= os.O_APPEND
 	} else {
 		tokenFlags |= os.O_TRUNC
 		detailFlags |= os.O_TRUNC
+		recipientFlags |= os.O_TRUNC
 	}
 
 	tokenFile, err := os.OpenFile(tokenPath, tokenFlags, 0o644)
@@ -400,6 +467,12 @@ func writeOutputs(tokenPath, detailPath string, results []result, appendMode boo
 	}
 	defer func() { _ = detailFile.Close() }()
 
+	recipientFile, err := os.OpenFile(recipientPath, recipientFlags, 0o644)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = recipientFile.Close() }()
+
 	enc := json.NewEncoder(detailFile)
 	for _, r := range results {
 		if r.err != nil {
@@ -408,10 +481,14 @@ func writeOutputs(tokenPath, detailPath string, results []result, appendMode boo
 		if _, err := tokenFile.WriteString("Bearer " + r.accessToken + "\n"); err != nil {
 			return err
 		}
+		if _, err := recipientFile.WriteString(r.recipientID + "\n"); err != nil {
+			return err
+		}
 		if err := enc.Encode(detailLine{
 			Index:       r.idx,
 			Email:       r.email,
 			UserNumber:  r.userNumber,
+			RecipientID: r.recipientID,
 			AccessToken: r.accessToken,
 		}); err != nil {
 			return err
