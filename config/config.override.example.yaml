@@ -25,12 +25,14 @@ OTEL:
 AccessToken:
   Secret: ${JWT_SECRET}
 Mysql:
+  Username: gochat_app
   Password: ${DB_PASSWORD}
   MaxOpenConns: 200
   MaxIdleConns: 100
   ConnMaxLifetimeSec: 600
   ConnMaxIdleTimeSec: 120
 Redis:
+  User: gochat_app
   Password: ${REDIS_PASSWORD}
 Email:
   Password: ${EMAIL_PASSWORD}

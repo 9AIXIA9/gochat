@@ -1,2 +1,8 @@
-user default on >root -@all +ping +info
-user gochat_app on >gochat ~* +@all
+## Legacy reference only.
+## The Compose stack now generates `/data/users.acl` at runtime from environment variables
+## via `deployment/redis_init/init_redis.sh`.
+##
+## Example ACL layout:
+## user default off
+## user admin on #<sha256-password-hash> ~* +@all
+## user gochat_app on #<sha256-password-hash> ~* +@all

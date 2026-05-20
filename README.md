@@ -21,7 +21,7 @@ GoChat Backend 是一个面向即时通讯场景的后端服务，提供用户�
 - **配置管理**: Viper + dotenv
 - **数据存储**: MySQL 8 + GORM
 - **缓存**: Redis 7
-- **消息队列**: Kafka (apache/kafka-native)
+- **消息队列**: Kafka (Apache 官方镜像 `apache/kafka`)
 - **实时通信**: Gorilla WebSocket
 - **服务治理**: 限流（Redis）、超时控制、断路器（gobreaker）
 - **可观测性**: OpenTelemetry + Jaeger + Prometheus + Grafana
@@ -118,6 +118,8 @@ copy config\config.local.example.yaml config\config.local.yaml
 - `config/config.local.yaml`
 
 > 说明：`config/config.yaml` 提供基础默认值，`override/local` 用于按环境覆盖。
+>
+> 说明：Compose 现在会在启动时自动创建 MySQL 应用账号、Binlog 账号，并根据 `.env` 生成 Redis ACL 文件；因此请至少检查 `DB_PASSWORD`、`BINLOG_PASSWORD`、`REDIS_PASSWORD`、`MYSQL_ROOT_PASSWORD` 和 `REDIS_ADMIN_PASSWORD`。
 
 ### 3) 一键启动（推荐）
 

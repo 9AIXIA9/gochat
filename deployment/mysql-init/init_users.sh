@@ -1,50 +1,87 @@
 #!/usr/bin/env sh
 # NOTE: Use LF line endings. CRLF will break execution inside linux container.
-set -euo pipefail
+set -eu
 
-# This script runs during first-time MySQL initialization inside the container.
-# It creates the application user and (optionally) the binlog CDC user if env variables are present.
-# Env variables consumed (provided via docker-compose env_file .env.db):
-#   MYSQL_ROOT_PASSWORD
-#   MYSQL_DATABASE
-#   MYSQL_USER / MYSQL_PASSWORD (app user)
-#   BINLOG_USER / BINLOG_PASSWORD (binlog user)
-# Safe to re-run: uses CREATE USER IF NOT EXISTS and idempotent GRANTs.
+log() {
+  printf '%s\n' "[init_users] $*"
+}
+
+fail() {
+  printf '%s\n' "[init_users] ERROR: $*" >&2
+  exit 1
+}
+
+sql_escape() {
+  printf '%s' "$1" | sed "s/'/''/g"
+}
+
+validate_identifier() {
+  name="$1"
+  value="$2"
+
+  case "$value" in
+    ''|*[!A-Za-z0-9_]* )
+      fail "$name must match [A-Za-z0-9_]+, got '$value'"
+      ;;
+  esac
+}
+
+require_value() {
+  name="$1"
+  value="$2"
+
+  [ -n "$value" ] || fail "$name is required"
+}
 
 APP_DB=${MYSQL_DATABASE:-gochat}
 APP_USER=${MYSQL_USER:-gochat_app}
-APP_PASS=${MYSQL_PASSWORD:-change_me_app}
+APP_PASS=${MYSQL_PASSWORD:-}
 BINLOG_USER=${BINLOG_USER:-}
 BINLOG_PASSWORD=${BINLOG_PASSWORD:-}
+ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-}
 
-# 使用环境变量安全传递密码
-export MYSQL_PWD="${MYSQL_ROOT_PASSWORD}"
-mysql=( mysql -uroot )
+require_value MYSQL_ROOT_PASSWORD "$ROOT_PASSWORD"
+require_value MYSQL_PASSWORD "$APP_PASS"
+validate_identifier MYSQL_DATABASE "$APP_DB"
+validate_identifier MYSQL_USER "$APP_USER"
 
-# Create application user & grant privileges on its schema
-"${mysql[@]}" <<SQL
+if [ -n "$BINLOG_USER" ] || [ -n "$BINLOG_PASSWORD" ]; then
+  require_value BINLOG_USER "$BINLOG_USER"
+  require_value BINLOG_PASSWORD "$BINLOG_PASSWORD"
+  validate_identifier BINLOG_USER "$BINLOG_USER"
+fi
+
+export MYSQL_PWD="$ROOT_PASSWORD"
+
+APP_DB_ESC=$(sql_escape "$APP_DB")
+APP_USER_ESC=$(sql_escape "$APP_USER")
+APP_PASS_ESC=$(sql_escape "$APP_PASS")
+
+log "creating schema and application user: ${APP_USER}@%"
+mysql -uroot <<SQL
 SET NAMES utf8mb4;
-CREATE USER IF NOT EXISTS '${APP_USER}'@'%' IDENTIFIED BY '${APP_PASS}';
-GRANT ALL PRIVILEGES ON \`${APP_DB}\`.* TO '${APP_USER}'@'%';
+CREATE DATABASE IF NOT EXISTS \`${APP_DB_ESC}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS '${APP_USER_ESC}'@'%' IDENTIFIED BY '${APP_PASS_ESC}';
+GRANT ALL PRIVILEGES ON \`${APP_DB_ESC}\`.* TO '${APP_USER_ESC}'@'%';
 FLUSH PRIVILEGES;
 SQL
 
-# Create binlog user only if both env vars are non-empty
-if [ -n "${BINLOG_USER}" ] && [ -n "${BINLOG_PASSWORD}" ]; then
-  "${mysql[@]}" <<SQL
+if [ -n "$BINLOG_USER" ]; then
+  BINLOG_USER_ESC=$(sql_escape "$BINLOG_USER")
+  BINLOG_PASSWORD_ESC=$(sql_escape "$BINLOG_PASSWORD")
+
+  log "creating binlog user: ${BINLOG_USER}@%"
+  mysql -uroot <<SQL
 SET NAMES utf8mb4;
-CREATE USER IF NOT EXISTS '${BINLOG_USER}'@'%' IDENTIFIED BY '${BINLOG_PASSWORD}';
--- Replication related privileges (for row-based binlog consumption)
-GRANT REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO '${BINLOG_USER}'@'%';
--- Needed for consistent snapshot / listing databases
-GRANT RELOAD, LOCK TABLES, SHOW DATABASES ON *.* TO '${BINLOG_USER}'@'%';
--- Read access to application database (initial snapshot)
-GRANT SELECT ON \`${APP_DB}\`.* TO '${BINLOG_USER}'@'%';
+CREATE USER IF NOT EXISTS '${BINLOG_USER_ESC}'@'%' IDENTIFIED BY '${BINLOG_PASSWORD_ESC}';
+GRANT REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO '${BINLOG_USER_ESC}'@'%';
+GRANT RELOAD, LOCK TABLES, SHOW DATABASES ON *.* TO '${BINLOG_USER_ESC}'@'%';
+GRANT SELECT ON \`${APP_DB_ESC}\`.* TO '${BINLOG_USER_ESC}'@'%';
 FLUSH PRIVILEGES;
 SQL
 fi
 
-# Log created users (host only) for debugging
-"${mysql[@]}" -e "SET NAMES utf8mb4; SELECT user, host, plugin FROM mysql.user WHERE user IN ('${APP_USER}', '${BINLOG_USER}');"
+log "verifying created users"
+mysql -uroot -e "SELECT user, host, plugin FROM mysql.user WHERE user IN ('${APP_USER_ESC}'${BINLOG_USER:+, '${BINLOG_USER_ESC}'});"
 
-echo "[init_users] Completed user initialization for app='${APP_USER}' binlog='${BINLOG_USER}'"
+log "completed user initialization for app='${APP_USER}' binlog='${BINLOG_USER:-none}'"

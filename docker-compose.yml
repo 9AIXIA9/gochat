@@ -1,19 +1,19 @@
 services:
   mysql:
-    image: mysql:8.0.40
+    image: mysql:8.4
     hostname: mysql
     container_name: gochat-mysql
+    restart: unless-stopped
     environment:
       TZ: ${TZ:-Asia/Shanghai}
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: gochat
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-gochat}
       MYSQL_USER: gochat_app
-      MYSQL_PASSWORD: gochat
+      MYSQL_PASSWORD: ${DB_PASSWORD:-password}
       BINLOG_USER: binlog
-      BINLOG_PASSWORD: binlog
+      BINLOG_PASSWORD: ${BINLOG_PASSWORD:-password}
     command: [
       "mysqld",
-      "--default-authentication-plugin=mysql_native_password",
       "--character-set-server=utf8mb4",
       "--collation-server=utf8mb4_unicode_ci",
       "--binlog-format=ROW",
@@ -22,7 +22,7 @@ services:
       "--enforce-gtid-consistency=ON",
       "--log-bin=mysql-bin",
       "--binlog-row-image=FULL",
-      "--binlog_expire_logs_seconds=604800",
+      "--binlog-expire-logs-seconds=604800",
       "--binlog_row_metadata=MINIMAL"
     ]
     ports:
@@ -31,36 +31,39 @@ services:
       - mysql-data:/var/lib/mysql
       - ./deployment/mysql-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: [ "CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u$MYSQL_USER -p$MYSQL_PASSWORD || exit 1" ]
+      test: [ "CMD-SHELL", "mysqladmin ping --protocol=tcp -h 127.0.0.1 -uroot -p\"$${MYSQL_ROOT_PASSWORD}\" --silent" ]
       interval: 5s
       timeout: 3s
       retries: 20
 
   redis:
-    image: redis:7.0-alpine
+    image: redis:7.4-alpine
     container_name: gochat-redis
     hostname: redis
+    restart: unless-stopped
     environment:
       TZ: ${TZ:-Asia/Shanghai}
-      REDIS_ROOT_PASSWORD: root
+      REDIS_ADMIN_USER: admin
+      REDIS_ADMIN_PASSWORD: ${REDIS_ADMIN_PASSWORD:-admin}
       REDIS_USER: gochat_app
-      REDIS_PASSWORD: gochat
-    command: [ "sh", "-lc", "exec redis-server --appendonly yes --aclfile /etc/redis/users.acl" ]
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-password}
+    command: [ "sh", "-ec", "/scripts/init_redis.sh" ]
     ports:
       - '${REDIS_HOST_PORT:-16379}:6379'
     volumes:
       - redis-data:/data
-      - ./deployment/redis_init/init_users.acl:/etc/redis/users.acl:ro
+      - ./deployment/redis_init/init_redis.sh:/scripts/init_redis.sh:ro
     healthcheck:
-      test: [ "CMD-SHELL", "redis-cli -a \"$REDIS_ROOT_PASSWORD\" ping || exit 1" ]
+      test: [ "CMD-SHELL", "redis-cli --no-auth-warning --user \"$${REDIS_ADMIN_USER}\" --pass \"$${REDIS_ADMIN_PASSWORD}\" ping" ]
       interval: 5s
       timeout: 3s
       retries: 20
 
   kafka:
-    image: apache/kafka-native:4.1.0
+    image: apache/kafka:4.2.0
     container_name: gochat-kafka
     hostname: kafka
+    restart: unless-stopped
     ports:
       - '${KAFKA_PORT:-9092}:9092'
       - '19092:19092'
@@ -77,10 +80,27 @@ services:
     volumes:
       - kafka-data:/var/lib/kafka/data
     healthcheck:
-      test: [ "CMD-SHELL", "nc -z localhost 9092 && nc -z localhost 29093 || exit 1" ]
+      test: [ "CMD-SHELL", "kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1 || /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1" ]
       interval: 10s
       timeout: 5s
       retries: 30
+
+  kafka-init:
+    image: apache/kafka:4.2.0
+    container_name: gochat-kafka-init
+    hostname: kafka-init
+    restart: "no"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_PARTITIONS: ${KAFKA_PARTITIONS:-1}
+      KAFKA_REPLICATION_FACTOR: ${KAFKA_REPLICATION_FACTOR:-1}
+      KAFKA_TOPICS_FILE: /scripts/topics.txt
+    volumes:
+      - ./deployment/kafka-init:/scripts:ro
+    command: [ "sh", "/scripts/init_topics.sh" ]
 
   #  OpenTelemetry Collector - 遥测数据收集器
   otel-collector:
@@ -175,6 +195,8 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
     restart: unless-stopped
     env_file:
       - ./.env
