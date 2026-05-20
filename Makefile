@@ -1,229 +1,154 @@
-# Makefile for GoChat backend on Windows (requires GNU make)
-# Use cmd.exe shell semantics for docker commands
+# Cross-platform Makefile for GoChat backend.
+# Keep it focused on the commands you actually use day to day.
 
-SHELL := cmd.exe
+APP_NAME ?= gochat-app
+APP_CMD ?= ./cmd/api
+COMPOSE_PROJECT ?= backend
+COMPOSE_FILE ?= docker-compose.yml
+OBS_FILE ?= docker-compose.observability.yml
 
-PROJECT_NAME := backend
-COMPOSE_FILE := docker-compose.yml
+GO ?= go
+DOCKER ?= docker
+SWAG ?= swag
+GOOSE ?= goose
+PYTHON ?= python
 
+ifeq ($(OS),Windows_NT)
+APP_BIN := $(APP_NAME).exe
+else
+APP_BIN := $(APP_NAME)
+endif
 
-# Helper to run docker compose with file and project name
-DC := docker compose -f $(COMPOSE_FILE) -p $(PROJECT_NAME)
+MIGRATIONS_DIR ?= db/migrations
+MYSQL_HOST_PORT ?= 13306
+DB_USERNAME ?= gochat_app
+DB_PASSWORD ?= gochat
+DB_NAME ?= gochat
+DB_HOST ?= 127.0.0.1
+DB_PORT ?= $(MYSQL_HOST_PORT)
+DB_DSN := $(DB_USERNAME):$(DB_PASSWORD)@tcp($(DB_HOST):$(DB_PORT))/$(DB_NAME)?parseTime=true&charset=utf8mb4
+
+DC := $(DOCKER) compose -f $(COMPOSE_FILE) -p $(COMPOSE_PROJECT)
+DC_OBS := $(DOCKER) compose -f $(COMPOSE_FILE) -f $(OBS_FILE) -p $(COMPOSE_PROJECT)
 
 .PHONY: help
 help:
-	@echo "Available targets:"
-	@echo "  make up           - Build (no cache) and start all services in background"
-	@echo "  make up-fast      - Up using build cache"
-	@echo "  make down         - Stop and remove containers (keep named volumes)"
-	@echo "  make destroy      - Stop and remove containers, images, and named volumes"
-	@echo "  make rebuild      - Remove old app image and rebuild with no cache"
-	@echo "  make restart      - Restart services using build cache"
-	@echo "  make kafka-init   - Create Kafka topics before starting the app"
-	@echo "  make db-migrate   - Apply DB migrations using host port"
-	@echo "  make logs         - Tail app logs"
-	@echo "  make logs-app     - Tail only app logs"
-	@echo "  make ps           - Show service status"
-	@echo "  make status       - Alias for ps"
-	@echo "  make hooks        - Install Git hooks"
-	@echo "  make precommit    - Run pre-commit hook manually"
-	@echo "  make test-all     - Run all tests with race detector and shuffle"
-	@echo "  make lint         - Run golangci-lint if installed"
-	@echo "  make swagger      - Generate Swagger docs from annotations"
-	@echo "  make swagger-generate - Generate Swagger docs from annotations"
-	@echo "  make fix-swagger  - Fix Swagger example fields (example -> x-example)"
-	@echo "  make fix-swagger-dry-run - Check what would be fixed (dry run)"
-	@echo "  make build        - Build the app binary"
-	@echo "  make run          - Run the app locally"
-	@echo "  make migrate-status - Show migration status"
-	@echo "  make migrate-up   - Apply all pending migrations"
-	@echo "  make migrate-down - Roll back the most recent migration"
-	@echo "  make migrate-reset - Roll back all migrations"
-	@echo "  make migrate-create - Create a new SQL migration (usage: make migrate-create name=add_table)"
-	@echo "  make migrate-status-host - Show migration status (host -> 127.0.0.1:$$(MYSQL_HOST_PORT))"
-	@echo "  make migrate-up-host - Apply migrations using host port"
-	@echo "  make migrate-down-host - Roll back last migration using host port"
-	@echo "  make migrate-reset-host - Reset all migrations using host port"
-	@echo "  make migrate-verify - Fail if pending migrations (container network DSN)"
-	@echo "  make migrate-verify-host - Fail if pending migrations (host 127.0.0.1:$$(MYSQL_HOST_PORT))"
+	$(info Available targets:)
+	$(info make fmt              - Format Go code)
+	$(info make test             - Run all tests)
+	$(info make test-race        - Run tests with race detector)
+	$(info make tidy             - Run go mod tidy)
+	$(info make build            - Build the app binary)
+	$(info make run              - Run the app locally)
+	$(info make lint             - Run golangci-lint)
+	$(info make swagger          - Generate Swagger docs)
+	$(info make swagger-fix      - Fix Swagger example fields)
+	$(info make swagger-dry-run  - Preview Swagger fixes)
+	$(info make up               - Start core services and app)
+	$(info make up-obs           - Start core services, observability, and app)
+	$(info make compose-migrate  - Run migrations in the Compose network)
+	$(info make down             - Stop core services)
+	$(info make ps               - Show service status)
+	$(info make logs             - Tail app logs)
+	$(info make restart          - Restart core services)
+	$(info make migrate-status   - Show local host migration status)
+	$(info make migrate-up       - Apply local host migrations)
+	$(info make migrate-down     - Roll back the latest local migration)
+	$(info make migrate-reset    - Roll back all local migrations)
+	$(info make migrate-create   - Create a new SQL migration; usage: make migrate-create name=add_table)
+	@:
+
+.PHONY: fmt
+fmt:
+	$(GO) fmt ./...
+
+.PHONY: test
+test:
+	$(GO) test ./...
+
+.PHONY: test-race
+test-race:
+	$(GO) test -race ./...
+
+.PHONY: tidy
+tidy:
+	$(GO) mod tidy
+
+.PHONY: build
+build:
+	$(GO) build -o $(APP_BIN) $(APP_CMD)
+
+.PHONY: run
+run:
+	$(GO) run $(APP_CMD)
+
+.PHONY: lint
+lint:
+	golangci-lint run ./...
+
+.PHONY: swagger
+swagger:
+	$(SWAG) init -g cmd/api/main.go --parseDependency --parseInternal
+	@echo Swagger docs generated in docs/
+
+.PHONY: swagger-fix
+swagger-fix:
+	$(PYTHON) scripts/fix_swagger.py docs/docs.go docs/swagger.yaml docs/swagger.json --backup
+
+.PHONY: swagger-dry-run
+swagger-dry-run:
+	$(PYTHON) scripts/fix_swagger.py docs/docs.go docs/swagger.yaml docs/swagger.json --dry-run
+
+.PHONY: compose-migrate
+compose-migrate:
+	$(DC) run --rm --build migrate
 
 .PHONY: up
-up: ## Build (no cache) and up -d
-	-$(DC) down
-	$(DC) build --no-cache mysql redis kafka jaeger prometheus grafana otel-collector
-	$(MAKE) kafka-init
-	$(MAKE) db-migrate
-	$(DC) build --no-cache app
-	$(DC) up -d --remove-orphans mysql redis kafka jaeger prometheus grafana otel-collector app
+up:
+	$(DC) up -d --build mysql redis kafka kafka-init
+	$(DC) run --rm --build migrate
+	$(DC) up -d --build app
+
+.PHONY: up-obs
+up-obs:
+	$(DC_OBS) up -d --build mysql redis kafka kafka-init otel-collector jaeger prometheus grafana
+	$(DC_OBS) run --rm --build migrate
+	$(DC_OBS) up -d --build app
 
 .PHONY: down
-down: ## Stop and remove containers (keep volumes)
-	$(DC) down
-
-.PHONY: destroy
-destroy: ## Stop and remove containers, images, and named volumes
-	-$(DC) down --rmi all -v --remove-orphans
-	-@for /f "tokens=1" %%%%i in ('docker images -q gochat-backend 2^>NUL') do docker rmi -f %%%%i 2>NUL || exit /b 0
-	-@for /f "tokens=1" %%%%i in ('docker images -q apache/kafka 2^>NUL') do docker rmi -f %%%%i 2>NUL || exit /b 0
-	-@for /f "tokens=1" %%%%i in ('docker images -q mysql 2^>NUL') do docker rmi -f %%%%i 2>NUL || exit /b 0
-	-@for /f "tokens=1" %%%%i in ('docker images -q redis 2^>NUL') do docker rmi -f %%%%i 2>NUL || exit /b 0
-
-.PHONY: rebuild
-rebuild: ## Remove old app image and rebuild without cache
-	-@for /f "tokens=1" %%%%i in ('docker images -q gochat-backend 2^>NUL') do docker rmi -f %%%%i 2>NUL || exit /b 0
-	$(DC) build --no-cache
-
-.PHONY: logs
-logs:
-	$(DC) logs -f app
+down:
+	$(DC) down --remove-orphans
 
 .PHONY: ps
 ps:
 	$(DC) ps
 
-.PHONY: restart
-restart: ## Restart using build cache (no --no-cache)
-	$(DC) up -d --build mysql redis kafka jaeger prometheus grafana otel-collector
-	$(MAKE) kafka-init
-	$(MAKE) db-migrate
-	$(DC) up -d --remove-orphans --build app
-
-.PHONY: kafka-init
-kafka-init: ## Create Kafka topics using a one-off container
-	docker run --rm --network $(PROJECT_NAME)_default -v "$(CURDIR)/deployment/kafka-init/init_topics.sh:/init_topics.sh:ro" -v "$(CURDIR)/deployment/kafka-init/topics.txt:/topics.txt:ro" docker.io/confluentinc/cp-kafka:8.0.0 sh /init_topics.sh
-
-.PHONY: db-migrate
-db-migrate: ## Apply DB migrations using host port
-	$(MAKE) migrate-up-host
-
-.PHONY: hooks
-hooks: ## Configure Git to use the versioned hooks in .githooks
-	@git config core.hooksPath .githooks
-	@echo Hooks installed to .githooks
-
-.PHONY: precommit
-precommit: ## Run pre-commit hook logic locally
-	@sh .githooks/pre-commit
-
-.PHONY: test-all
-test-all: ## Run all tests with race detector and shuffle
-	go test -race -shuffle=on ./...
-
-.PHONY: lint
-lint: ## Run golangci-lint if installed
-	golangci-lint run ./...
-
-# Swagger documentation
-.PHONY: swagger
-swagger: swagger-generate fix-swagger ## Generate Swagger docs and fix example fields
-
-.PHONY: swagger-generate
-swagger-generate: ## Generate Swagger docs from annotations
-	swag init -g cmd/api/main.go --parseDependency --parseInternal
-	@echo "Swagger docs generated in docs/ directory"
-
-.PHONY: fix-swagger
-fix-swagger: ## Fix Swagger example fields (example -> x-example)
-	@echo "Fixing Swagger example fields..."
-	python scripts/fix_swagger.py docs/docs.go docs/swagger.yaml docs/swagger.json --backup
-	@echo "Swagger files fixed"
-
-.PHONY: fix-swagger-dry-run
-fix-swagger-dry-run: ## Check what would be fixed (dry run)
-	@echo "Checking Swagger files (dry run)..."
-	python scripts/fix_swagger.py docs/docs.go docs/swagger.yaml docs/swagger.json --dry-run
-
-# Build & run app locally (without Docker)
-APP_MAIN := ./cmd/api/main.go
-
-.PHONY: build
-build: ## Build the app binary
-	go build -o bin/gochat-app $(APP_MAIN)
-
-.PHONY: run
-run: ## Run the app locally (use -config to override)
-	go run $(APP_MAIN) -config $(COMPOSE_FILE_DIR)/config/config.yaml
-
-# Compose utilities
-COMPOSE_FILE_DIR := .
-
-.PHONY: up-fast
-up-fast: ## Up using build cache
-	$(DC) up -d --build mysql redis kafka jaeger prometheus grafana otel-collector
-	$(MAKE) kafka-init
-	$(MAKE) db-migrate
-	$(DC) up -d --remove-orphans --build app
-
-.PHONY: logs-app
-logs-app: ## Tail only app logs
+.PHONY: logs
+logs:
 	$(DC) logs -f app
 
-.PHONY: status
-status: ps ## Alias for ps
-
-# Load environment overrides (optional). Default uses app env file.
-ENV_FILE ?= .env.development
--include $(ENV_FILE)
-
-# Default DB env (override via environment or .env if desired)
-DB_HOST ?= 127.0.0.1
-DB_PORT ?= 13306
-DB_USERNAME ?= gochat_app
-DB_PASSWORD ?= gochat
-DB_NAME ?= gochat
-
-# Goose migrations
-MIGRATIONS_DIR := db/migrations
-DB_DSN := $(DB_USERNAME):$(DB_PASSWORD)@tcp($(DB_HOST):$(DB_PORT))/$(DB_NAME)?parseTime=true&charset=utf8mb4
-
-# Goose executable (override if needed, default assumes goose in PATH)
-GOOSE ?= goose
+.PHONY: restart
+restart:
+	$(MAKE) down
+	$(MAKE) up
 
 .PHONY: migrate-status
-migrate-status: ## Show migration status
+migrate-status:
 	@$(GOOSE) -dir $(MIGRATIONS_DIR) mysql "$(DB_DSN)" status
 
 .PHONY: migrate-up
-migrate-up: ## Apply all pending migrations
+migrate-up:
 	@$(GOOSE) -dir $(MIGRATIONS_DIR) mysql "$(DB_DSN)" up
 
 .PHONY: migrate-down
-migrate-down: ## Roll back the most recent migration
+migrate-down:
 	@$(GOOSE) -dir $(MIGRATIONS_DIR) mysql "$(DB_DSN)" down
 
 .PHONY: migrate-reset
-migrate-reset: ## Roll back all migrations
+migrate-reset:
 	@$(GOOSE) -dir $(MIGRATIONS_DIR) mysql "$(DB_DSN)" reset
 
 .PHONY: migrate-create
-migrate-create: ## Create a new SQL migration (usage: make migrate-create name=add_table)
-	@if not defined name (echo Usage: make migrate-create name=add_table & exit /b 1)
+migrate-create:
+	$(if $(strip $(name)),,$(error Usage: make migrate-create name=add_table))
 	@$(GOOSE) -dir $(MIGRATIONS_DIR) create $(name) sql
-
-# Host-based DSN for running goose from host machine against published MySQL port
-MYSQL_HOST_PORT ?= 13306
-DB_DSN_HOST := $(DB_USERNAME):$(DB_PASSWORD)@tcp(127.0.0.1:$(MYSQL_HOST_PORT))/$(DB_NAME)?parseTime=true&charset=utf8mb4
-
-.PHONY: migrate-status-host
-migrate-status-host: ## Show migration status (host -> 127.0.0.1:$(MYSQL_HOST_PORT))
-	@$(GOOSE) -dir $(MIGRATIONS_DIR) mysql "$(DB_DSN_HOST)" status
-
-.PHONY: migrate-up-host
-migrate-up-host: ## Apply migrations using host port
-	@$(GOOSE) -dir $(MIGRATIONS_DIR) mysql "$(DB_DSN_HOST)" up
-
-.PHONY: migrate-down-host
-migrate-down-host: ## Roll back last migration using host port
-	@$(GOOSE) -dir $(MIGRATIONS_DIR) mysql "$(DB_DSN_HOST)" down
-
-.PHONY: migrate-reset-host
-migrate-reset-host: ## Reset all migrations using host port
-	@$(GOOSE) -dir $(MIGRATIONS_DIR) mysql "$(DB_DSN_HOST)" reset
-
-.PHONY: migrate-verify
-migrate-verify: ## Fail if pending migrations (container network DSN)
-	@$(GOOSE) -dir $(MIGRATIONS_DIR) mysql "$(DB_DSN)" status | findstr /I "Pending" >nul && (echo Pending migrations detected. Please run make migrate-up. & exit /b 1) || (echo Schema up-to-date.)
-
-.PHONY: migrate-verify-host
-migrate-verify-host: ## Fail if pending migrations (host 127.0.0.1:$(MYSQL_HOST_PORT))
-	@$(GOOSE) -dir $(MIGRATIONS_DIR) mysql "$(DB_DSN_HOST)" status | findstr /I "Pending" >nul && (echo Pending migrations detected. Please run make migrate-up-host. & exit /b 1) || (echo Schema up-to-date.)
