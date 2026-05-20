@@ -120,82 +120,6 @@ services:
       - ./deployment/migrate/run_migrations.sh:/scripts/run_migrations.sh:ro
     command: [ "/bin/sh", "/scripts/run_migrations.sh" ]
 
-  #  OpenTelemetry Collector - 遥测数据收集器
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.142.0
-    hostname: otel-collector
-    command: [ "--config=/etc/otel-collector-config.yaml" ]
-    ports:
-      - "4317:4317"  # OTLP gRPC
-      - "4318:4318"  # OTLP HTTP
-      - "8888:8888"  # 内部指标端口
-      - "8889:8889"  # Prometheus metrics endpoint
-    volumes:
-      - ./deployment/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
-    depends_on:
-      - jaeger
-      - prometheus
-
-  # Jaeger - 分布式追踪
-  jaeger:
-    image: jaegertracing/all-in-one:1.57
-    hostname: jaeger
-    environment:
-      COLLECTOR_OTLP_ENABLED: "true"
-      LOG_LEVEL: "info"
-    ports:
-      - "16686:16686"  # Jaeger UI
-      - "14250:14250"  # model.proto
-      - "14268:14268"  # HTTP接收
-      - "9411:9411"    # Zipkin兼容端点
-    healthcheck:
-      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:14269" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-
-  # Prometheus - 指标存储
-  prometheus:
-    image: prom/prometheus:v2.54.1
-    hostname: prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--storage.tsdb.retention.time=200h'
-      - '--web.enable-lifecycle'
-    ports:
-      - "9090:9090"
-    volumes:
-      - prometheus-data:/prometheus
-      - ./deployment/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-    healthcheck:
-      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:9090/-/healthy" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-
-  # Grafana - 数据可视化
-  grafana:
-    image: grafana/grafana:11.2.0
-    hostname: grafana
-    environment:
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
-    ports:
-      - "3000:3000"
-    volumes:
-      - grafana-data:/var/lib/grafana
-      - ./deployment/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
-      - ./deployment/dashboards:/etc/grafana/provisioning/dashboards:ro
-    depends_on:
-      - prometheus
-    healthcheck:
-      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-
   app:
     hostname: app
     build:
@@ -234,7 +158,3 @@ volumes:
   kafka-data:
     name: gochat-kafka-data
     driver: local
-  prometheus-data:
-    name: gochat-prometheus-data
-  grafana-data:
-    name: gochat-grafana-data

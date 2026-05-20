@@ -50,7 +50,7 @@ GoChat Backend 是一个面向即时通讯场景的后端服务，提供用户�
 
 5. **工程化与可运维性**
    - `Makefile` 集成构建、启动、测试、迁移、Swagger 生成等常用操作。
-   - 提供 Docker Compose 一键拉起完整依赖（MySQL / Redis / Kafka / OTel / Prometheus / Grafana / Jaeger / App）。
+   - 提供分层 Docker Compose：核心链路（MySQL / Redis / Kafka / App）与可观测栈（OTel / Prometheus / Grafana / Jaeger）可按需组合启动。
 
 ## 最简快速体验（建议先走这一段）
 
@@ -71,6 +71,12 @@ docker compose -f docker-compose.yml -p backend up -d --build
 ```
 
 > 说明：Compose 会先启动 MySQL/Redis/Kafka，并通过一次性的 `migrate` 服务自动执行 Goose 迁移；`app` 会等待迁移成功后再启动。
+>
+> 如需同时启动可观测栈（OTel/Jaeger/Prometheus/Grafana），请使用：
+>
+> ```bat
+> docker compose -f docker-compose.yml -f docker-compose.observability.yml -p backend up -d --build
+> ```
 
 ### 3) 确认容器与服务已就绪
 
@@ -137,6 +143,13 @@ docker compose -f docker-compose.yml -p backend up -d --build
 docker compose -f docker-compose.yml -p backend ps
 ```
 
+如需包含可观测组件：
+
+```bat
+docker compose -f docker-compose.yml -f docker-compose.observability.yml -p backend up -d --build
+docker compose -f docker-compose.yml -f docker-compose.observability.yml -p backend ps
+```
+
 这条 Compose 启动链路里已经包含数据库迁移，不需要再手动单独执行 `make migrate-up-host`。
 
 ### 4) 访问入口
@@ -145,9 +158,9 @@ docker compose -f docker-compose.yml -p backend ps
 - Swagger: `http://localhost:8080/swagger/index.html`
 - Health Check: `http://localhost:8080/healthz`
 - Readiness: `http://localhost:8080/readyz`
-- Jaeger: `http://localhost:16686`
-- Prometheus: `http://localhost:9090`
-- Grafana: `http://localhost:3000`（默认账号 `admin`，密码见 `docker-compose.yml` 中 `GRAFANA_PASSWORD` 配置）
+- Jaeger: `http://localhost:16686`（需使用 `docker-compose.observability.yml`）
+- Prometheus: `http://localhost:9090`（需使用 `docker-compose.observability.yml`）
+- Grafana: `http://localhost:3000`（需使用 `docker-compose.observability.yml`，默认账号 `admin`，密码见 `docker-compose.observability.yml` 中 `GRAFANA_PASSWORD` 配置）
 
 ### 5) 常用命令
 
@@ -183,7 +196,8 @@ backend/
 │  └─ shared/                  # 通用组件与共享内核
 ├─ pkg/                        # 可复用工具包
 ├─ scripts/                    # 开发脚本（如 websocket 压测）
-├─ docker-compose.yml          # 本地集成环境编排
+├─ docker-compose.yml          # 核心服务编排（app + mysql + redis + kafka + migrate）
+├─ docker-compose.observability.yml # 可观测服务编排（otel + jaeger + prometheus + grafana）
 ├─ Dockerfile                  # 应用镜像构建
 ├─ Makefile                    # 常用开发与运维命令
 └─ go.mod                      # Go 模块定义
