@@ -136,6 +136,21 @@ go run ./scripts/websocket_benchmark ^
 
 注意：`-send-mode private` 时，必须提供 `-recipient-id` 或 `-recipients-file`。
 
+## 好友预热（Paired 私聊前置）
+
+Paired 私聊压测前，发送端和接收端需要先建立好友关系。可以使用预热脚本：
+
+```powershell
+go run .\scripts\websocket_benchmark\friendship_warmup `
+  -base-url http://127.0.0.1:8080/api/v1 `
+  -tokens-file .\scripts\websocket_benchmark\tokens.txt `
+  -recipients-file .\scripts\websocket_benchmark\recipients.txt `
+  -pairs 50 `
+  -workers 20
+```
+
+默认配对规则与 paired mode 一致：前 N 行为接收端，后 N 行为发送端，发送端 i 对应接收端 i。
+
 ## 常用参数
 
 - `-url`：WebSocket 地址，默认 `ws://localhost:8080/api/v1/ws/`

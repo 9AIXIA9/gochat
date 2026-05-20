@@ -8,6 +8,7 @@
 - `websocket_benchmark/websocket.go`
 - `websocket_benchmark/generate_token_pool.ps1`
 - `websocket_benchmark/token_pool_generator/main.go`
+- `websocket_benchmark/friendship_warmup/main.go`
 
 ## 使用约定
 
@@ -229,6 +230,20 @@ go run ./scripts/websocket_benchmark/token_pool_generator -base-url http://local
 - `-dry-run`：模拟生成
 - `-append`：是否续写输出文件（默认 `true`）
 - `-out-file` / `-detail-file` / `-recipient-file`：输出路径
+
+---
+
+## 5) websocket_benchmark/friendship_warmup/main.go
+
+### 作用
+
+在 `paired` 私聊压测前批量预热好友关系（发送端发起请求，接收端同意）。
+
+### 命令示例
+
+```bash
+go run ./scripts/websocket_benchmark/friendship_warmup -base-url http://localhost:8080/api/v1 -tokens-file scripts/websocket_benchmark/tokens.txt -recipients-file scripts/websocket_benchmark/recipients.txt -pairs 100 -workers 20
+```
 
 ### 调参建议
 
