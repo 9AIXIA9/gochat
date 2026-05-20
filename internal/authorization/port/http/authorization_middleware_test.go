@@ -33,17 +33,28 @@ func TestNewAuthorizationMiddleware(t *testing.T) {
 	fixedUserID := kernel.UserID("user-1")
 
 	tests := []struct {
-		name           string
-		authorization  string
-		useCase        fakeParseAccessTokenUseCase
-		expectResponse *api.Response
-		assertContext  bool
+		name             string
+		authorization    string
+		queryAccessToken string
+		useCase          fakeParseAccessTokenUseCase
+		expectResponse   *api.Response
+		assertContext    bool
 	}{
 		{
 			name:          "success with bearer token",
 			authorization: "Bearer token-abc",
 			useCase: fakeParseAccessTokenUseCase{exec: func(_ context.Context, in *authApplication.ParseAccessTokenInput) (*authApplication.ParseAccessTokenOutput, error) {
 				assert.Equal(t, authDomain.AccessToken("token-abc"), in.AccessToken)
+				return &authApplication.ParseAccessTokenOutput{UserID: fixedUserID}, nil
+			}},
+			expectResponse: api.ResponseSuccess,
+			assertContext:  true,
+		},
+		{
+			name:             "success with query token",
+			queryAccessToken: "token-query-abc",
+			useCase: fakeParseAccessTokenUseCase{exec: func(_ context.Context, in *authApplication.ParseAccessTokenInput) (*authApplication.ParseAccessTokenOutput, error) {
+				assert.Equal(t, authDomain.AccessToken("token-query-abc"), in.AccessToken)
 				return &authApplication.ParseAccessTokenOutput{UserID: fixedUserID}, nil
 			}},
 			expectResponse: api.ResponseSuccess,
@@ -90,6 +101,13 @@ func TestNewAuthorizationMiddleware(t *testing.T) {
 
 			req, err := http.NewRequest(http.MethodGet, "/protected", nil)
 			require.NoError(t, err)
+
+			if tt.queryAccessToken != "" {
+				q := req.URL.Query()
+				q.Set("access_token", tt.queryAccessToken)
+				req.URL.RawQuery = q.Encode()
+			}
+
 			if tt.authorization != "" {
 				req.Header.Set("Authorization", tt.authorization)
 			}

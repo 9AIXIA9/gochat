@@ -6,7 +6,7 @@
 
 - WebSocket URL：`ws://<host>:<port>/api/v1/ws/`
 - 例如本地：`ws://localhost:8080/api/v1/ws/`
-- 鉴权方式：必须在握手请求头中携带 `Authorization: Bearer <access_token>`
+- 鉴权方式：握手时可携带 `Authorization: Bearer <access_token>`，也支持通过 Query 参数 `access_token=<access_token>` 传递
 
 未带 Token、Token 格式错误或无效时，握手会被拒绝。
 
