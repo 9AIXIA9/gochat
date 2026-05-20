@@ -70,6 +70,8 @@ copy config\config.local.example.yaml config\config.local.yaml
 docker compose -f docker-compose.yml -p backend up -d --build
 ```
 
+> 说明：Compose 会先启动 MySQL/Redis/Kafka，并通过一次性的 `migrate` 服务自动执行 Goose 迁移；`app` 会等待迁移成功后再启动。
+
 ### 3) 确认容器与服务已就绪
 
 ```bat
@@ -134,6 +136,8 @@ make ps
 docker compose -f docker-compose.yml -p backend up -d --build
 docker compose -f docker-compose.yml -p backend ps
 ```
+
+这条 Compose 启动链路里已经包含数据库迁移，不需要再手动单独执行 `make migrate-up-host`。
 
 ### 4) 访问入口
 

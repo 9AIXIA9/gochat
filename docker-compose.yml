@@ -102,6 +102,29 @@ services:
       - ./deployment/kafka-init:/scripts:ro
     command: [ "sh", "/scripts/init_topics.sh" ]
 
+  migrate:
+    container_name: gochat-migrate
+    hostname: migrate
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: "no"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USERNAME: gochat_app
+      DB_PASSWORD: ${DB_PASSWORD:-password}
+      DB_NAME: ${MYSQL_DATABASE:-gochat}
+      GOOSE_MIGRATIONS_DIR: /app/db/migrations
+    volumes:
+      - ./db/migrations:/app/db/migrations:ro
+      - ./deployment/migrate/run_migrations.sh:/scripts/run_migrations.sh:ro
+    command: [ "/bin/sh", "/scripts/run_migrations.sh" ]
+
   #  OpenTelemetry Collector - 遥测数据收集器
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.142.0
@@ -196,6 +219,8 @@ services:
       kafka:
         condition: service_healthy
       kafka-init:
+        condition: service_completed_successfully
+      migrate:
         condition: service_completed_successfully
     restart: unless-stopped
     env_file:
