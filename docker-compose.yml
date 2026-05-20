@@ -45,7 +45,7 @@ services:
       REDIS_ADMIN_PASSWORD: ${REDIS_ADMIN_PASSWORD:-admin}
       REDIS_USER: gochat_app
       REDIS_PASSWORD: ${REDIS_PASSWORD:-password}
-    command: [ "sh", "-ec", "/scripts/init_redis.sh" ]
+    command: [ "sh", "/scripts/init_redis.sh" ]
     ports:
       - '${REDIS_HOST_PORT:-16379}:6379'
     volumes:
@@ -59,6 +59,7 @@ services:
 
   kafka:
     image: apache/kafka:4.2.0
+    platform: linux/amd64
     hostname: kafka
     restart: unless-stopped
     ports:
@@ -84,6 +85,7 @@ services:
 
   kafka-init:
     image: apache/kafka:4.2.0
+    platform: linux/amd64
     hostname: kafka-init
     restart: "no"
     depends_on:
@@ -133,8 +135,6 @@ services:
       kafka:
         condition: service_healthy
       kafka-init:
-        condition: service_completed_successfully
-      migrate:
         condition: service_completed_successfully
     restart: unless-stopped
     env_file:

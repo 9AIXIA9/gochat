@@ -64,18 +64,22 @@ copy config\config.override.example.yaml config\config.override.yaml
 copy config\config.local.example.yaml config\config.local.yaml
 ```
 
-### 2) 一条命令启动
+### 2) Compose 启动（无需 Make）
 
 ```bat
-docker compose -f docker-compose.yml -p backend up -d --build
+docker compose -f docker-compose.yml -p backend up -d --build mysql redis kafka kafka-init
+docker compose -f docker-compose.yml -p backend run --rm --build migrate
+docker compose -f docker-compose.yml -p backend up -d --build app
 ```
 
-> 说明：Compose 会先启动 MySQL/Redis/Kafka，并通过一次性的 `migrate` 服务自动执行 Goose 迁移；`app` 会等待迁移成功后再启动。
+> 说明：这里把迁移单独拆成一次性任务显式执行，这样更容易确认成功/失败，也不会卡在 `service_completed_successfully` 的等待状态。
 >
 > 如需同时启动可观测栈（OTel/Jaeger/Prometheus/Grafana），请使用：
 >
 > ```bat
-> docker compose -f docker-compose.yml -f docker-compose.observability.yml -p backend up -d --build
+> docker compose -f docker-compose.yml -f docker-compose.observability.yml -p backend up -d --build mysql redis kafka kafka-init otel-collector jaeger prometheus grafana
+> docker compose -f docker-compose.yml -f docker-compose.observability.yml -p backend run --rm --build migrate
+> docker compose -f docker-compose.yml -f docker-compose.observability.yml -p backend up -d --build app
 > ```
 
 ### 3) 确认容器与服务已就绪
@@ -132,25 +136,35 @@ copy config\config.local.example.yaml config\config.local.yaml
 ### 3) 一键启动（推荐）
 
 ```bat
-make up-fast
+make up
 make ps
-```
-
-如果本机未安装 `make`，可直接使用 Docker Compose：
-
-```bat
-docker compose -f docker-compose.yml -p backend up -d --build
-docker compose -f docker-compose.yml -p backend ps
 ```
 
 如需包含可观测组件：
 
 ```bat
-docker compose -f docker-compose.yml -f docker-compose.observability.yml -p backend up -d --build
+make up-obs
+```
+
+如果本机未安装 `make`，也可以直接使用 Docker Compose：
+
+```bat
+docker compose -f docker-compose.yml -p backend up -d --build mysql redis kafka kafka-init
+docker compose -f docker-compose.yml -p backend run --rm --build migrate
+docker compose -f docker-compose.yml -p backend up -d --build app
+docker compose -f docker-compose.yml -p backend ps
+```
+
+如果需要同时启动可观测组件：
+
+```bat
+docker compose -f docker-compose.yml -f docker-compose.observability.yml -p backend up -d --build mysql redis kafka kafka-init otel-collector jaeger prometheus grafana
+docker compose -f docker-compose.yml -f docker-compose.observability.yml -p backend run --rm --build migrate
+docker compose -f docker-compose.yml -f docker-compose.observability.yml -p backend up -d --build app
 docker compose -f docker-compose.yml -f docker-compose.observability.yml -p backend ps
 ```
 
-这条 Compose 启动链路里已经包含数据库迁移，不需要再手动单独执行 `make migrate-up-host`。
+这条启动链路里迁移是显式执行的，因此更容易看到成功/失败状态，也不会卡在 `service_completed_successfully` 的等待状态。
 
 ### 4) 访问入口
 
@@ -165,12 +179,22 @@ docker compose -f docker-compose.yml -f docker-compose.observability.yml -p back
 ### 5) 常用命令
 
 ```bat
-make logs-app
-make test-all
+make logs
+make test
+make test-race
 make lint
-make migrate-status-host
-make migrate-up-host
+make compose-migrate
+make migrate-status
+make migrate-up
 make swagger
+```
+
+如果需要生成应用二进制或格式化代码，也可以使用：
+
+```bat
+make build
+make fmt
+make tidy
 ```
 
 ## 项目结构
