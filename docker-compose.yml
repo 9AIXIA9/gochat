@@ -2,7 +2,6 @@ services:
   mysql:
     image: mysql:8.4
     hostname: mysql
-    container_name: gochat-mysql
     restart: unless-stopped
     environment:
       TZ: ${TZ:-Asia/Shanghai}
@@ -38,7 +37,6 @@ services:
 
   redis:
     image: redis:7.4-alpine
-    container_name: gochat-redis
     hostname: redis
     restart: unless-stopped
     environment:
@@ -61,7 +59,6 @@ services:
 
   kafka:
     image: apache/kafka:4.2.0
-    container_name: gochat-kafka
     hostname: kafka
     restart: unless-stopped
     ports:
@@ -87,7 +84,6 @@ services:
 
   kafka-init:
     image: apache/kafka:4.2.0
-    container_name: gochat-kafka-init
     hostname: kafka-init
     restart: "no"
     depends_on:
@@ -103,7 +99,6 @@ services:
     command: [ "sh", "/scripts/init_topics.sh" ]
 
   migrate:
-    container_name: gochat-migrate
     hostname: migrate
     build:
       context: .
@@ -128,7 +123,6 @@ services:
   #  OpenTelemetry Collector - 遥测数据收集器
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.142.0
-    container_name: gochat-otel-collector
     hostname: otel-collector
     command: [ "--config=/etc/otel-collector-config.yaml" ]
     ports:
@@ -145,7 +139,6 @@ services:
   # Jaeger - 分布式追踪
   jaeger:
     image: jaegertracing/all-in-one:1.57
-    container_name: gochat-jaeger
     hostname: jaeger
     environment:
       COLLECTOR_OTLP_ENABLED: "true"
@@ -164,7 +157,6 @@ services:
   # Prometheus - 指标存储
   prometheus:
     image: prom/prometheus:v2.54.1
-    container_name: gochat-prometheus
     hostname: prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -187,7 +179,6 @@ services:
   # Grafana - 数据可视化
   grafana:
     image: grafana/grafana:11.2.0
-    container_name: gochat-grafana
     hostname: grafana
     environment:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
@@ -206,7 +197,6 @@ services:
       retries: 10
 
   app:
-    container_name: gochat-backend
     hostname: app
     build:
       context: .
