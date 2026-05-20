@@ -7,7 +7,7 @@ DisableSessionStartedEvent: false
 Mysql:
   Host: 127.0.0.1
   Port: 3306
-  Username: root
+  Username: gochat_app
   Password: ${DB_PASSWORD}
   Database: gochat_local
   MaxOpenConns: 120
@@ -17,6 +17,7 @@ Mysql:
 
 Redis:
   Database: 1
+  User: gochat_app
   Password: ${REDIS_PASSWORD}
 
 Logger:

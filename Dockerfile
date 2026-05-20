@@ -13,6 +13,9 @@ ENV GO111MODULE=on \
 # 安装构建依赖
 RUN apk add --no-cache git build-base pkgconfig librdkafka-dev
 
+# 安装 Goose 迁移工具，供 Compose 里的迁移服务复用
+RUN GOSUMDB=off GOBIN=/go/bin go install github.com/pressly/goose/v3/cmd/goose@v3.24.3
+
 # 下载依赖并清理缓存
 COPY go.mod go.sum ./
 RUN go mod download && \
@@ -44,6 +47,7 @@ RUN mkdir -p /app/config
 
 # 复制必需的库文件（librdkafka 运行时依赖）
 COPY --from=builder /usr/lib/librdkafka.so.* /usr/lib/
+COPY --from=builder /go/bin/goose /usr/local/bin/goose
 
 # 创建非 root 用户
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup && \

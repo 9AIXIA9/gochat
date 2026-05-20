@@ -96,10 +96,15 @@ main() {
 
   wait_for_broker "$kafka_topics_cmd"
 
-  load_topics | while IFS= read -r topic; do
+  topics_file="$(mktemp)"
+  trap 'rm -f "$topics_file"' EXIT INT TERM
+
+  load_topics > "$topics_file"
+
+  while IFS= read -r topic || [ -n "$topic" ]; do
     [ -z "$topic" ] && continue
     create_topic_if_missing "$kafka_topics_cmd" "$topic"
-  done
+  done < "$topics_file"
 
   echo "Kafka topic initialization completed"
 }
