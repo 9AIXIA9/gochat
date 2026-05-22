@@ -4,6 +4,7 @@ import (
 	canalUtil "gochat/internal/infrastructure/canal"
 	ginutils "gochat/internal/infrastructure/gin"
 	kafkautil "gochat/internal/infrastructure/kafka"
+	outboxUtil "gochat/internal/infrastructure/outbox"
 	gomailUtil "gochat/internal/notification/infrastructure/gomail"
 
 	"github.com/redis/go-redis/v9"
@@ -15,6 +16,7 @@ type Dependencies struct {
 	MysqlDB             *gorm.DB
 	RedisClient         *redis.Client
 	KafkaEventPublisher *kafkautil.EventPublisher
+	OutboxDispatcher    *outboxUtil.Dispatcher
 	KafkaConsumers      []*kafkautil.Consumer
 	BinlogReader        *canalUtil.BinlogReader
 	EmailNotifier       *gomailUtil.EmailNotifier
@@ -26,6 +28,7 @@ func BuildDependencies(
 	mysqlDB *gorm.DB,
 	redisClient *redis.Client,
 	kafkaPublisher *kafkautil.EventPublisher,
+	outboxDispatcher *outboxUtil.Dispatcher,
 	consumers []*kafkautil.Consumer,
 	binlogReader *canalUtil.BinlogReader,
 	emailNotifier *gomailUtil.EmailNotifier,
@@ -37,6 +40,7 @@ func BuildDependencies(
 		MysqlDB:             mysqlDB,
 		RedisClient:         redisClient,
 		KafkaEventPublisher: kafkaPublisher,
+		OutboxDispatcher:    outboxDispatcher,
 		KafkaConsumers:      consumers,
 		BinlogReader:        binlogReader,
 		EmailNotifier:       emailNotifier,

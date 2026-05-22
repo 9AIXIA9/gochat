@@ -525,7 +525,7 @@ func runClient(ctx context.Context, id int, cfg config, tokens []string, recipie
 		case <-tickChanTimer(chaosTimer):
 			if shouldDropByRatio(id, cfg.chaosDropRatio) {
 				m.chaosDropped.Add(1)
-				_ = conn.UnderlyingConn().Close()
+				_ = conn.Close()
 				return
 			}
 			chaosTimer = nil

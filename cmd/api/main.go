@@ -94,6 +94,9 @@ func main() {
 func startComponents(dependencies *di.Dependencies) error {
 	dependencies.EmailNotifier.Start()
 	dependencies.KafkaEventPublisher.Start()
+	if dependencies.OutboxDispatcher != nil {
+		dependencies.OutboxDispatcher.Start(context.Background())
+	}
 
 	startedConsumers := 0
 	for _, c := range dependencies.KafkaConsumers {
@@ -124,6 +127,9 @@ func shutdownComponents(ctx context.Context, dependencies *di.Dependencies) {
 	}
 
 	dependencies.BinlogReader.Close()
+	if dependencies.OutboxDispatcher != nil {
+		dependencies.OutboxDispatcher.Stop()
+	}
 
 	for i := len(dependencies.KafkaConsumers) - 1; i >= 0; i-- {
 		if dependencies.KafkaConsumers[i] != nil {

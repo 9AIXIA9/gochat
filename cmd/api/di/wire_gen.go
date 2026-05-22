@@ -331,17 +331,21 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
+	unpublishedEventsCreatedUseCase, err := provideUnpublishedEventsCreatedCase(appConfig, eventPublisher, eventRepository)
+	if err != nil {
+		return nil, err
+	}
+	dispatcher, err := provideOutboxDispatcher(appConfig, unpublishedEventsCreatedUseCase)
+	if err != nil {
+		return nil, err
+	}
 	canal, err := provideCanal(appConfig)
 	if err != nil {
 		return nil, err
 	}
-	unpublishedEventsCreatedUseCase, err := provideUnpublishedEventsCreatedCase(eventPublisher, eventRepository)
-	if err != nil {
-		return nil, err
-	}
-	eventHandler := provideCanalBinlogReaderHandler(unpublishedEventsCreatedUseCase)
+	eventHandler := provideCanalBinlogReaderHandler(dispatcher)
 	binlogReader := provideCanalBinlogReader(canal, eventHandler)
-	dependencies, err := BuildDependencies(server, db, client, eventPublisher, v, binlogReader, emailNotifier, otelShutdown, diEmailServiceAvailable)
+	dependencies, err := BuildDependencies(server, db, client, eventPublisher, dispatcher, v, binlogReader, emailNotifier, otelShutdown, diEmailServiceAvailable)
 	if err != nil {
 		return nil, err
 	}

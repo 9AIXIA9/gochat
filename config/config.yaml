@@ -97,6 +97,13 @@ Kafka:
   GroupID: gochat
   AutoOffsetReset: latest
 
+Outbox:
+  RunTimeout: 1m
+  Lease: 1m
+  BatchSize: 200
+  SweepInterval: 1s
+  TriggerBuffer: 1
+
 Breaker:
   MaxRequests: 5
   Interval: 60s

@@ -2,26 +2,24 @@ package binlog
 
 import (
 	"context"
-	"gochat/internal/application"
 	"gochat/internal/infrastructure/metrics"
+	"gochat/internal/infrastructure/outbox"
 	"time"
 
 	"github.com/go-mysql-org/go-mysql/canal"
 )
 
-const timeout = 5 * time.Second
-
 var _ canal.EventHandler = (*outboxHandler)(nil)
 
 type outboxHandler struct {
 	canal.DummyEventHandler
-	uc application.UnpublishedEventsCreatedUseCase
+	triggerer outbox.Triggerer
 }
 
-func NewOutboxHandler(uc application.UnpublishedEventsCreatedUseCase) canal.EventHandler {
+func NewOutboxHandler(triggerer outbox.Triggerer) canal.EventHandler {
 	return &outboxHandler{
 		DummyEventHandler: canal.DummyEventHandler{},
-		uc:                uc,
+		triggerer:         triggerer,
 	}
 }
 
@@ -31,18 +29,14 @@ func (h *outboxHandler) OnRow(e *canal.RowsEvent) error {
 		return nil
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
 	start := time.Now()
 
-	_, err := h.uc.Execute(ctx, nil)
-	if err != nil {
-		metrics.OutboxProcess(ctx, "binlog_trigger", "failed", "execute_failed")
-		metrics.OutboxProcessDuration(ctx, "binlog_trigger", "failed", time.Since(start).Seconds())
-		return err
+	if h.triggerer != nil {
+		h.triggerer.Trigger()
 	}
 
-	metrics.OutboxProcess(ctx, "binlog_trigger", "ok", "")
+	ctx := context.Background()
+	metrics.OutboxProcess(ctx, "binlog_trigger", "ok", "signal_sent")
 	metrics.OutboxProcessDuration(ctx, "binlog_trigger", "ok", time.Since(start).Seconds())
 
 	return nil

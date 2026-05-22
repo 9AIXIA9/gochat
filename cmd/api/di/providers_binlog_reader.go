@@ -2,9 +2,9 @@ package di
 
 import (
 	"gochat/config"
-	"gochat/internal/application"
 	"gochat/internal/delivery/binlog"
 	canalInfra "gochat/internal/infrastructure/canal"
+	outboxInfra "gochat/internal/infrastructure/outbox"
 
 	"github.com/go-mysql-org/go-mysql/canal"
 	"github.com/google/wire"
@@ -24,6 +24,6 @@ func provideCanalBinlogReader(c *canal.Canal, handler canal.EventHandler) *canal
 	return canalInfra.NewBinlogReader(c, handler)
 }
 
-func provideCanalBinlogReaderHandler(uc application.UnpublishedEventsCreatedUseCase) canal.EventHandler {
-	return binlog.NewOutboxHandler(uc)
+func provideCanalBinlogReaderHandler(dispatcher *outboxInfra.Dispatcher) canal.EventHandler {
+	return binlog.NewOutboxHandler(dispatcher)
 }

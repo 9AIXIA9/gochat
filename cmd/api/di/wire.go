@@ -21,7 +21,6 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 		UseCaseHTTPSet,
 		UseCaseWebsocketSet,
 		UseCaseKafkaSet,
-		UseCaseBinlogReaderSet,
 		WebsocketSet,
 		HTTPSet,
 		BuildDependencies,

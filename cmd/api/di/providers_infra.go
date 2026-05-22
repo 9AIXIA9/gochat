@@ -3,6 +3,7 @@ package di
 import (
 	"context"
 	"gochat/config"
+	rootapp "gochat/internal/application"
 	authDomain "gochat/internal/authorization/domain"
 	"gochat/internal/authorization/infrastructure/crypto"
 	"gochat/internal/authorization/infrastructure/jwt"
@@ -17,6 +18,7 @@ import (
 	gormInfra "gochat/internal/infrastructure/gorm"
 	kafkautil "gochat/internal/infrastructure/kafka"
 	infraotel "gochat/internal/infrastructure/otel"
+	outboxUtil "gochat/internal/infrastructure/outbox"
 	redisInfra "gochat/internal/infrastructure/redis"
 	"gochat/internal/infrastructure/ulule"
 	"gochat/internal/infrastructure/uuid"
@@ -30,6 +32,7 @@ import (
 	roomshipUUID "gochat/internal/roomship/infrastructure/uuid"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
+	"time"
 
 	"github.com/google/wire"
 	"github.com/redis/go-redis/v9"
@@ -52,6 +55,7 @@ var InfraSet = wire.NewSet(
 	provideMysqlConnection,
 	provideRedisConnection,
 	provideKafkaPublisher,
+	provideOutboxDispatcher,
 	provideValidator,
 	provideHTTPLimiter,
 	provideWebsocketLimiter,
@@ -203,4 +207,11 @@ func provideKafkaPublisher(appConfig *config.App, eventRepo event.Repository) (*
 			return eventRepo.MarkAsPublished(context.Background(), id)
 		},
 	)
+}
+
+func provideOutboxDispatcher(appConfig *config.App, uc rootapp.UnpublishedEventsCreatedUseCase) (*outboxUtil.Dispatcher, error) {
+	if appConfig == nil || appConfig.Outbox == nil {
+		return outboxUtil.NewDispatcher(uc, time.Second, 1)
+	}
+	return outboxUtil.NewDispatcher(uc, appConfig.Outbox.SweepInterval, appConfig.Outbox.TriggerBuffer)
 }
