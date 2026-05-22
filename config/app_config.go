@@ -47,6 +47,7 @@ type App struct {
 	WebsocketRateLimit *ulule.Config               `mapstructure:"WebsocketRateLimit"`
 	KafkaRateLimit     *ulule.Config               `mapstructure:"KafkaRateLimit"`
 	BinlogReader       *canal.BinlogReaderConfig   `mapstructure:"BinlogReader"`
+	Outbox             *Outbox                     `mapstructure:"Outbox"`
 	Email              *gomail.EmailNotifierConfig `mapstructure:"Email"`
 	Breaker            *breaker.Config             `mapstructure:"Breaker"`
 	OTEL               *otel.Config                `mapstructure:"OTEL"`
@@ -117,6 +118,12 @@ func (c *App) Validate() error {
 	}
 	if err := c.BinlogReader.Validate(); err != nil {
 		return fmt.Errorf("App.BinlogReader: %w", err)
+	}
+	if c.Outbox == nil {
+		c.Outbox = &Outbox{}
+	}
+	if err := c.Outbox.Validate(); err != nil {
+		return fmt.Errorf("App.Outbox: %w", err)
 	}
 	if err := c.Breaker.Validate(); err != nil {
 		return fmt.Errorf("App.Breaker: %w", err)

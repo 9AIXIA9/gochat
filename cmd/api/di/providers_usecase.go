@@ -1,6 +1,7 @@
 package di
 
 import (
+	"gochat/config"
 	rootapp "gochat/internal/application"
 	authApp "gochat/internal/authorization/application"
 	authDomain "gochat/internal/authorization/domain"
@@ -62,6 +63,7 @@ var UseCaseWebsocketSet = wire.NewSet(
 
 var UseCaseKafkaSet = wire.NewSet(
 	provideAuthUserCreatedUseCase,
+	provideUnpublishedEventsCreatedCase,
 	provideProfileRoomshipCreatedUseCase,
 	provideProfileRoomCreatedUseCase,
 	provideProfileUserCreatedUseCase,
@@ -84,21 +86,7 @@ var UseCaseKafkaSet = wire.NewSet(
 	provideFriendshipFriendRequestAgreedUseCase,
 )
 
-var UseCaseBinlogReaderSet = wire.NewSet(
-	provideUnpublishedEventsCreatedCase,
-)
-
 // -------------------- UseCases (HTTP side) --------------------
-func provideUnpublishedEventsCreatedCase(
-	publisher event.Publisher,
-	eventRepo event.Repository,
-) (rootapp.UnpublishedEventsCreatedUseCase, error) {
-	return rootapp.NewUnpublishedEventsCreatedUseCase(
-		publisher,
-		eventRepo,
-	)
-}
-
 func provideSignUpUseCase(
 	eventIDGen event.IDGenerator,
 	userIDGen authDomain.UserIDGenerator,
@@ -393,6 +381,18 @@ func provideNotificationConfirmSystemMessagesUseCase(
 	updater notificationDomain.SystemMessagesStatesUpdaterByMessageIDs,
 ) (notificationApp.ConfirmSystemMessagesUseCase, error) {
 	return notificationApp.NewConfirmSystemMessagesUseCase(updater)
+}
+
+func provideUnpublishedEventsCreatedCase(
+	appConfig *config.App,
+	eventPublisher event.Publisher,
+	eventRepository event.Repository,
+) (rootapp.UnpublishedEventsCreatedUseCase, error) {
+	_ = appConfig
+	return rootapp.NewUnpublishedEventsCreatedUseCase(
+		eventPublisher,
+		eventRepository,
+	)
 }
 
 // -------------------- Event UseCases (Kafka consumer side) --------------------

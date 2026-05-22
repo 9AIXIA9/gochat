@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"gochat/internal/shared/event"
 
@@ -24,6 +25,12 @@ type EventPublisher struct {
 
 	wg     sync.WaitGroup
 	closed atomic.Bool
+	// deliveredCh decouples delivery-report handling from the kafka events loop.
+	// Workers read from this channel and persist publish state concurrently to avoid
+	// blocking the producer event loop (which may cause "Queue full").
+	deliveredCh chan event.ID
+	// number of concurrent workers that call onDelivered
+	deliveredWorkers int
 }
 
 func NewEventPublisher(
@@ -46,9 +53,12 @@ func NewEventPublisher(
 	}
 
 	return &EventPublisher{
-		publishResultChan: make(chan ckafka.Event, 512),
+		// 增大结果通道，减少在高吞吐下消费者处理不及导致的阻塞
+		publishResultChan: make(chan ckafka.Event, 4096),
 		producer:          producer,
 		onDelivered:       onDelivered,
+		deliveredCh:       make(chan event.ID, 16384),
+		deliveredWorkers:  16,
 	}, nil
 }
 
@@ -63,23 +73,49 @@ func (p *EventPublisher) Publish(ctx context.Context, ev event.Event) error {
 
 	message := toMessage(ev)
 
-	// 超时检测
-	select {
-	case <-ctx.Done():
-		metrics.KafkaProduce(ctx, "failed", "context_done")
-		return fmt.Errorf("publish event timeout: %w", ctx.Err())
-	default:
+	// 当本地队列已满时，进行有上下文感知的重试（指数退避），以避免把 Queue full 直接上抛到上层批量处理逻辑
+	backoff := 10 * time.Millisecond
+	const maxBackoff = 500 * time.Millisecond
+	for {
+		// respect context cancellation first
+		select {
+		case <-ctx.Done():
+			metrics.KafkaProduce(ctx, "failed", "context_done")
+			return fmt.Errorf("publish event timeout: %w", ctx.Err())
+		default:
+		}
+
 		if err := p.producer.Produce(message, p.publishResultChan); err != nil {
 			metrics.KafkaProduce(ctx, "failed", "produce_error")
 			if strings.Contains(err.Error(), "Queue full") {
+				// 记录并上报指标，然后休眠后重试
 				metrics.KafkaQueueFull(ctx)
+				zap.L().Warn("kafka producer queue full, retrying", zap.Duration("backoff", backoff))
+
+				timer := time.NewTimer(backoff)
+				select {
+				case <-ctx.Done():
+					timer.Stop()
+					metrics.KafkaProduce(ctx, "failed", "context_done")
+					return fmt.Errorf("publish event timeout: %w", ctx.Err())
+				case <-timer.C:
+				}
+
+				if backoff < maxBackoff {
+					backoff *= 2
+					if backoff > maxBackoff {
+						backoff = maxBackoff
+					}
+				}
+				continue
 			}
 			zap.L().Error("produce message failed", zap.Error(err))
 			return err
 		}
+
+		metrics.KafkaProduce(ctx, "ok", "")
+		return nil
 	}
-	metrics.KafkaProduce(ctx, "ok", "")
-	return nil
 }
 
 func (p *EventPublisher) processPublishingResponse() {
@@ -89,28 +125,42 @@ func (p *EventPublisher) processPublishingResponse() {
 			if err := message.TopicPartition.Error; err != nil {
 				continue
 			}
-			// 送达成功：标记已发布并释放处理标记
-			if err := p.onDelivered(message.Opaque.(event.ID)); err != nil {
-				zap.L().Error(
-					"kafka message delivered callback error",
-					zap.String("event_id", message.Opaque.(event.ID).String()),
-					zap.Error(err),
-				)
-			}
+			// 绝不丢弃 delivered id：当通道写满时在这里背压等待，保证最终会执行 onDelivered。
+			// 这样会降低峰值吞吐，但能避免已投递消息因未标记 published 导致重复处理。
+			p.deliveredCh <- message.Opaque.(event.ID)
 		case ckafka.Error:
 			zap.L().Error("kafka producer error", zap.Error(message))
 		default:
 			// ignore
 		}
 	}
+	// publishResultChan 已关闭，通知 delivered workers 也可以结束
+	close(p.deliveredCh)
 }
 
 func (p *EventPublisher) Start() {
+	// start publisher event loop
 	p.wg.Add(1)
 	go func() {
 		defer p.wg.Done()
 		p.processPublishingResponse()
 	}()
+
+	// start delivered workers
+	for i := 0; i < p.deliveredWorkers; i++ {
+		p.wg.Add(1)
+		go func() {
+			defer p.wg.Done()
+			for id := range p.deliveredCh {
+				if err := p.onDelivered(id); err != nil {
+					zap.L().Error("kafka message delivered callback error",
+						zap.String("event_id", id.String()),
+						zap.Error(err),
+					)
+				}
+			}
+		}()
+	}
 }
 
 func (p *EventPublisher) Close() {
