@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"net"
 	"net/http"
 	"os"
 	"runtime/debug"
@@ -38,6 +39,8 @@ type config struct {
 	authHeader     string
 	cookie         string
 	tokensFile     string
+	localAddrsFile string
+	localAddrs     []string
 	recipientID    string
 	recipientsFile string
 	chaosDropRatio float64
@@ -84,6 +87,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("load tokens failed: %v", err)
 	}
+	localAddrs, err := loadLocalAddrs(cfg.localAddrsFile)
+	if err != nil {
+		log.Fatalf("load local addrs failed: %v", err)
+	}
+	cfg.localAddrs = localAddrs
 	recipients, err := loadStringLines(cfg.recipientsFile)
 	if err != nil {
 		log.Fatalf("load recipients failed: %v", err)
@@ -93,6 +101,9 @@ func main() {
 	}
 	if len(recipients) > 0 {
 		log.Printf("loaded %d recipients from %s", len(recipients), cfg.recipientsFile)
+	}
+	if len(cfg.localAddrs) > 0 {
+		log.Printf("loaded %d local source IPs from %s", len(cfg.localAddrs), cfg.localAddrsFile)
 	}
 	if err := validateConfig(cfg, len(tokens), len(recipients)); err != nil {
 		log.Fatalf("invalid config: %v", err)
@@ -203,6 +214,7 @@ func parseFlags() config {
 	flag.StringVar(&cfg.authHeader, "auth", "", "Authorization header value, e.g. 'Bearer <token>'")
 	flag.StringVar(&cfg.cookie, "cookie", "", "Cookie header value, e.g. 'access_token=<token>'")
 	flag.StringVar(&cfg.tokensFile, "tokens-file", "", "path to token file, one token per line (supports '<token>' or 'Bearer <token>')")
+	flag.StringVar(&cfg.localAddrsFile, "local-addrs-file", "", "path to local source IP list, one IP per line; connections will rotate across them")
 	flag.StringVar(&cfg.recipientID, "recipient-id", "", "recipient user id for private send mode")
 	flag.StringVar(&cfg.recipientsFile, "recipients-file", "", "path to recipient user id file, one id per line for private send mode")
 	flag.Float64Var(&cfg.chaosDropRatio, "chaos-drop-ratio", 0, "ratio of clients that will drop tcp abruptly after chaos-drop-after (0~1)")
@@ -241,6 +253,9 @@ func validateConfig(cfg config, tokenCount int, recipientCount int) error {
 	}
 	if cfg.chaosDropRatio < 0 || cfg.chaosDropRatio > 1 {
 		return fmt.Errorf("chaos-drop-ratio must be in [0, 1]")
+	}
+	if strings.TrimSpace(cfg.localAddrsFile) != "" && len(cfg.localAddrs) == 0 {
+		return fmt.Errorf("local-addrs-file is set but no valid local IPs were loaded")
 	}
 	if cfg.chaosDropAfter < 0 {
 		return fmt.Errorf("chaos-drop-after must be >= 0")
@@ -318,6 +333,9 @@ func runClient(ctx context.Context, id int, cfg config, tokens []string, recipie
 	m.attempted.Add(1)
 
 	dialer := websocket.Dialer{HandshakeTimeout: cfg.connectTimeout}
+	if localAddr := pickLocalAddr(cfg.localAddrs, id); localAddr != nil {
+		dialer.NetDialContext = (&net.Dialer{LocalAddr: localAddr}).DialContext
+	}
 	headers := make(http.Header)
 	authHeader := pickAuthHeader(cfg, tokens, id)
 	if strings.TrimSpace(cfg.origin) != "" {
@@ -547,6 +565,38 @@ func runClient(ctx context.Context, id int, cfg config, tokens []string, recipie
 			m.messagesSent.Add(1)
 		}
 	}
+}
+
+func loadLocalAddrs(path string) ([]string, error) {
+	if strings.TrimSpace(path) == "" {
+		return nil, nil
+	}
+
+	ips, err := loadStringLines(path)
+	if err != nil {
+		return nil, err
+	}
+
+	valid := make([]string, 0, len(ips))
+	for _, raw := range ips {
+		ip := net.ParseIP(strings.TrimSpace(raw))
+		if ip == nil {
+			return nil, fmt.Errorf("invalid local IP in %s: %q", path, raw)
+		}
+		valid = append(valid, ip.String())
+	}
+	return valid, nil
+}
+
+func pickLocalAddr(localAddrs []string, clientID int) *net.TCPAddr {
+	if len(localAddrs) == 0 {
+		return nil
+	}
+	ip := net.ParseIP(localAddrs[clientID%len(localAddrs)])
+	if ip == nil {
+		return nil
+	}
+	return &net.TCPAddr{IP: ip}
 }
 
 func loadTokens(path string) ([]string, error) {

@@ -136,6 +136,53 @@ go run ./scripts/websocket_benchmark ^
 
 注意：`-send-mode private` 时，必须提供 `-recipient-id` 或 `-recipients-file`。
 
+## 单机多 IP 压测
+
+如果你要把压测流量从多个本地 IP 发出去，可以使用新增的 `-local-addrs-file`。
+
+### 1. 准备本地 IP 列表文件
+
+例如创建 `scripts/websocket_benchmark/local_addrs.txt`：
+
+```text
+192.168.10.21
+192.168.10.22
+192.168.10.23
+```
+
+脚本会按照 `client_id % IP数量` 轮换绑定源地址。
+
+### 2. 运行压测
+
+```powershell
+go run .\scripts\websocket_benchmark ^
+  -tokens-file .\scripts\websocket_benchmark\tokens.txt ^
+  -local-addrs-file .\scripts\websocket_benchmark\local_addrs.txt ^
+  -clients 30000 ^
+  -connect-rate 1000 ^
+  -duration 180s ^
+  -ping-interval 5s
+```
+
+### 3. Windows 上给网卡添加多个 IP
+
+如果你的机器还没有这些地址，需要先在同一块网卡上配置多个静态 IP。示例：
+
+```powershell
+netsh interface ipv4 show interfaces
+netsh interface ipv4 add address name="Ethernet" 192.168.10.21 255.255.255.0
+netsh interface ipv4 add address name="Ethernet" 192.168.10.22 255.255.255.0
+netsh interface ipv4 add address name="Ethernet" 192.168.10.23 255.255.255.0
+```
+
+把 `Ethernet` 换成你自己的网卡名称即可。
+
+### 4. 注意事项
+
+- `-local-addrs-file` 里的 IP 必须是本机网卡已经绑定的地址，否则握手会失败。
+- 这是“单机多 IP”方案；如果你要更大规模，建议再叠加多台压测机或多个容器实例。
+- 这个脚本按连接粒度轮换源 IP，不是按请求粒度切换。
+
 ## 好友预热（Paired 私聊前置）
 
 Paired 私聊压测前，发送端和接收端需要先建立好友关系。可以使用预热脚本：
@@ -169,6 +216,7 @@ go run .\scripts\websocket_benchmark\friendship_warmup `
 - `-auth`：统一的 `Authorization` 值，脚本会自动补 `Bearer`
 - `-cookie`：统一的 `Cookie` 值
 - `-tokens-file`：每行一个 token，用于多用户压测
+- `-local-addrs-file`：本机源 IP 列表，每行一个 IP，连接会轮换绑定
 - `-recipient-id`：private 模式下的单个接收人
 - `-recipients-file`：private 模式下的接收人列表
 - `-chaos-drop-ratio`：随机断开连接的比例，范围 `0~1`
