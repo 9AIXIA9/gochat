@@ -9,6 +9,11 @@ Timeout: 10s
 
 DisableSessionStartedEvent: false
 
+PProf:
+  Enabled: false
+  Host: 127.0.0.1
+  Port: 6060
+
 Cookie:
   Domain: ""
   Secure: false
