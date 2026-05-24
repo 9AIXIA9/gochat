@@ -33,6 +33,7 @@ type App struct {
 	Port                       int           `mapstructure:"Port"`
 	MachineNode                int64         `mapstructure:"MachineNode"`
 	DisableSessionStartedEvent bool          `mapstructure:"DisableSessionStartedEvent"`
+	PProf                      *PProf        `mapstructure:"PProf"`
 
 	Cookie             *Cookie                     `mapstructure:"Cookie"`
 	CORS               *middleware.CORSConfig      `mapstructure:"CORS"`
@@ -51,6 +52,12 @@ type App struct {
 	Email              *gomail.EmailNotifierConfig `mapstructure:"Email"`
 	Breaker            *breaker.Config             `mapstructure:"Breaker"`
 	OTEL               *otel.Config                `mapstructure:"OTEL"`
+}
+
+type PProf struct {
+	Enabled bool   `mapstructure:"Enabled"`
+	Host    string `mapstructure:"Host"`
+	Port    int    `mapstructure:"Port"`
 }
 
 func (c *App) Validate() error {
@@ -78,6 +85,15 @@ func (c *App) Validate() error {
 	// Allow 0 as valid MachineNode (snowflake supports node 0..1023)
 	if c.MachineNode < 0 || c.MachineNode > 1023 {
 		return fmt.Errorf("App.MachineNode: %w: must be in 0..1023, got %d", myErrors.ErrInvalidNumber, c.MachineNode)
+	}
+
+	if c.PProf != nil && c.PProf.Enabled {
+		if c.PProf.Host == "" {
+			return fmt.Errorf("App.PProf.Host: %w", myErrors.ErrEmptyInput)
+		}
+		if c.PProf.Port <= 0 || c.PProf.Port > 65535 {
+			return fmt.Errorf("App.PProf.Port: %w: must be in 1..65535, got %d", myErrors.ErrInvalidNumber, c.PProf.Port)
+		}
 	}
 
 	if err := c.Cookie.Validate(); err != nil {

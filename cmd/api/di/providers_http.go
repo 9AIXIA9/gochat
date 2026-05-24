@@ -244,7 +244,16 @@ func provideHttpServer(appConfig *config.App, router *gin.Engine) *ginInfra.Serv
 		Addr:    fmt.Sprintf("%s:%d", appConfig.Host, appConfig.Port),
 		Handler: router,
 	}
-	return ginInfra.NewServer(router, srv)
+
+	var debugSrv *http.Server
+	if appConfig.PProf != nil && appConfig.PProf.Enabled {
+		debugSrv = &http.Server{
+			Addr:    fmt.Sprintf("%s:%d", appConfig.PProf.Host, appConfig.PProf.Port),
+			Handler: ginInfra.NewPProfMux(),
+		}
+	}
+
+	return ginInfra.NewServer(router, srv, debugSrv)
 }
 
 func provideWebsocketHandler(

@@ -3,6 +3,11 @@
 Env: production
 DisableSessionStartedEvent: false
 
+PProf:
+  Enabled: true
+  Host: 127.0.0.1
+  Port: 6060
+
 Logger:
   Level: warn
 
