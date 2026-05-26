@@ -203,7 +203,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	authKafkaConsumer, err := provideAuthEventConsumer(appConfig, kafkaLimiter, producer, eventRepository, userCreatedUseCase)
+	authKafkaConsumer, err := provideAuthEventConsumer(appConfig, kafkaLimiter, client, producer, eventRepository, userCreatedUseCase)
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +221,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	profileKafkaConsumer, err := provideProfileEventConsumer(appConfig, kafkaLimiter, producer, eventRepository, applicationUserCreatedUseCase, roomCreatedUseCase, roomshipCreatedUseCase)
+	profileKafkaConsumer, err := provideProfileEventConsumer(appConfig, kafkaLimiter, client, producer, eventRepository, applicationUserCreatedUseCase, roomCreatedUseCase, roomshipCreatedUseCase)
 	if err != nil {
 		return nil, err
 	}
@@ -247,7 +247,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	chatKafkaConsumer, err := provideChatEventConsumer(appConfig, kafkaLimiter, producer, eventRepository, userCreatedUseCase2, applicationRoomCreatedUseCase, applicationRoomshipCreatedUseCase, friendshipCreatedUseCase, undeliveredMessagesPushRequestedUseCase)
+	chatKafkaConsumer, err := provideChatEventConsumer(appConfig, kafkaLimiter, client, producer, eventRepository, userCreatedUseCase2, applicationRoomCreatedUseCase, applicationRoomshipCreatedUseCase, friendshipCreatedUseCase, undeliveredMessagesPushRequestedUseCase)
 	if err != nil {
 		return nil, err
 	}
@@ -267,7 +267,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	notificationKafkaConsumer, err := provideNotificationEventConsumer(appConfig, diEmailServiceAvailable, kafkaLimiter, producer, eventRepository, welcomeEmailNotificationRequestedUseCase, systemMessageNotificationRequestedUseCase, undeliveredMessagesNotificationRequestedUseCase)
+	notificationKafkaConsumer, err := provideNotificationEventConsumer(appConfig, diEmailServiceAvailable, kafkaLimiter, client, producer, eventRepository, welcomeEmailNotificationRequestedUseCase, systemMessageNotificationRequestedUseCase, undeliveredMessagesNotificationRequestedUseCase)
 	if err != nil {
 		return nil, err
 	}
@@ -293,7 +293,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	roomshipKafkaConsumer, err := provideRoomshipEventConsumer(appConfig, kafkaLimiter, producer, eventRepository, userCreatedUseCase3, roomCreatedUseCase2, memberRequestAgreedUseCase, memberRequestCreatedUseCase, roomshipCreatedUseCase2)
+	roomshipKafkaConsumer, err := provideRoomshipEventConsumer(appConfig, kafkaLimiter, client, producer, eventRepository, userCreatedUseCase3, roomCreatedUseCase2, memberRequestAgreedUseCase, memberRequestCreatedUseCase, roomshipCreatedUseCase2)
 	if err != nil {
 		return nil, err
 	}
@@ -315,7 +315,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	friendshipKafkaConsumer, err := provideFriendshipEventConsumer(appConfig, kafkaLimiter, producer, eventRepository, userCreatedUseCase4, friendRequestAgreedUseCase, friendRequestCreatedUseCase, applicationFriendshipCreatedUseCase)
+	friendshipKafkaConsumer, err := provideFriendshipEventConsumer(appConfig, kafkaLimiter, client, producer, eventRepository, userCreatedUseCase4, friendRequestAgreedUseCase, friendRequestCreatedUseCase, applicationFriendshipCreatedUseCase)
 	if err != nil {
 		return nil, err
 	}
