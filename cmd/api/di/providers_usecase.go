@@ -56,9 +56,6 @@ var UseCaseWebsocketSet = wire.NewSet(
 	provideWebsocketUserSessionStartedUseCase,
 	provideChatReadRoomMessagesUseCase,
 	provideChatReadPrivateMessagesUseCase,
-	provideChatConfirmPrivateMessagesUseCase,
-	provideChatConfirmRoomMessagesUseCase,
-	provideNotificationConfirmSystemMessagesUseCase,
 )
 
 var UseCaseKafkaSet = wire.NewSet(
@@ -377,12 +374,6 @@ func provideChatReadRoomMessagesUseCase(
 	)
 }
 
-func provideNotificationConfirmSystemMessagesUseCase(
-	updater notificationDomain.SystemMessagesStatesUpdaterByMessageIDs,
-) (notificationApp.ConfirmSystemMessagesUseCase, error) {
-	return notificationApp.NewConfirmSystemMessagesUseCase(updater)
-}
-
 func provideUnpublishedEventsCreatedCase(
 	appConfig *config.App,
 	eventPublisher event.Publisher,
@@ -525,22 +516,6 @@ func provideChatUndeliveredMessagesPushRequestedUseCase(
 		privateMessageNotifier,
 		roomMessageRepo,
 		roomMessageNotifier,
-	)
-}
-
-func provideChatConfirmPrivateMessagesUseCase(
-	messageRepo chatDomain.PrivateMessageRepository,
-) (chatApp.ConfirmPrivateMessagesUseCase, error) {
-	return chatApp.NewConfirmPrivateMessagesUseCase(
-		messageRepo,
-	)
-}
-
-func provideChatConfirmRoomMessagesUseCase(
-	messageRepo chatDomain.RoomMessageRepository,
-) (chatApp.ConfirmRoomMessagesUseCase, error) {
-	return chatApp.NewConfirmRoomMessagesUseCase(
-		messageRepo,
 	)
 }
 
