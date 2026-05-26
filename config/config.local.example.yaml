@@ -35,3 +35,9 @@ Email:
 
 BinlogReader:
   Password: ${BINLOG_PASSWORD}
+
+OTEL:
+  TraceSampleRatio: 0.20
+  MetricExportInterval: 30s
+  MetricExportTimeout: 10s
+

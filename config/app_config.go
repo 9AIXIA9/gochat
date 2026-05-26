@@ -146,11 +146,24 @@ func (c *App) Validate() error {
 	}
 	// OTEL is optional; validate only when explicitly enabled
 	if c.OTEL != nil && c.OTEL.Enabled {
+		c.OTEL.ApplyDefaults()
 		if c.OTEL.Endpoint == "" {
 			return fmt.Errorf("App.OTEL.Endpoint: %w", myErrors.ErrEmptyInput)
 		}
 		if c.OTEL.ServiceName == "" {
 			return fmt.Errorf("App.OTEL.ServiceName: %w", myErrors.ErrEmptyInput)
+		}
+		if c.OTEL.TraceSampleRatio < 0 || c.OTEL.TraceSampleRatio > 1 {
+			return fmt.Errorf("App.OTEL.TraceSampleRatio: %w: must be in [0,1], got %.4f", myErrors.ErrInvalidNumber, c.OTEL.TraceSampleRatio)
+		}
+		if c.OTEL.MetricExportInterval <= 0 {
+			return fmt.Errorf("App.OTEL.MetricExportInterval: %w: must be positive, got %s", myErrors.ErrInvalidNumber, c.OTEL.MetricExportInterval)
+		}
+		if c.OTEL.MetricExportTimeout <= 0 {
+			return fmt.Errorf("App.OTEL.MetricExportTimeout: %w: must be positive, got %s", myErrors.ErrInvalidNumber, c.OTEL.MetricExportTimeout)
+		}
+		if c.OTEL.MetricExportTimeout >= c.OTEL.MetricExportInterval {
+			return fmt.Errorf("App.OTEL.MetricExportTimeout: %w: must be smaller than MetricExportInterval (%s >= %s)", myErrors.ErrInvalidNumber, c.OTEL.MetricExportTimeout, c.OTEL.MetricExportInterval)
 		}
 	}
 	return nil

@@ -25,6 +25,9 @@ Kafka:
 OTEL:
   Enabled: true
   Endpoint: otel-collector:4317
+  TraceSampleRatio: 0.10
+  MetricExportInterval: 30s
+  MetricExportTimeout: 10s
 
 # Sensitive values: set via env in overrides
 AccessToken:
