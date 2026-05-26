@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"context"
 	"gochat/internal/infrastructure/websocket"
 	"gochat/internal/notification/domain"
 	"gochat/internal/shared/kernel"
@@ -26,9 +27,8 @@ func NewSystemMessageNotifier(manager *websocket.Manager) *SystemMessageNotifier
 	return &SystemMessageNotifier{manager: manager}
 }
 
-func (n *SystemMessageNotifier) Notify(message *domain.SystemMessage) error {
-
-	return n.manager.SendTo(message.RecipientID(), &websocket.Message{
+func (n *SystemMessageNotifier) Notify(ctx context.Context, message *domain.SystemMessage) error {
+	return n.manager.SendTo(ctx, message.RecipientID(), &websocket.Message{
 		Topic: NotifySystemMessageTopic,
 		Body: &NotifySystemMessageBody{
 			ID:      message.ID(),

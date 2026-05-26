@@ -11,6 +11,7 @@ var (
 	ErrHasBeenClosed   = errors.New("system: has been closed")
 	ErrChanIsFull      = errors.New("system: chan is full")
 	ErrWrongEventTopic = errors.New("system: wrong event topic")
+	ErrTimeout         = errors.New("system: operation timed out")
 )
 
 // 业务逻辑相关错误

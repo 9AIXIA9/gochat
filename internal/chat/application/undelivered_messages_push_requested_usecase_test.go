@@ -108,9 +108,9 @@ func TestUndeliveredMessagesPushRequestedUseCase_Execute(t *testing.T) {
 
 	gomock.InOrder(
 		mockPrivateMessagesFinder.EXPECT().FindPrivateMessagesByRecipientIDAndState(nil, fixedUserID, domain.MessageStateUndelivered, limit).Return(mockPrivateMessages, nil).Times(1),
-		mockPrivateMessageNotifier.EXPECT().Notify(gomock.Any()).Return(nil).Times(limit-1),
+		mockPrivateMessageNotifier.EXPECT().Notify(nil, gomock.Any()).Return(nil).Times(limit-1),
 		mockRoomMessagesFinder.EXPECT().FindRoomMessagesByRecipientIDAndState(nil, fixedUserID, domain.MessageStateUndelivered, limit).Return(mockRoomMessages, nil).Times(1),
-		mockRoomMessageNotifier.EXPECT().Notify(gomock.Any(), []kernel.UserID{fixedUserID}).Return([]kernel.UserID{fixedUserID}, nil).Times(limit-1),
+		mockRoomMessageNotifier.EXPECT().Notify(nil, gomock.Any(), []kernel.UserID{fixedUserID}).Return(nil).Times(limit-1),
 	)
 
 	_, err = useCase.Execute(nil, &application.UndeliveredMessagesPushRequestedInput{
@@ -140,7 +140,7 @@ func TestUndeliveredMessagesPushRequestedUseCase_Execute(t *testing.T) {
 	gomock.InOrder(
 		mockPrivateMessagesFinder.EXPECT().FindPrivateMessagesByRecipientIDAndState(nil, fixedUserID, domain.MessageStateUndelivered, limit).Return(nil, nil).Times(1),
 		mockRoomMessagesFinder.EXPECT().FindRoomMessagesByRecipientIDAndState(nil, fixedUserID, domain.MessageStateUndelivered, limit).Return(mockRoomMessages, nil).Times(1),
-		mockRoomMessageNotifier.EXPECT().Notify(gomock.Any(), []kernel.UserID{fixedUserID}).Return([]kernel.UserID{fixedUserID}, nil).Times(limit-1),
+		mockRoomMessageNotifier.EXPECT().Notify(nil, gomock.Any(), []kernel.UserID{fixedUserID}).Return(nil).Times(limit-1),
 	)
 
 	_, err = useCase.Execute(nil, &application.UndeliveredMessagesPushRequestedInput{
@@ -163,7 +163,7 @@ func TestUndeliveredMessagesPushRequestedUseCase_Execute(t *testing.T) {
 
 	gomock.InOrder(
 		mockPrivateMessagesFinder.EXPECT().FindPrivateMessagesByRecipientIDAndState(nil, fixedUserID, domain.MessageStateUndelivered, limit).Return(mockPrivateMessages, nil).Times(1),
-		mockPrivateMessageNotifier.EXPECT().Notify(gomock.Any()).Return(nil).Times(limit-1),
+		mockPrivateMessageNotifier.EXPECT().Notify(nil, gomock.Any()).Return(nil).Times(limit-1),
 		mockRoomMessagesFinder.EXPECT().FindRoomMessagesByRecipientIDAndState(nil, fixedUserID, domain.MessageStateUndelivered, limit).Return(nil, nil).Times(1),
 	)
 
@@ -187,7 +187,7 @@ func TestUndeliveredMessagesPushRequestedUseCase_Execute(t *testing.T) {
 
 	gomock.InOrder(
 		mockPrivateMessagesFinder.EXPECT().FindPrivateMessagesByRecipientIDAndState(nil, fixedUserID, domain.MessageStateUndelivered, limit).Return(mockPrivateMessages, nil).Times(1),
-		mockPrivateMessageNotifier.EXPECT().Notify(gomock.Any()).Return(nil).Times(limit),
+		mockPrivateMessageNotifier.EXPECT().Notify(nil, gomock.Any()).Return(nil).Times(limit),
 		mockRoomMessagesFinder.EXPECT().FindRoomMessagesByRecipientIDAndState(nil, fixedUserID, domain.MessageStateUndelivered, limit).Return(nil, nil).Times(1),
 	)
 

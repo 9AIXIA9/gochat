@@ -119,8 +119,8 @@ func TestSendRoomMessageUseCase_Execute(t *testing.T) {
 		// 正常情况
 		finder.EXPECT().FindsByRoomID(nil, fixedRoomID).Return(mockRoomships, nil).Times(1),
 		mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1),
-		mockNotifier.EXPECT().Notify(gomock.Any(), mockMembers).Return(mockMembers, nil).Times(1),
 		mockMessageCreator.EXPECT().Create(nil, gomock.Any()).Return(nil).Times(1),
+		mockNotifier.EXPECT().Notify(nil, gomock.Any(), gomock.InAnyOrder(mockMembers)).Return(nil).Times(1),
 
 		// 不是成员
 		finder.EXPECT().FindsByRoomID(nil, fixedRoomID).Return(mockRoomshipsWithoutSender, nil).Times(1),
@@ -165,4 +165,18 @@ func TestSendRoomMessageUseCase_Execute(t *testing.T) {
 		Content:  fixedContent,
 	})
 	require.NoError(t, err)
+
+	// 创建消息失败
+	gomock.InOrder(
+		finder.EXPECT().FindsByRoomID(nil, fixedRoomID).Return(mockRoomships, nil).Times(1),
+		mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1),
+		mockMessageCreator.EXPECT().Create(nil, gomock.Any()).Return(myErrors.ErrDuplicatedKey).Times(1),
+	)
+
+	_, err = useCase.Execute(nil, &application.SendRoomMessageInput{
+		SenderID: fixedUserID,
+		RoomID:   fixedRoomID,
+		Content:  fixedContent,
+	})
+	require.ErrorIs(t, err, myErrors.ErrDuplicatedKey)
 }

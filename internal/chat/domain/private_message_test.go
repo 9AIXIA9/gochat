@@ -2,7 +2,6 @@ package domain_test
 
 import (
 	"context"
-	"errors"
 	"gochat/internal/chat/domain"
 	"gochat/internal/chat/domain/mocks"
 	kernelmocks "gochat/internal/shared/kernel/mocks"
@@ -38,11 +37,9 @@ func TestCreatePrivateMessage(t *testing.T) {
 
 	mockExister := mocks.NewMockFriendshipExisterByUserID(ctrl)
 	mockMessageIDGenerator := kernelmocks.NewMockMessageIDGenerator(ctrl)
-	mockNotifier := mocks.NewMockPrivateMessageNotifier(ctrl)
 
 	mockExister.EXPECT().ExistByUserID(gomock.Any(), fixedUserID, fixedFriendID).Return(true, nil).Times(1)
 	mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1)
-	mockNotifier.EXPECT().Notify(gomock.Any()).Return(nil).Times(1)
 
 	start := time.Now().UTC()
 	message, err := domain.CreatePrivateMessage(
@@ -51,7 +48,6 @@ func TestCreatePrivateMessage(t *testing.T) {
 		fixedUserID,
 		"Hello, Friend!",
 		mockMessageIDGenerator,
-		mockNotifier,
 		mockExister,
 	)
 	require.NoError(t, err)
@@ -70,7 +66,6 @@ func TestCreatePrivateMessage(t *testing.T) {
 		fixedUserID,
 		"",
 		mockMessageIDGenerator,
-		mockNotifier,
 		mockExister,
 	)
 	require.ErrorIs(t, err, domain.ErrEmptyMessageContent)
@@ -79,7 +74,6 @@ func TestCreatePrivateMessage(t *testing.T) {
 	// 发送失败
 	mockExister.EXPECT().ExistByUserID(gomock.Any(), fixedUserID, fixedFriendID).Return(true, nil).Times(1)
 	mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1)
-	mockNotifier.EXPECT().Notify(gomock.Any()).Return(errors.New("test")).Times(1)
 
 	start = time.Now().UTC()
 	messageWithFailedDeliver, err := domain.CreatePrivateMessage(
@@ -88,7 +82,6 @@ func TestCreatePrivateMessage(t *testing.T) {
 		fixedUserID,
 		"Hello, Friend!",
 		mockMessageIDGenerator,
-		mockNotifier,
 		mockExister,
 	)
 	require.NoError(t, err)
@@ -102,7 +95,6 @@ func TestCreatePrivateMessage(t *testing.T) {
 
 	// 发送给自己，也尝试投递，但创建态仍然保持未投递
 	mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1)
-	mockNotifier.EXPECT().Notify(gomock.Any()).Return(nil).Times(1)
 
 	start = time.Now().UTC()
 	messageToSelf, err := domain.CreatePrivateMessage(
@@ -111,7 +103,6 @@ func TestCreatePrivateMessage(t *testing.T) {
 		fixedUserID,
 		"Hello, Self!",
 		mockMessageIDGenerator,
-		mockNotifier,
 		mockExister,
 	)
 	require.NoError(t, err)

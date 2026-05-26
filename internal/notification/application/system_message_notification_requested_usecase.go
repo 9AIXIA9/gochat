@@ -57,7 +57,6 @@ func (uc *systemMessageNotificationRequestedUseCase) Execute(ctx context.Context
 		input.RecipientID,
 		input.Content,
 		uc.idGenerator,
-		uc.messageNotifier,
 	)
 	if err != nil {
 		return nil, err
@@ -66,5 +65,7 @@ func (uc *systemMessageNotificationRequestedUseCase) Execute(ctx context.Context
 	if err := uc.messageCreator.Create(ctx, message); err != nil {
 		return nil, err
 	}
+
+	_ = uc.messageNotifier.Notify(ctx, message)
 	return nil, nil
 }

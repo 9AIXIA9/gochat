@@ -13,6 +13,5 @@ const (
 	fixedMessageID    kernel.MessageID    = "message-123"
 	fixedFriendshipID domain.FriendshipID = "friendship-123"
 	fixedRoomshipID   domain.RoomshipID   = "roomship-123"
-	fixedSenderID     kernel.UserID       = "sender-123"
 	timeTolerance                         = 150 * time.Millisecond
 )

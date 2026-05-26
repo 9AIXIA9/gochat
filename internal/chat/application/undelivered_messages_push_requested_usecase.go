@@ -62,7 +62,7 @@ func (uc *undeliveredMessagesPushRequestedUseCase) Execute(ctx context.Context, 
 
 	if len(privateMessages) > 0 {
 		for _, message := range privateMessages {
-			_ = uc.privateMessageNotifier.Notify(message)
+			_ = uc.privateMessageNotifier.Notify(ctx, message)
 		}
 	}
 
@@ -73,7 +73,7 @@ func (uc *undeliveredMessagesPushRequestedUseCase) Execute(ctx context.Context, 
 
 	if len(roomMessages) > 0 {
 		for _, message := range roomMessages {
-			_, _ = uc.roomMessageNotifier.Notify(message, message.UndeliveredRecipientIDs())
+			_ = uc.roomMessageNotifier.Notify(ctx, message, message.UndeliveredRecipientIDs())
 
 		}
 	}

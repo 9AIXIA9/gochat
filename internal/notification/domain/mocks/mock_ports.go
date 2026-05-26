@@ -43,17 +43,17 @@ func (m *MockSystemMessageNotifier) EXPECT() *MockSystemMessageNotifierMockRecor
 }
 
 // Notify mocks base method.
-func (m *MockSystemMessageNotifier) Notify(message *domain.SystemMessage) error {
+func (m *MockSystemMessageNotifier) Notify(ctx context.Context, message *domain.SystemMessage) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Notify", message)
+	ret := m.ctrl.Call(m, "Notify", ctx, message)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Notify indicates an expected call of Notify.
-func (mr *MockSystemMessageNotifierMockRecorder) Notify(message any) *gomock.Call {
+func (mr *MockSystemMessageNotifierMockRecorder) Notify(ctx, message any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Notify", reflect.TypeOf((*MockSystemMessageNotifier)(nil).Notify), message)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Notify", reflect.TypeOf((*MockSystemMessageNotifier)(nil).Notify), ctx, message)
 }
 
 // MockWelcomeEmailNotifier is a mock of WelcomeEmailNotifier interface.

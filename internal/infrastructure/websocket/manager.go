@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"gochat/internal/infrastructure/metrics"
 	myErrors "gochat/internal/shared/errors"
+	"gochat/internal/shared/timeout"
 	"sync"
 
 	"gochat/internal/shared/kernel"
@@ -69,11 +70,19 @@ func (m *Manager) Unregister(target *Client) {
 	}
 }
 
-func (m *Manager) SendTo(id kernel.UserID, msg *Message) error {
+func (m *Manager) SendTo(ctx context.Context, id kernel.UserID, msg *Message) error {
+	if timeout.CheckCtxTimeout(ctx) {
+		return myErrors.ErrTimeout
+	}
+
 	msgBytes, err := json.Marshal(msg)
 	if err != nil {
-		metrics.WSMessageOut(context.Background(), "manager_sendto", "marshal_failed")
+		metrics.WSMessageOut(ctx, "manager_sendto", "marshal_failed")
 		return err
+	}
+
+	if timeout.CheckCtxTimeout(ctx) {
+		return myErrors.ErrTimeout
 	}
 
 	m.mu.RLock()
@@ -81,39 +90,48 @@ func (m *Manager) SendTo(id kernel.UserID, msg *Message) error {
 	m.mu.RUnlock()
 	if ok {
 		if err := c.Send(msgBytes); err != nil {
-			metrics.WSMessageOut(context.Background(), "manager_sendto", "send_failed")
+			metrics.WSMessageOut(ctx, "manager_sendto", "send_failed")
 			return err
 		}
-		metrics.WSMessageOut(context.Background(), "manager_sendto", "ok")
+		metrics.WSMessageOut(ctx, "manager_sendto", "ok")
 		return nil
 	}
-	metrics.WSMessageOut(context.Background(), "manager_sendto", "not_found")
+	metrics.WSMessageOut(ctx, "manager_sendto", "not_found")
 	return myErrors.ErrNotFound
 }
 
-func (m *Manager) Broadcast(ids []kernel.UserID, msg *Message) ([]kernel.UserID, error) {
+func (m *Manager) Broadcast(ctx context.Context, ids []kernel.UserID, msg *Message) error {
+	if timeout.CheckCtxTimeout(ctx) {
+		return myErrors.ErrTimeout
+	}
+
 	msgBytes, err := json.Marshal(msg)
 	if err != nil {
-		metrics.WSMessageOut(context.Background(), "manager_broadcast", "marshal_failed")
-		return nil, err
+		metrics.WSMessageOut(ctx, "manager_broadcast", "marshal_failed")
+		return err
+	}
+
+	if timeout.CheckCtxTimeout(ctx) {
+		return myErrors.ErrTimeout
 	}
 
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	idsSuccess := make([]kernel.UserID, 0, len(ids))
 	for _, id := range ids {
+		if timeout.CheckCtxTimeout(ctx) {
+			return myErrors.ErrTimeout
+		}
 		if c, ok := m.clients[id]; ok {
 			if err := c.Send(msgBytes); err != nil {
-				metrics.WSMessageOut(context.Background(), "manager_broadcast", "send_failed")
+				metrics.WSMessageOut(ctx, "manager_broadcast", "send_failed")
 				continue
 			}
-			metrics.WSMessageOut(context.Background(), "manager_broadcast", "ok")
-			idsSuccess = append(idsSuccess, id)
+			metrics.WSMessageOut(ctx, "manager_broadcast", "ok")
 		} else {
-			metrics.WSMessageOut(context.Background(), "manager_broadcast", "not_found")
+			metrics.WSMessageOut(ctx, "manager_broadcast", "not_found")
 		}
 	}
 
-	return idsSuccess, nil
+	return nil
 }

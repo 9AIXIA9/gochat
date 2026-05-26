@@ -10,6 +10,7 @@
 package mocks
 
 import (
+	context "context"
 	domain "gochat/internal/chat/domain"
 	kernel "gochat/internal/shared/kernel"
 	reflect "reflect"
@@ -42,17 +43,17 @@ func (m *MockPrivateMessageNotifier) EXPECT() *MockPrivateMessageNotifierMockRec
 }
 
 // Notify mocks base method.
-func (m *MockPrivateMessageNotifier) Notify(message *domain.PrivateMessage) error {
+func (m *MockPrivateMessageNotifier) Notify(ctx context.Context, message *domain.PrivateMessage) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Notify", message)
+	ret := m.ctrl.Call(m, "Notify", ctx, message)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Notify indicates an expected call of Notify.
-func (mr *MockPrivateMessageNotifierMockRecorder) Notify(message any) *gomock.Call {
+func (mr *MockPrivateMessageNotifierMockRecorder) Notify(ctx, message any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Notify", reflect.TypeOf((*MockPrivateMessageNotifier)(nil).Notify), message)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Notify", reflect.TypeOf((*MockPrivateMessageNotifier)(nil).Notify), ctx, message)
 }
 
 // MockRoomMessageNotifier is a mock of RoomMessageNotifier interface.
@@ -80,16 +81,15 @@ func (m *MockRoomMessageNotifier) EXPECT() *MockRoomMessageNotifierMockRecorder 
 }
 
 // Notify mocks base method.
-func (m *MockRoomMessageNotifier) Notify(message *domain.RoomMessage, recipients []kernel.UserID) ([]kernel.UserID, error) {
+func (m *MockRoomMessageNotifier) Notify(ctx context.Context, message *domain.RoomMessage, recipients []kernel.UserID) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Notify", message, recipients)
-	ret0, _ := ret[0].([]kernel.UserID)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret := m.ctrl.Call(m, "Notify", ctx, message, recipients)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // Notify indicates an expected call of Notify.
-func (mr *MockRoomMessageNotifierMockRecorder) Notify(message, recipients any) *gomock.Call {
+func (mr *MockRoomMessageNotifierMockRecorder) Notify(ctx, message, recipients any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Notify", reflect.TypeOf((*MockRoomMessageNotifier)(nil).Notify), message, recipients)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Notify", reflect.TypeOf((*MockRoomMessageNotifier)(nil).Notify), ctx, message, recipients)
 }

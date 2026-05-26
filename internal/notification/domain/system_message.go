@@ -33,24 +33,18 @@ func CreateSystemMessage(
 	recipientID kernel.UserID,
 	content string,
 	idGenerator kernel.MessageIDGenerator,
-	notifier SystemMessageNotifier,
 ) (*SystemMessage, error) {
 	if len(content) == 0 {
 		return nil, ErrEmptyContent
 	}
 
-	message := &SystemMessage{
+	return &SystemMessage{
 		id:          idGenerator.Generate(),
 		recipientID: recipientID,
 		state:       MessageStateUndelivered,
 		content:     content,
 		sentAt:      time.Now().UTC(),
-	}
-
-	//尝试投递消息，投递失败不影响消息创建
-	_ = notifier.Notify(message)
-
-	return message, nil
+	}, nil
 }
 
 func (m *SystemMessage) ID() kernel.MessageID {

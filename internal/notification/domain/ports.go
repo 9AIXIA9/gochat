@@ -7,7 +7,7 @@ import (
 )
 
 type SystemMessageNotifier interface {
-	Notify(message *SystemMessage) error
+	Notify(ctx context.Context, message *SystemMessage) error
 }
 
 type WelcomeEmailNotifier interface {

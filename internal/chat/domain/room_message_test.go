@@ -50,7 +50,6 @@ func TestCreateRoomMessage(t *testing.T) {
 
 	finder := mocks.NewMockRoomshipsFinderByRoomID(ctrl)
 	mockMessageIDGenerator := kernelmocks.NewMockMessageIDGenerator(ctrl)
-	mockNotifier := mocks.NewMockRoomMessageNotifier(ctrl)
 
 	roomships := make([]*domain.Roomship, 0, fixedRoomMemberCount+1)
 	mockRecipients := make([]kernel.UserID, 0, fixedRoomMemberCount)
@@ -73,7 +72,6 @@ func TestCreateRoomMessage(t *testing.T) {
 		// 正常情况
 		finder.EXPECT().FindsByRoomID(gomock.Any(), fixedRoomID).Return(roomships, nil).Times(1),
 		mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1),
-		mockNotifier.EXPECT().Notify(gomock.Any(), mockRecipients).Return(mockRecipients, nil).Times(1),
 
 		// content 为空（仍然会先查 roomships）
 		finder.EXPECT().FindsByRoomID(gomock.Any(), fixedRoomID).Return(roomships, nil).Times(1),
@@ -81,7 +79,6 @@ func TestCreateRoomMessage(t *testing.T) {
 		// 部分未成功
 		finder.EXPECT().FindsByRoomID(gomock.Any(), fixedRoomID).Return(roomships, nil).Times(1),
 		mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1),
-		mockNotifier.EXPECT().Notify(gomock.Any(), mockRecipients).Return(mockRecipients[:5], nil).Times(1),
 
 		// 不是成员
 		finder.EXPECT().FindsByRoomID(gomock.Any(), fixedRoomID).Return(roomshipsWithoutSender, nil).Times(1),
@@ -106,7 +103,6 @@ func TestCreateRoomMessage(t *testing.T) {
 		"Hello, Room!",
 		finder,
 		mockMessageIDGenerator,
-		mockNotifier,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, message)
@@ -128,7 +124,6 @@ func TestCreateRoomMessage(t *testing.T) {
 		"",
 		finder,
 		mockMessageIDGenerator,
-		mockNotifier,
 	)
 	require.ErrorIs(t, err, domain.ErrEmptyMessageContent)
 	require.Nil(t, message)
@@ -142,7 +137,6 @@ func TestCreateRoomMessage(t *testing.T) {
 		"Hello again, Room!",
 		finder,
 		mockMessageIDGenerator,
-		mockNotifier,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, message)
@@ -163,7 +157,6 @@ func TestCreateRoomMessage(t *testing.T) {
 		"Hello, Room!",
 		finder,
 		mockMessageIDGenerator,
-		mockNotifier,
 	)
 	require.ErrorIs(t, err, domain.ErrNotMember)
 
@@ -176,7 +169,6 @@ func TestCreateRoomMessage(t *testing.T) {
 		"Hello to myself!",
 		finder,
 		mockMessageIDGenerator,
-		mockNotifier,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, message)
@@ -196,7 +188,6 @@ func TestCreateRoomMessage(t *testing.T) {
 		"Hello!",
 		finder,
 		mockMessageIDGenerator,
-		mockNotifier,
 	)
 	require.ErrorIs(t, err, domain.ErrRoomNotFound)
 	require.Nil(t, message)

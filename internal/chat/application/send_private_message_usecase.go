@@ -64,7 +64,6 @@ func (uc *sendPrivateMessageUseCase) Execute(ctx context.Context, input *SendPri
 		input.SenderID,
 		input.Content,
 		uc.messageIDGenerator,
-		uc.notifier,
 		uc.exister,
 	)
 	if err != nil {
@@ -74,6 +73,8 @@ func (uc *sendPrivateMessageUseCase) Execute(ctx context.Context, input *SendPri
 	if err := uc.messageCreator.Create(ctx, message); err != nil {
 		return nil, err
 	}
+
+	_ = uc.notifier.Notify(ctx, message)
 
 	return nil, nil
 }

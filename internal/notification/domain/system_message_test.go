@@ -1,9 +1,7 @@
 package domain_test
 
 import (
-	"errors"
 	"gochat/internal/notification/domain"
-	"gochat/internal/notification/domain/mocks"
 	kernelmocks "gochat/internal/shared/kernel/mocks"
 	"testing"
 	"time"
@@ -37,7 +35,6 @@ func TestCreateSystemMessage(t *testing.T) {
 
 	start := time.Now().UTC()
 	mockIDGenerator := kernelmocks.NewMockMessageIDGenerator(ctrl)
-	mockNotifier := mocks.NewMockSystemMessageNotifier(ctrl)
 
 	//正常情况
 	mockIDGenerator.EXPECT().
@@ -45,13 +42,10 @@ func TestCreateSystemMessage(t *testing.T) {
 		Return(fixedMessageID).
 		Times(1)
 
-	mockNotifier.EXPECT().Notify(gomock.Any()).Return(nil)
-
 	message, err := domain.CreateSystemMessage(
 		fixedRecipientID,
 		fixedContent,
 		mockIDGenerator,
-		mockNotifier,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, message)
@@ -68,16 +62,10 @@ func TestCreateSystemMessage(t *testing.T) {
 		Return(fixedMessageID).
 		Times(1)
 
-	mockNotifier.EXPECT().
-		Notify(gomock.Any()).
-		Return(errors.New("test-notify-failed")).
-		Times(1)
-
 	messageWithFailedNotification, err := domain.CreateSystemMessage(
 		fixedRecipientID,
 		fixedContent,
 		mockIDGenerator,
-		mockNotifier,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, messageWithFailedNotification)
@@ -88,7 +76,6 @@ func TestCreateSystemMessage(t *testing.T) {
 		fixedRecipientID,
 		"",
 		mockIDGenerator,
-		mockNotifier,
 	)
 	require.ErrorIs(t, err, domain.ErrEmptyContent)
 	require.Nil(t, messageWithEmptyContent)

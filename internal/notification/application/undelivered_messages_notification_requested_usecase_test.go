@@ -79,7 +79,7 @@ func TestUndeliveredMessagesNotificationRequestedUseCase_Execute(t *testing.T) {
 
 	gomock.InOrder(
 		mockFinder.EXPECT().FindsByState(nil, fixedUserID, domain.MessageStateUndelivered, limit).Return(mockMessages, nil).Times(1),
-		mockNotifier.EXPECT().Notify(gomock.Any()).Return(nil).Times(limit-1),
+		mockNotifier.EXPECT().Notify(nil, gomock.Any()).Return(nil).Times(limit-1),
 	)
 
 	_, err = useCase.Execute(nil, &application.UndeliveredMessagesNotificationRequestedInput{
@@ -112,7 +112,7 @@ func TestUndeliveredMessagesNotificationRequestedUseCase_Execute(t *testing.T) {
 
 	gomock.InOrder(
 		mockFinder.EXPECT().FindsByState(nil, fixedUserID, domain.MessageStateUndelivered, limit).Return(mockMessages, nil).Times(1),
-		mockNotifier.EXPECT().Notify(gomock.Any()).Return(nil).Times(limit),
+		mockNotifier.EXPECT().Notify(nil, gomock.Any()).Return(nil).Times(limit),
 	)
 
 	_, err = useCase.Execute(nil, &application.UndeliveredMessagesNotificationRequestedInput{UserID: fixedUserID})

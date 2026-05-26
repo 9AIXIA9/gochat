@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"context"
 	"gochat/internal/chat/domain"
 	"gochat/internal/infrastructure/websocket"
 	"gochat/internal/shared/kernel"
@@ -28,8 +29,8 @@ func NewRoomMessageNotifier(manager *websocket.Manager) *RoomMessageNotifier {
 	return &RoomMessageNotifier{manager: manager}
 }
 
-func (n *RoomMessageNotifier) Notify(message *domain.RoomMessage, recipients []kernel.UserID) ([]kernel.UserID, error) {
-	return n.manager.Broadcast(recipients, &websocket.Message{
+func (n *RoomMessageNotifier) Notify(ctx context.Context, message *domain.RoomMessage, recipients []kernel.UserID) error {
+	return n.manager.Broadcast(ctx, recipients, &websocket.Message{
 		Topic: NotifyRoomMessageTopic,
 		Body: &NotifyRoomMessageBody{
 			ID:       message.ID(),

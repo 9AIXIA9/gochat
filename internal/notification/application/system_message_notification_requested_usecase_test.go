@@ -79,8 +79,8 @@ func TestSystemMessageNotificationRequestedUseCase_Execute(t *testing.T) {
 
 	gomock.InOrder(
 		mockIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1),
-		mockMessageNotifier.EXPECT().Notify(gomock.Any()).Times(1),
 		mockMessageCreator.EXPECT().Create(nil, gomock.Any()).Return(nil).Times(1),
+		mockMessageNotifier.EXPECT().Notify(nil, gomock.Any()).Times(1),
 	)
 
 	_, err = useCase.Execute(nil, &application.SystemMessageNotificationRequestedInput{
@@ -88,4 +88,13 @@ func TestSystemMessageNotificationRequestedUseCase_Execute(t *testing.T) {
 		Content:     fixedContent,
 	})
 	require.NoError(t, err)
+
+	// 创建消息失败
+	mockIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1)
+	mockMessageCreator.EXPECT().Create(nil, gomock.Any()).Return(myErrors.ErrDuplicatedKey).Times(1)
+	_, err = useCase.Execute(nil, &application.SystemMessageNotificationRequestedInput{
+		RecipientID: fixedUserID,
+		Content:     fixedContent,
+	})
+	require.ErrorIs(t, err, myErrors.ErrDuplicatedKey)
 }

@@ -66,7 +66,6 @@ func (uc *sendRoomMessageUseCase) Execute(ctx context.Context, input *SendRoomMe
 		input.Content,
 		uc.finder,
 		uc.messageIDGenerator,
-		uc.notifier,
 	)
 	if err != nil {
 		return nil, err
@@ -74,6 +73,10 @@ func (uc *sendRoomMessageUseCase) Execute(ctx context.Context, input *SendRoomMe
 
 	if err := uc.messageCreator.Create(ctx, message); err != nil {
 		return nil, err
+	}
+
+	if recipients := message.RecipientIDs(); len(recipients) > 0 {
+		_ = uc.notifier.Notify(ctx, message, recipients)
 	}
 
 	return nil, nil

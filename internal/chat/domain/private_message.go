@@ -43,7 +43,6 @@ func CreatePrivateMessage(
 	senderID kernel.UserID,
 	content string,
 	messageIDGenerator kernel.MessageIDGenerator,
-	notifier PrivateMessageNotifier,
 	exister FriendshipExisterByUserID,
 ) (*PrivateMessage, error) {
 	if len(content) == 0 {
@@ -61,7 +60,7 @@ func CreatePrivateMessage(
 		}
 	}
 
-	message := &PrivateMessage{
+	return &PrivateMessage{
 		id:           messageIDGenerator.Generate(),
 		senderID:     senderID,
 		recipientID:  recipientID,
@@ -69,13 +68,7 @@ func CreatePrivateMessage(
 		content:      content,
 		sentAt:       time.Now().UTC(),
 		eventManager: event.NewEventManager(),
-	}
-
-	if err := notifier.Notify(message); err != nil {
-		return message, nil
-	}
-
-	return message, nil
+	}, nil
 }
 
 func (m *PrivateMessage) ID() kernel.MessageID {

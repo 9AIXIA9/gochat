@@ -44,14 +44,13 @@ func CreateRoomMessage(
 	content string,
 	finder RoomshipsFinderByRoomID,
 	messageIDGenerator kernel.MessageIDGenerator,
-	notifier RoomMessageNotifier,
 ) (*RoomMessage, error) {
 	roomships, err := finder.FindsByRoomID(ctx, roomID)
 	if err != nil {
 		return nil, err
 	}
 
-	message, err := createRoomMessageByRoomships(roomships, roomID, senderID, content, messageIDGenerator, notifier)
+	message, err := createRoomMessageByRoomships(roomships, roomID, senderID, content, messageIDGenerator)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +64,6 @@ func createRoomMessageByRoomships(
 	senderID kernel.UserID,
 	content string,
 	messageIDGenerator kernel.MessageIDGenerator,
-	notifier RoomMessageNotifier,
 ) (*RoomMessage, error) {
 	if len(roomships) == 0 {
 		return nil, ErrRoomNotFound
@@ -106,7 +104,7 @@ func createRoomMessageByRoomships(
 		states[recipientID] = MessageStateUndelivered
 	}
 
-	message := &RoomMessage{
+	return &RoomMessage{
 		id:           messageIDGenerator.Generate(),
 		senderID:     senderID,
 		states:       states,
@@ -114,14 +112,7 @@ func createRoomMessageByRoomships(
 		content:      content,
 		sentAt:       time.Now().UTC(),
 		eventManager: event.NewEventManager(),
-	}
-
-	_, err := notifier.Notify(message, recipientIDs)
-	if err != nil {
-		return message, nil
-	}
-
-	return message, nil
+	}, nil
 }
 
 func (m *RoomMessage) ID() kernel.MessageID {
@@ -150,6 +141,14 @@ func (m *RoomMessage) States() map[kernel.UserID]MessageState {
 
 func (m *RoomMessage) State(id kernel.UserID) MessageState {
 	return m.states[id]
+}
+
+func (m *RoomMessage) RecipientIDs() []kernel.UserID {
+	recipientIDs := make([]kernel.UserID, 0, len(m.states))
+	for recipientID := range m.states {
+		recipientIDs = append(recipientIDs, recipientID)
+	}
+	return recipientIDs
 }
 
 func (m *RoomMessage) UndeliveredRecipientIDs() []kernel.UserID {
