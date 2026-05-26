@@ -123,3 +123,6 @@ OTEL:
   ServiceName: gochat
   Environment: debug
   Insecure: true
+  TraceSampleRatio: 0.10
+  MetricExportInterval: 30s
+  MetricExportTimeout: 10s

@@ -33,6 +33,7 @@ func Init(conf *Config) (func(context.Context) error, error) {
 	if conf == nil || !conf.Enabled {
 		return func(context.Context) error { return nil }, nil
 	}
+	conf.ApplyDefaults()
 
 	if err := pingEndpoint(conf.Endpoint, 2*time.Second); err != nil {
 		return nil, fmt.Errorf(
@@ -80,8 +81,13 @@ func Init(conf *Config) (func(context.Context) error, error) {
 		return nil, err
 	}
 
+	readerOpts := []sdkmetric.PeriodicReaderOption{
+		sdkmetric.WithInterval(conf.MetricExportInterval),
+		sdkmetric.WithTimeout(conf.MetricExportTimeout),
+	}
+
 	meterProvider = sdkmetric.NewMeterProvider(
-		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(metricExporter)),
+		sdkmetric.WithReader(sdkmetric.NewPeriodicReader(metricExporter, readerOpts...)),
 		sdkmetric.WithResource(res),
 	)
 	otel.SetMeterProvider(meterProvider)
@@ -92,6 +98,7 @@ func Init(conf *Config) (func(context.Context) error, error) {
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(traceExporter),
 		sdktrace.WithResource(res),
+		sdktrace.WithSampler(sdktrace.ParentBased(sdktrace.TraceIDRatioBased(conf.TraceSampleRatio))),
 	)
 
 	otel.SetTracerProvider(tp)
