@@ -15,6 +15,7 @@ import (
 	friendshipDomain "gochat/internal/friendship/domain"
 	friendshipEvent "gochat/internal/friendship/port/event"
 	kafkaInfra "gochat/internal/infrastructure/kafka"
+	redisInfra "gochat/internal/infrastructure/redis"
 	notificationApp "gochat/internal/notification/application"
 	notificationDomain "gochat/internal/notification/domain"
 	notificationEvent "gochat/internal/notification/port/event"
@@ -95,13 +96,14 @@ func buildKafkaConsumer(
 	register func(r *kafkaInfra.Router),
 ) (*kafkaInfra.Consumer, error) {
 	router := kafkaInfra.NewRouter()
+	inboxStore := redisInfra.NewInboxStore(redisClient)
 	// Order matters: timeout wraps recover so panic inside timeout goroutine is still recoverable.
 	middlewares := []kafkaInfra.Middleware{
 		middleware.NewRateLimitMiddleware((*limiter.Limiter)(kafkaLimiter)),
 		middleware.NewTimeoutMiddleware(appConfig.Timeout),
 		middleware.NewRecoverMiddleware(),
-		// inbox middleware ensures idempotence by reserving event ids in redis
-		middleware.NewInboxMiddleware((*go_redis.Client)(redisClient)),
+		// inbox middleware ensures idempotence by reserving event ids via the inbox store abstraction
+		middleware.NewInboxMiddleware(inboxStore),
 		middleware.NewLoggerMiddleware(),
 	}
 	if appConfig.OTEL != nil && appConfig.OTEL.Enabled {
