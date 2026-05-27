@@ -53,7 +53,6 @@ var UseCaseHTTPSet = wire.NewSet(
 )
 
 var UseCaseKafkaSet = wire.NewSet(
-	provideAuthUserCreatedUseCase,
 	provideUnpublishedEventsCreatedCase,
 	provideProfileRoomshipCreatedUseCase,
 	provideProfileRoomCreatedUseCase,
@@ -354,17 +353,6 @@ func provideUnpublishedEventsCreatedCase(
 
 // -------------------- Event UseCases (Kafka consumer side) --------------------
 
-func provideAuthUserCreatedUseCase(
-	eventIDGen event.IDGenerator,
-	eventRepo event.Repository,
-	userRepo authDomain.UserRepository,
-) (authApp.UserCreatedUseCase, error) {
-	return authApp.NewUserCreatedUseCase(
-		eventIDGen,
-		eventRepo,
-		userRepo,
-	)
-}
 func provideProfileUserCreatedUseCase(
 	userRepo profileDomain.UserRepository,
 	profileRepo profileDomain.UserProfileRepository,

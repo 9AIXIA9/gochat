@@ -173,16 +173,8 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 		return nil, err
 	}
 	kafkaLimiter := provideKafkaLimiter(client, appConfig)
-	userCreatedUseCase, err := provideAuthUserCreatedUseCase(eventIDGenerator, eventRepository, userRepository)
-	if err != nil {
-		return nil, err
-	}
-	authKafkaConsumer, err := provideAuthEventConsumer(appConfig, kafkaLimiter, client, producer, eventRepository, userCreatedUseCase)
-	if err != nil {
-		return nil, err
-	}
 	repositoryUserRepository := provideProfileUserRepository(db)
-	applicationUserCreatedUseCase, err := provideProfileUserCreatedUseCase(repositoryUserRepository, userProfileRepository)
+	userCreatedUseCase, err := provideProfileUserCreatedUseCase(repositoryUserRepository, userProfileRepository)
 	if err != nil {
 		return nil, err
 	}
@@ -195,12 +187,12 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	profileKafkaConsumer, err := provideProfileEventConsumer(appConfig, kafkaLimiter, client, producer, eventRepository, applicationUserCreatedUseCase, roomCreatedUseCase, roomshipCreatedUseCase)
+	profileKafkaConsumer, err := provideProfileEventConsumer(appConfig, kafkaLimiter, client, producer, eventRepository, userCreatedUseCase, roomCreatedUseCase, roomshipCreatedUseCase)
 	if err != nil {
 		return nil, err
 	}
 	userRepository2 := provideChatUserRepository(db)
-	userCreatedUseCase2, err := provideChatUserCreatedUseCase(userRepository2)
+	applicationUserCreatedUseCase, err := provideChatUserCreatedUseCase(userRepository2)
 	if err != nil {
 		return nil, err
 	}
@@ -217,7 +209,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	chatKafkaConsumer, err := provideChatEventConsumer(appConfig, kafkaLimiter, client, producer, eventRepository, userCreatedUseCase2, applicationRoomCreatedUseCase, applicationRoomshipCreatedUseCase, friendshipCreatedUseCase)
+	chatKafkaConsumer, err := provideChatEventConsumer(appConfig, kafkaLimiter, client, producer, eventRepository, applicationUserCreatedUseCase, applicationRoomCreatedUseCase, applicationRoomshipCreatedUseCase, friendshipCreatedUseCase)
 	if err != nil {
 		return nil, err
 	}
@@ -238,7 +230,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 		return nil, err
 	}
 	userRepository3 := provideRoomshipUserRepository(db)
-	userCreatedUseCase3, err := provideRoomshipUserCreatedUseCase(userRepository3)
+	userCreatedUseCase2, err := provideRoomshipUserCreatedUseCase(userRepository3)
 	if err != nil {
 		return nil, err
 	}
@@ -259,12 +251,12 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	roomshipKafkaConsumer, err := provideRoomshipEventConsumer(appConfig, kafkaLimiter, client, producer, eventRepository, userCreatedUseCase3, roomCreatedUseCase2, memberRequestAgreedUseCase, memberRequestCreatedUseCase, roomshipCreatedUseCase2)
+	roomshipKafkaConsumer, err := provideRoomshipEventConsumer(appConfig, kafkaLimiter, client, producer, eventRepository, userCreatedUseCase2, roomCreatedUseCase2, memberRequestAgreedUseCase, memberRequestCreatedUseCase, roomshipCreatedUseCase2)
 	if err != nil {
 		return nil, err
 	}
 	userRepository4 := provideFriendshipUserRepository(db)
-	userCreatedUseCase4, err := provideFriendshipUserCreatedUseCase(userRepository4)
+	userCreatedUseCase3, err := provideFriendshipUserCreatedUseCase(userRepository4)
 	if err != nil {
 		return nil, err
 	}
@@ -281,11 +273,11 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	friendshipKafkaConsumer, err := provideFriendshipEventConsumer(appConfig, kafkaLimiter, client, producer, eventRepository, userCreatedUseCase4, friendRequestAgreedUseCase, friendRequestCreatedUseCase, applicationFriendshipCreatedUseCase)
+	friendshipKafkaConsumer, err := provideFriendshipEventConsumer(appConfig, kafkaLimiter, client, producer, eventRepository, userCreatedUseCase3, friendRequestAgreedUseCase, friendRequestCreatedUseCase, applicationFriendshipCreatedUseCase)
 	if err != nil {
 		return nil, err
 	}
-	v := provideKafkaConsumers(authKafkaConsumer, profileKafkaConsumer, chatKafkaConsumer, notificationKafkaConsumer, roomshipKafkaConsumer, friendshipKafkaConsumer)
+	v := provideKafkaConsumers(profileKafkaConsumer, chatKafkaConsumer, notificationKafkaConsumer, roomshipKafkaConsumer, friendshipKafkaConsumer)
 	v2 := provideIsReadyChecker(db, client, producer, v)
 	otelShutdown, err := provideObservability(appConfig)
 	if err != nil {

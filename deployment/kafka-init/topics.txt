@@ -1,4 +1,4 @@
-authorization.user.created
+user.created
 profile.user.created
 profile.room.created
 profile.roomship.created

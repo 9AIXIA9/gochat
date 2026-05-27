@@ -3,9 +3,6 @@ package di
 import (
 	"fmt"
 	"gochat/config"
-	authApp "gochat/internal/authorization/application"
-	authDomain "gochat/internal/authorization/domain"
-	authEvent "gochat/internal/authorization/port/event"
 	chatApp "gochat/internal/chat/application"
 	chatDomain "gochat/internal/chat/domain"
 	chatEvent "gochat/internal/chat/port/event"
@@ -37,7 +34,6 @@ import (
 var KafkaSet = wire.NewSet(
 	provideKafkaProducer,
 	provideKafkaConsumers,
-	provideAuthEventConsumer,
 	provideProfileEventConsumer,
 	provideChatEventConsumer,
 	provideNotificationEventConsumer,
@@ -49,7 +45,6 @@ var KafkaSet = wire.NewSet(
 // Underlying type is *kafkaInfra.Consumer, but each is a separate named type
 // so Wire can differentiate providers and parameters.
 type (
-	AuthKafkaConsumer         *kafkaInfra.Consumer
 	ProfileKafkaConsumer      *kafkaInfra.Consumer
 	ChatKafkaConsumer         *kafkaInfra.Consumer
 	NotificationKafkaConsumer *kafkaInfra.Consumer
@@ -68,7 +63,6 @@ func provideKafkaProducer(
 }
 
 func provideKafkaConsumers(
-	authConsumer AuthKafkaConsumer,
 	profileConsumer ProfileKafkaConsumer,
 	chatConsumer ChatKafkaConsumer,
 	notificationConsumer NotificationKafkaConsumer,
@@ -76,7 +70,6 @@ func provideKafkaConsumers(
 	friendshipConsumer FriendshipKafkaConsumer,
 ) []*kafkaInfra.Consumer {
 	return []*kafkaInfra.Consumer{
-		authConsumer,
 		profileConsumer,
 		chatConsumer,
 		notificationConsumer,
@@ -135,26 +128,6 @@ func buildKafkaConsumer(
 		conf.Name = appConfig.Name + "_" + contextName + "_kafka_consumer_circuit_breaker"
 		consumer.SetBreakerPause(conf.Timeout)
 	}
-	return consumer, nil
-}
-
-func provideAuthEventConsumer(
-	appConfig *config.App,
-	kafkaLimiter *KafkaLimiter,
-	redisClient *goredis.Client,
-	reproducer *ckafka.Producer,
-	eventRepo event.Repository,
-	authUserCreated authApp.UserCreatedUseCase,
-) (AuthKafkaConsumer, error) {
-	consumer, err := buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "authorization",
-		func(r *kafkaInfra.Router) {
-			r.EventHandle(authDomain.TopicUserCreated, authEvent.NewUserCreatedEventHandler(authUserCreated))
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
-
 	return consumer, nil
 }
 
