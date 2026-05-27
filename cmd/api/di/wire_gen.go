@@ -243,11 +243,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	memberRequestCreatedUseCase, err := provideRoomshipMemberRequestCreatedUseCase(memberRequestRepository, roomshipRepository2, eventIDGenerator, eventRepository)
-	if err != nil {
-		return nil, err
-	}
-	roomshipKafkaConsumer, err := provideRoomshipEventConsumer(appConfig, kafkaLimiter, client, producer, eventRepository, userCreatedUseCase2, roomCreatedUseCase2, memberRequestAgreedUseCase, memberRequestCreatedUseCase)
+	roomshipKafkaConsumer, err := provideRoomshipEventConsumer(appConfig, kafkaLimiter, client, producer, eventRepository, userCreatedUseCase2, roomCreatedUseCase2, memberRequestAgreedUseCase)
 	if err != nil {
 		return nil, err
 	}
