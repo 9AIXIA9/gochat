@@ -69,7 +69,6 @@ var UseCaseKafkaSet = wire.NewSet(
 	provideNotificationWelcomeEmailNotificationRequestedUseCase,
 	provideNotificationSystemMessageNotificationRequestedUseCase,
 	provideFriendshipUserCreatedUseCase,
-	provideFriendshipFriendRequestCreatedUseCase,
 	provideFriendshipFriendRequestAgreedUseCase,
 )
 
@@ -494,17 +493,6 @@ func provideFriendshipFriendRequestAgreedUseCase(
 		requestRepo,
 		friendshipRepo,
 		friendshipIDGen,
-		eventIDGen,
-	)
-}
-func provideFriendshipFriendRequestCreatedUseCase(
-	friendRequestRepo friendshipDomain.FriendRequestRepository,
-	eventRepo event.Repository,
-	eventIDGen event.IDGenerator,
-) (friendshipApp.FriendRequestCreatedUseCase, error) {
-	return friendshipApp.NewFriendRequestCreatedUseCase(
-		friendRequestRepo,
-		eventRepo,
 		eventIDGen,
 	)
 }

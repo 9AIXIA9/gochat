@@ -2,7 +2,6 @@ package domain
 
 import (
 	"encoding/json"
-	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 )
@@ -14,19 +13,6 @@ var _ event.SpecificEvent = (*FriendshipCreatedEvent)(nil)
 type FriendshipCreatedEvent struct {
 	userID1, userID2 kernel.UserID
 	*event.StandardEvent
-}
-
-func ToFriendshipCreatedEvent(ev event.Event) (*FriendshipCreatedEvent, error) {
-	if ev.Topic() != TopicFriendshipCreated {
-		return nil, myErrors.ErrWrongEventTopic
-	}
-	e := &FriendshipCreatedEvent{StandardEvent: event.LoadStandardEventFromEvent(ev)}
-	if len(ev.Payload()) > 0 {
-		if err := e.Unmarshal(ev.Payload()); err != nil {
-			return nil, err
-		}
-	}
-	return e, nil
 }
 
 func NewFriendshipCreatedEvent(
