@@ -58,7 +58,6 @@ var UseCaseKafkaSet = wire.NewSet(
 	provideProfileRoomCreatedUseCase,
 	provideProfileUserCreatedUseCase,
 	provideRoomshipUserCreatedUseCase,
-	provideRoomshipRoomshipCreatedUseCase,
 	provideRoomshipMemberRequestAgreedUseCase,
 	provideRoomshipMemberRequestCreatedUseCase,
 	provideRoomshipRoomCreatedUseCase,
@@ -415,18 +414,6 @@ func provideRoomshipMemberRequestAgreedUseCase(
 		idGenerator,
 		requestRepo,
 		roomshipRepo,
-	)
-}
-func provideRoomshipRoomshipCreatedUseCase(
-	roomshipRepo domain.RoomshipRepository,
-	eventRepo event.Repository,
-	idGenerator event.IDGenerator,
-) (roomshipApp.RoomshipCreatedUseCase, error) {
-	return roomshipApp.NewRoomshipCreatedUseCase(
-		roomshipRepo,
-		roomshipRepo,
-		idGenerator,
-		eventRepo,
 	)
 }
 func provideChatUserCreatedUseCase(

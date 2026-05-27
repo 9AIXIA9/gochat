@@ -208,7 +208,6 @@ func provideRoomshipEventConsumer(
 	roomshipRoomCreated roomshipApp.RoomCreatedUseCase,
 	roomshipMemberRequestAgreed roomshipApp.MemberRequestAgreedUseCase,
 	roomshipMemberRequestCreated roomshipApp.MemberRequestCreatedUseCase,
-	roomshipRoomshipCreated roomshipApp.RoomshipCreatedUseCase,
 ) (RoomshipKafkaConsumer, error) {
 	consumer, err := buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "roomship",
 		func(r *kafkaInfra.Router) {
@@ -216,7 +215,6 @@ func provideRoomshipEventConsumer(
 			r.EventHandle(roomshipDomain.TopicRoomCreated, roomshipEvent.NewRoomCreatedEventHandler(roomshipRoomCreated))
 			r.EventHandle(roomshipDomain.TopicMemberRequestCreated, roomshipEvent.NewMemberRequestCreatedEventHandler(roomshipMemberRequestCreated))
 			r.EventHandle(roomshipDomain.TopicMemberRequestAgreed, roomshipEvent.NewMemberRequestAgreedEventHandler(roomshipMemberRequestAgreed))
-			r.EventHandle(roomshipDomain.TopicRoomshipCreated, roomshipEvent.NewRoomshipCreatedEventHandler(roomshipRoomshipCreated))
 		},
 	)
 	return consumer, err

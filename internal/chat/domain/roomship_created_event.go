@@ -30,25 +30,6 @@ func ToRoomshipCreatedEvent(ev event.Event) (*RoomshipCreatedEvent, error) {
 	return e, nil
 }
 
-func NewRoomshipCreatedEvent(
-	id RoomshipID,
-	userID kernel.UserID,
-	roomID kernel.RoomID,
-	generator event.IDGenerator,
-) (*RoomshipCreatedEvent, error) {
-	e := &RoomshipCreatedEvent{
-		userID: userID,
-		roomID: roomID,
-	}
-	payload, err := e.Marshal()
-	if err != nil {
-		return nil, err
-	}
-
-	e.StandardEvent = event.NewStandardEvent(kernel.ID(id), TopicRoomshipCreated, payload, generator)
-	return e, nil
-}
-
 func (e *RoomshipCreatedEvent) Marshal() ([]byte, error) {
 	type Alias struct {
 		UserID kernel.UserID

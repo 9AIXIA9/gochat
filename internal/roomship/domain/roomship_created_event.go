@@ -1,7 +1,7 @@
 package domain
 
 import (
-	myErrors "gochat/internal/shared/errors"
+	"encoding/json"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 )
@@ -11,27 +11,21 @@ const TopicRoomshipCreated event.Topic = "roomship.created"
 var _ event.SpecificEvent = (*RoomshipCreatedEvent)(nil)
 
 type RoomshipCreatedEvent struct {
+	userID kernel.UserID
+	roomID kernel.RoomID
 	*event.StandardEvent
 }
 
-func ToRoomshipCreatedEvent(ev event.Event) (*RoomshipCreatedEvent, error) {
-	if ev.Topic() != TopicRoomshipCreated {
-		return nil, myErrors.ErrWrongEventTopic
-	}
-	e := &RoomshipCreatedEvent{StandardEvent: event.LoadStandardEventFromEvent(ev)}
-	if len(ev.Payload()) > 0 {
-		if err := e.Unmarshal(ev.Payload()); err != nil {
-			return nil, err
-		}
-	}
-	return e, nil
-}
-
 func NewRoomshipCreatedEvent(
+	userID kernel.UserID,
+	roomID kernel.RoomID,
 	roomshipID RoomshipID,
 	generator event.IDGenerator,
 ) (*RoomshipCreatedEvent, error) {
-	e := &RoomshipCreatedEvent{}
+	e := &RoomshipCreatedEvent{
+		userID: userID,
+		roomID: roomID,
+	}
 	payload, err := e.Marshal()
 	if err != nil {
 		return nil, err
@@ -42,9 +36,26 @@ func NewRoomshipCreatedEvent(
 }
 
 func (e *RoomshipCreatedEvent) Marshal() ([]byte, error) {
-	return []byte(""), nil
+	type Alias struct {
+		UserID kernel.UserID
+		RoomID kernel.RoomID
+	}
+	return json.Marshal(&Alias{
+		UserID: e.userID,
+		RoomID: e.roomID,
+	})
 }
 
-func (e *RoomshipCreatedEvent) Unmarshal(_ []byte) error {
+func (e *RoomshipCreatedEvent) Unmarshal(data []byte) error {
+	type Alias struct {
+		UserID kernel.UserID
+		RoomID kernel.RoomID
+	}
+	var tmp Alias
+	if err := json.Unmarshal(data, &tmp); err != nil {
+		return err
+	}
+	e.userID = tmp.UserID
+	e.roomID = tmp.RoomID
 	return nil
 }
