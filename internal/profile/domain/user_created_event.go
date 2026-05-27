@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-const TopicUserCreated event.Topic = "profile.user.created"
+const TopicUserCreated event.Topic = "user.created"
 
 var _ event.SpecificEvent = (*UserCreatedEvent)(nil)
 
@@ -28,25 +28,6 @@ func ToUserCreatedEvent(ev event.Event) (*UserCreatedEvent, error) {
 			return nil, err
 		}
 	}
-	return e, nil
-}
-
-func NewUserCreatedEvent(
-	userID kernel.UserID,
-	email kernel.Email,
-	signedAt time.Time,
-	generator event.IDGenerator,
-) (*UserCreatedEvent, error) {
-	e := &UserCreatedEvent{
-		email:    email,
-		signedAt: signedAt,
-	}
-	payload, err := e.Marshal()
-	if err != nil {
-		return nil, err
-	}
-
-	e.StandardEvent = event.NewStandardEvent(kernel.ID(userID), TopicUserCreated, payload, generator)
 	return e, nil
 }
 

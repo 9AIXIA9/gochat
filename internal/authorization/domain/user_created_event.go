@@ -2,7 +2,6 @@ package domain
 
 import (
 	"encoding/json"
-	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"time"
@@ -17,20 +16,6 @@ type UserCreatedEvent struct {
 	email    kernel.Email
 	signedAt time.Time
 	*event.StandardEvent
-}
-
-func ToUserCreatedEvent(ev event.Event) (*UserCreatedEvent, error) {
-	if ev.Topic() != TopicUserCreated {
-		return nil, myErrors.ErrWrongEventTopic
-	}
-
-	e := &UserCreatedEvent{StandardEvent: event.LoadStandardEventFromEvent(ev)}
-	if len(ev.Payload()) > 0 {
-		if err := e.Unmarshal(ev.Payload()); err != nil {
-			return nil, err
-		}
-	}
-	return e, nil
 }
 
 func NewUserCreatedEvent(
