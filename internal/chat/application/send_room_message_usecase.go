@@ -4,6 +4,7 @@ import (
 	"context"
 	"gochat/internal/chat/domain"
 	myErrors "gochat/internal/shared/errors"
+	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"gochat/pkg/validate"
 )
@@ -30,20 +31,20 @@ func (i *SendRoomMessageInput) Validate() error {
 
 type sendRoomMessageUseCase struct {
 	messageIDGenerator kernel.MessageIDGenerator
-	notifier           domain.RoomMessageNotifier
+	eventIDGenerator   event.IDGenerator
 	finder             domain.RoomshipsFinderByRoomID
 	messageCreator     domain.RoomMessageCreator
 }
 
 func NewSendRoomMessageUseCase(
 	messageIDGenerator kernel.MessageIDGenerator,
-	notifier domain.RoomMessageNotifier,
+	eventIDGenerator event.IDGenerator,
 	finder domain.RoomshipsFinderByRoomID,
 	messageCreator domain.RoomMessageCreator,
 ) (SendRoomMessageUseCase, error) {
 	if err := validate.NotNil(
 		messageIDGenerator,
-		notifier,
+		eventIDGenerator,
 		finder,
 		messageCreator,
 	); err != nil {
@@ -52,9 +53,9 @@ func NewSendRoomMessageUseCase(
 
 	return &sendRoomMessageUseCase{
 		messageIDGenerator: messageIDGenerator,
-		notifier:           notifier,
 		finder:             finder,
 		messageCreator:     messageCreator,
+		eventIDGenerator:   eventIDGenerator,
 	}, nil
 }
 
@@ -66,6 +67,7 @@ func (uc *sendRoomMessageUseCase) Execute(ctx context.Context, input *SendRoomMe
 		input.Content,
 		uc.finder,
 		uc.messageIDGenerator,
+		uc.eventIDGenerator,
 	)
 	if err != nil {
 		return nil, err
@@ -73,10 +75,6 @@ func (uc *sendRoomMessageUseCase) Execute(ctx context.Context, input *SendRoomMe
 
 	if err := uc.messageCreator.Create(ctx, message); err != nil {
 		return nil, err
-	}
-
-	if recipients := message.RecipientIDs(); len(recipients) > 0 {
-		_ = uc.notifier.Notify(ctx, message, recipients)
 	}
 
 	return nil, nil

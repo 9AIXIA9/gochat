@@ -11,7 +11,6 @@ type PrivateMessage struct {
 	id          kernel.MessageID
 	senderID    kernel.UserID
 	recipientID kernel.UserID
-	state       MessageState
 	content     string
 	sentAt      time.Time
 
@@ -23,14 +22,12 @@ func LoadPrivateMessage(
 	senderID kernel.UserID,
 	recipientID kernel.UserID,
 	content string,
-	state MessageState,
 	sentAt time.Time,
 ) *PrivateMessage {
 	return &PrivateMessage{
 		id:           id,
 		senderID:     senderID,
 		recipientID:  recipientID,
-		state:        state,
 		content:      content,
 		sentAt:       sentAt,
 		eventManager: event.NewEventManager(),
@@ -42,6 +39,7 @@ func CreatePrivateMessage(
 	recipientID kernel.UserID,
 	senderID kernel.UserID,
 	content string,
+	eventIDGenerator event.IDGenerator,
 	messageIDGenerator kernel.MessageIDGenerator,
 	exister FriendshipExisterByUserID,
 ) (*PrivateMessage, error) {
@@ -60,15 +58,22 @@ func CreatePrivateMessage(
 		}
 	}
 
-	return &PrivateMessage{
+	message := &PrivateMessage{
 		id:           messageIDGenerator.Generate(),
 		senderID:     senderID,
 		recipientID:  recipientID,
-		state:        MessageStateUndelivered,
 		content:      content,
 		sentAt:       time.Now().UTC(),
 		eventManager: event.NewEventManager(),
-	}, nil
+	}
+
+	ev, err := NewPrivateMessageCreatedEvent(message.id, eventIDGenerator)
+	if err != nil {
+		return nil, err
+	}
+	message.eventManager.RecordEvent(ev)
+
+	return message, nil
 }
 
 func (m *PrivateMessage) ID() kernel.MessageID {
@@ -85,10 +90,6 @@ func (m *PrivateMessage) RecipientID() kernel.UserID {
 
 func (m *PrivateMessage) Content() string {
 	return m.content
-}
-
-func (m *PrivateMessage) State() MessageState {
-	return m.state
 }
 
 func (m *PrivateMessage) SentAt() time.Time {

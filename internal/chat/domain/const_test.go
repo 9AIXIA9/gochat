@@ -2,11 +2,13 @@ package domain_test
 
 import (
 	"gochat/internal/chat/domain"
+	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"time"
 )
 
 const (
+	fixedEventID      event.ID            = "event-123"
 	fixedUserID       kernel.UserID       = "user-123"
 	fixedFriendID     kernel.UserID       = "friend-123"
 	fixedRoomID       kernel.RoomID       = "room-123"

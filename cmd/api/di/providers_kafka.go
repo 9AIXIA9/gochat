@@ -29,7 +29,7 @@ import (
 
 	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/google/wire"
-	go_redis "github.com/redis/go-redis/v9"
+	goredis "github.com/redis/go-redis/v9"
 	"github.com/ulule/limiter/v3"
 	"go.uber.org/zap"
 )
@@ -89,7 +89,7 @@ func provideKafkaConsumers(
 func buildKafkaConsumer(
 	appConfig *config.App,
 	kafkaLimiter *KafkaLimiter,
-	redisClient *go_redis.Client,
+	redisClient *goredis.Client,
 	reproducer *ckafka.Producer,
 	eventRepo event.Repository,
 	contextName string,
@@ -141,7 +141,7 @@ func buildKafkaConsumer(
 func provideAuthEventConsumer(
 	appConfig *config.App,
 	kafkaLimiter *KafkaLimiter,
-	redisClient *go_redis.Client,
+	redisClient *goredis.Client,
 	reproducer *ckafka.Producer,
 	eventRepo event.Repository,
 	authUserCreated authApp.UserCreatedUseCase,
@@ -161,7 +161,7 @@ func provideAuthEventConsumer(
 func provideProfileEventConsumer(
 	appConfig *config.App,
 	kafkaLimiter *KafkaLimiter,
-	redisClient *go_redis.Client,
+	redisClient *goredis.Client,
 	reproducer *ckafka.Producer,
 	eventRepo event.Repository,
 	profileUserCreated profileApp.UserCreatedUseCase,
@@ -181,14 +181,13 @@ func provideProfileEventConsumer(
 func provideChatEventConsumer(
 	appConfig *config.App,
 	kafkaLimiter *KafkaLimiter,
-	redisClient *go_redis.Client,
+	redisClient *goredis.Client,
 	reproducer *ckafka.Producer,
 	eventRepo event.Repository,
 	chatUserCreated chatApp.UserCreatedUseCase,
 	chatRoomCreated chatApp.RoomCreatedUseCase,
 	chatRoomshipCreated chatApp.RoomshipCreatedUseCase,
 	chatFriendshipCreated chatApp.FriendshipCreatedUseCase,
-	chatUndeliveredMessagesPushRequested chatApp.UndeliveredMessagesPushRequestedUseCase,
 ) (ChatKafkaConsumer, error) {
 	consumer, err := buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "chat",
 		func(r *kafkaInfra.Router) {
@@ -196,7 +195,6 @@ func provideChatEventConsumer(
 			r.EventHandle(chatDomain.TopicRoomCreated, chatEvent.NewRoomCreatedEventHandler(chatRoomCreated))
 			r.EventHandle(chatDomain.TopicRoomshipCreated, chatEvent.NewRoomshipCreatedEventHandler(chatRoomshipCreated))
 			r.EventHandle(chatDomain.TopicFriendshipCreated, chatEvent.NewFriendshipCreatedEventHandler(chatFriendshipCreated))
-			r.EventHandle(chatDomain.TopicUndeliveredMessagesPushRequested, chatEvent.NewUndeliveredMessagesPushRequestedEventHandler(chatUndeliveredMessagesPushRequested))
 		},
 	)
 	return consumer, err
@@ -206,12 +204,11 @@ func provideNotificationEventConsumer(
 	appConfig *config.App,
 	emailAvailable emailServiceAvailable,
 	kafkaLimiter *KafkaLimiter,
-	redisClient *go_redis.Client,
+	redisClient *goredis.Client,
 	reproducer *ckafka.Producer,
 	eventRepo event.Repository,
 	notificationWelcomeEmailNotificationRequested notificationApp.WelcomeEmailNotificationRequestedUseCase,
 	notificationSystemMessageNotificationRequested notificationApp.SystemMessageNotificationRequestedUseCase,
-	notificationUndeliveredMessagesRequested notificationApp.UndeliveredMessagesNotificationRequestedUseCase,
 ) (NotificationKafkaConsumer, error) {
 	consumer, err := buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "notification",
 		func(r *kafkaInfra.Router) {
@@ -223,7 +220,6 @@ func provideNotificationEventConsumer(
 				zap.L().Info("Skipping subscription to WelcomeEmailNotificationRequested topic as email dialer is not connected")
 			}
 			r.EventHandle(notificationDomain.TopicSystemMessageNotificationRequested, notificationEvent.NewSystemMessageNotificationRequestedEventHandler(notificationSystemMessageNotificationRequested))
-			r.EventHandle(notificationDomain.TopicUndeliveredMessagesNotificationRequested, notificationEvent.NewUndeliveredMessagesNotificationRequestedEventHandler(notificationUndeliveredMessagesRequested))
 		},
 	)
 	return consumer, err
@@ -232,7 +228,7 @@ func provideNotificationEventConsumer(
 func provideRoomshipEventConsumer(
 	appConfig *config.App,
 	kafkaLimiter *KafkaLimiter,
-	redisClient *go_redis.Client,
+	redisClient *goredis.Client,
 	reproducer *ckafka.Producer,
 	eventRepo event.Repository,
 	roomshipUserCreated roomshipApp.UserCreatedUseCase,
@@ -256,7 +252,7 @@ func provideRoomshipEventConsumer(
 func provideFriendshipEventConsumer(
 	appConfig *config.App,
 	kafkaLimiter *KafkaLimiter,
-	redisClient *go_redis.Client,
+	redisClient *goredis.Client,
 	reproducer *ckafka.Producer,
 	eventRepo event.Repository,
 	friendshipUserCreated friendshipApp.UserCreatedUseCase,

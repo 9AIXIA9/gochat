@@ -52,12 +52,6 @@ var UseCaseHTTPSet = wire.NewSet(
 	provideListSystemMessagesUseCase,
 )
 
-var UseCaseWebsocketSet = wire.NewSet(
-	provideWebsocketUserSessionStartedUseCase,
-	provideChatReadRoomMessagesUseCase,
-	provideChatReadPrivateMessagesUseCase,
-)
-
 var UseCaseKafkaSet = wire.NewSet(
 	provideAuthUserCreatedUseCase,
 	provideUnpublishedEventsCreatedCase,
@@ -73,10 +67,8 @@ var UseCaseKafkaSet = wire.NewSet(
 	provideChatRoomCreatedUseCase,
 	provideChatRoomshipCreatedUseCase,
 	provideChatFriendshipCreatedUseCase,
-	provideChatUndeliveredMessagesPushRequestedUseCase,
 	provideNotificationWelcomeEmailNotificationRequestedUseCase,
 	provideNotificationSystemMessageNotificationRequestedUseCase,
-	provideNotificationUndeliveredMessagesNotificationRequestedUseCase,
 	provideFriendshipUserCreatedUseCase,
 	provideFriendshipFriendshipCreatedUseCase,
 	provideFriendshipFriendRequestCreatedUseCase,
@@ -167,27 +159,27 @@ func provideProfileUpdateRoomProfileUseCase(
 	)
 }
 func provideSendPrivateMessageUseCase(
+	generator event.IDGenerator,
 	messageIDGen kernel.MessageIDGenerator,
-	notifier chatDomain.PrivateMessageNotifier,
 	messageRepo chatDomain.PrivateMessageRepository,
 	friendshipRepo chatDomain.FriendshipRepository,
 ) (chatApp.SendPrivateMessageUseCase, error) {
 	return chatApp.NewSendPrivateMessageUseCase(
 		friendshipRepo,
 		messageIDGen,
-		notifier,
 		messageRepo,
+		generator,
 	)
 }
 func provideSendRoomMessageUseCase(
 	messageIDGen kernel.MessageIDGenerator,
-	notifier chatDomain.RoomMessageNotifier,
+	generator event.IDGenerator,
 	roomshipRepo chatDomain.RoomshipRepository,
 	messageRepo chatDomain.RoomMessageRepository,
 ) (chatApp.SendRoomMessageUseCase, error) {
 	return chatApp.NewSendRoomMessageUseCase(
 		messageIDGen,
-		notifier,
+		generator,
 		roomshipRepo,
 		messageRepo,
 	)
@@ -348,32 +340,6 @@ func provideListSystemMessagesUseCase(
 }
 
 // -------------------- Event UseCases (websocket side) --------------------
-func provideWebsocketUserSessionStartedUseCase(
-	eventIDGen event.IDGenerator,
-	eventRepo event.Repository,
-) (rootapp.UserSessionStartedUseCase, error) {
-	return rootapp.NewUserSessionStartedUseCase(
-		eventIDGen,
-		eventRepo,
-	)
-}
-
-func provideChatReadPrivateMessagesUseCase(
-	messageRepo chatDomain.PrivateMessageRepository,
-) (chatApp.ReadPrivateMessagesUseCase, error) {
-	return chatApp.NewReadPrivateMessagesUseCase(
-		messageRepo,
-	)
-}
-
-func provideChatReadRoomMessagesUseCase(
-	messageRepo chatDomain.RoomMessageRepository,
-) (chatApp.ReadRoomMessagesUseCase, error) {
-	return chatApp.NewReadRoomMessagesUseCase(
-		messageRepo,
-	)
-}
-
 func provideUnpublishedEventsCreatedCase(
 	appConfig *config.App,
 	eventPublisher event.Publisher,
@@ -505,19 +471,6 @@ func provideChatRoomshipCreatedUseCase(
 		roomshipRepo,
 	)
 }
-func provideChatUndeliveredMessagesPushRequestedUseCase(
-	privateMessageRepo chatDomain.PrivateMessageRepository,
-	privateMessageNotifier chatDomain.PrivateMessageNotifier,
-	roomMessageRepo chatDomain.RoomMessageRepository,
-	roomMessageNotifier chatDomain.RoomMessageNotifier,
-) (chatApp.UndeliveredMessagesPushRequestedUseCase, error) {
-	return chatApp.NewUndeliveredMessagesPushRequestedUseCase(
-		privateMessageRepo,
-		privateMessageNotifier,
-		roomMessageRepo,
-		roomMessageNotifier,
-	)
-}
 
 func provideNotificationWelcomeEmailNotificationRequestedUseCase(
 	emailNotifier notificationDomain.WelcomeEmailNotifier,
@@ -535,15 +488,6 @@ func provideNotificationSystemMessageNotificationRequestedUseCase(
 		messageRepo,
 		messageNotifier,
 		idGenerator,
-	)
-}
-func provideNotificationUndeliveredMessagesNotificationRequestedUseCase(
-	systemMessageRepo notificationDomain.SystemMessageRepository,
-	systemMessageNotifier notificationDomain.SystemMessageNotifier,
-) (notificationApp.UndeliveredMessagesNotificationRequestedUseCase, error) {
-	return notificationApp.NewUndeliveredMessagesNotificationRequestedUseCase(
-		systemMessageRepo,
-		systemMessageNotifier,
 	)
 }
 func provideFriendshipUserCreatedUseCase(

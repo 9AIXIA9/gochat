@@ -31,7 +31,7 @@ func (repo *UserRepository) Create(ctx context.Context, user *domain.User) error
 			return gormutils.TranslateError(err)
 		}
 
-		txCtx := context.WithValue(ctx, "transaction", tx)
+		txCtx := gormutils.SetTransaction(ctx, tx)
 
 		if err := repo.eventRepo.CreateUnpublishedEvents(txCtx, user.GetEvents()); err != nil {
 			return gormutils.TranslateError(err)

@@ -39,11 +39,11 @@ type ListRoomMessagesOutput struct {
 }
 
 type listRoomMessagesUseCase struct {
-	finder domain.RoomMessagesFinderByRoomIDAndUserID
+	finder domain.RoomMessagesFinderByRoomIDAndUserIDWithoutRecipients
 }
 
 func NewListRoomMessagesUseCase(
-	finder domain.RoomMessagesFinderByRoomIDAndUserID,
+	finder domain.RoomMessagesFinderByRoomIDAndUserIDWithoutRecipients,
 ) (ListRoomMessagesUseCase, error) {
 	if err := validate.NotNil(finder); err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func (uc *listRoomMessagesUseCase) Execute(ctx context.Context, input *ListRoomM
 		limit = maxRoomMessagesListLimit
 	}
 
-	messages, err := uc.finder.FindsByRoomIDAndUserID(ctx, input.RoomID, input.UserID, limit, input.BaseID)
+	messages, err := uc.finder.FindsByRoomIDAndUserIDWithoutRecipients(ctx, input.RoomID, input.UserID, limit, input.BaseID)
 	if err != nil {
 		return nil, err
 	}

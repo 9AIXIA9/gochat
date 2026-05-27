@@ -115,7 +115,6 @@ func TestNewListPrivateMessagesHandler(t *testing.T) {
 		fixedOperatorID,
 		fixedUserID,
 		"hello",
-		chatDomain.MessageStateDelivered,
 		fixedSentAt,
 	)
 

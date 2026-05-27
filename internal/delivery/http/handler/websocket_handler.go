@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"gochat/internal/application"
 	"gochat/internal/infrastructure/metrics"
 	websocketInfra "gochat/internal/infrastructure/websocket"
 	"gochat/pkg/ctxutil"
@@ -16,26 +15,20 @@ import (
 )
 
 type WebsocketHandler struct {
-	upgrader                   *websocket.Upgrader
-	manager                    *websocketInfra.Manager
-	router                     *websocketInfra.Router
-	userSessionStartedUseCase  application.UserSessionStartedUseCase
-	disableSessionStartedEvent bool
+	upgrader *websocket.Upgrader
+	manager  *websocketInfra.Manager
+	router   *websocketInfra.Router
 }
 
 func NewWebsocketHandler(
 	upgrader *websocket.Upgrader,
 	manager *websocketInfra.Manager,
 	router *websocketInfra.Router,
-	userSessionStartedUseCase application.UserSessionStartedUseCase,
-	disableSessionStartedEvent bool,
 ) *WebsocketHandler {
 	return &WebsocketHandler{
-		upgrader:                   upgrader,
-		manager:                    manager,
-		router:                     router,
-		userSessionStartedUseCase:  userSessionStartedUseCase,
-		disableSessionStartedEvent: disableSessionStartedEvent,
+		upgrader: upgrader,
+		manager:  manager,
+		router:   router,
 	}
 }
 
@@ -76,16 +69,5 @@ func (s *WebsocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.manager.Register(userID, client)
 	client.Start()
 
-	if !s.disableSessionStartedEvent {
-		if _, err := s.userSessionStartedUseCase.Execute(r.Context(), &application.UserSessionStartedInput{
-			UserID: userID,
-		}); err != nil {
-			zap.L().Debug(
-				"failed to execute user session started use case",
-				zap.String("userID", userID.String()),
-				zap.Error(err),
-			)
-		}
-	}
 	<-r.Context().Done()
 }
