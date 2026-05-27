@@ -6,7 +6,7 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-const TopicRoomshipCreated event.Topic = "roomship.roomship.created"
+const TopicRoomshipCreated event.Topic = "roomship.created"
 
 var _ event.SpecificEvent = (*RoomshipCreatedEvent)(nil)
 

@@ -7,7 +7,7 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-const TopicSystemMessageNotificationRequested event.Topic = "notification.system_message_notification.requested"
+const TopicSystemMessageNotificationRequested event.Topic = "system_message_notification.requested"
 
 var _ event.SpecificEvent = (*SystemMessageNotificationRequestedEvent)(nil)
 
