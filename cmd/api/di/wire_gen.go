@@ -269,11 +269,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	applicationFriendshipCreatedUseCase, err := provideFriendshipFriendshipCreatedUseCase(repositoryFriendshipRepository, eventRepository, eventIDGenerator)
-	if err != nil {
-		return nil, err
-	}
-	friendshipKafkaConsumer, err := provideFriendshipEventConsumer(appConfig, kafkaLimiter, client, producer, eventRepository, userCreatedUseCase3, friendRequestAgreedUseCase, friendRequestCreatedUseCase, applicationFriendshipCreatedUseCase)
+	friendshipKafkaConsumer, err := provideFriendshipEventConsumer(appConfig, kafkaLimiter, client, producer, eventRepository, userCreatedUseCase3, friendRequestAgreedUseCase, friendRequestCreatedUseCase)
 	if err != nil {
 		return nil, err
 	}

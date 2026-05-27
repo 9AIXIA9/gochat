@@ -231,14 +231,12 @@ func provideFriendshipEventConsumer(
 	friendshipUserCreated friendshipApp.UserCreatedUseCase,
 	friendshipFriendRequestAgreed friendshipApp.FriendRequestAgreedUseCase,
 	friendshipFriendRequestCreated friendshipApp.FriendRequestCreatedUseCase,
-	friendshipFriendshipCreated friendshipApp.FriendshipCreatedUseCase,
 ) (FriendshipKafkaConsumer, error) {
 	consumer, err := buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "friendship",
 		func(r *kafkaInfra.Router) {
 			r.EventHandle(friendshipDomain.TopicUserCreated, friendshipEvent.NewUserCreatedEventHandler(friendshipUserCreated))
 			r.EventHandle(friendshipDomain.TopicFriendRequestAgreed, friendshipEvent.NewFriendRequestAgreedEventHandler(friendshipFriendRequestAgreed))
 			r.EventHandle(friendshipDomain.TopicFriendRequestCreated, friendshipEvent.NewFriendRequestCreatedEventHandler(friendshipFriendRequestCreated))
-			r.EventHandle(friendshipDomain.TopicFriendshipCreated, friendshipEvent.NewFriendshipCreatedEventHandler(friendshipFriendshipCreated))
 		},
 	)
 	return consumer, err
