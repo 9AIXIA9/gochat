@@ -8,12 +8,12 @@ import (
 )
 
 type RoomMessage struct {
-	id       kernel.MessageID
-	senderID kernel.UserID
-	states   map[kernel.UserID]MessageState
-	roomID   kernel.RoomID
-	content  string
-	sentAt   time.Time
+	id           kernel.MessageID
+	senderID     kernel.UserID
+	recipientIDs []kernel.UserID
+	roomID       kernel.RoomID
+	content      string
+	sentAt       time.Time
 
 	eventManager *event.Manager
 }
@@ -21,7 +21,7 @@ type RoomMessage struct {
 func LoadRoomMessage(
 	id kernel.MessageID,
 	senderID kernel.UserID,
-	states map[kernel.UserID]MessageState,
+	recipientIDs []kernel.UserID,
 	roomID kernel.RoomID,
 	content string,
 	sentAt time.Time,
@@ -29,9 +29,9 @@ func LoadRoomMessage(
 	return &RoomMessage{
 		id:           id,
 		senderID:     senderID,
-		states:       states,
 		roomID:       roomID,
 		content:      content,
+		recipientIDs: recipientIDs,
 		sentAt:       sentAt,
 		eventManager: event.NewEventManager(),
 	}
@@ -44,7 +44,12 @@ func CreateRoomMessage(
 	content string,
 	finder RoomshipsFinderByRoomID,
 	messageIDGenerator kernel.MessageIDGenerator,
+	eventIDGenerator event.IDGenerator,
 ) (*RoomMessage, error) {
+	if len(content) == 0 {
+		return nil, ErrEmptyMessageContent
+	}
+
 	roomships, err := finder.FindsByRoomID(ctx, roomID)
 	if err != nil {
 		return nil, err
@@ -54,6 +59,13 @@ func CreateRoomMessage(
 	if err != nil {
 		return nil, err
 	}
+
+	ev, err := NewRoomMessageCreatedEvent(message.id, eventIDGenerator)
+	if err != nil {
+		return nil, err
+	}
+
+	message.eventManager.RecordEvent(ev)
 
 	return message, nil
 }
@@ -67,10 +79,6 @@ func createRoomMessageByRoomships(
 ) (*RoomMessage, error) {
 	if len(roomships) == 0 {
 		return nil, ErrRoomNotFound
-	}
-
-	if len(content) == 0 {
-		return nil, ErrEmptyMessageContent
 	}
 
 	recipientIDs := make([]kernel.UserID, 0, len(roomships)-1)
@@ -91,7 +99,7 @@ func createRoomMessageByRoomships(
 		return &RoomMessage{
 			id:           messageIDGenerator.Generate(),
 			senderID:     senderID,
-			states:       nil,
+			recipientIDs: nil,
 			roomID:       roomID,
 			content:      content,
 			sentAt:       time.Now().UTC(),
@@ -99,16 +107,11 @@ func createRoomMessageByRoomships(
 		}, nil
 	}
 
-	states := make(map[kernel.UserID]MessageState, len(recipientIDs))
-	for _, recipientID := range recipientIDs {
-		states[recipientID] = MessageStateUndelivered
-	}
-
 	return &RoomMessage{
 		id:           messageIDGenerator.Generate(),
 		senderID:     senderID,
-		states:       states,
 		roomID:       roomID,
+		recipientIDs: recipientIDs,
 		content:      content,
 		sentAt:       time.Now().UTC(),
 		eventManager: event.NewEventManager(),
@@ -135,30 +138,8 @@ func (m *RoomMessage) SentAt() time.Time {
 	return m.sentAt
 }
 
-func (m *RoomMessage) States() map[kernel.UserID]MessageState {
-	return m.states
-}
-
-func (m *RoomMessage) State(id kernel.UserID) MessageState {
-	return m.states[id]
-}
-
 func (m *RoomMessage) RecipientIDs() []kernel.UserID {
-	recipientIDs := make([]kernel.UserID, 0, len(m.states))
-	for recipientID := range m.states {
-		recipientIDs = append(recipientIDs, recipientID)
-	}
-	return recipientIDs
-}
-
-func (m *RoomMessage) UndeliveredRecipientIDs() []kernel.UserID {
-	recipientIDs := make([]kernel.UserID, 0)
-	for recipientID, state := range m.states {
-		if state == MessageStateUndelivered {
-			recipientIDs = append(recipientIDs, recipientID)
-		}
-	}
-	return recipientIDs
+	return m.recipientIDs
 }
 
 func (m *RoomMessage) GetEvents() []event.Event {

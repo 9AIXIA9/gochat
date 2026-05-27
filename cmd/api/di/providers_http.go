@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"gochat/docs"
-	"gochat/internal/application"
 	authApp "gochat/internal/authorization/application"
 	chatApp "gochat/internal/chat/application"
 	friendshipApp "gochat/internal/friendship/application"
@@ -68,8 +67,6 @@ func provideHttpRouter(
 	updateRoomProfile profileApp.UpdateRoomProfileUseCase,
 	sendPrivateMessage chatApp.SendPrivateMessageUseCase,
 	sendRoomMessage chatApp.SendRoomMessageUseCase,
-	readPrivateMessages chatApp.ReadPrivateMessagesUseCase,
-	readRoomMessages chatApp.ReadRoomMessagesUseCase,
 	listPrivateMessages chatApp.ListPrivateMessagesUseCase,
 	listRoomMessages chatApp.ListRoomMessagesUseCase,
 	createRoom roomshipApp.CreateRoomUseCase,
@@ -181,8 +178,6 @@ func provideHttpRouter(
 		chatsGroup.GET("/rooms/messages/:room_id", chatHTTP.NewListRoomMessagesHandler(listRoomMessages, validator))
 		chatsGroup.POST("/private-messages", chatHTTP.NewSendPrivateMessageHandler(sendPrivateMessage, validator))
 		chatsGroup.POST("/rooms/messages", chatHTTP.NewSendRoomMessageHandler(sendRoomMessage, validator))
-		chatsGroup.PUT("/private-messages/read", chatHTTP.NewReadPrivateMessagesHandler(readPrivateMessages, validator))
-		chatsGroup.PUT("/rooms/messages/read", chatHTTP.NewReadRoomMessagesHandler(readRoomMessages, validator))
 	}
 
 	// 房间与成员相关路由（RESTful）
@@ -257,18 +252,14 @@ func provideHttpServer(appConfig *config.App, router *gin.Engine) *ginInfra.Serv
 }
 
 func provideWebsocketHandler(
-	appConfig *config.App,
 	upgrader *gorillaWebsocket.Upgrader,
 	manager *websocket.Manager,
 	router *websocket.Router,
-	userSessionStartedUseCase application.UserSessionStartedUseCase,
 ) *handler.WebsocketHandler {
 	return handler.NewWebsocketHandler(
 		upgrader,
 		manager,
 		router,
-		userSessionStartedUseCase,
-		appConfig.DisableSessionStartedEvent,
 	)
 }
 

@@ -2,7 +2,6 @@
 # Base config already provides full defaults; include only keys you need to change.
 Port: 8081
 Env: local
-DisableSessionStartedEvent: false
 
 Mysql:
   Host: 127.0.0.1

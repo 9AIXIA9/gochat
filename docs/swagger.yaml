@@ -2,16 +2,6 @@ basePath: /api/v1
 consumes:
 - application/json
 definitions:
-  gochat_internal_chat_domain.MessageState:
-    enum:
-    - undelivered
-    - delivered
-    - read
-    type: string
-    x-enum-varnames:
-    - MessageStateUndelivered
-    - MessageStateDelivered
-    - MessageStateRead
   gochat_internal_chat_dto.PrivateMessage:
     properties:
       content:
@@ -27,12 +17,8 @@ definitions:
         example: 019b5929-65bc-7549-89c6-3f7dc6872577
         type: string
       sent_at:
-        example: "2025-12-26 05:56:55.470"
+        example: '2025-12-26 05:56:55.470'
         type: string
-      state:
-        allOf:
-        - $ref: '#/definitions/gochat_internal_chat_domain.MessageState'
-        example: read
     type: object
   gochat_internal_chat_dto.RoomMessage:
     properties:
@@ -49,12 +35,8 @@ definitions:
         example: 019b593b-462e-74d6-bfda-0e103a172190
         type: string
       sent_at:
-        example: "2025-12-26 05:38:19.740"
+        example: '2025-12-26 05:38:19.740'
         type: string
-      states:
-        additionalProperties:
-          $ref: '#/definitions/gochat_internal_chat_domain.MessageState'
-        type: object
     type: object
   gochat_internal_friendship_domain.FriendRequestState:
     enum:
@@ -79,7 +61,7 @@ definitions:
         type: string
       sent_at:
         description: UTC
-        example: "2025-12-26 05:38:19.740"
+        example: '2025-12-26 05:38:19.740'
         type: string
       state:
         allOf:
@@ -92,7 +74,7 @@ definitions:
   gochat_internal_friendship_dto.Friendship:
     properties:
       created_at:
-        example: "2025-12-26 05:38:19.740"
+        example: '2025-12-26 05:38:19.740'
         type: string
       id:
         example: 019b593b-462e-74d6-bfda-0e103a172190
@@ -124,7 +106,7 @@ definitions:
         example: 019b593b-462e-74d6-bfda-0e103a172192
         type: string
       sent_at:
-        example: "2025-12-26 05:38:19.740"
+        example: '2025-12-26 05:38:19.740'
         type: string
       state:
         allOf:
@@ -134,7 +116,7 @@ definitions:
   gochat_internal_profile_dto.RoomProfile:
     properties:
       created_at:
-        example: "2025-12-26 05:38:19.740"
+        example: '2025-12-26 05:38:19.740'
         type: string
       id:
         example: 019b593b-462e-74d6-bfda-0e103a172191
@@ -165,13 +147,13 @@ definitions:
         example: Jack
         type: string
       phone_number:
-        example: "13310001000"
+        example: '13310001000'
         type: string
       sign:
         example: I'm Jack!
         type: string
       signed_up_at:
-        example: "2025-12-26 05:38:19.740"
+        example: '2025-12-26 05:38:19.740'
         type: string
     type: object
   gochat_internal_roomship_domain.MemberRequestState:
@@ -201,13 +183,13 @@ definitions:
         example: I would like to join the room.
         type: string
       created_at:
-        example: "2025-12-26 05:38:20.740"
+        example: '2025-12-26 05:38:20.740'
         type: string
       id:
         example: 019b593b-462e-74d6-bfda-0e103a172191
         type: string
       operated_at:
-        example: "2025-12-26 05:38:19.740"
+        example: '2025-12-26 05:38:19.740'
         type: string
       operator_id:
         example: 019b593b-462e-74d6-bfda-0e103a172194
@@ -223,7 +205,7 @@ definitions:
   gochat_internal_roomship_dto.Roomship:
     properties:
       created_at:
-        example: "2025-12-26 05:38:19.740"
+        example: '2025-12-26 05:38:19.740'
         type: string
       id:
         example: 019b593b-462e-74d6-bfda-0e103a172191
@@ -286,7 +268,7 @@ definitions:
   internal_authorization_port_http.LoginRequest:
     properties:
       number:
-        example: "2004426295315795968"
+        example: '2004426295315795968'
         type: string
       password:
         example: your-password
@@ -324,7 +306,7 @@ definitions:
   internal_authorization_port_http.SignUpResponseData:
     properties:
       user_number:
-        example: "2004426295315795968"
+        example: '2004426295315795968'
         type: string
     type: object
   internal_chat_port_http.ListPrivateMessagesResponseData:
@@ -340,22 +322,6 @@ definitions:
         items:
           $ref: '#/definitions/gochat_internal_chat_dto.RoomMessage'
         type: array
-    type: object
-  internal_chat_port_http.ReadPrivateMessagesRequest:
-    properties:
-      sender_id:
-        example: 019b593b-462e-74d6-bfda-0e103a172190
-        type: string
-    required:
-    - sender_id
-    type: object
-  internal_chat_port_http.ReadRoomMessagesRequest:
-    properties:
-      room_id:
-        example: 019b593b-462e-74d6-bfda-0e103a172190
-        type: string
-    required:
-    - room_id
     type: object
   internal_chat_port_http.SendPrivateMessageRequest:
     properties:
@@ -465,7 +431,7 @@ definitions:
         maxLength: 32
         type: string
       phone_number:
-        example: "13310001000"
+        example: '13310001000'
         type: string
       sign:
         example: I'm Jack!
@@ -531,7 +497,7 @@ info:
     url: https://opensource.org/licenses/MIT
   termsOfService: https://swagger.io/terms/
   title: GoChat Backend API
-  version: "1.0"
+  version: '1.0'
 paths:
   /auth/login:
     post:
@@ -544,7 +510,7 @@ paths:
         schema:
           $ref: '#/definitions/internal_authorization_port_http.LoginRequest'
       responses:
-        "200":
+        '200':
           description: 登录成功，返回访问令牌
           schema:
             allOf:
@@ -567,7 +533,7 @@ paths:
         schema:
           $ref: '#/definitions/internal_authorization_port_http.SignUpRequest'
       responses:
-        "200":
+        '200':
           description: 注册成功，返回账号
           schema:
             allOf:
@@ -583,7 +549,7 @@ paths:
     put:
       description: 使用刷新令牌 Cookie 刷新访问令牌，并重新设置刷新令牌 Cookie
       responses:
-        "200":
+        '200':
           description: 刷新成功，返回新的访问令牌
           schema:
             allOf:
@@ -606,7 +572,7 @@ paths:
         schema:
           $ref: '#/definitions/internal_chat_port_http.SendPrivateMessageRequest'
       responses:
-        "200":
+        '200':
           description: 发送成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
@@ -620,26 +586,26 @@ paths:
       description: 获取用户和对方聊天记录，可基于 base_id 游标和 limit 分页
       parameters:
       - description: 私聊对象用户ID
-        example: 019b5929-65bc-7549-89c6-3f7dc6872577
         in: path
         name: user_id
         required: true
         type: string
+        x-example: 019b5929-65bc-7549-89c6-3f7dc6872577
       - description: 分页游标
-        example: 019b593b-462e-74d6-bfda-0e103a172190
         in: query
         name: base_id
         type: string
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       - default: 20
         description: 分页大小，默认 20，最大 100
-        example: 50
         in: query
         maximum: 100
         minimum: 1
         name: limit
         type: integer
+        x-example: 50
       responses:
-        "200":
+        '200':
           description: 成功返回私聊消息记录
           schema:
             allOf:
@@ -653,26 +619,6 @@ paths:
       summary: 获取用户聊天记录
       tags:
       - Chat
-  /chats/private-messages/read:
-    put:
-      description: 阅读来自指定用户的所有未读消息
-      parameters:
-      - description: 阅读指定用户消息请求体
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/internal_chat_port_http.ReadPrivateMessagesRequest'
-      responses:
-        "200":
-          description: 成功已读
-          schema:
-            $ref: '#/definitions/gochat_internal_shared_api.Response'
-      security:
-      - BearerAuth: []
-      summary: 阅读指定用户消息
-      tags:
-      - Chat
   /chats/rooms/messages:
     post:
       description: 向指定房间发送一条消息
@@ -684,7 +630,7 @@ paths:
         schema:
           $ref: '#/definitions/internal_chat_port_http.SendRoomMessageRequest'
       responses:
-        "200":
+        '200':
           description: 发送成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
@@ -698,26 +644,26 @@ paths:
       description: 获取当前登录用户所在房间的消息记录，可基于 base_id 游标和 limit 分页
       parameters:
       - description: 群聊对象房间ID
-        example: 019b5929-65bc-7549-89c6-3f7dc6872577
         in: path
         name: room_id
         required: true
         type: string
+        x-example: 019b5929-65bc-7549-89c6-3f7dc6872577
       - description: 分页游标
-        example: 019b593b-462e-74d6-bfda-0e103a172190
         in: query
         name: base_id
         type: string
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       - default: 20
         description: 分页大小，默认 20，最大 100
-        example: 50
         in: query
         maximum: 100
         minimum: 1
         name: limit
         type: integer
+        x-example: 50
       responses:
-        "200":
+        '200':
           description: 成功返回房间消息记录
           schema:
             allOf:
@@ -731,45 +677,25 @@ paths:
       summary: 获取房间内的消息
       tags:
       - Chat
-  /chats/rooms/messages/read:
-    put:
-      description: 阅读指定房间的所有消息
-      parameters:
-      - description: 阅读指定房间消息请求体
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/internal_chat_port_http.ReadRoomMessagesRequest'
-      responses:
-        "200":
-          description: 成功已读
-          schema:
-            $ref: '#/definitions/gochat_internal_shared_api.Response'
-      security:
-      - BearerAuth: []
-      summary: 阅读指定房间消息
-      tags:
-      - Chat
   /friendship-requests:
     get:
       description: 获取当前用户收到的好友请求列表（待处理 / 已处理）列表，可基于 base_id 游标和 limit 分页
       parameters:
       - description: 分页游标，返回该ID之前的记录
-        example: 019b593b-462e-74d6-bfda-0e103a172190
         in: query
         name: base_id
         type: string
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       - default: 20
         description: 分页大小，默认20，最大100
-        example: 50
         in: query
         maximum: 100
         minimum: 1
         name: limit
         type: integer
+        x-example: 50
       responses:
-        "200":
+        '200':
           description: 成功返回好友请求列表
           schema:
             allOf:
@@ -793,7 +719,7 @@ paths:
         schema:
           $ref: '#/definitions/internal_friendship_port_http.SendFriendRequestRequest'
       responses:
-        "200":
+        '200':
           description: 发送成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
@@ -807,13 +733,13 @@ paths:
       description: 同意指定的好友请求，将对方加入好友列表
       parameters:
       - description: 好友请求ID
-        example: 019b593b-462e-74d6-bfda-0e103a172190
         in: path
         name: request_id
         required: true
         type: string
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       responses:
-        "200":
+        '200':
           description: 同意成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
@@ -827,13 +753,13 @@ paths:
       description: 拒绝指定的好友请求
       parameters:
       - description: 好友请求ID
-        example: 019b593b-462e-74d6-bfda-0e103a172190
         in: path
         name: request_id
         required: true
         type: string
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       responses:
-        "200":
+        '200':
           description: 拒绝成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
@@ -847,20 +773,20 @@ paths:
       description: 获取当前登录用户的好友关系列表，可基于 base_id 游标和 limit 分页
       parameters:
       - description: 分页游标，返回该ID之前的记录
-        example: 019b593b-462e-74d6-bfda-0e103a172190
         in: query
         name: base_id
         type: string
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       - default: 20
         description: 分页大小，默认20，最大100
-        example: 50
         in: query
         maximum: 100
         minimum: 1
         name: limit
         type: integer
+        x-example: 50
       responses:
-        "200":
+        '200':
           description: 成功返回好友列表
           schema:
             allOf:
@@ -879,20 +805,20 @@ paths:
       description: 获取当前登录用户的系统通知列表，可基于 base_id 游标和 limit 分页
       parameters:
       - description: 分页游标，返回该ID之前的消息
-        example: 019b593b-462e-74d6-bfda-0e103a172190
         in: query
         name: base_id
         type: string
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       - default: 20
         description: 分页大小，默认20，最大100
-        example: 50
         in: query
         maximum: 100
         minimum: 1
         name: limit
         type: integer
+        x-example: 50
       responses:
-        "200":
+        '200':
           description: 成功返回系统通知列表
           schema:
             allOf:
@@ -910,7 +836,7 @@ paths:
     get:
       description: 根据token获取本用户资料
       responses:
-        "200":
+        '200':
           description: 成功返回用户资料
           schema:
             allOf:
@@ -934,7 +860,7 @@ paths:
         schema:
           $ref: '#/definitions/internal_profile_port_http.UpdateUserProfileRequest'
       responses:
-        "200":
+        '200':
           description: 更新成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
@@ -948,13 +874,13 @@ paths:
       description: 根据房间ID获取房间公开资料
       parameters:
       - description: 房间ID
-        example: 019b593b-462e-74d6-bfda-0e103a172190
         in: path
         name: room_id
         required: true
         type: string
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       responses:
-        "200":
+        '200':
           description: 成功返回房间资料
           schema:
             allOf:
@@ -970,11 +896,11 @@ paths:
       description: 更新指定房间的资料（名称、简介等），需要房主身份
       parameters:
       - description: 房间ID
-        example: '"019b593b-462e-74d6-bfda-0e103a172192"'
         in: path
         name: room_id
         required: true
         type: string
+        x-example: '"019b593b-462e-74d6-bfda-0e103a172192"'
       - description: 更新房间资料请求体
         in: body
         name: request
@@ -982,7 +908,7 @@ paths:
         schema:
           $ref: '#/definitions/internal_profile_port_http.UpdateRoomProfileRequestBody'
       responses:
-        "200":
+        '200':
           description: 更新成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
@@ -996,13 +922,13 @@ paths:
       description: 根据用户ID获取用户公开资料
       parameters:
       - description: 用户ID
-        example: 019b593b-462e-74d6-bfda-0e103a172190
         in: path
         name: user_id
         required: true
         type: string
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       responses:
-        "200":
+        '200':
           description: 成功返回用户资料
           schema:
             allOf:
@@ -1019,20 +945,20 @@ paths:
       description: 获取当前登录用户加入的房间关系列表，可基于 base_id 游标和 limit 分页
       parameters:
       - description: 分页游标，返回该ID之前的记录
-        example: 019b593b-462e-74d6-bfda-0e103a172190
         in: query
         name: base_id
         type: string
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       - default: 20
         description: 分页大小，默认20，最大100
-        example: 50
         in: query
         maximum: 100
         minimum: 1
         name: limit
         type: integer
+        x-example: 50
       responses:
-        "200":
+        '200':
           description: 成功返回房间关系列表
           schema:
             allOf:
@@ -1056,7 +982,7 @@ paths:
         schema:
           $ref: '#/definitions/internal_roomship_port_http.CreateRoomRequest'
       responses:
-        "200":
+        '200':
           description: 创建成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
@@ -1070,13 +996,13 @@ paths:
       description: 根据房间ID获取房间成员列表
       parameters:
       - description: 房间ID
-        example: 019b593b-462e-74d6-bfda-0e103a172190
         in: path
         name: room_id
         required: true
         type: string
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       responses:
-        "200":
+        '200':
           description: 成功返回房间成员列表
           schema:
             allOf:
@@ -1093,13 +1019,13 @@ paths:
       description: 当前登录用户退出指定房间
       parameters:
       - description: 房间ID
-        example: 019b593b-462e-74d6-bfda-0e103a172190
         in: path
         name: room_id
         required: true
         type: string
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       responses:
-        "200":
+        '200':
           description: 主动退出指定房间，幂等设计：不在房间也返回成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
@@ -1113,20 +1039,20 @@ paths:
       description: 获取当前登录用户管理的房间成员请求列表，可基于 base_id 游标和 limit 分页
       parameters:
       - description: 分页游标，返回该ID之前的记录
-        example: 019b593b-462e-74d6-bfda-0e103a172190
         in: query
         name: base_id
         type: string
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       - default: 20
         description: 分页大小，默认20，最大100
-        example: 50
         in: query
         maximum: 100
         minimum: 1
         name: limit
         type: integer
+        x-example: 50
       responses:
-        "200":
+        '200':
           description: 成功返回成员请求列表
           schema:
             allOf:
@@ -1150,7 +1076,7 @@ paths:
         schema:
           $ref: '#/definitions/internal_roomship_port_http.SendMemberRequestRequest'
       responses:
-        "200":
+        '200':
           description: 发送成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
@@ -1164,13 +1090,13 @@ paths:
       description: 同意指定房间成员请求，将对方加入房间
       parameters:
       - description: 成员请求ID
-        example: 019b593b-462e-74d6-bfda-0e103a172190
         in: path
         name: request_id
         required: true
         type: string
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       responses:
-        "200":
+        '200':
           description: 同意成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
@@ -1184,13 +1110,13 @@ paths:
       description: 拒绝指定房间成员请求
       parameters:
       - description: 成员请求ID
-        example: 019b593b-462e-74d6-bfda-0e103a172190
         in: path
         name: request_id
         required: true
         type: string
+        x-example: 019b593b-462e-74d6-bfda-0e103a172190
       responses:
-        "200":
+        '200':
           description: 拒绝成功
           schema:
             $ref: '#/definitions/gochat_internal_shared_api.Response'
@@ -1209,4 +1135,4 @@ securityDefinitions:
     in: header
     name: Authorization
     type: apiKey
-swagger: "2.0"
+swagger: '2.0'

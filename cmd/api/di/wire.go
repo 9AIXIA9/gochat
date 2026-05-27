@@ -19,7 +19,6 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 		KafkaSet,
 		BinlogSet,
 		UseCaseHTTPSet,
-		UseCaseWebsocketSet,
 		UseCaseKafkaSet,
 		WebsocketSet,
 		HTTPSet,

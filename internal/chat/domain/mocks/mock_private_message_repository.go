@@ -71,21 +71,6 @@ func (mr *MockPrivateMessageRepositoryMockRecorder) FindPrivateMessage(ctx, mess
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindPrivateMessage", reflect.TypeOf((*MockPrivateMessageRepository)(nil).FindPrivateMessage), ctx, messageID)
 }
 
-// FindPrivateMessagesByRecipientIDAndState mocks base method.
-func (m *MockPrivateMessageRepository) FindPrivateMessagesByRecipientIDAndState(ctx context.Context, recipientID kernel.UserID, state domain.MessageState, limit int) ([]*domain.PrivateMessage, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindPrivateMessagesByRecipientIDAndState", ctx, recipientID, state, limit)
-	ret0, _ := ret[0].([]*domain.PrivateMessage)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FindPrivateMessagesByRecipientIDAndState indicates an expected call of FindPrivateMessagesByRecipientIDAndState.
-func (mr *MockPrivateMessageRepositoryMockRecorder) FindPrivateMessagesByRecipientIDAndState(ctx, recipientID, state, limit any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindPrivateMessagesByRecipientIDAndState", reflect.TypeOf((*MockPrivateMessageRepository)(nil).FindPrivateMessagesByRecipientIDAndState), ctx, recipientID, state, limit)
-}
-
 // FindsByUserIDs mocks base method.
 func (m *MockPrivateMessageRepository) FindsByUserIDs(ctx context.Context, userID1, userID2 kernel.UserID, limit int, baseID kernel.MessageID) ([]*domain.PrivateMessage, error) {
 	m.ctrl.T.Helper()
@@ -99,48 +84,6 @@ func (m *MockPrivateMessageRepository) FindsByUserIDs(ctx context.Context, userI
 func (mr *MockPrivateMessageRepositoryMockRecorder) FindsByUserIDs(ctx, userID1, userID2, limit, baseID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindsByUserIDs", reflect.TypeOf((*MockPrivateMessageRepository)(nil).FindsByUserIDs), ctx, userID1, userID2, limit, baseID)
-}
-
-// Updates mocks base method.
-func (m *MockPrivateMessageRepository) Updates(ctx context.Context, messages []*domain.PrivateMessage) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Updates", ctx, messages)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Updates indicates an expected call of Updates.
-func (mr *MockPrivateMessageRepositoryMockRecorder) Updates(ctx, messages any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Updates", reflect.TypeOf((*MockPrivateMessageRepository)(nil).Updates), ctx, messages)
-}
-
-// UpdatesByMessageIDs mocks base method.
-func (m *MockPrivateMessageRepository) UpdatesByMessageIDs(ctx context.Context, userID kernel.UserID, ids []kernel.MessageID, state domain.MessageState) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdatesByMessageIDs", ctx, userID, ids, state)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdatesByMessageIDs indicates an expected call of UpdatesByMessageIDs.
-func (mr *MockPrivateMessageRepositoryMockRecorder) UpdatesByMessageIDs(ctx, userID, ids, state any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatesByMessageIDs", reflect.TypeOf((*MockPrivateMessageRepository)(nil).UpdatesByMessageIDs), ctx, userID, ids, state)
-}
-
-// UpdatesByUserID mocks base method.
-func (m *MockPrivateMessageRepository) UpdatesByUserID(ctx context.Context, senderID, recipientID kernel.UserID, state domain.MessageState) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdatesByUserID", ctx, senderID, recipientID, state)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdatesByUserID indicates an expected call of UpdatesByUserID.
-func (mr *MockPrivateMessageRepositoryMockRecorder) UpdatesByUserID(ctx, senderID, recipientID, state any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatesByUserID", reflect.TypeOf((*MockPrivateMessageRepository)(nil).UpdatesByUserID), ctx, senderID, recipientID, state)
 }
 
 // MockPrivateMessageCreator is a mock of PrivateMessageCreator interface.
@@ -181,44 +124,6 @@ func (mr *MockPrivateMessageCreatorMockRecorder) Create(ctx, message any) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockPrivateMessageCreator)(nil).Create), ctx, message)
 }
 
-// MockPrivateMessagesUpdater is a mock of PrivateMessagesUpdater interface.
-type MockPrivateMessagesUpdater struct {
-	ctrl     *gomock.Controller
-	recorder *MockPrivateMessagesUpdaterMockRecorder
-	isgomock struct{}
-}
-
-// MockPrivateMessagesUpdaterMockRecorder is the mock recorder for MockPrivateMessagesUpdater.
-type MockPrivateMessagesUpdaterMockRecorder struct {
-	mock *MockPrivateMessagesUpdater
-}
-
-// NewMockPrivateMessagesUpdater creates a new mock instance.
-func NewMockPrivateMessagesUpdater(ctrl *gomock.Controller) *MockPrivateMessagesUpdater {
-	mock := &MockPrivateMessagesUpdater{ctrl: ctrl}
-	mock.recorder = &MockPrivateMessagesUpdaterMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockPrivateMessagesUpdater) EXPECT() *MockPrivateMessagesUpdaterMockRecorder {
-	return m.recorder
-}
-
-// Updates mocks base method.
-func (m *MockPrivateMessagesUpdater) Updates(ctx context.Context, messages []*domain.PrivateMessage) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Updates", ctx, messages)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Updates indicates an expected call of Updates.
-func (mr *MockPrivateMessagesUpdaterMockRecorder) Updates(ctx, messages any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Updates", reflect.TypeOf((*MockPrivateMessagesUpdater)(nil).Updates), ctx, messages)
-}
-
 // MockPrivateMessageFinder is a mock of PrivateMessageFinder interface.
 type MockPrivateMessageFinder struct {
 	ctrl     *gomock.Controller
@@ -256,121 +161,6 @@ func (m *MockPrivateMessageFinder) FindPrivateMessage(ctx context.Context, messa
 func (mr *MockPrivateMessageFinderMockRecorder) FindPrivateMessage(ctx, messageID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindPrivateMessage", reflect.TypeOf((*MockPrivateMessageFinder)(nil).FindPrivateMessage), ctx, messageID)
-}
-
-// MockPrivateMessagesFinderByRecipientIDAndState is a mock of PrivateMessagesFinderByRecipientIDAndState interface.
-type MockPrivateMessagesFinderByRecipientIDAndState struct {
-	ctrl     *gomock.Controller
-	recorder *MockPrivateMessagesFinderByRecipientIDAndStateMockRecorder
-	isgomock struct{}
-}
-
-// MockPrivateMessagesFinderByRecipientIDAndStateMockRecorder is the mock recorder for MockPrivateMessagesFinderByRecipientIDAndState.
-type MockPrivateMessagesFinderByRecipientIDAndStateMockRecorder struct {
-	mock *MockPrivateMessagesFinderByRecipientIDAndState
-}
-
-// NewMockPrivateMessagesFinderByRecipientIDAndState creates a new mock instance.
-func NewMockPrivateMessagesFinderByRecipientIDAndState(ctrl *gomock.Controller) *MockPrivateMessagesFinderByRecipientIDAndState {
-	mock := &MockPrivateMessagesFinderByRecipientIDAndState{ctrl: ctrl}
-	mock.recorder = &MockPrivateMessagesFinderByRecipientIDAndStateMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockPrivateMessagesFinderByRecipientIDAndState) EXPECT() *MockPrivateMessagesFinderByRecipientIDAndStateMockRecorder {
-	return m.recorder
-}
-
-// FindPrivateMessagesByRecipientIDAndState mocks base method.
-func (m *MockPrivateMessagesFinderByRecipientIDAndState) FindPrivateMessagesByRecipientIDAndState(ctx context.Context, recipientID kernel.UserID, state domain.MessageState, limit int) ([]*domain.PrivateMessage, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindPrivateMessagesByRecipientIDAndState", ctx, recipientID, state, limit)
-	ret0, _ := ret[0].([]*domain.PrivateMessage)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FindPrivateMessagesByRecipientIDAndState indicates an expected call of FindPrivateMessagesByRecipientIDAndState.
-func (mr *MockPrivateMessagesFinderByRecipientIDAndStateMockRecorder) FindPrivateMessagesByRecipientIDAndState(ctx, recipientID, state, limit any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindPrivateMessagesByRecipientIDAndState", reflect.TypeOf((*MockPrivateMessagesFinderByRecipientIDAndState)(nil).FindPrivateMessagesByRecipientIDAndState), ctx, recipientID, state, limit)
-}
-
-// MockPrivateMessagesStatesUpdaterByUserID is a mock of PrivateMessagesStatesUpdaterByUserID interface.
-type MockPrivateMessagesStatesUpdaterByUserID struct {
-	ctrl     *gomock.Controller
-	recorder *MockPrivateMessagesStatesUpdaterByUserIDMockRecorder
-	isgomock struct{}
-}
-
-// MockPrivateMessagesStatesUpdaterByUserIDMockRecorder is the mock recorder for MockPrivateMessagesStatesUpdaterByUserID.
-type MockPrivateMessagesStatesUpdaterByUserIDMockRecorder struct {
-	mock *MockPrivateMessagesStatesUpdaterByUserID
-}
-
-// NewMockPrivateMessagesStatesUpdaterByUserID creates a new mock instance.
-func NewMockPrivateMessagesStatesUpdaterByUserID(ctrl *gomock.Controller) *MockPrivateMessagesStatesUpdaterByUserID {
-	mock := &MockPrivateMessagesStatesUpdaterByUserID{ctrl: ctrl}
-	mock.recorder = &MockPrivateMessagesStatesUpdaterByUserIDMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockPrivateMessagesStatesUpdaterByUserID) EXPECT() *MockPrivateMessagesStatesUpdaterByUserIDMockRecorder {
-	return m.recorder
-}
-
-// UpdatesByUserID mocks base method.
-func (m *MockPrivateMessagesStatesUpdaterByUserID) UpdatesByUserID(ctx context.Context, senderID, recipientID kernel.UserID, state domain.MessageState) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdatesByUserID", ctx, senderID, recipientID, state)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdatesByUserID indicates an expected call of UpdatesByUserID.
-func (mr *MockPrivateMessagesStatesUpdaterByUserIDMockRecorder) UpdatesByUserID(ctx, senderID, recipientID, state any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatesByUserID", reflect.TypeOf((*MockPrivateMessagesStatesUpdaterByUserID)(nil).UpdatesByUserID), ctx, senderID, recipientID, state)
-}
-
-// MockPrivateMessagesStatesUpdaterByMessageIDs is a mock of PrivateMessagesStatesUpdaterByMessageIDs interface.
-type MockPrivateMessagesStatesUpdaterByMessageIDs struct {
-	ctrl     *gomock.Controller
-	recorder *MockPrivateMessagesStatesUpdaterByMessageIDsMockRecorder
-	isgomock struct{}
-}
-
-// MockPrivateMessagesStatesUpdaterByMessageIDsMockRecorder is the mock recorder for MockPrivateMessagesStatesUpdaterByMessageIDs.
-type MockPrivateMessagesStatesUpdaterByMessageIDsMockRecorder struct {
-	mock *MockPrivateMessagesStatesUpdaterByMessageIDs
-}
-
-// NewMockPrivateMessagesStatesUpdaterByMessageIDs creates a new mock instance.
-func NewMockPrivateMessagesStatesUpdaterByMessageIDs(ctrl *gomock.Controller) *MockPrivateMessagesStatesUpdaterByMessageIDs {
-	mock := &MockPrivateMessagesStatesUpdaterByMessageIDs{ctrl: ctrl}
-	mock.recorder = &MockPrivateMessagesStatesUpdaterByMessageIDsMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockPrivateMessagesStatesUpdaterByMessageIDs) EXPECT() *MockPrivateMessagesStatesUpdaterByMessageIDsMockRecorder {
-	return m.recorder
-}
-
-// UpdatesByMessageIDs mocks base method.
-func (m *MockPrivateMessagesStatesUpdaterByMessageIDs) UpdatesByMessageIDs(ctx context.Context, userID kernel.UserID, ids []kernel.MessageID, state domain.MessageState) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdatesByMessageIDs", ctx, userID, ids, state)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdatesByMessageIDs indicates an expected call of UpdatesByMessageIDs.
-func (mr *MockPrivateMessagesStatesUpdaterByMessageIDsMockRecorder) UpdatesByMessageIDs(ctx, userID, ids, state any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatesByMessageIDs", reflect.TypeOf((*MockPrivateMessagesStatesUpdaterByMessageIDs)(nil).UpdatesByMessageIDs), ctx, userID, ids, state)
 }
 
 // MockPrivateMessagesFinderByUserIDs is a mock of PrivateMessagesFinderByUserIDs interface.

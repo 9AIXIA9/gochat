@@ -7,8 +7,6 @@ Port: 8080
 MachineNode: 1
 Timeout: 10s
 
-DisableSessionStartedEvent: false
-
 PProf:
   Enabled: false
   Host: 127.0.0.1
