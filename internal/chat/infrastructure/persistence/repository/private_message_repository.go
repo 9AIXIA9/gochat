@@ -41,16 +41,6 @@ func (repo *PrivateMessageRepository) Create(ctx context.Context, message *domai
 	})
 }
 
-func (repo *PrivateMessageRepository) FindPrivateMessage(ctx context.Context, messageID kernel.MessageID) (*domain.PrivateMessage, error) {
-	var message model.PrivateMessage
-	if err := repo.db.WithContext(ctx).
-		Where("id = ?", messageID).
-		First(&message).Error; err != nil {
-		return nil, gormutils.TranslateError(err)
-	}
-	return repo.toDomain(&message), nil
-}
-
 func (repo *PrivateMessageRepository) FindsByUserIDs(ctx context.Context, userID1, userID2 kernel.UserID, limit int, baseID kernel.MessageID) ([]*domain.PrivateMessage, error) {
 	var messages []model.PrivateMessage
 

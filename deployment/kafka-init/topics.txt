@@ -6,3 +6,5 @@ message.created
 member_request.agreed
 friend_request.agreed
 notification.created
+push.requested
+push.succeeded

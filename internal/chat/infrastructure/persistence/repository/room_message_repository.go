@@ -41,17 +41,6 @@ func (repo *RoomMessageRepository) Create(ctx context.Context, message *domain.R
 	})
 }
 
-func (repo *RoomMessageRepository) FindRoomMessage(ctx context.Context, messageID kernel.MessageID) (*domain.RoomMessage, error) {
-	var message model.RoomMessage
-	if err := repo.db.WithContext(ctx).
-		Preload("Recipients").
-		Where("id = ?", messageID).
-		First(&message).Error; err != nil {
-		return nil, gormutils.TranslateError(err)
-	}
-	return repo.toDomain(&message), nil
-}
-
 func (repo *RoomMessageRepository) FindsByRoomIDAndUserIDWithoutRecipients(ctx context.Context, roomID kernel.RoomID, userID kernel.UserID, limit int, baseID kernel.MessageID) ([]*domain.RoomMessage, error) {
 	var messages []model.RoomMessage
 	query := repo.db.WithContext(ctx).

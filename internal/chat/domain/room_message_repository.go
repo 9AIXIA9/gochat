@@ -8,16 +8,11 @@ import (
 
 type RoomMessageRepository interface {
 	RoomMessageCreator
-	RoomMessageFinder
 	RoomMessagesFinderByRoomIDAndUserIDWithoutRecipients
 }
 
 type RoomMessageCreator interface {
 	Create(ctx context.Context, message *RoomMessage) error
-}
-
-type RoomMessageFinder interface {
-	FindRoomMessage(ctx context.Context, messageID kernel.MessageID) (*RoomMessage, error)
 }
 
 type RoomMessagesFinderByRoomIDAndUserIDWithoutRecipients interface {

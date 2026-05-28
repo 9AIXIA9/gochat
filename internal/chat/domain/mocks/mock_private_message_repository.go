@@ -56,21 +56,6 @@ func (mr *MockPrivateMessageRepositoryMockRecorder) Create(ctx, message any) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockPrivateMessageRepository)(nil).Create), ctx, message)
 }
 
-// FindPrivateMessage mocks base method.
-func (m *MockPrivateMessageRepository) FindPrivateMessage(ctx context.Context, messageID kernel.MessageID) (*domain.PrivateMessage, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindPrivateMessage", ctx, messageID)
-	ret0, _ := ret[0].(*domain.PrivateMessage)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FindPrivateMessage indicates an expected call of FindPrivateMessage.
-func (mr *MockPrivateMessageRepositoryMockRecorder) FindPrivateMessage(ctx, messageID any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindPrivateMessage", reflect.TypeOf((*MockPrivateMessageRepository)(nil).FindPrivateMessage), ctx, messageID)
-}
-
 // FindsByUserIDs mocks base method.
 func (m *MockPrivateMessageRepository) FindsByUserIDs(ctx context.Context, userID1, userID2 kernel.UserID, limit int, baseID kernel.MessageID) ([]*domain.PrivateMessage, error) {
 	m.ctrl.T.Helper()
@@ -122,45 +107,6 @@ func (m *MockPrivateMessageCreator) Create(ctx context.Context, message *domain.
 func (mr *MockPrivateMessageCreatorMockRecorder) Create(ctx, message any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockPrivateMessageCreator)(nil).Create), ctx, message)
-}
-
-// MockPrivateMessageFinder is a mock of PrivateMessageFinder interface.
-type MockPrivateMessageFinder struct {
-	ctrl     *gomock.Controller
-	recorder *MockPrivateMessageFinderMockRecorder
-	isgomock struct{}
-}
-
-// MockPrivateMessageFinderMockRecorder is the mock recorder for MockPrivateMessageFinder.
-type MockPrivateMessageFinderMockRecorder struct {
-	mock *MockPrivateMessageFinder
-}
-
-// NewMockPrivateMessageFinder creates a new mock instance.
-func NewMockPrivateMessageFinder(ctrl *gomock.Controller) *MockPrivateMessageFinder {
-	mock := &MockPrivateMessageFinder{ctrl: ctrl}
-	mock.recorder = &MockPrivateMessageFinderMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockPrivateMessageFinder) EXPECT() *MockPrivateMessageFinderMockRecorder {
-	return m.recorder
-}
-
-// FindPrivateMessage mocks base method.
-func (m *MockPrivateMessageFinder) FindPrivateMessage(ctx context.Context, messageID kernel.MessageID) (*domain.PrivateMessage, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindPrivateMessage", ctx, messageID)
-	ret0, _ := ret[0].(*domain.PrivateMessage)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FindPrivateMessage indicates an expected call of FindPrivateMessage.
-func (mr *MockPrivateMessageFinderMockRecorder) FindPrivateMessage(ctx, messageID any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindPrivateMessage", reflect.TypeOf((*MockPrivateMessageFinder)(nil).FindPrivateMessage), ctx, messageID)
 }
 
 // MockPrivateMessagesFinderByUserIDs is a mock of PrivateMessagesFinderByUserIDs interface.

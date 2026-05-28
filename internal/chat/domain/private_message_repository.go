@@ -8,16 +8,11 @@ import (
 
 type PrivateMessageRepository interface {
 	PrivateMessageCreator
-	PrivateMessageFinder
 	PrivateMessagesFinderByUserIDs
 }
 
 type PrivateMessageCreator interface {
 	Create(ctx context.Context, message *PrivateMessage) error
-}
-
-type PrivateMessageFinder interface {
-	FindPrivateMessage(ctx context.Context, messageID kernel.MessageID) (*PrivateMessage, error)
 }
 
 type PrivateMessagesFinderByUserIDs interface {
