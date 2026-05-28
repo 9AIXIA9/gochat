@@ -41,9 +41,6 @@ func TestCreateMemberRequest(t *testing.T) {
 	defer ctrl.Finish()
 
 	//正常情况
-	mockIDGenerator := eventMock.NewMockIDGenerator(ctrl)
-	mockIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(1)
-
 	mockOperationIDGenerator := kernelmocks.NewMockOperationIDGenerator(ctrl)
 	mockOperationIDGenerator.EXPECT().Generate().Return(fixedOperationID).Times(1)
 
@@ -53,7 +50,6 @@ func TestCreateMemberRequest(t *testing.T) {
 		fixedRoomID,
 		fixedContent,
 		mockOperationIDGenerator,
-		mockIDGenerator,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, req)
@@ -64,21 +60,13 @@ func TestCreateMemberRequest(t *testing.T) {
 	assert.Equal(t, domain.StatePending, req.State())
 	assert.WithinDuration(t, start, req.CreatedAt(), timeTolerance)
 
-	evs := req.GetEvents()
-	require.Len(t, evs, 1)
-
-	createdEv := evs[0]
-	assert.Equal(t, fixedEventID, createdEv.ID())
-	assert.Equal(t, domain.TopicMemberRequestCreated, createdEv.Topic())
-	assert.Equal(t, kernel.ID(fixedOperationID), createdEv.AggregateID())
-
 	//content太长
 	tooLongContent := ""
 	for i := 0; i < maxContentLength+1; i++ {
 		tooLongContent += "a"
 	}
 
-	req2, err2 := domain.CreateMemberRequest(fixedUserID, fixedRoomID, tooLongContent, mockOperationIDGenerator, mockIDGenerator)
+	req2, err2 := domain.CreateMemberRequest(fixedUserID, fixedRoomID, tooLongContent, mockOperationIDGenerator)
 	require.ErrorIs(t, err2, domain.ErrContentTooLong)
 	require.Nil(t, req2)
 }

@@ -5,7 +5,6 @@ import (
 	"errors"
 	"gochat/internal/roomship/domain"
 	myErrors "gochat/internal/shared/errors"
-	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"gochat/pkg/validate"
 )
@@ -30,7 +29,6 @@ type sendMemberRequestUseCase struct {
 	memberRequestExister domain.MemberRequestExisterByUserIDAndRoomIDAndState
 	roomshipExister      domain.RoomshipExisterByUserIDAndRoomID
 	finder               domain.RoomFinderByID
-	eventIDGenerator     event.IDGenerator
 	operationIDGenerator kernel.OperationIDGenerator
 	comparator           domain.Comparator
 	creator              domain.MemberRequestCreator
@@ -40,7 +38,6 @@ func NewSendMemberRequestUseCase(
 	memberRequestExister domain.MemberRequestExisterByUserIDAndRoomIDAndState,
 	roomshipExister domain.RoomshipExisterByUserIDAndRoomID,
 	finder domain.RoomFinderByID,
-	eventIDGenerator event.IDGenerator,
 	operationIDGenerator kernel.OperationIDGenerator,
 	comparator domain.Comparator,
 	creator domain.MemberRequestCreator,
@@ -49,7 +46,6 @@ func NewSendMemberRequestUseCase(
 		memberRequestExister,
 		roomshipExister,
 		finder,
-		eventIDGenerator,
 		operationIDGenerator,
 		comparator,
 		creator,
@@ -60,7 +56,6 @@ func NewSendMemberRequestUseCase(
 		memberRequestExister: memberRequestExister,
 		roomshipExister:      roomshipExister,
 		finder:               finder,
-		eventIDGenerator:     eventIDGenerator,
 		operationIDGenerator: operationIDGenerator,
 		comparator:           comparator,
 		creator:              creator,
@@ -100,7 +95,6 @@ func (uc *sendMemberRequestUseCase) Execute(ctx context.Context, input *SendMemb
 		input.RoomID,
 		input.Content,
 		uc.operationIDGenerator,
-		uc.eventIDGenerator,
 	)
 	if err != nil {
 		return nil, err

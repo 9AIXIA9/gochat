@@ -5,7 +5,6 @@ import (
 	ginutils "gochat/internal/infrastructure/gin"
 	kafkautil "gochat/internal/infrastructure/kafka"
 	outboxUtil "gochat/internal/infrastructure/outbox"
-	gomailUtil "gochat/internal/notification/infrastructure/gomail"
 
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
@@ -19,7 +18,6 @@ type Dependencies struct {
 	OutboxDispatcher    *outboxUtil.Dispatcher
 	KafkaConsumers      []*kafkautil.Consumer
 	BinlogReader        *canalUtil.BinlogReader
-	EmailNotifier       *gomailUtil.EmailNotifier
 	OTELShutdown        OTELShutdown
 }
 
@@ -31,9 +29,7 @@ func BuildDependencies(
 	outboxDispatcher *outboxUtil.Dispatcher,
 	consumers []*kafkautil.Consumer,
 	binlogReader *canalUtil.BinlogReader,
-	emailNotifier *gomailUtil.EmailNotifier,
 	OTELShutdown OTELShutdown,
-	_ emailServiceAvailable,
 ) (*Dependencies, error) {
 	deps := &Dependencies{
 		HttpServer:          httpServer,
@@ -43,7 +39,6 @@ func BuildDependencies(
 		OutboxDispatcher:    outboxDispatcher,
 		KafkaConsumers:      consumers,
 		BinlogReader:        binlogReader,
-		EmailNotifier:       emailNotifier,
 		OTELShutdown:        OTELShutdown,
 	}
 	return deps, nil

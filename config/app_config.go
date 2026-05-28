@@ -14,7 +14,6 @@ import (
 	"gochat/internal/infrastructure/redis"
 	"gochat/internal/infrastructure/ulule"
 	"gochat/internal/infrastructure/zap"
-	"gochat/internal/notification/infrastructure/gomail"
 	myErrors "gochat/internal/shared/errors"
 	"time"
 )
@@ -35,23 +34,22 @@ type App struct {
 	DisableSessionStartedEvent bool          `mapstructure:"DisableSessionStartedEvent"`
 	PProf                      *PProf        `mapstructure:"PProf"`
 
-	Cookie             *Cookie                     `mapstructure:"Cookie"`
-	CORS               *middleware.CORSConfig      `mapstructure:"CORS"`
-	AccessToken        *jwt.AccessTokenConfig      `mapstructure:"AccessToken"`
-	RefreshToken       *crypto.RefreshTokenConfig  `mapstructure:"RefreshToken"`
-	Hasher             *bcrypt.HasherConfig        `mapstructure:"Hasher"`
-	Mysql              *gorm.MysqlConfig           `mapstructure:"Mysql"`
-	Redis              *redis.Config               `mapstructure:"Redis"`
-	Kafka              *kafka.Config               `mapstructure:"Kafka"`
-	Logger             *zap.LoggerConfig           `mapstructure:"Logger"`
-	HTTPRateLimit      *ulule.Config               `mapstructure:"HTTPRateLimit"`
-	WebsocketRateLimit *ulule.Config               `mapstructure:"WebsocketRateLimit"`
-	KafkaRateLimit     *ulule.Config               `mapstructure:"KafkaRateLimit"`
-	BinlogReader       *canal.BinlogReaderConfig   `mapstructure:"BinlogReader"`
-	Outbox             *Outbox                     `mapstructure:"Outbox"`
-	Email              *gomail.EmailNotifierConfig `mapstructure:"Email"`
-	Breaker            *breaker.Config             `mapstructure:"Breaker"`
-	OTEL               *otel.Config                `mapstructure:"OTEL"`
+	Cookie             *Cookie                    `mapstructure:"Cookie"`
+	CORS               *middleware.CORSConfig     `mapstructure:"CORS"`
+	AccessToken        *jwt.AccessTokenConfig     `mapstructure:"AccessToken"`
+	RefreshToken       *crypto.RefreshTokenConfig `mapstructure:"RefreshToken"`
+	Hasher             *bcrypt.HasherConfig       `mapstructure:"Hasher"`
+	Mysql              *gorm.MysqlConfig          `mapstructure:"Mysql"`
+	Redis              *redis.Config              `mapstructure:"Redis"`
+	Kafka              *kafka.Config              `mapstructure:"Kafka"`
+	Logger             *zap.LoggerConfig          `mapstructure:"Logger"`
+	HTTPRateLimit      *ulule.Config              `mapstructure:"HTTPRateLimit"`
+	WebsocketRateLimit *ulule.Config              `mapstructure:"WebsocketRateLimit"`
+	KafkaRateLimit     *ulule.Config              `mapstructure:"KafkaRateLimit"`
+	BinlogReader       *canal.BinlogReaderConfig  `mapstructure:"BinlogReader"`
+	Outbox             *Outbox                    `mapstructure:"Outbox"`
+	Breaker            *breaker.Config            `mapstructure:"Breaker"`
+	OTEL               *otel.Config               `mapstructure:"OTEL"`
 }
 
 type PProf struct {
@@ -128,9 +126,6 @@ func (c *App) Validate() error {
 	}
 	if err := c.KafkaRateLimit.Validate(); err != nil {
 		return fmt.Errorf("App.KafkaRateLimit: %w", err)
-	}
-	if err := c.Email.Validate(); err != nil {
-		return fmt.Errorf("App.Email: %w", err)
 	}
 	if err := c.BinlogReader.Validate(); err != nil {
 		return fmt.Errorf("App.BinlogReader: %w", err)

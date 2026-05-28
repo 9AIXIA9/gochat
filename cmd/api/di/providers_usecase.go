@@ -9,8 +9,6 @@ import (
 	chatDomain "gochat/internal/chat/domain"
 	friendshipApp "gochat/internal/friendship/application"
 	friendshipDomain "gochat/internal/friendship/domain"
-	notificationApp "gochat/internal/notification/application"
-	notificationDomain "gochat/internal/notification/domain"
 	profileApp "gochat/internal/profile/application"
 	profileDomain "gochat/internal/profile/domain"
 	roomshipApp "gochat/internal/roomship/application"
@@ -49,7 +47,6 @@ var UseCaseHTTPSet = wire.NewSet(
 	provideSendFriendRequestUseCase,
 	provideListRoomshipsUseCase,
 	provideListMemberRequestsUseCase,
-	provideListSystemMessagesUseCase,
 )
 
 var UseCaseKafkaSet = wire.NewSet(
@@ -64,8 +61,6 @@ var UseCaseKafkaSet = wire.NewSet(
 	provideChatRoomCreatedUseCase,
 	provideChatRoomshipCreatedUseCase,
 	provideChatFriendshipCreatedUseCase,
-	provideNotificationWelcomeEmailNotificationRequestedUseCase,
-	provideNotificationSystemMessageNotificationRequestedUseCase,
 	provideFriendshipUserCreatedUseCase,
 	provideFriendshipFriendRequestAgreedUseCase,
 )
@@ -230,7 +225,6 @@ func provideSendMemberRequestUseCase(
 	roomshipRepo roomshipDomain.RoomshipRepository,
 	requestRepo roomshipDomain.MemberRequestRepository,
 	roomRepo roomshipDomain.RoomRepository,
-	eventIDGenerator event.IDGenerator,
 	operationIDGenerator kernel.OperationIDGenerator,
 	comparator roomshipDomain.Comparator,
 ) (roomshipApp.SendMemberRequestUseCase, error) {
@@ -238,7 +232,6 @@ func provideSendMemberRequestUseCase(
 		requestRepo,
 		roomshipRepo,
 		roomRepo,
-		eventIDGenerator,
 		operationIDGenerator,
 		comparator,
 		requestRepo,
@@ -324,13 +317,6 @@ func provideListFriendshipsUseCase(
 ) (friendshipApp.ListFriendshipsUseCase, error) {
 	return friendshipApp.NewListFriendshipsUseCase(
 		friendRequestRepo,
-	)
-}
-func provideListSystemMessagesUseCase(
-	messageRepo notificationDomain.SystemMessageRepository,
-) (notificationApp.ListSystemMessagesUseCase, error) {
-	return notificationApp.NewListSystemMessagesUseCase(
-		messageRepo,
 	)
 }
 
@@ -432,24 +418,6 @@ func provideChatRoomshipCreatedUseCase(
 	)
 }
 
-func provideNotificationWelcomeEmailNotificationRequestedUseCase(
-	emailNotifier notificationDomain.WelcomeEmailNotifier,
-) (notificationApp.WelcomeEmailNotificationRequestedUseCase, error) {
-	return notificationApp.NewWelcomeEmailNotificationRequestedUseCase(
-		emailNotifier,
-	)
-}
-func provideNotificationSystemMessageNotificationRequestedUseCase(
-	idGenerator kernel.MessageIDGenerator,
-	messageRepo notificationDomain.SystemMessageRepository,
-	messageNotifier notificationDomain.SystemMessageNotifier,
-) (notificationApp.SystemMessageNotificationRequestedUseCase, error) {
-	return notificationApp.NewSystemMessageNotificationRequestedUseCase(
-		messageRepo,
-		messageNotifier,
-		idGenerator,
-	)
-}
 func provideFriendshipUserCreatedUseCase(
 	userRepo friendshipDomain.UserRepository,
 ) (friendshipApp.UserCreatedUseCase, error) {

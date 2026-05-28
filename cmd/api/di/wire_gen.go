@@ -108,7 +108,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	}
 	memberRequestRepository := provideRoomshipMemberRequestRepository(db, eventRepository)
 	operationIDGenerator := provideOperationIDGenerator()
-	sendMemberRequestUseCase, err := provideSendMemberRequestUseCase(roomshipRepository2, memberRequestRepository, roomRepository, eventIDGenerator, operationIDGenerator, hasher)
+	sendMemberRequestUseCase, err := provideSendMemberRequestUseCase(roomshipRepository2, memberRequestRepository, roomRepository, operationIDGenerator, hasher)
 	if err != nil {
 		return nil, err
 	}
@@ -154,11 +154,6 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	systemMessageRepository := provideNotificationSystemMessageRepository(db)
-	listSystemMessagesUseCase, err := provideListSystemMessagesUseCase(systemMessageRepository)
-	if err != nil {
-		return nil, err
-	}
 	validator, err := provideValidator()
 	if err != nil {
 		return nil, err
@@ -172,8 +167,6 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	dialer := provideGomailDialer(appConfig)
-	diEmailServiceAvailable := provideEmailAvailable(dialer)
 	kafkaLimiter := provideKafkaLimiter(client, appConfig)
 	repositoryUserRepository := provideProfileUserRepository(db)
 	userCreatedUseCase, err := provideProfileUserCreatedUseCase(repositoryUserRepository, userProfileRepository)
@@ -207,16 +200,6 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	emailNotifier := provideEmailNotifier(appConfig, dialer)
-	welcomeEmailNotificationRequestedUseCase, err := provideNotificationWelcomeEmailNotificationRequestedUseCase(emailNotifier)
-	if err != nil {
-		return nil, err
-	}
-	systemMessageNotifier := provideSystemMessageNotifier(manager)
-	systemMessageNotificationRequestedUseCase, err := provideNotificationSystemMessageNotificationRequestedUseCase(messageIDGenerator, systemMessageRepository, systemMessageNotifier)
-	if err != nil {
-		return nil, err
-	}
 	userRepository3 := provideRoomshipUserRepository(db)
 	userCreatedUseCase2, err := provideRoomshipUserCreatedUseCase(userRepository3)
 	if err != nil {
@@ -241,7 +224,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	v, err := provideKafkaConsumers(appConfig, diEmailServiceAvailable, kafkaLimiter, client, producer, eventRepository, userCreatedUseCase, roomCreatedUseCase, roomshipCreatedUseCase, applicationUserCreatedUseCase, applicationRoomCreatedUseCase, applicationRoomshipCreatedUseCase, friendshipCreatedUseCase, welcomeEmailNotificationRequestedUseCase, systemMessageNotificationRequestedUseCase, userCreatedUseCase2, roomCreatedUseCase2, memberRequestAgreedUseCase, userCreatedUseCase3, friendRequestAgreedUseCase)
+	v, err := provideKafkaConsumers(appConfig, kafkaLimiter, client, producer, eventRepository, userCreatedUseCase, roomCreatedUseCase, roomshipCreatedUseCase, applicationUserCreatedUseCase, applicationRoomCreatedUseCase, applicationRoomshipCreatedUseCase, friendshipCreatedUseCase, userCreatedUseCase2, roomCreatedUseCase2, memberRequestAgreedUseCase, userCreatedUseCase3, friendRequestAgreedUseCase)
 	if err != nil {
 		return nil, err
 	}
@@ -250,7 +233,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	engine := provideHttpRouter(appConfig, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, getUserProfileUseCase, httpLimiter, getRoomProfileUseCase, updateUserProfileUseCase, updateRoomProfileUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, listPrivateMessagesUseCase, listRoomMessagesUseCase, createRoomUseCase, listRoomMembersUseCase, sendMemberRequestUseCase, agreeMemberRequestUseCase, refuseMemberRequestUseCase, listMemberRequestsUseCase, listRoomshipsUseCase, leaveRoomUseCase, sendFriendRequestUseCase, agreeFriendRequestUseCase, refuseFriendRequestUseCase, listFriendshipsUseCase, listFriendRequestsUseCase, listSystemMessagesUseCase, validator, websocketHandler, v2, otelShutdown)
+	engine := provideHttpRouter(appConfig, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, getUserProfileUseCase, httpLimiter, getRoomProfileUseCase, updateUserProfileUseCase, updateRoomProfileUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, listPrivateMessagesUseCase, listRoomMessagesUseCase, createRoomUseCase, listRoomMembersUseCase, sendMemberRequestUseCase, agreeMemberRequestUseCase, refuseMemberRequestUseCase, listMemberRequestsUseCase, listRoomshipsUseCase, leaveRoomUseCase, sendFriendRequestUseCase, agreeFriendRequestUseCase, refuseFriendRequestUseCase, listFriendshipsUseCase, listFriendRequestsUseCase, validator, websocketHandler, v2, otelShutdown)
 	server := provideHttpServer(appConfig, engine)
 	eventPublisher, err := provideKafkaPublisher(appConfig, eventRepository)
 	if err != nil {
@@ -270,7 +253,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	}
 	eventHandler := provideCanalBinlogReaderHandler(dispatcher)
 	binlogReader := provideCanalBinlogReader(canal, eventHandler)
-	dependencies, err := BuildDependencies(server, db, client, eventPublisher, dispatcher, v, binlogReader, emailNotifier, otelShutdown, diEmailServiceAvailable)
+	dependencies, err := BuildDependencies(server, db, client, eventPublisher, dispatcher, v, binlogReader, otelShutdown)
 	if err != nil {
 		return nil, err
 	}

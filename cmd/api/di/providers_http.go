@@ -9,7 +9,6 @@ import (
 	friendshipApp "gochat/internal/friendship/application"
 	kafkaInfra "gochat/internal/infrastructure/kafka"
 	"gochat/internal/infrastructure/websocket"
-	notificationApp "gochat/internal/notification/application"
 	profileApp "gochat/internal/profile/application"
 	roomshipApp "gochat/internal/roomship/application"
 	"net/http"
@@ -32,7 +31,6 @@ import (
 	"gochat/internal/delivery/http/middleware"
 	friendshipHTTP "gochat/internal/friendship/port/http"
 	ginInfra "gochat/internal/infrastructure/gin"
-	notificationHTTP "gochat/internal/notification/port/http"
 	profileHTTP "gochat/internal/profile/port/http"
 	roomshipHTTP "gochat/internal/roomship/port/http"
 
@@ -82,7 +80,6 @@ func provideHttpRouter(
 	refuseFriendRequest friendshipApp.RefuseFriendRequestUseCase,
 	listFriendships friendshipApp.ListFriendshipsUseCase,
 	listFriendRequests friendshipApp.ListFriendRequestsUseCase,
-	listSystemMessages notificationApp.ListSystemMessagesUseCase,
 	validator ginInfra.Validator,
 	websocketHandler *handler.WebsocketHandler,
 	isReady func() bool,
@@ -223,13 +220,6 @@ func provideHttpRouter(
 		friendshipRequestsGroup.POST("/", friendshipHTTP.NewSendFriendRequestHandler(sendFriendRequest, validator))
 		friendshipRequestsGroup.PUT("/:request_id/agree", friendshipHTTP.NewAgreeFriendRequestHandler(agreeFriendRequest, validator))
 		friendshipRequestsGroup.PUT("/:request_id/refuse", friendshipHTTP.NewRefuseFriendRequestHandler(refuseFriendRequest, validator))
-	}
-
-	// 通知功能路由（RESTful）
-	notificationsGroup := baseGroup.Group("/notifications")
-	notificationsGroup.Use(authorizationMiddleware)
-	{
-		notificationsGroup.GET("/system-messages", notificationHTTP.NewListSystemMessagesHandler(listSystemMessages, validator))
 	}
 	return router
 }

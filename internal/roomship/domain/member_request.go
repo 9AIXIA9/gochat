@@ -61,13 +61,12 @@ func CreateMemberRequest(
 	roomID kernel.RoomID,
 	content string,
 	operationIDGenerator kernel.OperationIDGenerator,
-	idGenerator event.IDGenerator,
 ) (*MemberRequest, error) {
 	if len(content) > maxContentLength {
 		return nil, ErrContentTooLong
 	}
 
-	request := &MemberRequest{
+	return &MemberRequest{
 		id:          operationIDGenerator.Generate(),
 		state:       StatePending,
 		applicantID: applicantID,
@@ -77,16 +76,7 @@ func CreateMemberRequest(
 		operatedAt:  time.Now().UTC(),
 		createdAt:   time.Now().UTC(),
 		manager:     event.NewEventManager(),
-	}
-
-	ev, err := NewMemberRequestCreatedEvent(request.id, idGenerator)
-	if err != nil {
-		return nil, err
-	}
-
-	request.manager.RecordEvent(ev)
-
-	return request, nil
+	}, nil
 }
 
 func (r *MemberRequest) Agree(

@@ -9,8 +9,6 @@ import (
 	friendshipDomain "gochat/internal/friendship/domain"
 	friendshipRepo "gochat/internal/friendship/infrastructure/persistence/repository"
 	"gochat/internal/infrastructure/persistence/repository"
-	notificationDomain "gochat/internal/notification/domain"
-	notificationRepo "gochat/internal/notification/infrastructure/persistence/repository"
 	profileDomain "gochat/internal/profile/domain"
 	profileRepo "gochat/internal/profile/infrastructure/persistence/repository"
 	roomshipDomain "gochat/internal/roomship/domain"
@@ -47,9 +45,6 @@ var RepoSet = wire.NewSet(
 	wire.Bind(new(chatDomain.PrivateMessageRepository), new(*chatRepo.PrivateMessageRepository)),
 	wire.Bind(new(chatDomain.RoomMessageRepository), new(*chatRepo.RoomMessageRepository)),
 
-	wire.Bind(new(notificationDomain.SystemMessageRepository), new(*notificationRepo.SystemMessageRepository)),
-	wire.Bind(new(notificationDomain.SystemMessagesStatesUpdaterByMessageIDs), new(*notificationRepo.SystemMessageRepository)),
-
 	wire.Bind(new(friendshipDomain.UserRepository), new(*friendshipRepo.UserRepository)),
 	wire.Bind(new(friendshipDomain.FriendRequestRepository), new(*friendshipRepo.FriendRequestRepository)),
 	wire.Bind(new(friendshipDomain.FriendshipRepository), new(*friendshipRepo.FriendshipRepository)),
@@ -74,7 +69,6 @@ var RepoSet = wire.NewSet(
 	provideRoomshipRoomRepository,
 	provideRoomshipMemberRequestRepository,
 	provideRoomshipRoomshipRepository,
-	provideNotificationSystemMessageRepository,
 	provideFriendshipUserRepository,
 	provideFriendshipFriendRequestRepository,
 	provideFriendshipFriendshipRepository,
@@ -133,9 +127,6 @@ func provideRoomshipRoomshipRepository(db *gorm.DB, eventRepo event.Repository) 
 }
 func provideRoomshipMemberRequestRepository(db *gorm.DB, eventRepo event.Repository) *roomshipRepo.MemberRequestRepository {
 	return roomshipRepo.NewMemberRequestRepository(db, eventRepo)
-}
-func provideNotificationSystemMessageRepository(db *gorm.DB) *notificationRepo.SystemMessageRepository {
-	return notificationRepo.NewSystemMessageRepository(db)
 }
 func provideFriendshipUserRepository(db *gorm.DB) *friendshipRepo.UserRepository {
 	return friendshipRepo.NewUserRepository(db)

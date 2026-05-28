@@ -13,9 +13,6 @@ import (
 	friendshipEvent "gochat/internal/friendship/port/event"
 	kafkaInfra "gochat/internal/infrastructure/kafka"
 	redisInfra "gochat/internal/infrastructure/redis"
-	notificationApp "gochat/internal/notification/application"
-	notificationDomain "gochat/internal/notification/domain"
-	notificationEvent "gochat/internal/notification/port/event"
 	profileApp "gochat/internal/profile/application"
 	profileDomain "gochat/internal/profile/domain"
 	profileEvent "gochat/internal/profile/port/event"
@@ -28,7 +25,6 @@ import (
 	"github.com/google/wire"
 	goredis "github.com/redis/go-redis/v9"
 	"github.com/ulule/limiter/v3"
-	"go.uber.org/zap"
 )
 
 var KafkaSet = wire.NewSet(
@@ -120,7 +116,6 @@ func buildKafkaConsumer(
 
 func provideKafkaConsumers(
 	appConfig *config.App,
-	emailAvailable emailServiceAvailable,
 	kafkaLimiter *KafkaLimiter,
 	redisClient *goredis.Client,
 	reproducer *ckafka.Producer,
@@ -132,8 +127,6 @@ func provideKafkaConsumers(
 	chatRoomCreated chatApp.RoomCreatedUseCase,
 	chatRoomshipCreated chatApp.RoomshipCreatedUseCase,
 	chatFriendshipCreated chatApp.FriendshipCreatedUseCase,
-	notificationWelcomeEmailNotificationRequested notificationApp.WelcomeEmailNotificationRequestedUseCase,
-	notificationSystemMessageNotificationRequested notificationApp.SystemMessageNotificationRequestedUseCase,
 	roomshipUserCreated roomshipApp.UserCreatedUseCase,
 	roomshipRoomCreated roomshipApp.RoomCreatedUseCase,
 	roomshipMemberRequestAgreed roomshipApp.MemberRequestAgreedUseCase,
@@ -195,23 +188,6 @@ func provideKafkaConsumers(
 	})); err != nil {
 		return nil, err
 	}
-
-	if appConfig.Email != nil && appConfig.Email.Enable && bool(emailAvailable) {
-		if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "notification", string(notificationDomain.TopicWelcomeEmailNotificationRequested), func(r *kafkaInfra.Router) {
-			r.EventHandle(notificationDomain.TopicWelcomeEmailNotificationRequested, notificationEvent.NewWelcomeEmailNotificationRequestedEventHandler(notificationWelcomeEmailNotificationRequested))
-		})); err != nil {
-			return nil, err
-		}
-	} else {
-		zap.L().Info("Skipping subscription to WelcomeEmailNotificationRequested topic as email notifier is disabled or unavailable")
-	}
-
-	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "notification", string(notificationDomain.TopicSystemMessageNotificationRequested), func(r *kafkaInfra.Router) {
-		r.EventHandle(notificationDomain.TopicSystemMessageNotificationRequested, notificationEvent.NewSystemMessageNotificationRequestedEventHandler(notificationSystemMessageNotificationRequested))
-	})); err != nil {
-		return nil, err
-	}
-
 	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "roomship", string(roomshipDomain.TopicUserCreated), func(r *kafkaInfra.Router) {
 		r.EventHandle(roomshipDomain.TopicUserCreated, roomshipEvent.NewUserCreatedEventHandler(roomshipUserCreated))
 	})); err != nil {

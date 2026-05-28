@@ -92,7 +92,6 @@ func main() {
 }
 
 func startComponents(dependencies *di.Dependencies) error {
-	dependencies.EmailNotifier.Start()
 	dependencies.KafkaEventPublisher.Start()
 	if dependencies.OutboxDispatcher != nil {
 		dependencies.OutboxDispatcher.Start(context.Background())
@@ -110,7 +109,6 @@ func startComponents(dependencies *di.Dependencies) error {
 				}
 			}
 			dependencies.KafkaEventPublisher.Close()
-			dependencies.EmailNotifier.Close()
 			return fmt.Errorf("start kafka event subscriber failed: %w", err)
 		}
 		startedConsumers++
@@ -138,7 +136,6 @@ func shutdownComponents(ctx context.Context, dependencies *di.Dependencies) {
 	}
 
 	dependencies.KafkaEventPublisher.Close()
-	dependencies.EmailNotifier.Close()
 
 	if dependencies.MysqlDB != nil {
 		if sqlDB, err := dependencies.MysqlDB.DB(); err != nil {
