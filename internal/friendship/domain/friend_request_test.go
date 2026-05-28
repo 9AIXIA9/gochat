@@ -37,14 +37,11 @@ func TestCreateFriendRequest(t *testing.T) {
 	defer ctrl.Finish()
 
 	//正常情况
-	mockIDGenerator := eventMock.NewMockIDGenerator(ctrl)
-	mockIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(1)
-
 	mockOperationIDGenerator := kernelmocks.NewMockOperationIDGenerator(ctrl)
 	mockOperationIDGenerator.EXPECT().Generate().Return(fixedRequestID).Times(1)
 
 	start := time.Now().UTC()
-	req, err := domain.CreateFriendRequest(fixedUserID, fixedToUserID, fixedContent, mockOperationIDGenerator, mockIDGenerator)
+	req, err := domain.CreateFriendRequest(fixedUserID, fixedToUserID, fixedContent, mockOperationIDGenerator)
 	require.NoError(t, err)
 	require.NotNil(t, req)
 	assert.Equal(t, fixedRequestID, req.ID())
@@ -55,12 +52,7 @@ func TestCreateFriendRequest(t *testing.T) {
 	assert.WithinDuration(t, start, req.SentAt(), timeTolerance)
 
 	evs := req.GetEvents()
-	require.Len(t, evs, 1)
-
-	createdEv := evs[0]
-	assert.Equal(t, fixedEventID, createdEv.ID())
-	assert.Equal(t, domain.TopicFriendRequestCreated, createdEv.Topic())
-	assert.Equal(t, kernel.ID(fixedRequestID), createdEv.AggregateID())
+	require.Len(t, evs, 0)
 
 	//content太长
 	tooLongContent := ""
@@ -68,12 +60,12 @@ func TestCreateFriendRequest(t *testing.T) {
 		tooLongContent += "a"
 	}
 
-	req2, err2 := domain.CreateFriendRequest(fixedUserID, fixedToUserID, tooLongContent, mockOperationIDGenerator, mockIDGenerator)
+	req2, err2 := domain.CreateFriendRequest(fixedUserID, fixedToUserID, tooLongContent, mockOperationIDGenerator)
 	require.ErrorIs(t, err2, domain.ErrFriendRequestContentTooLong)
 	require.Nil(t, req2)
 
 	//添加自己为好友
-	req3, err3 := domain.CreateFriendRequest(fixedUserID, fixedUserID, fixedContent, mockOperationIDGenerator, mockIDGenerator)
+	req3, err3 := domain.CreateFriendRequest(fixedUserID, fixedUserID, fixedContent, mockOperationIDGenerator)
 	require.ErrorIs(t, err3, domain.ErrAddYourselfAsFriend)
 	require.Nil(t, req3)
 }

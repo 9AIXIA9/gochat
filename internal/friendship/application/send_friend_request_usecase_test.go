@@ -5,7 +5,6 @@ import (
 	"gochat/internal/friendship/domain"
 	"gochat/internal/friendship/domain/mocks"
 	myErrors "gochat/internal/shared/errors"
-	eventMocks "gochat/internal/shared/event/mocks"
 	kernelmocks "gochat/internal/shared/kernel/mocks"
 	"testing"
 
@@ -62,14 +61,12 @@ func TestNewSendFriendRequestUseCase(t *testing.T) {
 	mockFriendshipExisterByUserID := mocks.NewMockFriendshipExisterByUserID(ctrl)
 	mockFriendRequestExisterByUserIDAndState := mocks.NewMockFriendRequestExisterByUserIDAndState(ctrl)
 	mockFriendRequestCreator := mocks.NewMockFriendRequestCreator(ctrl)
-	mockIDGenerator := eventMocks.NewMockIDGenerator(ctrl)
 	mockOperationIDGenerator := kernelmocks.NewMockOperationIDGenerator(ctrl)
 
 	useCase, err := application.NewSendFriendRequestUseCase(
 		mockFriendshipExisterByUserID,
 		mockFriendRequestExisterByUserIDAndState,
 		mockFriendRequestCreator,
-		mockIDGenerator,
 		mockOperationIDGenerator,
 	)
 
@@ -78,7 +75,7 @@ func TestNewSendFriendRequestUseCase(t *testing.T) {
 
 	//空指针情况
 	useCaseWithNil, err := application.NewSendFriendRequestUseCase(
-		nil, nil, nil, nil, nil,
+		nil, nil, nil, nil,
 	)
 
 	require.ErrorIs(t, err, myErrors.ErrEmptyPointer)
@@ -92,7 +89,6 @@ func TestSendFriendRequestUseCase_Execute(t *testing.T) {
 	mockFriendshipExisterByUserID := mocks.NewMockFriendshipExisterByUserID(ctrl)
 	mockFriendRequestExisterByUserIDAndState := mocks.NewMockFriendRequestExisterByUserIDAndState(ctrl)
 	mockFriendRequestCreator := mocks.NewMockFriendRequestCreator(ctrl)
-	mockIDGenerator := eventMocks.NewMockIDGenerator(ctrl)
 	mockOperationIDGenerator := kernelmocks.NewMockOperationIDGenerator(ctrl)
 
 	//正常情况
@@ -100,7 +96,6 @@ func TestSendFriendRequestUseCase_Execute(t *testing.T) {
 		mockFriendshipExisterByUserID,
 		mockFriendRequestExisterByUserIDAndState,
 		mockFriendRequestCreator,
-		mockIDGenerator,
 		mockOperationIDGenerator,
 	)
 	require.NoError(t, err)
@@ -110,7 +105,6 @@ func TestSendFriendRequestUseCase_Execute(t *testing.T) {
 		mockFriendshipExisterByUserID.EXPECT().ExistByUserID(nil, fixedUserID, fixedToID).Return(false, nil),
 		mockFriendRequestExisterByUserIDAndState.EXPECT().ExistByUserIDAndState(nil, fixedUserID, fixedToID, domain.StatePending).Return(false, nil),
 		mockOperationIDGenerator.EXPECT().Generate().Return(fixedOperationID),
-		mockIDGenerator.EXPECT().Generate().Return(fixedEventID),
 		mockFriendRequestCreator.EXPECT().Create(nil, gomock.Any()).Return(nil),
 	)
 
@@ -145,7 +139,6 @@ func TestSendFriendRequestUseCase_Execute(t *testing.T) {
 		mockFriendshipExisterByUserID.EXPECT().ExistByUserID(nil, fixedUserID, fixedToID).Return(false, nil),
 		mockFriendRequestExisterByUserIDAndState.EXPECT().ExistByUserIDAndState(nil, fixedUserID, fixedToID, domain.StatePending).Return(false, nil),
 		mockOperationIDGenerator.EXPECT().Generate().Return(fixedOperationID),
-		mockIDGenerator.EXPECT().Generate().Return(fixedEventID),
 		mockFriendRequestCreator.EXPECT().Create(nil, gomock.Any()).Return(myErrors.ErrDuplicatedKey).Times(1),
 	)
 

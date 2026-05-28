@@ -134,7 +134,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	}
 	repositoryFriendshipRepository := provideFriendshipFriendshipRepository(db, eventRepository)
 	friendRequestRepository := provideFriendshipFriendRequestRepository(db, eventRepository)
-	sendFriendRequestUseCase, err := provideSendFriendRequestUseCase(repositoryFriendshipRepository, friendRequestRepository, eventIDGenerator, operationIDGenerator)
+	sendFriendRequestUseCase, err := provideSendFriendRequestUseCase(repositoryFriendshipRepository, friendRequestRepository, operationIDGenerator)
 	if err != nil {
 		return nil, err
 	}

@@ -276,14 +276,12 @@ func provideListRoomshipsUseCase(
 func provideSendFriendRequestUseCase(
 	friendshipRepo friendshipDomain.FriendshipRepository,
 	requestRepo friendshipDomain.FriendRequestRepository,
-	eventIDGenerator event.IDGenerator,
 	operationIDGenerator kernel.OperationIDGenerator,
 ) (friendshipApp.SendFriendRequestUseCase, error) {
 	return friendshipApp.NewSendFriendRequestUseCase(
 		friendshipRepo,
 		requestRepo,
 		requestRepo,
-		eventIDGenerator,
 		operationIDGenerator,
 	)
 }

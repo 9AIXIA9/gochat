@@ -2,9 +2,6 @@ user.created
 room.created
 roomship.created
 friendship.created
-member_request.created
+message.created
 member_request.agreed
-friend_request.created
 friend_request.agreed
-private_message.created
-room_message.created
