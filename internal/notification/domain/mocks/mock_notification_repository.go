@@ -12,6 +12,7 @@ package mocks
 import (
 	context "context"
 	domain "gochat/internal/notification/domain"
+	kernel "gochat/internal/shared/kernel"
 	reflect "reflect"
 
 	gomock "go.uber.org/mock/gomock"
@@ -55,6 +56,20 @@ func (mr *MockNotificationRepositoryMockRecorder) Create(ctx, notification any) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockNotificationRepository)(nil).Create), ctx, notification)
 }
 
+// UpdateStateByID mocks base method.
+func (m *MockNotificationRepository) UpdateStateByID(ctx context.Context, id kernel.MessageID, state domain.NotificationState) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateStateByID", ctx, id, state)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateStateByID indicates an expected call of UpdateStateByID.
+func (mr *MockNotificationRepositoryMockRecorder) UpdateStateByID(ctx, id, state any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStateByID", reflect.TypeOf((*MockNotificationRepository)(nil).UpdateStateByID), ctx, id, state)
+}
+
 // MockNotificationCreator is a mock of NotificationCreator interface.
 type MockNotificationCreator struct {
 	ctrl     *gomock.Controller
@@ -91,4 +106,42 @@ func (m *MockNotificationCreator) Create(ctx context.Context, notification *doma
 func (mr *MockNotificationCreatorMockRecorder) Create(ctx, notification any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockNotificationCreator)(nil).Create), ctx, notification)
+}
+
+// MockNotificationStateUpdater is a mock of NotificationStateUpdater interface.
+type MockNotificationStateUpdater struct {
+	ctrl     *gomock.Controller
+	recorder *MockNotificationStateUpdaterMockRecorder
+	isgomock struct{}
+}
+
+// MockNotificationStateUpdaterMockRecorder is the mock recorder for MockNotificationStateUpdater.
+type MockNotificationStateUpdaterMockRecorder struct {
+	mock *MockNotificationStateUpdater
+}
+
+// NewMockNotificationStateUpdater creates a new mock instance.
+func NewMockNotificationStateUpdater(ctrl *gomock.Controller) *MockNotificationStateUpdater {
+	mock := &MockNotificationStateUpdater{ctrl: ctrl}
+	mock.recorder = &MockNotificationStateUpdaterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockNotificationStateUpdater) EXPECT() *MockNotificationStateUpdaterMockRecorder {
+	return m.recorder
+}
+
+// UpdateStateByID mocks base method.
+func (m *MockNotificationStateUpdater) UpdateStateByID(ctx context.Context, id kernel.MessageID, state domain.NotificationState) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateStateByID", ctx, id, state)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateStateByID indicates an expected call of UpdateStateByID.
+func (mr *MockNotificationStateUpdaterMockRecorder) UpdateStateByID(ctx, id, state any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStateByID", reflect.TypeOf((*MockNotificationStateUpdater)(nil).UpdateStateByID), ctx, id, state)
 }
