@@ -158,11 +158,9 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	upgrader := provideWebsocketUpgrader(appConfig)
-	manager := provideWebsocketManager()
-	websocketLimiter := provideWebsocketLimiter(client, appConfig)
-	router := provideWebsocketRouter(appConfig, websocketLimiter, validator, sendPrivateMessageUseCase, sendRoomMessageUseCase)
-	websocketHandler := provideWebsocketHandler(upgrader, manager, router)
+	manager := provideGatewayManager()
+	upstreamRouter := provideGatewayUpstreamHandler(validator, sendPrivateMessageUseCase, sendRoomMessageUseCase)
+	ingressHandler := provideGatewayIngressHandler(manager, upstreamRouter)
 	producer, err := provideKafkaProducer(appConfig)
 	if err != nil {
 		return nil, err
@@ -242,7 +240,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	engine := provideHttpRouter(appConfig, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, getUserProfileUseCase, httpLimiter, getRoomProfileUseCase, updateUserProfileUseCase, updateRoomProfileUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, listPrivateMessagesUseCase, listRoomMessagesUseCase, createRoomUseCase, listRoomMembersUseCase, sendMemberRequestUseCase, agreeMemberRequestUseCase, refuseMemberRequestUseCase, listMemberRequestsUseCase, listRoomshipsUseCase, leaveRoomUseCase, sendFriendRequestUseCase, agreeFriendRequestUseCase, refuseFriendRequestUseCase, listFriendshipsUseCase, listFriendRequestsUseCase, validator, websocketHandler, v2, otelShutdown)
+	engine := provideHttpRouter(appConfig, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, getUserProfileUseCase, httpLimiter, getRoomProfileUseCase, updateUserProfileUseCase, updateRoomProfileUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, listPrivateMessagesUseCase, listRoomMessagesUseCase, createRoomUseCase, listRoomMembersUseCase, sendMemberRequestUseCase, agreeMemberRequestUseCase, refuseMemberRequestUseCase, listMemberRequestsUseCase, listRoomshipsUseCase, leaveRoomUseCase, sendFriendRequestUseCase, agreeFriendRequestUseCase, refuseFriendRequestUseCase, listFriendshipsUseCase, listFriendRequestsUseCase, validator, ingressHandler, v2, otelShutdown)
 	server := provideHttpServer(appConfig, engine)
 	eventPublisher, err := provideKafkaPublisher(appConfig, eventRepository)
 	if err != nil {

@@ -8,7 +8,6 @@ import (
 	chatApp "gochat/internal/chat/application"
 	friendshipApp "gochat/internal/friendship/application"
 	kafkaInfra "gochat/internal/infrastructure/kafka"
-	"gochat/internal/infrastructure/websocket"
 	profileApp "gochat/internal/profile/application"
 	roomshipApp "gochat/internal/roomship/application"
 	"net/http"
@@ -17,7 +16,6 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
-	gorillaWebsocket "github.com/gorilla/websocket"
 	"github.com/redis/go-redis/v9"
 	"github.com/ulule/limiter/v3"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
@@ -28,6 +26,7 @@ import (
 	authHTTP "gochat/internal/authorization/port/http"
 	chatHTTP "gochat/internal/chat/port/http"
 	"gochat/internal/delivery/http/handler"
+
 	"gochat/internal/delivery/http/middleware"
 	friendshipHTTP "gochat/internal/friendship/port/http"
 	ginInfra "gochat/internal/infrastructure/gin"
@@ -37,6 +36,8 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"golang.org/x/sync/errgroup"
+
+	gatewayWebsocket "gochat/internal/ws_gateway/adapter/websocket"
 )
 
 var nonBusinessPaths = []string{
@@ -48,7 +49,6 @@ var nonBusinessPaths = []string{
 var HTTPSet = wire.NewSet(
 	provideHttpRouter,
 	provideHttpServer,
-	provideWebsocketHandler,
 	provideIsReadyChecker,
 )
 
@@ -81,7 +81,7 @@ func provideHttpRouter(
 	listFriendships friendshipApp.ListFriendshipsUseCase,
 	listFriendRequests friendshipApp.ListFriendRequestsUseCase,
 	validator ginInfra.Validator,
-	websocketHandler *handler.WebsocketHandler,
+	websocketHandler *gatewayWebsocket.IngressHandler,
 	isReady func() bool,
 	_ OTELShutdown,
 ) *gin.Engine {
@@ -239,18 +239,6 @@ func provideHttpServer(appConfig *config.App, router *gin.Engine) *ginInfra.Serv
 	}
 
 	return ginInfra.NewServer(router, srv, debugSrv)
-}
-
-func provideWebsocketHandler(
-	upgrader *gorillaWebsocket.Upgrader,
-	manager *websocket.Manager,
-	router *websocket.Router,
-) *handler.WebsocketHandler {
-	return handler.NewWebsocketHandler(
-		upgrader,
-		manager,
-		router,
-	)
 }
 
 func provideIsReadyChecker(
