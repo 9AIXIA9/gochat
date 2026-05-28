@@ -14,6 +14,19 @@ type Config struct {
 	AutoOffsetReset  string `mapstructure:"AutoOffsetReset"`
 }
 
+// WithGroupIDSuffix returns a copy of the config with a consumer-group suffix appended.
+// The original config is never mutated.
+func (c *Config) WithGroupIDSuffix(suffix string) *Config {
+	if c == nil {
+		return nil
+	}
+	clone := *c
+	if suffix != "" {
+		clone.GroupID = clone.GroupID + "_" + suffix
+	}
+	return &clone
+}
+
 func (c *Config) Validate() error {
 	if c == nil {
 		return myErrors.ErrEmptyPointer
