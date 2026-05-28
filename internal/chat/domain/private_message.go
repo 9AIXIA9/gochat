@@ -67,7 +67,14 @@ func CreatePrivateMessage(
 		eventManager: event.NewEventManager(),
 	}
 
-	ev, err := NewPrivateMessageCreatedEvent(message.id, eventIDGenerator)
+	ev, err := NewPrivateMessageCreatedEvent(
+		message.id,
+		message.senderID,
+		message.recipientID,
+		message.content,
+		message.sentAt,
+		eventIDGenerator,
+	)
 	if err != nil {
 		return nil, err
 	}

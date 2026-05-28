@@ -60,7 +60,15 @@ func CreateRoomMessage(
 		return nil, err
 	}
 
-	ev, err := NewRoomMessageCreatedEvent(message.id, eventIDGenerator)
+	ev, err := NewRoomMessageCreatedEvent(
+		message.id,
+		message.senderID,
+		message.recipientIDs,
+		message.roomID,
+		message.content,
+		message.sentAt,
+		eventIDGenerator,
+	)
 	if err != nil {
 		return nil, err
 	}

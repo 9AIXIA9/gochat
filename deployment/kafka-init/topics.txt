@@ -6,3 +6,5 @@ member_request.created
 member_request.agreed
 friend_request.created
 friend_request.agreed
+private_message.created
+room_message.created
