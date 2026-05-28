@@ -13,12 +13,15 @@ import (
 	friendshipEvent "gochat/internal/friendship/port/event"
 	kafkaInfra "gochat/internal/infrastructure/kafka"
 	redisInfra "gochat/internal/infrastructure/redis"
+	notificationApp "gochat/internal/notification/application"
+	notificationEvent "gochat/internal/notification/port/event"
 	profileApp "gochat/internal/profile/application"
 	profileDomain "gochat/internal/profile/domain"
 	profileEvent "gochat/internal/profile/port/event"
 	roomshipApp "gochat/internal/roomship/application"
 	roomshipDomain "gochat/internal/roomship/domain"
 	roomshipEvent "gochat/internal/roomship/port/event"
+	"gochat/internal/shared/contract"
 	"gochat/internal/shared/event"
 
 	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
@@ -132,6 +135,8 @@ func provideKafkaConsumers(
 	roomshipMemberRequestAgreed roomshipApp.MemberRequestAgreedUseCase,
 	friendshipUserCreated friendshipApp.UserCreatedUseCase,
 	friendshipFriendRequestAgreed friendshipApp.FriendRequestAgreedUseCase,
+	notificationCreated notificationApp.NotificationCreatedUseCase,
+	pushSucceeded notificationApp.PushSucceededUseCase,
 ) (consumers []*kafkaInfra.Consumer, err error) {
 	defer func() {
 		if err == nil {
@@ -211,6 +216,18 @@ func provideKafkaConsumers(
 	}
 	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "friendship", string(friendshipDomain.TopicFriendRequestAgreed), func(r *kafkaInfra.Router) {
 		r.EventHandle(friendshipDomain.TopicFriendRequestAgreed, friendshipEvent.NewFriendRequestAgreedEventHandler(friendshipFriendRequestAgreed))
+	})); err != nil {
+		return nil, err
+	}
+
+	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "notification", string(contract.TopicNotificationCreated), func(r *kafkaInfra.Router) {
+		r.EventHandle(contract.TopicNotificationCreated, notificationEvent.NewNotificationCreatedEventHandler(notificationCreated))
+	})); err != nil {
+		return nil, err
+	}
+
+	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "notification", string(contract.TopicPushSucceeded), func(r *kafkaInfra.Router) {
+		r.EventHandle(contract.TopicPushSucceeded, notificationEvent.NewPushSucceededEventHandler(pushSucceeded))
 	})); err != nil {
 		return nil, err
 	}

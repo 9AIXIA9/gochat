@@ -224,7 +224,16 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	v, err := provideKafkaConsumers(appConfig, kafkaLimiter, client, producer, eventRepository, userCreatedUseCase, roomCreatedUseCase, roomshipCreatedUseCase, applicationUserCreatedUseCase, applicationRoomCreatedUseCase, applicationRoomshipCreatedUseCase, friendshipCreatedUseCase, userCreatedUseCase2, roomCreatedUseCase2, memberRequestAgreedUseCase, userCreatedUseCase3, friendRequestAgreedUseCase)
+	notificationRepository := provideNotificationRepository(db, eventRepository)
+	notificationCreatedUseCase, err := provideNotificationCreatedUseCase(eventIDGenerator, notificationRepository)
+	if err != nil {
+		return nil, err
+	}
+	pushSucceededUseCase, err := providePushSucceededUseCase(notificationRepository)
+	if err != nil {
+		return nil, err
+	}
+	v, err := provideKafkaConsumers(appConfig, kafkaLimiter, client, producer, eventRepository, userCreatedUseCase, roomCreatedUseCase, roomshipCreatedUseCase, applicationUserCreatedUseCase, applicationRoomCreatedUseCase, applicationRoomshipCreatedUseCase, friendshipCreatedUseCase, userCreatedUseCase2, roomCreatedUseCase2, memberRequestAgreedUseCase, userCreatedUseCase3, friendRequestAgreedUseCase, notificationCreatedUseCase, pushSucceededUseCase)
 	if err != nil {
 		return nil, err
 	}
