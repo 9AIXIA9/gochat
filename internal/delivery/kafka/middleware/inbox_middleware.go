@@ -28,7 +28,7 @@ type InboxStore interface {
 // It claims an event id before handling. If the claim fails because the key already exists,
 // the message is treated as a duplicate and skipped. On success, the key TTL is extended.
 // On handler error, the claim is released so the message can be retried.
-func NewInboxMiddleware(store InboxStore) kafka.Middleware {
+func NewInboxMiddleware(store InboxStore, namespace string) kafka.Middleware {
 	return func(next kafka.Handler) kafka.Handler {
 		return kafka.HandlerFunc(func(ctx context.Context, message *ckafka.Message) error {
 			if store == nil {
@@ -41,12 +41,13 @@ func NewInboxMiddleware(store InboxStore) kafka.Middleware {
 			}
 
 			topic := getMessageTopic(message)
-			key := buildInboxKey(topic, id)
+			key := buildInboxKey(namespace, topic, id)
 
 			claimed, err := store.Claim(ctx, key, inboxProcessingTTL)
 			if err != nil {
 				zap.L().Warn("inbox middleware claim failed, proceeding without dedupe",
 					zap.String("topic", topic),
+					zap.String("namespace", namespace),
 					zap.String("event_id", id),
 					zap.Error(err),
 				)
@@ -56,6 +57,7 @@ func NewInboxMiddleware(store InboxStore) kafka.Middleware {
 			if !claimed {
 				zap.L().Info("kafka message skipped by inbox middleware (duplicate)",
 					zap.String("topic", topic),
+					zap.String("namespace", namespace),
 					zap.String("event_id", id),
 				)
 				return nil
@@ -65,6 +67,7 @@ func NewInboxMiddleware(store InboxStore) kafka.Middleware {
 				if releaseErr := store.Release(ctx, key); releaseErr != nil {
 					zap.L().Warn("inbox middleware failed to release claim after handler error",
 						zap.String("topic", topic),
+						zap.String("namespace", namespace),
 						zap.String("event_id", id),
 						zap.Error(releaseErr),
 					)
@@ -75,6 +78,7 @@ func NewInboxMiddleware(store InboxStore) kafka.Middleware {
 			if err := store.Complete(ctx, key, inboxProcessedTTL); err != nil {
 				zap.L().Warn("inbox middleware failed to mark message as processed",
 					zap.String("topic", topic),
+					zap.String("namespace", namespace),
 					zap.String("event_id", id),
 					zap.Error(err),
 				)
@@ -84,8 +88,11 @@ func NewInboxMiddleware(store InboxStore) kafka.Middleware {
 	}
 }
 
-func buildInboxKey(topic, eventID string) string {
-	return inboxKeyPrefix + topic + ":" + eventID
+func buildInboxKey(namespace, topic, eventID string) string {
+	if namespace == "" {
+		namespace = "default"
+	}
+	return inboxKeyPrefix + namespace + ":" + topic + ":" + eventID
 }
 
 func getMessageEventID(message *ckafka.Message) string {

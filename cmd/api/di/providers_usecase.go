@@ -53,15 +53,12 @@ var UseCaseHTTPSet = wire.NewSet(
 )
 
 var UseCaseKafkaSet = wire.NewSet(
-	provideAuthUserCreatedUseCase,
 	provideUnpublishedEventsCreatedCase,
 	provideProfileRoomshipCreatedUseCase,
 	provideProfileRoomCreatedUseCase,
 	provideProfileUserCreatedUseCase,
 	provideRoomshipUserCreatedUseCase,
-	provideRoomshipRoomshipCreatedUseCase,
 	provideRoomshipMemberRequestAgreedUseCase,
-	provideRoomshipMemberRequestCreatedUseCase,
 	provideRoomshipRoomCreatedUseCase,
 	provideChatUserCreatedUseCase,
 	provideChatRoomCreatedUseCase,
@@ -70,8 +67,6 @@ var UseCaseKafkaSet = wire.NewSet(
 	provideNotificationWelcomeEmailNotificationRequestedUseCase,
 	provideNotificationSystemMessageNotificationRequestedUseCase,
 	provideFriendshipUserCreatedUseCase,
-	provideFriendshipFriendshipCreatedUseCase,
-	provideFriendshipFriendRequestCreatedUseCase,
 	provideFriendshipFriendRequestAgreedUseCase,
 )
 
@@ -354,17 +349,6 @@ func provideUnpublishedEventsCreatedCase(
 
 // -------------------- Event UseCases (Kafka consumer side) --------------------
 
-func provideAuthUserCreatedUseCase(
-	eventIDGen event.IDGenerator,
-	eventRepo event.Repository,
-	userRepo authDomain.UserRepository,
-) (authApp.UserCreatedUseCase, error) {
-	return authApp.NewUserCreatedUseCase(
-		eventIDGen,
-		eventRepo,
-		userRepo,
-	)
-}
 func provideProfileUserCreatedUseCase(
 	userRepo profileDomain.UserRepository,
 	profileRepo profileDomain.UserProfileRepository,
@@ -400,24 +384,12 @@ func provideRoomshipRoomCreatedUseCase(
 	idGenerator event.IDGenerator,
 	roomRepo domain.RoomRepository,
 	roomshipRepo domain.RoomshipRepository,
-	eventRepo event.Repository,
 ) (roomshipApp.RoomCreatedUseCase, error) {
 	return roomshipApp.NewRoomCreatedUseCase(
 		roomshipIDGenerator,
 		idGenerator,
 		roomRepo,
 		roomshipRepo,
-		eventRepo,
-	)
-}
-func provideRoomshipMemberRequestCreatedUseCase(
-	requestRepo domain.MemberRequestRepository,
-	roomshipRepo domain.RoomshipRepository,
-	idGenerator event.IDGenerator,
-	eventRepo event.Repository,
-) (roomshipApp.MemberRequestCreatedUseCase, error) {
-	return roomshipApp.NewMemberRequestCreatedUseCase(
-		requestRepo, roomshipRepo, idGenerator, eventRepo,
 	)
 }
 func provideRoomshipMemberRequestAgreedUseCase(
@@ -431,18 +403,6 @@ func provideRoomshipMemberRequestAgreedUseCase(
 		idGenerator,
 		requestRepo,
 		roomshipRepo,
-	)
-}
-func provideRoomshipRoomshipCreatedUseCase(
-	roomshipRepo domain.RoomshipRepository,
-	eventRepo event.Repository,
-	idGenerator event.IDGenerator,
-) (roomshipApp.RoomshipCreatedUseCase, error) {
-	return roomshipApp.NewRoomshipCreatedUseCase(
-		roomshipRepo,
-		roomshipRepo,
-		idGenerator,
-		eventRepo,
 	)
 }
 func provideChatUserCreatedUseCase(
@@ -507,28 +467,6 @@ func provideFriendshipFriendRequestAgreedUseCase(
 		requestRepo,
 		friendshipRepo,
 		friendshipIDGen,
-		eventIDGen,
-	)
-}
-func provideFriendshipFriendRequestCreatedUseCase(
-	friendRequestRepo friendshipDomain.FriendRequestRepository,
-	eventRepo event.Repository,
-	eventIDGen event.IDGenerator,
-) (friendshipApp.FriendRequestCreatedUseCase, error) {
-	return friendshipApp.NewFriendRequestCreatedUseCase(
-		friendRequestRepo,
-		eventRepo,
-		eventIDGen,
-	)
-}
-func provideFriendshipFriendshipCreatedUseCase(
-	friendshipRepo friendshipDomain.FriendshipRepository,
-	eventRepo event.Repository,
-	eventIDGen event.IDGenerator,
-) (friendshipApp.FriendshipCreatedUseCase, error) {
-	return friendshipApp.NewFriendshipCreatedUseCase(
-		friendshipRepo,
-		eventRepo,
 		eventIDGen,
 	)
 }

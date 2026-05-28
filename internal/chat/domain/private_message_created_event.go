@@ -6,7 +6,7 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-const TopicPrivateMessageCreated event.Topic = "chat.private_message.created"
+const TopicPrivateMessageCreated event.Topic = "private_message.created"
 
 var _ event.SpecificEvent = (*PrivateMessageCreatedEvent)(nil)
 

@@ -44,7 +44,7 @@ func CreateFriendship(
 		manager:   event.NewEventManager(),
 	}
 
-	ev, err := NewFriendshipCreatedEvent(friendship.id, idGenerator)
+	ev, err := NewFriendshipCreatedEvent(friendship.id, friendship.userID1, friendship.userID2, idGenerator)
 	if err != nil {
 		return nil, err
 	}

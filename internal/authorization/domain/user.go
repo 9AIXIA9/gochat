@@ -48,7 +48,12 @@ func CreateUser(
 		eventManager:      event.NewEventManager(),
 	}
 
-	ev, err := NewUserCreatedEvent(u.id, eventIDGenerator)
+	ev, err := NewUserCreatedEvent(
+		u.id,
+		u.number,
+		u.email,
+		u.signedUpAt,
+		eventIDGenerator)
 	if err != nil {
 		return nil, err
 	}

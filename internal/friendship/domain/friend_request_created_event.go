@@ -1,30 +1,16 @@
 package domain
 
 import (
-	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 )
 
-const TopicFriendRequestCreated event.Topic = "friendship.friend_request.created"
+const TopicFriendRequestCreated event.Topic = "friend_request.created"
 
 var _ event.SpecificEvent = (*FriendRequestCreatedEvent)(nil)
 
 type FriendRequestCreatedEvent struct {
 	*event.StandardEvent
-}
-
-func ToFriendRequestCreatedEvent(ev event.Event) (*FriendRequestCreatedEvent, error) {
-	if ev.Topic() != TopicFriendRequestCreated {
-		return nil, myErrors.ErrWrongEventTopic
-	}
-	e := &FriendRequestCreatedEvent{StandardEvent: event.LoadStandardEventFromEvent(ev)}
-	if len(ev.Payload()) > 0 {
-		if err := e.Unmarshal(ev.Payload()); err != nil {
-			return nil, err
-		}
-	}
-	return e, nil
 }
 
 func NewFriendRequestCreatedEvent(

@@ -7,7 +7,7 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-const TopicFriendshipCreated event.Topic = "chat.friendship.created"
+const TopicFriendshipCreated event.Topic = "friendship.created"
 
 var _ event.SpecificEvent = (*FriendshipCreatedEvent)(nil)
 
@@ -27,25 +27,6 @@ func ToFriendshipCreatedEvent(ev event.Event) (*FriendshipCreatedEvent, error) {
 			return nil, err
 		}
 	}
-	return e, nil
-}
-
-func NewFriendshipCreatedEvent(
-	id FriendshipID,
-	userID1 kernel.UserID,
-	userID2 kernel.UserID,
-	generator event.IDGenerator,
-) (*FriendshipCreatedEvent, error) {
-	e := &FriendshipCreatedEvent{
-		userID1: userID1,
-		userID2: userID2,
-	}
-	payload, err := e.Marshal()
-	if err != nil {
-		return nil, err
-	}
-
-	e.StandardEvent = event.NewStandardEvent(kernel.ID(id), TopicFriendshipCreated, payload, generator)
 	return e, nil
 }
 
