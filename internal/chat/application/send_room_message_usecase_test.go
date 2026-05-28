@@ -118,7 +118,7 @@ func TestSendRoomMessageUseCase_Execute(t *testing.T) {
 		// 正常情况
 		finder.EXPECT().FindsByRoomID(nil, fixedRoomID).Return(mockRoomships, nil).Times(1),
 		mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1),
-		mockEventIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(1),
+		mockEventIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(fixedRoomMembersCount),
 		mockMessageCreator.EXPECT().Create(nil, gomock.Any()).Return(nil).Times(1),
 
 		// 不是成员
@@ -130,7 +130,6 @@ func TestSendRoomMessageUseCase_Execute(t *testing.T) {
 		// 房间只有自己
 		finder.EXPECT().FindsByRoomID(nil, fixedRoomID).Return([]*domain.Roomship{singleRoomship}, nil).Times(1),
 		mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1),
-		mockEventIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(1),
 		mockMessageCreator.EXPECT().Create(nil, gomock.Any()).Return(nil).Times(1),
 	)
 
@@ -170,7 +169,7 @@ func TestSendRoomMessageUseCase_Execute(t *testing.T) {
 	gomock.InOrder(
 		finder.EXPECT().FindsByRoomID(nil, fixedRoomID).Return(mockRoomships, nil).Times(1),
 		mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1),
-		mockEventIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(1),
+		mockEventIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(fixedRoomMembersCount),
 		mockMessageCreator.EXPECT().Create(nil, gomock.Any()).Return(myErrors.ErrDuplicatedKey).Times(1),
 	)
 

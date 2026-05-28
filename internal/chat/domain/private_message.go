@@ -2,6 +2,8 @@ package domain
 
 import (
 	"context"
+	"encoding/json"
+	"gochat/internal/shared/contract"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"time"
@@ -67,12 +69,15 @@ func CreatePrivateMessage(
 		eventManager: event.NewEventManager(),
 	}
 
-	ev, err := NewPrivateMessageCreatedEvent(
+	rawPayload, err := message.Marshal()
+	if err != nil {
+		return nil, err
+	}
+
+	ev, err := contract.NewNotificationCreatedEvent(
 		message.id,
-		message.senderID,
 		message.recipientID,
-		message.content,
-		message.sentAt,
+		rawPayload,
 		eventIDGenerator,
 	)
 	if err != nil {
@@ -101,6 +106,24 @@ func (m *PrivateMessage) Content() string {
 
 func (m *PrivateMessage) SentAt() time.Time {
 	return m.sentAt
+}
+
+func (m *PrivateMessage) Marshal() ([]byte, error) {
+	type Alias struct {
+		ID          kernel.MessageID
+		SenderID    kernel.UserID
+		RecipientID kernel.UserID
+		Content     string
+		SentAt      time.Time
+	}
+
+	return json.Marshal(&Alias{
+		ID:          m.id,
+		SenderID:    m.senderID,
+		RecipientID: m.recipientID,
+		Content:     m.content,
+		SentAt:      m.sentAt,
+	})
 }
 
 func (m *PrivateMessage) GetEvents() []event.Event {

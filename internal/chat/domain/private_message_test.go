@@ -4,6 +4,7 @@ import (
 	"context"
 	"gochat/internal/chat/domain"
 	"gochat/internal/chat/domain/mocks"
+	"gochat/internal/shared/contract"
 	eventMock "gochat/internal/shared/event/mocks"
 	kernelmocks "gochat/internal/shared/kernel/mocks"
 	"testing"
@@ -61,7 +62,7 @@ func TestCreatePrivateMessage(t *testing.T) {
 	evs := message.GetEvents()
 	require.Len(t, evs, 1)
 	assert.Equal(t, fixedEventID, evs[0].ID())
-	assert.Equal(t, domain.TopicPrivateMessageCreated, evs[0].Topic())
+	assert.Equal(t, contract.TopicNotificationCreated, evs[0].Topic())
 	assert.WithinDuration(t, start, message.SentAt(), timeTolerance)
 
 	// content 为空
@@ -100,6 +101,6 @@ func TestCreatePrivateMessage(t *testing.T) {
 	evs = messageToSelf.GetEvents()
 	require.Len(t, evs, 1)
 	assert.Equal(t, fixedEventID, evs[0].ID())
-	assert.Equal(t, domain.TopicPrivateMessageCreated, evs[0].Topic())
+	assert.Equal(t, contract.TopicNotificationCreated, evs[0].Topic())
 	assert.WithinDuration(t, start, messageToSelf.SentAt(), timeTolerance)
 }

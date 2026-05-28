@@ -2,6 +2,8 @@ package domain
 
 import (
 	"context"
+	"encoding/json"
+	"gochat/internal/shared/contract"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"time"
@@ -60,21 +62,24 @@ func CreateRoomMessage(
 		return nil, err
 	}
 
-	ev, err := NewRoomMessageCreatedEvent(
-		message.id,
-		message.senderID,
-		message.recipientIDs,
-		message.roomID,
-		message.content,
-		message.sentAt,
-		eventIDGenerator,
-	)
+	rawPayload, err := message.Marshal()
 	if err != nil {
 		return nil, err
 	}
 
-	message.eventManager.RecordEvent(ev)
+	for _, recipientID := range message.recipientIDs {
+		ev, err := contract.NewNotificationCreatedEvent(
+			message.id,
+			recipientID,
+			rawPayload,
+			eventIDGenerator,
+		)
+		if err != nil {
+			return nil, err
+		}
 
+		message.eventManager.RecordEvent(ev)
+	}
 	return message, nil
 }
 
@@ -148,6 +153,24 @@ func (m *RoomMessage) SentAt() time.Time {
 
 func (m *RoomMessage) RecipientIDs() []kernel.UserID {
 	return m.recipientIDs
+}
+
+func (m *RoomMessage) Marshal() ([]byte, error) {
+	type Alias struct {
+		ID       kernel.MessageID
+		SenderID kernel.UserID
+		RoomID   kernel.RoomID
+		Content  string
+		SentAt   time.Time
+	}
+
+	return json.Marshal(&Alias{
+		ID:       m.id,
+		SenderID: m.senderID,
+		RoomID:   m.roomID,
+		Content:  m.content,
+		SentAt:   m.sentAt,
+	})
 }
 
 func (m *RoomMessage) GetEvents() []event.Event {

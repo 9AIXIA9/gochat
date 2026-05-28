@@ -5,3 +5,4 @@ friendship.created
 message.created
 member_request.agreed
 friend_request.agreed
+notification.created

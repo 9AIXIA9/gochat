@@ -4,6 +4,7 @@ import (
 	"context"
 	"gochat/internal/chat/domain"
 	"gochat/internal/chat/domain/mocks"
+	"gochat/internal/shared/contract"
 	eventMock "gochat/internal/shared/event/mocks"
 	"gochat/internal/shared/kernel"
 	kernelmocks "gochat/internal/shared/kernel/mocks"
@@ -70,7 +71,7 @@ func TestCreateRoomMessage(t *testing.T) {
 		// 正常情况
 		finder.EXPECT().FindsByRoomID(gomock.Any(), fixedRoomID).Return(roomships, nil).Times(1),
 		mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1),
-		mockEventIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(1),
+		mockEventIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(fixedRoomMemberCount),
 
 		// content 为空 什么都不做直接错误
 
@@ -84,7 +85,6 @@ func TestCreateRoomMessage(t *testing.T) {
 			fixedRoomID,
 		)}, nil).Times(1),
 		mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1),
-		mockEventIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(1),
 
 		// room not found
 		finder.EXPECT().FindsByRoomID(gomock.Any(), fixedRoomID).Return([]*domain.Roomship{}, nil).Times(1),
@@ -110,9 +110,11 @@ func TestCreateRoomMessage(t *testing.T) {
 	assert.WithinDuration(t, start, message.SentAt(), timeTolerance)
 	assert.Equal(t, mockRecipients, message.RecipientIDs())
 	evs := message.GetEvents()
-	require.Len(t, evs, 1)
-	assert.Equal(t, domain.TopicRoomMessageCreated, evs[0].Topic())
-	assert.Equal(t, fixedEventID, evs[0].ID())
+	require.Len(t, evs, fixedRoomMemberCount)
+	for _, ev := range evs {
+		assert.Equal(t, fixedEventID, ev.ID())
+		assert.Equal(t, contract.TopicNotificationCreated, ev.Topic())
+	}
 
 	// content 为空
 	message, err = domain.CreateRoomMessage(
@@ -159,9 +161,7 @@ func TestCreateRoomMessage(t *testing.T) {
 	assert.WithinDuration(t, start, message.SentAt(), timeTolerance)
 	assert.Empty(t, message.RecipientIDs())
 	evs = message.GetEvents()
-	require.Len(t, evs, 1)
-	assert.Equal(t, domain.TopicRoomMessageCreated, evs[0].Topic())
-	assert.Equal(t, fixedEventID, evs[0].ID())
+	require.Len(t, evs, 0)
 
 	// room not found
 	message, err = domain.CreateRoomMessage(
