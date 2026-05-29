@@ -7,7 +7,7 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-const TopicSendRoomMessageCommand event.Topic = "chat.send_room_message_command"
+const TopicSendRoomMessageCommand event.Topic = "send_room_message_command"
 
 var _ event.SpecificEvent = (*SendRoomMessageCommand)(nil)
 

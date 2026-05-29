@@ -7,7 +7,7 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-const TopicSendPrivateMessageCommand event.Topic = "chat.send_private_message_command"
+const TopicSendPrivateMessageCommand event.Topic = "send_private_message_command"
 
 var _ event.SpecificEvent = (*SendPrivateMessageCommand)(nil)
 
