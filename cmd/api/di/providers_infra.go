@@ -22,7 +22,6 @@ import (
 	"gochat/internal/infrastructure/ulule"
 	"gochat/internal/infrastructure/uuid"
 	validatorInfra "gochat/internal/infrastructure/validator"
-	"gochat/internal/infrastructure/websocket"
 	roomshipDomain "gochat/internal/roomship/domain"
 	roomshipSnowflake "gochat/internal/roomship/infrastructure/snowflake"
 	roomshipUUID "gochat/internal/roomship/infrastructure/uuid"
@@ -79,7 +78,6 @@ var InfraSet = wire.NewSet(
 	wire.Bind(new(kernel.OperationIDGenerator), new(*uuid.OperationIDGenerator)),
 	wire.Bind(new(event.Publisher), new(*kafkautil.EventPublisher)),
 	wire.Bind(new(ginutils.Validator), new(*validatorInfra.Validator)),
-	wire.Bind(new(websocket.Validator), new(*validatorInfra.Validator)),
 	// Authorization binds
 	wire.Bind(new(authDomain.UserIDGenerator), new(*authUUID.UserIDGenerator)),
 	wire.Bind(new(authDomain.UserNumberGenerator), new(*authSnowflake.UserNumberGenerator)),
