@@ -27,7 +27,7 @@ import (
 	roomshipUUID "gochat/internal/roomship/infrastructure/uuid"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
-	"net"
+	"gochat/pkg/iputil"
 	"net/http"
 	"strings"
 	"time"
@@ -194,26 +194,13 @@ func provideCheckOrigin(appConfig *config.App) checkOrigin {
 		allowed[o] = struct{}{}
 	}
 
-	isLoopbackRequest := func(remoteAddr string) bool {
-		host, _, err := net.SplitHostPort(remoteAddr)
-		if err != nil {
-			host = remoteAddr
-		}
-		host = strings.Trim(host, "[]")
-		if strings.EqualFold(host, "localhost") {
-			return true
-		}
-		ip := net.ParseIP(host)
-		return ip != nil && ip.IsLoopback()
-	}
-
 	return func(r *http.Request) bool {
 		// 若未配置 origins 或包含通配符则允许所有来源
 		if allowAll || len(allowed) == 0 {
 			return true
 		}
 
-		if isLoopbackRequest(r.RemoteAddr) {
+		if iputil.IsLoopbackRequest(r.RemoteAddr) {
 			return true
 		}
 
