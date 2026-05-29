@@ -18,9 +18,15 @@ const (
 
 func NewRetryErrorMiddleware(
 	producer *ckafka.Producer,
+	isRetryableError func(error) bool,
 ) kafka.ErrorMiddleware {
 	return func(next kafka.ErrorHandler) kafka.ErrorHandler {
 		return kafka.ErrorHandlerFunc(func(ctx context.Context, err error, message *ckafka.Message) {
+			if !isRetryableError(err) {
+				next.Handle(ctx, err, message)
+				return
+			}
+
 			//进行重试
 			var retryCount int
 			found := false

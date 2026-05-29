@@ -34,7 +34,10 @@ import (
 var KafkaSet = wire.NewSet(
 	provideKafkaProducer,
 	provideKafkaConsumers,
+	provideIsRetriableError,
 )
+
+type isRetriableError func(error) bool
 
 func provideKafkaProducer(
 	appConf *config.App,
@@ -62,6 +65,7 @@ func buildKafkaConsumer(
 	contextName string,
 	topicName string,
 	register func(r *kafkaInfra.Router),
+	isRetriableError isRetriableError,
 ) (*kafkaInfra.Consumer, error) {
 	if appConfig == nil || appConfig.Kafka == nil {
 		return nil, fmt.Errorf("failed to create Kafka consumer: app config kafka is nil")
@@ -105,7 +109,7 @@ func buildKafkaConsumer(
 
 	consumer.SetErrorHandler(
 		handler.NewLoggerErrorHandler(),
-		middleware.NewRetryErrorMiddleware(reproducer),
+		middleware.NewRetryErrorMiddleware(reproducer, isRetriableError),
 		middleware.NewDeadLetterErrorMiddlewareWithNamespace(eventRepo, groupID),
 	)
 
@@ -124,6 +128,7 @@ func provideKafkaConsumers(
 	redisClient *goredis.Client,
 	reproducer *ckafka.Producer,
 	eventRepo event.Repository,
+	isRetriableError isRetriableError,
 	profileUserCreated profileApp.UserCreatedUseCase,
 	profileRoomCreated profileApp.RoomCreatedUseCase,
 	profileRoomshipCreated profileApp.RoomshipCreatedUseCase,
@@ -162,90 +167,96 @@ func provideKafkaConsumers(
 
 	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "profile", string(profileDomain.TopicUserCreated), func(r *kafkaInfra.Router) {
 		r.EventHandle(profileDomain.TopicUserCreated, profileEvent.NewUserCreatedEventHandler(profileUserCreated))
-	})); err != nil {
+	}, isRetriableError)); err != nil {
 		return nil, err
 	}
 	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "profile", string(profileDomain.TopicRoomCreated), func(r *kafkaInfra.Router) {
 		r.EventHandle(profileDomain.TopicRoomCreated, profileEvent.NewRoomCreatedEventHandler(profileRoomCreated))
-	})); err != nil {
+	}, isRetriableError)); err != nil {
 		return nil, err
 	}
 	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "profile", string(profileDomain.TopicRoomshipCreated), func(r *kafkaInfra.Router) {
 		r.EventHandle(profileDomain.TopicRoomshipCreated, profileEvent.NewRoomshipCreatedEventHandler(profileRoomshipCreated))
-	})); err != nil {
+	}, isRetriableError)); err != nil {
 		return nil, err
 	}
 
 	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "chat", string(chatDomain.TopicUserCreated), func(r *kafkaInfra.Router) {
 		r.EventHandle(chatDomain.TopicUserCreated, chatEvent.NewUserCreatedEventHandler(chatUserCreated))
-	})); err != nil {
+	}, isRetriableError)); err != nil {
 		return nil, err
 	}
 	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "chat", string(chatDomain.TopicRoomCreated), func(r *kafkaInfra.Router) {
 		r.EventHandle(chatDomain.TopicRoomCreated, chatEvent.NewRoomCreatedEventHandler(chatRoomCreated))
-	})); err != nil {
+	}, isRetriableError)); err != nil {
 		return nil, err
 	}
 	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "chat", string(chatDomain.TopicRoomshipCreated), func(r *kafkaInfra.Router) {
 		r.EventHandle(chatDomain.TopicRoomshipCreated, chatEvent.NewRoomshipCreatedEventHandler(chatRoomshipCreated))
-	})); err != nil {
+	}, isRetriableError)); err != nil {
 		return nil, err
 	}
 	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "chat", string(chatDomain.TopicFriendshipCreated), func(r *kafkaInfra.Router) {
 		r.EventHandle(chatDomain.TopicFriendshipCreated, chatEvent.NewFriendshipCreatedEventHandler(chatFriendshipCreated))
-	})); err != nil {
+	}, isRetriableError)); err != nil {
 		return nil, err
 	}
 
 	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "chat", string(chatDomain.TopicSendPrivateMessageCommand), func(r *kafkaInfra.Router) {
 		r.EventHandle(chatDomain.TopicSendPrivateMessageCommand, command.NewSendPrivateMessageCommandHandler(chatSendPrivateMessage))
-	})); err != nil {
+	}, isRetriableError)); err != nil {
 		return nil, err
 	}
 	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "chat", string(chatDomain.TopicSendRoomMessageCommand), func(r *kafkaInfra.Router) {
 		r.EventHandle(chatDomain.TopicSendRoomMessageCommand, command.NewSendRoomMessageCommandHandler(chatSendRoomMessage))
-	})); err != nil {
+	}, isRetriableError)); err != nil {
 		return nil, err
 	}
 
 	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "roomship", string(roomshipDomain.TopicUserCreated), func(r *kafkaInfra.Router) {
 		r.EventHandle(roomshipDomain.TopicUserCreated, roomshipEvent.NewUserCreatedEventHandler(roomshipUserCreated))
-	})); err != nil {
+	}, isRetriableError)); err != nil {
 		return nil, err
 	}
 	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "roomship", string(roomshipDomain.TopicRoomCreated), func(r *kafkaInfra.Router) {
 		r.EventHandle(roomshipDomain.TopicRoomCreated, roomshipEvent.NewRoomCreatedEventHandler(roomshipRoomCreated))
-	})); err != nil {
+	}, isRetriableError)); err != nil {
 		return nil, err
 	}
 	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "roomship", string(roomshipDomain.TopicMemberRequestAgreed), func(r *kafkaInfra.Router) {
 		r.EventHandle(roomshipDomain.TopicMemberRequestAgreed, roomshipEvent.NewMemberRequestAgreedEventHandler(roomshipMemberRequestAgreed))
-	})); err != nil {
+	}, isRetriableError)); err != nil {
 		return nil, err
 	}
 
 	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "friendship", string(friendshipDomain.TopicUserCreated), func(r *kafkaInfra.Router) {
 		r.EventHandle(friendshipDomain.TopicUserCreated, friendshipEvent.NewUserCreatedEventHandler(friendshipUserCreated))
-	})); err != nil {
+	}, isRetriableError)); err != nil {
 		return nil, err
 	}
 	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "friendship", string(friendshipDomain.TopicFriendRequestAgreed), func(r *kafkaInfra.Router) {
 		r.EventHandle(friendshipDomain.TopicFriendRequestAgreed, friendshipEvent.NewFriendRequestAgreedEventHandler(friendshipFriendRequestAgreed))
-	})); err != nil {
+	}, isRetriableError)); err != nil {
 		return nil, err
 	}
 
 	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "notification", string(contract.TopicNotificationCreated), func(r *kafkaInfra.Router) {
 		r.EventHandle(contract.TopicNotificationCreated, notificationEvent.NewNotificationCreatedEventHandler(notificationCreated))
-	})); err != nil {
+	}, isRetriableError)); err != nil {
 		return nil, err
 	}
 
 	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "notification", string(contract.TopicPushSucceeded), func(r *kafkaInfra.Router) {
 		r.EventHandle(contract.TopicPushSucceeded, notificationEvent.NewPushSucceededEventHandler(pushSucceeded))
-	})); err != nil {
+	}, isRetriableError)); err != nil {
 		return nil, err
 	}
 
 	return consumers, nil
+}
+
+func provideIsRetriableError() isRetriableError {
+	return func(error) bool {
+		return false
+	}
 }
