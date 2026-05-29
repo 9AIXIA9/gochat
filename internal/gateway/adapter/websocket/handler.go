@@ -49,4 +49,6 @@ func (h *IngressHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// 后台开启读写引擎 (pump)
 	session.Start(r.Context())
+
+	<-r.Context().Done()
 }
