@@ -2,12 +2,13 @@ package core
 
 import (
 	"context"
-	"go.uber.org/zap"
 	"gochat/internal/infrastructure/metrics"
 	"sync"
+
+	"go.uber.org/zap"
 )
 
-// Manager 扮演会话池的角色，管理本地连接 (后续升级时，向全局 Redis 注册的动作也可以放在此触发)
+// Manager 扮演会话池的角色，管理本地连接
 type Manager struct {
 	mu       sync.RWMutex
 	sessions map[string]map[string]Session // map[UserID]map[SessionID]Session 以支持多端登录
@@ -61,7 +62,7 @@ func (m *Manager) Unregister(s Session) {
 	if found {
 		metrics.WSConnectionDelta(context.Background(), -1)
 		metrics.WSDisconnect(context.Background(), "unregister_by_pointer")
-		zap.L().Debug("push manager: unregistered session", zap.String("userID", userID), zap.String("sessionID", sessionID))
+		zap.L().Debug("gateway manager: unregistered session", zap.String("userID", userID), zap.String("sessionID", sessionID))
 	}
 }
 

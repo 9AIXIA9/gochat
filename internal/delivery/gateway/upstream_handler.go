@@ -3,8 +3,8 @@ package gateway
 import (
 	"context"
 	"encoding/json"
+	"gochat/internal/shared/contract"
 
-	"gochat/internal/gateway/contract"
 	"gochat/internal/infrastructure/validator"
 
 	"go.uber.org/zap"

@@ -1,7 +1,6 @@
 package core
 
-// Session 是 Push 上下文对客户端真实物理连接的抽象描述。
-// 这里采用领域模型 (纯技术概念的实体)。
+// Session 是 gateway 上下文对客户端真实物理连接的抽象描述
 type Session interface {
 	// ID 当前 Session 的全局唯一标识 (可以是连接 ID)
 	ID() string

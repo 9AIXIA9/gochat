@@ -2,8 +2,8 @@ package websocket
 
 import (
 	"context"
-	"gochat/internal/gateway/contract"
 	"gochat/internal/gateway/core"
+	"gochat/internal/shared/contract"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -64,7 +64,7 @@ func (s *WSSession) Send(msg []byte) error {
 }
 
 func (s *WSSession) Close() error {
-	zap.L().Debug("push adapter: closing websocket session", zap.String("userID", s.userID))
+	zap.L().Debug("gateway adapter: closing websocket session", zap.String("userID", s.userID))
 	s.hub.Unregister(s)
 	// 清理通道等操作在 writePump defer 内完成会更优雅
 	return s.conn.Close()

@@ -2,8 +2,8 @@ package websocket
 
 import (
 	"context"
-	"gochat/internal/gateway/contract"
 	"gochat/internal/gateway/core"
+	"gochat/internal/shared/contract"
 	"gochat/pkg/ctxutil"
 	"net/http"
 
@@ -11,7 +11,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// IngressHandler 负责承接外网真实流量，建立 WebSocket 握手并接入 Push 上下文
+// IngressHandler 负责承接外网真实流量，建立 WebSocket 握手并接入 gateway 上下文
 type IngressHandler struct {
 	hub             *core.Manager
 	upgrader        websocket.Upgrader

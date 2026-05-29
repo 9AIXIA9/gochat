@@ -6,7 +6,8 @@ import (
 	gatewayWebsocket "gochat/internal/gateway/adapter/websocket"
 	"gochat/internal/gateway/api/local"
 	"gochat/internal/gateway/core"
-	validatorInfra "gochat/internal/infrastructure/validator" // 导入实际验证器类型
+	validatorInfra "gochat/internal/infrastructure/validator"
+	"gochat/internal/shared/contract"
 
 	"github.com/google/wire"
 )
@@ -22,12 +23,12 @@ func provideGatewayManager() *core.Manager {
 	return core.NewManager()
 }
 
-func provideGatewayService(manager *core.Manager) *local.WSGatewayService {
-	return local.NewWSGatewayService(manager).(*local.WSGatewayService)
+func provideGatewayService(manager *core.Manager) contract.GatewayService {
+	return local.NewLocalGatewayService(manager)
 }
 
 func provideGatewayUpstreamHandler(
-	validator *validatorInfra.Validator, // 改为实际结构
+	validator *validatorInfra.Validator,
 	chatSendPrivateMessage chatApp.SendPrivateMessageUseCase,
 	chatSendRoomMessage chatApp.SendRoomMessageUseCase,
 ) *gateway.UpstreamRouter {
