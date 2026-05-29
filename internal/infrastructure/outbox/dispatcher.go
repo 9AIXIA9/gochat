@@ -127,7 +127,7 @@ func (d *Dispatcher) runOnce(ctx context.Context, source string) {
 		return
 	}
 
-	zap.L().Info("outbox dispatcher drain completed",
+	zap.L().Debug("outbox dispatcher drain completed",
 		zap.String("source", source),
 		zap.Duration("elapsed", time.Since(start)),
 	)
