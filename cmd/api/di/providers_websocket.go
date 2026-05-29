@@ -1,11 +1,13 @@
 package di
 
 import (
+	"gochat/internal/delivery/gateway"
 	gatewayWebsocket "gochat/internal/gateway/adapter/websocket"
 	"gochat/internal/gateway/api/local"
 	"gochat/internal/gateway/core"
 	"gochat/internal/gateway/infrastructure/uuid"
 	"gochat/internal/shared/contract"
+	"gochat/internal/shared/event"
 
 	"github.com/google/wire"
 )
@@ -25,8 +27,8 @@ func provideGatewayService(manager *core.Manager) contract.GatewayService {
 	return local.NewLocalGatewayService(manager)
 }
 
-func provideGatewayUpstreamHandler() contract.UpstreamHandler {
-	return nil
+func provideGatewayUpstreamHandler(publisher event.SyncPublisher, generator event.IDGenerator) contract.UpstreamHandler {
+	return gateway.NewUpstreamRouter(publisher, generator)
 }
 
 func provideGatewayIngressHandler(hub *core.Manager, upstream contract.UpstreamHandler, sessionIDGenerator *uuid.SessionIDGenerator, checkOrigin checkOrigin) *gatewayWebsocket.IngressHandler {

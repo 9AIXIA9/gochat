@@ -16,9 +16,9 @@ import (
 	"go.uber.org/zap"
 )
 
-var _ event.Publisher = (*EventPublisher)(nil)
+var _ event.AsyncPublisher = (*EventAsyncPublisher)(nil)
 
-type EventPublisher struct {
+type EventAsyncPublisher struct {
 	publishResultChan chan ckafka.Event
 	producer          *ckafka.Producer
 	onDelivered       func(event.ID) error
@@ -33,10 +33,10 @@ type EventPublisher struct {
 	deliveredWorkers int
 }
 
-func NewEventPublisher(
+func NewEventAsyncPublisher(
 	config *Config,
 	onDelivered func(event.ID) error,
-) (*EventPublisher, error) {
+) (*EventAsyncPublisher, error) {
 	if onDelivered == nil {
 		return nil, fmt.Errorf("%w: onDelivered is nil", myErrors.ErrEmptyPointer)
 	}
@@ -52,7 +52,7 @@ func NewEventPublisher(
 		return nil, fmt.Errorf("create kafka producer failed: %w", err)
 	}
 
-	return &EventPublisher{
+	return &EventAsyncPublisher{
 		// 增大结果通道，减少在高吞吐下消费者处理不及导致的阻塞
 		publishResultChan: make(chan ckafka.Event, 4096),
 		producer:          producer,
@@ -62,7 +62,7 @@ func NewEventPublisher(
 	}, nil
 }
 
-func (p *EventPublisher) Publish(ctx context.Context, ev event.Event) error {
+func (p *EventAsyncPublisher) Publish(ctx context.Context, ev event.Event) error {
 	if ev == nil {
 		return myErrors.ErrEmptyPointer
 	}
@@ -118,7 +118,7 @@ func (p *EventPublisher) Publish(ctx context.Context, ev event.Event) error {
 	}
 }
 
-func (p *EventPublisher) processPublishingResponse() {
+func (p *EventAsyncPublisher) processPublishingResponse() {
 	for result := range p.publishResultChan {
 		switch message := result.(type) {
 		case *ckafka.Message:
@@ -138,7 +138,7 @@ func (p *EventPublisher) processPublishingResponse() {
 	close(p.deliveredCh)
 }
 
-func (p *EventPublisher) Start() {
+func (p *EventAsyncPublisher) Start() {
 	// start publisher event loop
 	p.wg.Add(1)
 	go func() {
@@ -163,7 +163,7 @@ func (p *EventPublisher) Start() {
 	}
 }
 
-func (p *EventPublisher) Close() {
+func (p *EventAsyncPublisher) Close() {
 	if !p.closed.CompareAndSwap(false, true) {
 		return
 	}

@@ -50,7 +50,8 @@ var InfraSet = wire.NewSet(
 	provideObservability,
 	provideMysqlConnection,
 	provideRedisConnection,
-	provideKafkaPublisher,
+	provideKafkaAsyncPublisher,
+	provideKafkaSyncPublisher,
 	provideOutboxDispatcher,
 	provideCheckOrigin,
 	provideValidator,
@@ -74,7 +75,8 @@ var InfraSet = wire.NewSet(
 	wire.Bind(new(event.IDGenerator), new(*uuid.EventIDGenerator)),
 	wire.Bind(new(kernel.MessageIDGenerator), new(*uuid.MessageIDGenerator)),
 	wire.Bind(new(kernel.OperationIDGenerator), new(*uuid.OperationIDGenerator)),
-	wire.Bind(new(event.Publisher), new(*kafkautil.EventPublisher)),
+	wire.Bind(new(event.AsyncPublisher), new(*kafkautil.EventAsyncPublisher)),
+	wire.Bind(new(event.SyncPublisher), new(*kafkautil.EventSyncPublisher)),
 	wire.Bind(new(ginutils.Validator), new(*validatorInfra.Validator)),
 	// Authorization binds
 	wire.Bind(new(authDomain.UserIDGenerator), new(*authUUID.UserIDGenerator)),
@@ -163,13 +165,17 @@ func provideAccessTokenManager(appConfig *config.App) *jwt.AccessTokenManager {
 func provideRefreshTokenGenerator(appConfig *config.App) *crypto.RefreshTokenGenerator {
 	return crypto.NewRefreshTokenGenerator(appConfig.RefreshToken)
 }
-func provideKafkaPublisher(appConfig *config.App, eventRepo event.Repository) (*kafkautil.EventPublisher, error) {
-	return kafkautil.NewEventPublisher(
+func provideKafkaAsyncPublisher(appConfig *config.App, eventRepo event.Repository) (*kafkautil.EventAsyncPublisher, error) {
+	return kafkautil.NewEventAsyncPublisher(
 		appConfig.Kafka,
 		func(id event.ID) error {
 			return eventRepo.MarkAsPublished(context.Background(), id)
 		},
 	)
+}
+
+func provideKafkaSyncPublisher(appConfig *config.App) (*kafkautil.EventSyncPublisher, error) {
+	return kafkautil.NewEventSyncPublisher(appConfig.Kafka)
 }
 
 func provideOutboxDispatcher(appConfig *config.App, uc rootapp.UnpublishedEventsCreatedUseCase) (*outboxUtil.Dispatcher, error) {

@@ -72,7 +72,7 @@ var UseCaseKafkaSet = wire.NewSet(
 // -------------------- UseCases (System side) --------------------
 func provideUnpublishedEventsCreatedCase(
 	appConfig *config.App,
-	eventPublisher event.Publisher,
+	eventPublisher event.AsyncPublisher,
 	eventRepository event.Repository,
 ) (rootapp.UnpublishedEventsCreatedUseCase, error) {
 	_ = appConfig

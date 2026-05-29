@@ -19,7 +19,7 @@ const (
 type UnpublishedEventsCreatedUseCase kernel.UseCase[*kernel.NoInput, *kernel.NoOutput]
 
 type unpublishedEventsCreatedUseCase struct {
-	publisher  event.Publisher
+	publisher  event.AsyncPublisher
 	lister     event.UnpublishedEventsLister
 	lease      time.Duration
 	limit      int
@@ -27,14 +27,14 @@ type unpublishedEventsCreatedUseCase struct {
 }
 
 func NewUnpublishedEventsCreatedUseCase(
-	publisher event.Publisher,
+	publisher event.AsyncPublisher,
 	lister event.UnpublishedEventsLister,
 ) (UnpublishedEventsCreatedUseCase, error) {
 	return NewUnpublishedEventsCreatedUseCaseWithOptions(publisher, lister, 0, 0, 0)
 }
 
 func NewUnpublishedEventsCreatedUseCaseWithOptions(
-	publisher event.Publisher,
+	publisher event.AsyncPublisher,
 	lister event.UnpublishedEventsLister,
 	lease time.Duration,
 	limit int,

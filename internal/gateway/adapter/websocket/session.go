@@ -95,7 +95,10 @@ func (s *WSSession) readPump(ctx context.Context) {
 
 		// 读到了上行消息 => 立马丢给 UpstreamHandler，自身不含任何业务逻辑，纯透传。
 		if s.upstreamHandler != nil {
-			s.upstreamHandler.HandleUpstream(ctx, s.userID, message)
+			if ackMsg := s.upstreamHandler.HandleUpstream(ctx, s.userID, message); ackMsg != nil {
+				// 直接塞入当前连接的写队列
+				s.Send(ackMsg)
+			}
 		}
 	}
 }

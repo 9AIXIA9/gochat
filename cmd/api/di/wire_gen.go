@@ -159,7 +159,11 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 		return nil, err
 	}
 	manager := provideGatewayManager()
-	upstreamHandler := provideGatewayUpstreamHandler()
+	eventSyncPublisher, err := provideKafkaSyncPublisher(appConfig)
+	if err != nil {
+		return nil, err
+	}
+	upstreamHandler := provideGatewayUpstreamHandler(eventSyncPublisher, eventIDGenerator)
 	sessionIDGenerator := provideSessionIDGenerator()
 	diCheckOrigin := provideCheckOrigin(appConfig)
 	ingressHandler := provideGatewayIngressHandler(manager, upstreamHandler, sessionIDGenerator, diCheckOrigin)
@@ -244,11 +248,11 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	}
 	engine := provideHttpRouter(appConfig, signUpUseCase, loginUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, getUserProfileUseCase, httpLimiter, getRoomProfileUseCase, updateUserProfileUseCase, updateRoomProfileUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, listPrivateMessagesUseCase, listRoomMessagesUseCase, createRoomUseCase, listRoomMembersUseCase, sendMemberRequestUseCase, agreeMemberRequestUseCase, refuseMemberRequestUseCase, listMemberRequestsUseCase, listRoomshipsUseCase, leaveRoomUseCase, sendFriendRequestUseCase, agreeFriendRequestUseCase, refuseFriendRequestUseCase, listFriendshipsUseCase, listFriendRequestsUseCase, validator, ingressHandler, v2, otelShutdown)
 	server := provideHttpServer(appConfig, engine)
-	eventPublisher, err := provideKafkaPublisher(appConfig, eventRepository)
+	eventAsyncPublisher, err := provideKafkaAsyncPublisher(appConfig, eventRepository)
 	if err != nil {
 		return nil, err
 	}
-	unpublishedEventsCreatedUseCase, err := provideUnpublishedEventsCreatedCase(appConfig, eventPublisher, eventRepository)
+	unpublishedEventsCreatedUseCase, err := provideUnpublishedEventsCreatedCase(appConfig, eventAsyncPublisher, eventRepository)
 	if err != nil {
 		return nil, err
 	}
@@ -262,7 +266,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	}
 	eventHandler := provideCanalBinlogReaderHandler(dispatcher)
 	binlogReader := provideCanalBinlogReader(canal, eventHandler)
-	dependencies, err := BuildDependencies(server, db, client, eventPublisher, dispatcher, v, binlogReader, otelShutdown)
+	dependencies, err := BuildDependencies(server, db, client, eventAsyncPublisher, eventSyncPublisher, dispatcher, v, binlogReader, otelShutdown)
 	if err != nil {
 		return nil, err
 	}
