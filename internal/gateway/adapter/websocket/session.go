@@ -4,6 +4,7 @@ import (
 	"context"
 	"gochat/internal/gateway/core"
 	"gochat/internal/shared/contract"
+	"gochat/internal/shared/kernel"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -16,17 +17,22 @@ const (
 	pingPeriod = 30 * time.Second
 )
 
-// WSSession 是底层真正的 Gorilla WebSocket 实现
 type WSSession struct {
-	id              string
-	userID          string
+	id              core.SessionID
+	userID          kernel.UserID
 	conn            *websocket.Conn
 	hub             *core.Manager
 	upstreamHandler contract.UpstreamHandler
-	send            chan []byte // 出发消息缓冲控制 (避免阻塞核心线程)
+	send            chan []byte
 }
 
-func NewWSSession(id string, userID string, conn *websocket.Conn, hub *core.Manager, handler contract.UpstreamHandler) *WSSession {
+func NewWSSession(
+	id core.SessionID,
+	userID kernel.UserID,
+	conn *websocket.Conn,
+	hub *core.Manager,
+	handler contract.UpstreamHandler,
+) *WSSession {
 	return &WSSession{
 		id:              id,
 		userID:          userID,
@@ -43,30 +49,27 @@ func (s *WSSession) Start(ctx context.Context) {
 	go s.writePump(ctx)
 }
 
-func (s *WSSession) ID() string {
+func (s *WSSession) ID() core.SessionID {
 	return s.id
 }
 
-func (s *WSSession) UserID() string {
+func (s *WSSession) UserID() kernel.UserID {
 	return s.userID
 }
 
-// Send 这个方法供 Manager 或本地 LocalWSGatewayService 调用，纯粹地将数据注入 Channel
 func (s *WSSession) Send(msg []byte) error {
 	select {
 	case s.send <- msg:
 		return nil
 	default:
-		// 当队列满时代表客户端僵死或者处理太慢，按最佳实践抛弃或者断开。
 		s.Close()
-		return nil // 或者报一个 ErrBufferFull
+		return nil
 	}
 }
 
 func (s *WSSession) Close() error {
-	zap.L().Debug("gateway adapter: closing websocket session", zap.String("userID", s.userID))
+	zap.L().Debug("gateway adapter: closing websocket session", zap.String("userID", s.userID.String()))
 	s.hub.Unregister(s)
-	// 清理通道等操作在 writePump defer 内完成会更优雅
 	return s.conn.Close()
 }
 
@@ -119,10 +122,10 @@ func (s *WSSession) writePump(ctx context.Context) {
 			}
 			_, _ = w.Write(message)
 
-			// 读尽当前管道内现存积压包做 Batching 支持。
+			// 读尽当前管道内现存积压包做 Batching 支持
 			n := len(s.send)
 			for i := 0; i < n; i++ {
-				w.Write([]byte{'\n'}) // 可以做个定界符，或者由业务包装时保证完整 json
+				w.Write([]byte{'\n'})
 				w.Write(<-s.send)
 			}
 

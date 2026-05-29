@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"gochat/internal/infrastructure/metrics"
+	"gochat/internal/shared/kernel"
 	"sync"
 
 	"go.uber.org/zap"
@@ -11,12 +12,12 @@ import (
 // Manager 扮演会话池的角色，管理本地连接
 type Manager struct {
 	mu       sync.RWMutex
-	sessions map[string]map[string]Session // map[UserID]map[SessionID]Session 以支持多端登录
+	sessions map[kernel.UserID]map[SessionID]Session //支持多端登录
 }
 
-func NewManager() *Manager {
+func NewManager(preassignedSize int) *Manager {
 	return &Manager{
-		sessions: make(map[string]map[string]Session, 10000), // 可通过配置传入
+		sessions: make(map[kernel.UserID]map[SessionID]Session, preassignedSize),
 	}
 }
 
@@ -27,7 +28,7 @@ func (m *Manager) Register(s Session) {
 
 	m.mu.Lock()
 	if m.sessions[userID] == nil {
-		m.sessions[userID] = make(map[string]Session)
+		m.sessions[userID] = make(map[SessionID]Session)
 	}
 	m.sessions[userID][sessionID] = s
 	m.mu.Unlock()
@@ -62,12 +63,12 @@ func (m *Manager) Unregister(s Session) {
 	if found {
 		metrics.WSConnectionDelta(context.Background(), -1)
 		metrics.WSDisconnect(context.Background(), "unregister_by_pointer")
-		zap.L().Debug("gateway manager: unregistered session", zap.String("userID", userID), zap.String("sessionID", sessionID))
+		zap.L().Debug("gateway manager: unregistered session", zap.String("userID", userID.String()), zap.String("sessionID", sessionID.String()))
 	}
 }
 
-// GetByUserID 根据目标 UserID 获取当前的 Session（单体版调度）
-func (m *Manager) GetByUserID(userID string) ([]Session, bool) {
+// GetByUserID 根据目标 UserID 获取当前的 Session
+func (m *Manager) GetByUserID(userID kernel.UserID) ([]Session, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 

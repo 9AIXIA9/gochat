@@ -59,14 +59,14 @@ func NewUpstreamRouter(
 }
 
 // HandleUpstream 由 Gateway 核心收取到客户端消息时回调
-func (r *UpstreamRouter) HandleUpstream(ctx context.Context, userID string, payload []byte) {
+func (r *UpstreamRouter) HandleUpstream(ctx context.Context, userID kernel.UserID, payload []byte) {
 	var req Request
 	if err := json.Unmarshal(payload, &req); err != nil {
-		zap.L().Warn("gateway: payload unmarshal error", zap.Error(err), zap.String("userID", userID))
+		zap.L().Warn("gateway: payload unmarshal error", zap.Error(err), zap.String("userID", userID.String()))
 		return
 	}
 
-	uid := kernel.UserID(userID) // 使用类型强转替代 kernel.ParseUserID，因为 kernel 层直接使用 string 别名
+	uid := userID
 
 	switch req.Topic {
 	case SendPrivateMessageTopic:
@@ -109,6 +109,6 @@ func (r *UpstreamRouter) HandleUpstream(ctx context.Context, userID string, payl
 		})
 
 	default:
-		zap.L().Warn("gateway: topic not found", zap.String("topic", req.Topic), zap.String("userID", userID))
+		zap.L().Warn("gateway: topic not found", zap.String("topic", req.Topic), zap.String("userID", userID.String()))
 	}
 }

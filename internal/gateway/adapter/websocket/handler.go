@@ -1,34 +1,37 @@
 package websocket
 
 import (
-	"context"
 	"gochat/internal/gateway/core"
 	"gochat/internal/shared/contract"
 	"gochat/pkg/ctxutil"
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
 
 // IngressHandler 负责承接外网真实流量，建立 WebSocket 握手并接入 gateway 上下文
 type IngressHandler struct {
-	hub             *core.Manager
-	upgrader        websocket.Upgrader
-	upstreamHandler contract.UpstreamHandler
+	hub                *core.Manager
+	upgrader           websocket.Upgrader
+	upstreamHandler    contract.UpstreamHandler
+	sessionIDGenerator core.SessionIDGenerator
 }
 
-func NewIngressHandler(hub *core.Manager, handler contract.UpstreamHandler) *IngressHandler {
+func NewIngressHandler(
+	hub *core.Manager,
+	handler contract.UpstreamHandler,
+	checkOrigin func(r *http.Request) bool,
+	idGenerator core.SessionIDGenerator,
+) *IngressHandler {
 	return &IngressHandler{
 		hub: hub,
 		upgrader: websocket.Upgrader{
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,
-			CheckOrigin: func(r *http.Request) bool {
-				return true // 可在此进行 Origin CORS 跨域校验规则限制
-			},
+			CheckOrigin:     checkOrigin,
 		},
-		upstreamHandler: handler,
+		upstreamHandler:    handler,
+		sessionIDGenerator: idGenerator,
 	}
 }
 
@@ -39,14 +42,11 @@ func (h *IngressHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return // 降级或升级错误通常交由 Http 框架自身或 upgrader 自带响应，无需额外处理
 	}
 
-	// 从原先挂在 Request context 里的鉴权 JWT 提取 userID
-	userID := ctxutil.UserIDFrom(r.Context()).String()
-	sessionID := uuid.New().String()
-	session := NewWSSession(sessionID, userID, conn, h.hub, h.upstreamHandler)
+	session := NewWSSession(h.sessionIDGenerator.Generate(), ctxutil.UserIDFrom(r.Context()), conn, h.hub, h.upstreamHandler)
 
 	// 注册新用户长连接进本地资源池调度
 	h.hub.Register(session)
 
 	// 后台开启读写引擎 (pump)
-	session.Start(context.Background())
+	session.Start(r.Context())
 }

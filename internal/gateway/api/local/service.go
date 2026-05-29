@@ -6,6 +6,7 @@ import (
 	"gochat/internal/infrastructure/metrics"
 	"gochat/internal/shared/contract"
 	myErrors "gochat/internal/shared/errors"
+	"gochat/internal/shared/kernel"
 	"gochat/internal/shared/timeout"
 )
 
@@ -21,7 +22,7 @@ func NewLocalGatewayService(manager *core.Manager) contract.GatewayService {
 	}
 }
 
-func (s *gatewayService) PushToUser(ctx context.Context, userID string, payload []byte) error {
+func (s *gatewayService) PushToUser(ctx context.Context, userID kernel.UserID, payload []byte) error {
 	if timeout.CheckCtxTimeout(ctx) {
 		return myErrors.ErrTimeout
 	}

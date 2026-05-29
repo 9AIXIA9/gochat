@@ -6,6 +6,7 @@ import (
 	gatewayWebsocket "gochat/internal/gateway/adapter/websocket"
 	"gochat/internal/gateway/api/local"
 	"gochat/internal/gateway/core"
+	"gochat/internal/gateway/infrastructure/uuid"
 	validatorInfra "gochat/internal/infrastructure/validator"
 	"gochat/internal/shared/contract"
 
@@ -20,7 +21,7 @@ var WebsocketSet = wire.NewSet(
 )
 
 func provideGatewayManager() *core.Manager {
-	return core.NewManager()
+	return core.NewManager(1024)
 }
 
 func provideGatewayService(manager *core.Manager) contract.GatewayService {
@@ -35,6 +36,6 @@ func provideGatewayUpstreamHandler(
 	return gateway.NewUpstreamRouter(validator, chatSendPrivateMessage, chatSendRoomMessage).(*gateway.UpstreamRouter)
 }
 
-func provideGatewayIngressHandler(hub *core.Manager, upstream *gateway.UpstreamRouter) *gatewayWebsocket.IngressHandler {
-	return gatewayWebsocket.NewIngressHandler(hub, upstream)
+func provideGatewayIngressHandler(hub *core.Manager, upstream *gateway.UpstreamRouter, sessionIDGenerator *uuid.SessionIDGenerator, checkOrigin checkOrigin) *gatewayWebsocket.IngressHandler {
+	return gatewayWebsocket.NewIngressHandler(hub, upstream, checkOrigin, sessionIDGenerator)
 }

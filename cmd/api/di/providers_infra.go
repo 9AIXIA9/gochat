@@ -11,6 +11,7 @@ import (
 	authUUID "gochat/internal/authorization/infrastructure/uuid"
 	friendshipDomain "gochat/internal/friendship/domain"
 	friendshipUUID "gochat/internal/friendship/infrastructure/uuid"
+	gatewayUUID "gochat/internal/gateway/infrastructure/uuid"
 	"gochat/internal/infrastructure/bcrypt"
 	ginutils "gochat/internal/infrastructure/gin"
 	gormInfra "gochat/internal/infrastructure/gorm"
@@ -27,6 +28,9 @@ import (
 	roomshipUUID "gochat/internal/roomship/infrastructure/uuid"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
+	"net"
+	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/wire"
@@ -41,6 +45,7 @@ type (
 	HTTPLimiter      limiter.Limiter
 	WebsocketLimiter limiter.Limiter
 	KafkaLimiter     limiter.Limiter
+	checkOrigin      func(r *http.Request) bool
 )
 
 var InfraSet = wire.NewSet(
@@ -49,6 +54,7 @@ var InfraSet = wire.NewSet(
 	provideRedisConnection,
 	provideKafkaPublisher,
 	provideOutboxDispatcher,
+	provideCheckOrigin,
 	provideValidator,
 	provideHTTPLimiter,
 	provideWebsocketLimiter,
@@ -59,6 +65,7 @@ var InfraSet = wire.NewSet(
 	provideAuthorizationUserNumberGenerator,
 	provideHasher,
 	provideMessageIDGenerator,
+	provideSessionIDGenerator,
 	provideRoomshipRoomIDGenerator,
 	provideRoomshipRoomshipIDGenerator,
 	provideRoomshipRoomNumberGenerator,
@@ -132,6 +139,10 @@ func provideMessageIDGenerator() *uuid.MessageIDGenerator {
 	return uuid.NewMessageIDGenerator()
 }
 
+func provideSessionIDGenerator() *gatewayUUID.SessionIDGenerator {
+	return gatewayUUID.NewSessionIDGenerator()
+}
+
 func provideAuthorizationUserIDGenerator() *authUUID.UserIDGenerator {
 	return authUUID.NewUserIDGenerator()
 }
@@ -173,4 +184,52 @@ func provideOutboxDispatcher(appConfig *config.App, uc rootapp.UnpublishedEvents
 		return outboxUtil.NewDispatcher(uc, time.Second, 1)
 	}
 	return outboxUtil.NewDispatcher(uc, appConfig.Outbox.SweepInterval, appConfig.Outbox.TriggerBuffer)
+}
+
+func provideCheckOrigin(appConfig *config.App) checkOrigin {
+	allowed := make(map[string]struct{}, len(appConfig.CORS.AllowOrigins))
+	allowAll := false
+	for _, o := range appConfig.CORS.AllowOrigins {
+		o = strings.TrimSpace(o)
+		if o == "" {
+			continue
+		}
+		if o == "*" {
+			allowAll = true
+			continue
+		}
+		allowed[o] = struct{}{}
+	}
+
+	isLoopbackRequest := func(remoteAddr string) bool {
+		host, _, err := net.SplitHostPort(remoteAddr)
+		if err != nil {
+			host = remoteAddr
+		}
+		host = strings.Trim(host, "[]")
+		if strings.EqualFold(host, "localhost") {
+			return true
+		}
+		ip := net.ParseIP(host)
+		return ip != nil && ip.IsLoopback()
+	}
+
+	return func(r *http.Request) bool {
+		// 若未配置 origins 或包含通配符则允许所有来源
+		if allowAll || len(allowed) == 0 {
+			return true
+		}
+
+		if isLoopbackRequest(r.RemoteAddr) {
+			return true
+		}
+
+		origin := r.Header.Get("Origin")
+		if origin == "" {
+			return false
+		}
+
+		_, ok := allowed[origin]
+		return ok
+	}
 }
