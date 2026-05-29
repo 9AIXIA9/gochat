@@ -5,6 +5,7 @@ import (
 	"gochat/config"
 	chatApp "gochat/internal/chat/application"
 	chatDomain "gochat/internal/chat/domain"
+	"gochat/internal/chat/port/command"
 	chatEvent "gochat/internal/chat/port/event"
 	"gochat/internal/delivery/kafka/handler"
 	"gochat/internal/delivery/kafka/middleware"
@@ -130,6 +131,8 @@ func provideKafkaConsumers(
 	chatRoomCreated chatApp.RoomCreatedUseCase,
 	chatRoomshipCreated chatApp.RoomshipCreatedUseCase,
 	chatFriendshipCreated chatApp.FriendshipCreatedUseCase,
+	chatSendPrivateMessage chatApp.SendPrivateMessageUseCase,
+	chatSendRoomMessage chatApp.SendRoomMessageUseCase,
 	roomshipUserCreated roomshipApp.UserCreatedUseCase,
 	roomshipRoomCreated roomshipApp.RoomCreatedUseCase,
 	roomshipMemberRequestAgreed roomshipApp.MemberRequestAgreedUseCase,
@@ -193,6 +196,18 @@ func provideKafkaConsumers(
 	})); err != nil {
 		return nil, err
 	}
+
+	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "chat", string(chatDomain.TopicSendPrivateMessageCommand), func(r *kafkaInfra.Router) {
+		r.EventHandle(chatDomain.TopicSendPrivateMessageCommand, command.NewSendPrivateMessageCommandHandler(chatSendPrivateMessage))
+	})); err != nil {
+		return nil, err
+	}
+	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "chat", string(chatDomain.TopicSendRoomMessageCommand), func(r *kafkaInfra.Router) {
+		r.EventHandle(chatDomain.TopicSendRoomMessageCommand, command.NewSendRoomMessageCommandHandler(chatSendRoomMessage))
+	})); err != nil {
+		return nil, err
+	}
+
 	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "roomship", string(roomshipDomain.TopicUserCreated), func(r *kafkaInfra.Router) {
 		r.EventHandle(roomshipDomain.TopicUserCreated, roomshipEvent.NewUserCreatedEventHandler(roomshipUserCreated))
 	})); err != nil {

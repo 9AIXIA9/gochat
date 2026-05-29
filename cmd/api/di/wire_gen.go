@@ -163,7 +163,8 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	upstreamHandler := provideGatewayUpstreamHandler(eventSyncPublisher, eventIDGenerator)
+	allowedAction := provideAllowedAction()
+	upstreamHandler := provideGatewayUpstreamHandler(eventSyncPublisher, eventIDGenerator, allowedAction)
 	sessionIDGenerator := provideSessionIDGenerator()
 	diCheckOrigin := provideCheckOrigin(appConfig)
 	ingressHandler := provideGatewayIngressHandler(manager, upstreamHandler, sessionIDGenerator, diCheckOrigin)
@@ -237,7 +238,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	v, err := provideKafkaConsumers(appConfig, kafkaLimiter, client, producer, eventRepository, userCreatedUseCase, roomCreatedUseCase, roomshipCreatedUseCase, applicationUserCreatedUseCase, applicationRoomCreatedUseCase, applicationRoomshipCreatedUseCase, friendshipCreatedUseCase, userCreatedUseCase2, roomCreatedUseCase2, memberRequestAgreedUseCase, userCreatedUseCase3, friendRequestAgreedUseCase, notificationCreatedUseCase, pushSucceededUseCase)
+	v, err := provideKafkaConsumers(appConfig, kafkaLimiter, client, producer, eventRepository, userCreatedUseCase, roomCreatedUseCase, roomshipCreatedUseCase, applicationUserCreatedUseCase, applicationRoomCreatedUseCase, applicationRoomshipCreatedUseCase, friendshipCreatedUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, userCreatedUseCase2, roomCreatedUseCase2, memberRequestAgreedUseCase, userCreatedUseCase3, friendRequestAgreedUseCase, notificationCreatedUseCase, pushSucceededUseCase)
 	if err != nil {
 		return nil, err
 	}
