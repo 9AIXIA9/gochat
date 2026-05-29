@@ -159,10 +159,10 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 		return nil, err
 	}
 	manager := provideGatewayManager()
-	upstreamRouter := provideGatewayUpstreamHandler(validator, sendPrivateMessageUseCase, sendRoomMessageUseCase)
+	upstreamHandler := provideGatewayUpstreamHandler()
 	sessionIDGenerator := provideSessionIDGenerator()
 	diCheckOrigin := provideCheckOrigin(appConfig)
-	ingressHandler := provideGatewayIngressHandler(manager, upstreamRouter, sessionIDGenerator, diCheckOrigin)
+	ingressHandler := provideGatewayIngressHandler(manager, upstreamHandler, sessionIDGenerator, diCheckOrigin)
 	producer, err := provideKafkaProducer(appConfig)
 	if err != nil {
 		return nil, err
