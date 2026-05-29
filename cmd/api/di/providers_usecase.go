@@ -69,6 +69,19 @@ var UseCaseKafkaSet = wire.NewSet(
 	providePushSucceededUseCase,
 )
 
+// -------------------- UseCases (System side) --------------------
+func provideUnpublishedEventsCreatedCase(
+	appConfig *config.App,
+	eventPublisher event.Publisher,
+	eventRepository event.Repository,
+) (rootapp.UnpublishedEventsCreatedUseCase, error) {
+	_ = appConfig
+	return rootapp.NewUnpublishedEventsCreatedUseCase(
+		eventPublisher,
+		eventRepository,
+	)
+}
+
 // -------------------- UseCases (HTTP side) --------------------
 func provideSignUpUseCase(
 	eventIDGen event.IDGenerator,
@@ -319,19 +332,6 @@ func provideListFriendshipsUseCase(
 ) (friendshipApp.ListFriendshipsUseCase, error) {
 	return friendshipApp.NewListFriendshipsUseCase(
 		friendRequestRepo,
-	)
-}
-
-// -------------------- Event UseCases (websocket side) --------------------
-func provideUnpublishedEventsCreatedCase(
-	appConfig *config.App,
-	eventPublisher event.Publisher,
-	eventRepository event.Repository,
-) (rootapp.UnpublishedEventsCreatedUseCase, error) {
-	_ = appConfig
-	return rootapp.NewUnpublishedEventsCreatedUseCase(
-		eventPublisher,
-		eventRepository,
 	)
 }
 

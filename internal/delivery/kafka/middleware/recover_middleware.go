@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"gochat/internal/infrastructure/kafka"
-	"gochat/internal/infrastructure/websocket"
 	"gochat/pkg/ctxutil"
 	"runtime/debug"
 
@@ -22,7 +21,7 @@ func NewRecoverMiddleware() kafka.Middleware {
 						zap.Any("panic", r),
 						zap.String("stack", stack),
 						zap.String("user_id", ctxutil.UserIDFrom(ctx).String()),
-						zap.String("topic", websocket.GetTopic(ctx).String()),
+						zap.String("topic", *message.TopicPartition.Topic),
 					)
 					// Return a safe, generic error to the client
 					err = fmt.Errorf("panic recovered: %v", r)

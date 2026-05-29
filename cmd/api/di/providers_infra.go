@@ -22,7 +22,6 @@ import (
 	"gochat/internal/infrastructure/ulule"
 	"gochat/internal/infrastructure/uuid"
 	validatorInfra "gochat/internal/infrastructure/validator"
-	"gochat/internal/infrastructure/websocket"
 	roomshipDomain "gochat/internal/roomship/domain"
 	roomshipSnowflake "gochat/internal/roomship/infrastructure/snowflake"
 	roomshipUUID "gochat/internal/roomship/infrastructure/uuid"
@@ -41,11 +40,10 @@ import (
 )
 
 type (
-	OTELShutdown     func(context.Context) error
-	HTTPLimiter      limiter.Limiter
-	WebsocketLimiter limiter.Limiter
-	KafkaLimiter     limiter.Limiter
-	checkOrigin      func(r *http.Request) bool
+	OTELShutdown func(context.Context) error
+	HTTPLimiter  limiter.Limiter
+	KafkaLimiter limiter.Limiter
+	checkOrigin  func(r *http.Request) bool
 )
 
 var InfraSet = wire.NewSet(
@@ -57,7 +55,6 @@ var InfraSet = wire.NewSet(
 	provideCheckOrigin,
 	provideValidator,
 	provideHTTPLimiter,
-	provideWebsocketLimiter,
 	provideKafkaLimiter,
 	// Generators & managers (concrete providers)
 	provideEventIDGenerator,
@@ -79,7 +76,6 @@ var InfraSet = wire.NewSet(
 	wire.Bind(new(kernel.OperationIDGenerator), new(*uuid.OperationIDGenerator)),
 	wire.Bind(new(event.Publisher), new(*kafkautil.EventPublisher)),
 	wire.Bind(new(ginutils.Validator), new(*validatorInfra.Validator)),
-	wire.Bind(new(websocket.Validator), new(*validatorInfra.Validator)),
 	// Authorization binds
 	wire.Bind(new(authDomain.UserIDGenerator), new(*authUUID.UserIDGenerator)),
 	wire.Bind(new(authDomain.UserNumberGenerator), new(*authSnowflake.UserNumberGenerator)),
@@ -121,9 +117,6 @@ func provideValidator() (*validatorInfra.Validator, error) { return validatorInf
 
 func provideHTTPLimiter(client *redis.Client, conf *config.App) *HTTPLimiter {
 	return (*HTTPLimiter)(ulule.NewLimiter(client, conf.HTTPRateLimit))
-}
-func provideWebsocketLimiter(client *redis.Client, conf *config.App) *WebsocketLimiter {
-	return (*WebsocketLimiter)(ulule.NewLimiter(client, conf.WebsocketRateLimit))
 }
 func provideKafkaLimiter(client *redis.Client, conf *config.App) *KafkaLimiter {
 	return (*KafkaLimiter)(ulule.NewLimiter(client, conf.KafkaRateLimit))
