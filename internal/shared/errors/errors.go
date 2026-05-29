@@ -7,8 +7,10 @@ import (
 // 系统相关错误
 
 var (
+	ErrServerBusy      = errors.New("system: server is busy")
 	ErrEmptyPointer    = errors.New("system: empty pointer")
 	ErrHasBeenClosed   = errors.New("system: has been closed")
+	ErrWrongAction     = errors.New("system: wrong action")
 	ErrWrongEventTopic = errors.New("system: wrong event topic")
 	ErrTimeout         = errors.New("system: operation timed out")
 )
