@@ -37,7 +37,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"golang.org/x/sync/errgroup"
 
-	gatewayWebsocket "gochat/internal/ws_gateway/adapter/websocket"
+	gatewayWebsocket "gochat/internal/gateway/adapter/websocket"
 )
 
 var nonBusinessPaths = []string{

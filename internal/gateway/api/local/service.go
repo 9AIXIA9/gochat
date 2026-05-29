@@ -2,11 +2,11 @@ package local
 
 import (
 	"context"
+	"gochat/internal/gateway/contract"
+	"gochat/internal/gateway/core"
 	"gochat/internal/infrastructure/metrics"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/timeout"
-	"gochat/internal/ws_gateway/contract"
-	"gochat/internal/ws_gateway/core"
 )
 
 // WSGatewayService 是 WSGatewayService 在单体进程内环境的默认实现。

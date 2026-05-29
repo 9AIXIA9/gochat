@@ -2,8 +2,8 @@ package websocket
 
 import (
 	"context"
-	"gochat/internal/ws_gateway/contract"
-	"gochat/internal/ws_gateway/core"
+	"gochat/internal/gateway/contract"
+	"gochat/internal/gateway/core"
 	"time"
 
 	"github.com/gorilla/websocket"

@@ -1,11 +1,11 @@
-package ws_gateway
+package gateway
 
 import (
 	"context"
 	"encoding/json"
 
+	"gochat/internal/gateway/contract"
 	"gochat/internal/infrastructure/validator"
-	"gochat/internal/ws_gateway/contract"
 
 	"go.uber.org/zap"
 
@@ -62,7 +62,7 @@ func NewUpstreamRouter(
 func (r *UpstreamRouter) HandleUpstream(ctx context.Context, userID string, payload []byte) {
 	var req Request
 	if err := json.Unmarshal(payload, &req); err != nil {
-		zap.L().Warn("ws_gateway: payload unmarshal error", zap.Error(err), zap.String("userID", userID))
+		zap.L().Warn("gateway: payload unmarshal error", zap.Error(err), zap.String("userID", userID))
 		return
 	}
 
@@ -72,14 +72,14 @@ func (r *UpstreamRouter) HandleUpstream(ctx context.Context, userID string, payl
 	case SendPrivateMessageTopic:
 		var data SendPrivateMessageData
 		if err := json.Unmarshal(req.Payload, &data); err != nil {
-			zap.L().Warn("ws_gateway: invalid private msg payload", zap.Error(err))
+			zap.L().Warn("gateway: invalid private msg payload", zap.Error(err))
 			return
 		}
 		data.SenderID = uid
 
 		// 校验防参数错误
 		if _, err := r.validator.Validate(ctx, &data); err != nil {
-			zap.L().Warn("ws_gateway: payload validate error", zap.Error(err))
+			zap.L().Warn("gateway: payload validate error", zap.Error(err))
 			return
 		}
 
@@ -92,13 +92,13 @@ func (r *UpstreamRouter) HandleUpstream(ctx context.Context, userID string, payl
 	case SendRoomMessageTopic:
 		var data SendRoomMessageData
 		if err := json.Unmarshal(req.Payload, &data); err != nil {
-			zap.L().Warn("ws_gateway: invalid room msg payload", zap.Error(err))
+			zap.L().Warn("gateway: invalid room msg payload", zap.Error(err))
 			return
 		}
 		data.SenderID = uid
 
 		if _, err := r.validator.Validate(ctx, &data); err != nil {
-			zap.L().Warn("ws_gateway: payload validate error", zap.Error(err))
+			zap.L().Warn("gateway: payload validate error", zap.Error(err))
 			return
 		}
 
@@ -109,6 +109,6 @@ func (r *UpstreamRouter) HandleUpstream(ctx context.Context, userID string, payl
 		})
 
 	default:
-		zap.L().Warn("ws_gateway: topic not found", zap.String("topic", req.Topic), zap.String("userID", userID))
+		zap.L().Warn("gateway: topic not found", zap.String("topic", req.Topic), zap.String("userID", userID))
 	}
 }
