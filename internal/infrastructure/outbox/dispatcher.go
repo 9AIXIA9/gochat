@@ -116,7 +116,7 @@ func (d *Dispatcher) runOnce(ctx context.Context, source string) {
 	}
 	defer d.running.Store(false)
 
-	start := time.Now()
+	start := time.Now().UTC()
 	_, err := d.executor.Execute(ctx, nil)
 	if err != nil {
 		zap.L().Warn("outbox dispatcher drain failed",

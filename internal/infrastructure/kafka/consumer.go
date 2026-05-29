@@ -107,7 +107,7 @@ func (c *Consumer) processMessage() {
 			if m.TopicPartition.Topic != nil {
 				topic = *m.TopicPartition.Topic
 			}
-			start := time.Now()
+			start := time.Now().UTC()
 			// Route the message
 			err := c.router.Route(c.ctx, m)
 			if err != nil {

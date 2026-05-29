@@ -52,7 +52,7 @@ func NewLoginHandler(useCase application.LoginUseCase, validator ginutils.Valida
 			ginContext.SetCookie(
 				RefreshTokenCookieKey,
 				output.RefreshToken.Token().String(),
-				int(output.RefreshToken.ExpiredAt().Sub(time.Now()).Seconds()),
+				int(output.RefreshToken.ExpiredAt().Sub(time.Now().UTC()).Seconds()),
 				cookieConfig.Path,
 				cookieConfig.Domain,
 				cookieConfig.Secure,

@@ -33,7 +33,7 @@ func TestNotificationCreatedInput_Validate(t *testing.T) {
 	fixedRawPayload, err := json.Marshal(&AliasPayload{
 		Content:  fixedContent,
 		SenderID: fixedSenderID,
-		SendAt:   time.Now(),
+		SendAt:   time.Now().UTC(),
 	})
 	require.NoError(t, err)
 
@@ -101,7 +101,7 @@ func TestNotificationCreatedUseCase_Execute(t *testing.T) {
 	fixedRawPayload, err := json.Marshal(&AliasPayload{
 		Content:  fixedContent,
 		SenderID: fixedSenderID,
-		SendAt:   time.Now(),
+		SendAt:   time.Now().UTC(),
 	})
 	require.NoError(t, err)
 

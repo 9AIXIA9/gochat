@@ -29,7 +29,7 @@ func (h *outboxHandler) OnRow(e *canal.RowsEvent) error {
 		return nil
 	}
 
-	start := time.Now()
+	start := time.Now().UTC()
 
 	if h.triggerer != nil {
 		h.triggerer.Trigger()

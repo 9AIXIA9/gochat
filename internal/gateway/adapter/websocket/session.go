@@ -78,9 +78,9 @@ func (s *WSSession) readPump(ctx context.Context) {
 		s.Close()
 	}()
 	s.conn.SetReadLimit(4096)
-	_ = s.conn.SetReadDeadline(time.Now().Add(pongWait))
+	_ = s.conn.SetReadDeadline(time.Now().UTC().Add(pongWait))
 	s.conn.SetPongHandler(func(string) error {
-		_ = s.conn.SetReadDeadline(time.Now().Add(pongWait))
+		_ = s.conn.SetReadDeadline(time.Now().UTC().Add(pongWait))
 		return nil
 	})
 
@@ -113,7 +113,7 @@ func (s *WSSession) writePump(ctx context.Context) {
 	for {
 		select {
 		case message, ok := <-s.send:
-			_ = s.conn.SetWriteDeadline(time.Now().Add(writeWait))
+			_ = s.conn.SetWriteDeadline(time.Now().UTC().Add(writeWait))
 			if !ok {
 				_ = s.conn.WriteMessage(websocket.CloseMessage, []byte{})
 				return
@@ -136,7 +136,7 @@ func (s *WSSession) writePump(ctx context.Context) {
 				return
 			}
 		case <-ticker.C:
-			_ = s.conn.SetWriteDeadline(time.Now().Add(writeWait))
+			_ = s.conn.SetWriteDeadline(time.Now().UTC().Add(writeWait))
 			if err := s.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				return
 			}
