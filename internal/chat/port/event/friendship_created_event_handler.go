@@ -7,7 +7,7 @@ import (
 )
 
 func NewFriendshipCreatedEventHandler(uc application.FriendshipCreatedUseCase) event.Handler {
-	return event.AdaptUsecaseToHandler(
+	return event.AdaptUsecaseToEventHandler(
 		uc,
 		domain.ToFriendshipCreatedEvent,
 		func(createdEvent *domain.FriendshipCreatedEvent) *application.FriendshipCreatedInput {

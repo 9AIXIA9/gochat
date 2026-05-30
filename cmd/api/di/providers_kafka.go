@@ -128,6 +128,8 @@ func provideKafkaConsumers(
 	redisClient *goredis.Client,
 	reproducer *ckafka.Producer,
 	eventRepo event.Repository,
+	generator event.IDGenerator,
+	publisher event.SyncPublisher,
 	isRetriableError isRetriableError,
 	profileUserCreated profileApp.UserCreatedUseCase,
 	profileRoomCreated profileApp.RoomCreatedUseCase,
@@ -203,12 +205,12 @@ func provideKafkaConsumers(
 	}
 
 	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "chat", string(chatDomain.TopicSendPrivateMessageCommand), func(r *kafkaInfra.Router) {
-		r.EventHandle(chatDomain.TopicSendPrivateMessageCommand, command.NewSendPrivateMessageCommandHandler(chatSendPrivateMessage))
+		r.EventHandle(chatDomain.TopicSendPrivateMessageCommand, command.NewSendPrivateMessageCommandHandler(chatSendPrivateMessage, publisher, generator))
 	}, isRetriableError)); err != nil {
 		return nil, err
 	}
 	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "chat", string(chatDomain.TopicSendRoomMessageCommand), func(r *kafkaInfra.Router) {
-		r.EventHandle(chatDomain.TopicSendRoomMessageCommand, command.NewSendRoomMessageCommandHandler(chatSendRoomMessage))
+		r.EventHandle(chatDomain.TopicSendRoomMessageCommand, command.NewSendRoomMessageCommandHandler(chatSendRoomMessage, publisher, generator))
 	}, isRetriableError)); err != nil {
 		return nil, err
 	}

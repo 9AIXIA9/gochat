@@ -8,7 +8,7 @@ import (
 )
 
 func NewNotificationCreatedEventHandler(uc application.NotificationCreatedUseCase) event.Handler {
-	return event.AdaptUsecaseToHandler(
+	return event.AdaptUsecaseToEventHandler(
 		uc,
 		contract.ToNotificationCreatedEvent,
 		func(createdEvent *contract.NotificationCreatedEvent) *application.NotificationCreatedInput {

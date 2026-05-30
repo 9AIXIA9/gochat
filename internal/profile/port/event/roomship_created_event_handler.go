@@ -7,7 +7,7 @@ import (
 )
 
 func NewRoomshipCreatedEventHandler(uc application.RoomshipCreatedUseCase) event.Handler {
-	return event.AdaptUsecaseToHandler(
+	return event.AdaptUsecaseToEventHandler(
 		uc,
 		domain.ToRoomshipCreatedEvent,
 		func(createdEvent *domain.RoomshipCreatedEvent) *application.RoomshipCreatedInput {

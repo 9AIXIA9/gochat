@@ -8,7 +8,7 @@ import (
 )
 
 func NewPushSucceededEventHandler(uc application.PushSucceededUseCase) event.Handler {
-	return event.AdaptUsecaseToHandler(
+	return event.AdaptUsecaseToEventHandler(
 		uc,
 		contract.ToPushSucceededEvent,
 		func(createdEvent *contract.PushSucceededEvent) *application.PushSucceededInput {
