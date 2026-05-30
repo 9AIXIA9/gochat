@@ -41,12 +41,12 @@ func (r *UpstreamRouter) HandleUpstream(ctx context.Context, userID kernel.UserI
 	var env Envelope
 	if err := json.Unmarshal(payload, &env); err != nil {
 		zap.L().Warn("gateway: invalid envelope format", zap.Error(err), zap.String("userID", userID.String()))
-		return nil // 无效报文无法确认 clientMsgID，直接抛弃或关闭连接
+		return nil // 无效报文无法确认 clientMessageID，直接抛弃或关闭连接
 	}
 
 	// 包未带 ID 也无法回复
 	if env.ClientMessageID == "" || env.Action == "" {
-		zap.L().Warn("gateway: envelope missing clientMsgID or action", zap.String("userID", userID.String()))
+		zap.L().Warn("gateway: envelope missing clientMessageID or action", zap.String("userID", userID.String()))
 		return nil
 	}
 
@@ -62,7 +62,7 @@ func (r *UpstreamRouter) HandleUpstream(ctx context.Context, userID kernel.UserI
 	// 将 Envelope 装裱为一个领域事件发送，使用映射后的内部真实 Topic
 	ev := event.NewStandardEvent(kernel.ID(userID), env.Action, env.Payload, r.idGenerator)
 	ev.AddHeaders(map[string]string{
-		KeyClientMessageID: env.ClientMessageID,
+		KeyClientMessageID: env.ClientMessageID.String(),
 		KeyUserID:          userID.String(),
 	})
 
@@ -74,14 +74,14 @@ func (r *UpstreamRouter) HandleUpstream(ctx context.Context, userID kernel.UserI
 		// 投递失败的回执 (Fast ACK = error)
 		ackBytes, err := NewAckError(env.ClientMessageID, myErrors.ErrServerBusy)
 		if err != nil {
-			zap.L().Error("gateway: create ack error failed", zap.Error(err), zap.String("clientMsgID", env.ClientMessageID))
+			zap.L().Error("gateway: create ack error failed", zap.Error(err), zap.String("clientMessageID", env.ClientMessageID.String()))
 			return nil
 		}
 		return ackBytes
 	}
 	data, err := NewAckReceived(env.ClientMessageID)
 	if err != nil {
-		zap.L().Error("gateway: create ack received failed", zap.Error(err), zap.String("clientMsgID", env.ClientMessageID))
+		zap.L().Error("gateway: create ack received failed", zap.Error(err), zap.String("clientMessageID", env.ClientMessageID.String()))
 		return nil
 	}
 	return data
