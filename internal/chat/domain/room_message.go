@@ -157,11 +157,11 @@ func (m *RoomMessage) RecipientIDs() []kernel.UserID {
 
 func (m *RoomMessage) Marshal() ([]byte, error) {
 	type Alias struct {
-		ID       kernel.MessageID
-		SenderID kernel.UserID
-		RoomID   kernel.RoomID
-		Content  string
-		SentAt   time.Time
+		ID       kernel.MessageID `json:"id"`
+		SenderID kernel.UserID    `json:"sender_id"`
+		RoomID   kernel.RoomID    `json:"room_id"`
+		Content  string           `json:"content"`
+		SentAt   time.Time        `json:"sent_at"`
 	}
 
 	return json.Marshal(&Alias{

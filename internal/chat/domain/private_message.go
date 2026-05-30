@@ -110,11 +110,11 @@ func (m *PrivateMessage) SentAt() time.Time {
 
 func (m *PrivateMessage) Marshal() ([]byte, error) {
 	type Alias struct {
-		ID          kernel.MessageID
-		SenderID    kernel.UserID
-		RecipientID kernel.UserID
-		Content     string
-		SentAt      time.Time
+		ID          kernel.MessageID `json:"id"`
+		SenderID    kernel.UserID    `json:"sender_id"`
+		RecipientID kernel.UserID    `json:"recipient_id"`
+		Content     string           `json:"content"`
+		SentAt      time.Time        `json:"sent_at"`
 	}
 
 	return json.Marshal(&Alias{
