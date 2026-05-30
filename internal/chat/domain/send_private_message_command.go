@@ -40,8 +40,8 @@ func (e *SendPrivateMessageCommand) RecipientID() kernel.UserID {
 
 func (e *SendPrivateMessageCommand) Marshal() ([]byte, error) {
 	type Alias struct {
-		RecipientID kernel.UserID
-		Content     string
+		RecipientID kernel.UserID `json:"recipient_id"`
+		Content     string        `json:"content"`
 	}
 	return json.Marshal(Alias{
 		RecipientID: e.recipientID,
@@ -51,8 +51,8 @@ func (e *SendPrivateMessageCommand) Marshal() ([]byte, error) {
 
 func (e *SendPrivateMessageCommand) Unmarshal(data []byte) error {
 	type Alias struct {
-		RecipientID kernel.UserID
-		Content     string
+		RecipientID kernel.UserID `json:"recipient_id"`
+		Content     string        `json:"content"`
 	}
 	var tmp Alias
 	if err := json.Unmarshal(data, &tmp); err != nil {

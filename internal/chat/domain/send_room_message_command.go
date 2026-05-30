@@ -40,8 +40,8 @@ func (e *SendRoomMessageCommand) RoomID() kernel.RoomID {
 
 func (e *SendRoomMessageCommand) Marshal() ([]byte, error) {
 	type Alias struct {
-		RoomID  kernel.RoomID
-		Content string
+		RoomID  kernel.RoomID `json:"room_id"`
+		Content string        `json:"content"`
 	}
 	return json.Marshal(Alias{
 		RoomID:  e.roomID,
@@ -51,8 +51,8 @@ func (e *SendRoomMessageCommand) Marshal() ([]byte, error) {
 
 func (e *SendRoomMessageCommand) Unmarshal(data []byte) error {
 	type Alias struct {
-		RoomID  kernel.RoomID
-		Content string
+		RoomID  kernel.RoomID `json:"room_id"`
+		Content string        `json:"content"`
 	}
 	var tmp Alias
 	if err := json.Unmarshal(data, &tmp); err != nil {

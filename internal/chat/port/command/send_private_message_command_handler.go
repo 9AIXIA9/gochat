@@ -4,6 +4,7 @@ import (
 	"context"
 	"gochat/internal/chat/application"
 	"gochat/internal/chat/domain"
+	"gochat/internal/shared/contract"
 	"gochat/internal/shared/kernel"
 
 	"gochat/internal/shared/event"
@@ -11,12 +12,10 @@ import (
 
 func NewSendPrivateMessageCommandHandler(
 	uc application.SendPrivateMessageUseCase,
-	publisher event.SyncPublisher,
-	generator event.IDGenerator,
+	gateway contract.GatewayService,
 ) event.Handler {
 	return event.AdaptUsecaseToCommandHandler(
 		uc,
-		publisher,
 		domain.ToSendPrivateMessageCommand,
 		func(ev *domain.SendPrivateMessageCommand) *application.SendPrivateMessageInput {
 			return &application.SendPrivateMessageInput{
@@ -25,13 +24,11 @@ func NewSendPrivateMessageCommandHandler(
 				Content:     ev.Content(),
 			}
 		},
-		func(ctx context.Context, action *domain.SendPrivateMessageCommand, output *kernel.NoOutput) event.SpecificEvent {
-			ev, _ := event.NewStandardCommandSucceedEvent(action, generator)
-			return ev
+		func(ctx context.Context, action *domain.SendPrivateMessageCommand, output *kernel.NoOutput) {
+			_ = gateway.PushToUser(ctx, kernel.UserID(action.AggregateID()), []byte(`{"type":"send_private_message_succeeded"}`))
 		},
-		func(ctx context.Context, action *domain.SendPrivateMessageCommand, err error) event.SpecificEvent {
-			ev, _ := event.NewStandardCommandFailedEvent(action, err, generator)
-			return ev
+		func(ctx context.Context, action *domain.SendPrivateMessageCommand, err error) {
+			_ = gateway.PushToUser(ctx, kernel.UserID(action.AggregateID()), []byte(`{"type":"send_private_message_failed"}`))
 		},
 	)
 }

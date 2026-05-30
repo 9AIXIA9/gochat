@@ -9,8 +9,4 @@ notification.created
 push.requested
 push.succeeded
 send_private_message_command
-send_private_message_command.succeeded
-send_private_message_command.failed
 send_room_message_command
-send_room_message_command.succeeded
-send_room_message_command.failed
