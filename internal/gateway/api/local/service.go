@@ -2,6 +2,7 @@ package local
 
 import (
 	"context"
+	"encoding/json"
 	"gochat/internal/gateway/core"
 	"gochat/internal/infrastructure/metrics"
 	"gochat/internal/shared/contract"
@@ -22,9 +23,14 @@ func NewLocalGatewayService(manager *core.Manager) contract.GatewayService {
 	}
 }
 
-func (s *gatewayService) PushToUser(ctx context.Context, userID kernel.UserID, payload []byte) error {
+func (s *gatewayService) PushToUser(ctx context.Context, userID kernel.UserID, envelop *core.DownstreamEnvelop) error {
 	if timeout.CheckCtxTimeout(ctx) {
 		return myErrors.ErrTimeout
+	}
+
+	payload, err := json.Marshal(envelop)
+	if err != nil {
+		return err
 	}
 
 	sessions, ok := s.manager.GetByUserID(userID)

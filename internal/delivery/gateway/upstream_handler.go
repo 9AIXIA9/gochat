@@ -3,6 +3,7 @@ package gateway
 import (
 	"context"
 	"encoding/json"
+	"gochat/internal/gateway/core"
 	myErrors "gochat/internal/shared/errors"
 
 	"gochat/internal/shared/contract"
@@ -13,7 +14,7 @@ import (
 )
 
 const (
-	KeyClientMessageID = "client_messasge_id"
+	KeyClientMessageID = "client_message_id"
 	KeyUserID          = "user_id"
 )
 
@@ -38,7 +39,7 @@ func NewUpstreamRouter(
 
 // HandleUpstream 处理上行消息，并返回应发给客户端的回执字节
 func (r *UpstreamRouter) HandleUpstream(ctx context.Context, userID kernel.UserID, payload []byte) []byte {
-	var env Envelope
+	var env core.UpstreamEnvelope
 	if err := json.Unmarshal(payload, &env); err != nil {
 		zap.L().Warn("gateway: invalid envelope format", zap.Error(err), zap.String("userID", userID.String()))
 		return nil // 无效报文无法确认 clientMessageID，直接抛弃或关闭连接
@@ -59,7 +60,7 @@ func (r *UpstreamRouter) HandleUpstream(ctx context.Context, userID kernel.UserI
 		return ackBytes
 	}
 
-	// 将 Envelope 装裱为一个领域事件发送，使用映射后的内部真实 Topic
+	// 将 UpstreamEnvelope 装裱为一个领域事件发送，使用映射后的内部真实 Topic
 	ev := event.NewStandardEvent(kernel.ID(userID), env.Action, env.Payload, r.idGenerator)
 	ev.AddHeaders(map[string]string{
 		KeyClientMessageID: env.ClientMessageID.String(),
