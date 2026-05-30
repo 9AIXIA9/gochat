@@ -11,6 +11,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -99,6 +100,7 @@ var (
 	connectRate = flag.Int("connect-rate", 0, "connections per second, 0 means burst")
 	origin      = flag.String("origin", "", "optional Origin header")
 	ackTimeout  = flag.Duration("ack-timeout", 5*time.Second, "pending ack timeout; 0 disables timeout tracking")
+	jsonOutFile = flag.String("json-out-file", "./websocket_benchmark_data/output/ws_metrics.jsonl", "JSONL metrics output file (appended); empty disables")
 
 	contentPrefix = flag.String("content-prefix", "bench", "message content prefix")
 	seed          = flag.Int64("seed", 0, "rng seed, 0 means now")
@@ -167,6 +169,11 @@ func main() {
 					return
 				case <-t.C:
 					printMetrics("progress", &m)
+					if *jsonOutFile != "" {
+						if err := dumpMetricsJSON(*jsonOutFile, "progress", &m); err != nil {
+							log.Printf("dump metrics json failed: %v", err)
+						}
+					}
 				}
 			}
 		}()
@@ -193,6 +200,60 @@ func main() {
 	<-ctx.Done()
 	wg.Wait()
 	printMetrics("final", &m)
+	if *jsonOutFile != "" {
+		if err := dumpMetricsJSON(*jsonOutFile, "final", &m); err != nil {
+			log.Printf("dump final metrics json failed: %v", err)
+		}
+	}
+}
+
+func dumpMetricsJSON(path string, prefix string, m *metrics) error {
+	if path == "" {
+		return nil
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		return err
+	}
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = f.Close() }()
+
+	matched := atomic.LoadInt64(&m.ackMatched)
+	avgLatencyMs := float64(0)
+	if matched > 0 {
+		avgLatencyMs = float64(atomic.LoadInt64(&m.ackLatencyNs)) / float64(time.Millisecond) / float64(matched)
+	}
+
+	obj := map[string]interface{}{
+		"ts":                 time.Now().UTC().Format(time.RFC3339Nano),
+		"prefix":             prefix,
+		"connected":          atomic.LoadInt64(&m.connected),
+		"connect_fail":       atomic.LoadInt64(&m.connectFail),
+		"sent":               atomic.LoadInt64(&m.sent),
+		"send_fail":          atomic.LoadInt64(&m.sendFail),
+		"recv":               atomic.LoadInt64(&m.recv),
+		"ack_matched":        matched,
+		"ack_unmatched":      atomic.LoadInt64(&m.ackUnmatched),
+		"ack_timed_out":      atomic.LoadInt64(&m.ackTimedOut),
+		"pending":            atomic.LoadInt64(&m.pendingCurrent),
+		"ack_received":       atomic.LoadInt64(&m.ackReceived),
+		"ack_error":          atomic.LoadInt64(&m.ackError),
+		"ack_avg_latency_ms": avgLatencyMs,
+		"ack_max_latency_ms": float64(atomic.LoadInt64(&m.ackMaxLatencyNs)) / float64(time.Millisecond),
+		"read_fail":          atomic.LoadInt64(&m.readFail),
+		"write_fail":         atomic.LoadInt64(&m.writeFail),
+	}
+
+	b, err := json.Marshal(obj)
+	if err != nil {
+		return err
+	}
+	if _, err := f.Write(append(b, '\n')); err != nil {
+		return err
+	}
+	return nil
 }
 
 func runClient(ctx context.Context, clientIdx int, token string, senderID string, recipients []string, rooms []string, pairMap map[string]string, seed int64, m *metrics) {
