@@ -5,6 +5,5 @@ friendship.created
 message.created
 member_request.agreed
 friend_request.agreed
-notification.created
 send_private_message_command
 send_room_message_command

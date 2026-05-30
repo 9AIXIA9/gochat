@@ -10,7 +10,6 @@ import (
 	friendshipApp "gochat/internal/friendship/application"
 	friendshipDomain "gochat/internal/friendship/domain"
 	notificationApp "gochat/internal/notification/application"
-	notificationDomain "gochat/internal/notification/domain"
 	profileApp "gochat/internal/profile/application"
 	profileDomain "gochat/internal/profile/domain"
 	roomshipApp "gochat/internal/roomship/application"
@@ -443,10 +442,8 @@ func provideFriendshipFriendRequestAgreedUseCase(
 
 func provideNotificationCreatedUseCase(
 	gateway contract.GatewayService,
-	repo notificationDomain.NotificationRepository,
 ) (notificationApp.NotificationCreatedUseCase, error) {
 	return notificationApp.NewNotificationCreatedUseCase(
 		gateway,
-		repo,
 	)
 }

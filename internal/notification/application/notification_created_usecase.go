@@ -3,7 +3,6 @@ package application
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"gochat/internal/gateway/core"
 	"gochat/internal/notification/domain"
 	"gochat/internal/shared/contract"
@@ -34,41 +33,23 @@ func (r *NotificationCreatedInput) Validate() error {
 
 type notificationCreatedUseCase struct {
 	gateway contract.GatewayService
-	creator domain.NotificationCreator
 }
 
 func NewNotificationCreatedUseCase(
 	gateway contract.GatewayService,
-	creator domain.NotificationCreator,
 ) (NotificationCreatedUseCase, error) {
 	if err := validate.NotNil(
-		creator, gateway,
+		gateway,
 	); err != nil {
 		return nil, err
 	}
 
 	return &notificationCreatedUseCase{
 		gateway: gateway,
-		creator: creator,
 	}, nil
 }
 
 func (uc *notificationCreatedUseCase) Execute(ctx context.Context, input *NotificationCreatedInput) (*kernel.NoOutput, error) {
-	notification, err := domain.CreateNotification(
-		input.ID,
-		input.RecipientID,
-		input.RawPayload,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	err = uc.gateway.PushToUser(ctx, input.RecipientID, core.NewActiveDownstreamEnvelop(domain.ActionPushNotification, input.RawPayload))
-
-	if errors.Is(err, myErrors.ErrUserOffline) {
-		if err := uc.creator.Create(ctx, notification); err != nil {
-			return nil, err
-		}
-	}
-	return nil, err
+	_ = uc.gateway.PushToUser(ctx, input.RecipientID, core.NewActiveDownstreamEnvelop(domain.ActionPushNotification, input.RawPayload))
+	return nil, nil
 }

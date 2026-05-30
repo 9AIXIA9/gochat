@@ -9,8 +9,6 @@ import (
 	friendshipDomain "gochat/internal/friendship/domain"
 	friendshipRepo "gochat/internal/friendship/infrastructure/persistence/repository"
 	"gochat/internal/infrastructure/persistence/repository"
-	notificationDomain "gochat/internal/notification/domain"
-	notificationRepo "gochat/internal/notification/infrastructure/persistence/repository"
 	profileDomain "gochat/internal/profile/domain"
 	profileRepo "gochat/internal/profile/infrastructure/persistence/repository"
 	roomshipDomain "gochat/internal/roomship/domain"
@@ -52,7 +50,6 @@ var RepoSet = wire.NewSet(
 	wire.Bind(new(friendshipDomain.FriendshipRepository), new(*friendshipRepo.FriendshipRepository)),
 
 	wire.Bind(new(event.DeadLetterCreator), new(*repository.EventRepository)),
-	wire.Bind(new(notificationDomain.NotificationRepository), new(*notificationRepo.NotificationRepository)),
 
 	provideEventRepository,
 	provideAuthorizationUserRepository,
@@ -75,7 +72,6 @@ var RepoSet = wire.NewSet(
 	provideFriendshipUserRepository,
 	provideFriendshipFriendRequestRepository,
 	provideFriendshipFriendshipRepository,
-	provideNotificationRepository,
 )
 
 func provideEventRepository(db *gorm.DB) *repository.EventRepository {
@@ -140,8 +136,4 @@ func provideFriendshipFriendRequestRepository(db *gorm.DB, eventRepo event.Repos
 }
 func provideFriendshipFriendshipRepository(db *gorm.DB, eventRepo event.Repository) *friendshipRepo.FriendshipRepository {
 	return friendshipRepo.NewFriendshipRepository(db, eventRepo)
-}
-
-func provideNotificationRepository(db *gorm.DB, eventRepo event.Repository) *notificationRepo.NotificationRepository {
-	return notificationRepo.NewNotificationRepository(db, eventRepo)
 }

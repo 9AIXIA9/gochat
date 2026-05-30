@@ -5,7 +5,6 @@ import (
 	"gochat/internal/gateway/core"
 	"gochat/internal/notification/application"
 	"gochat/internal/notification/domain"
-	"gochat/internal/notification/domain/mocks"
 	contractMock "gochat/internal/shared/contract/mocks"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
@@ -66,18 +65,16 @@ func TestNewNotificationCreatedUseCase(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockGateway := contractMock.NewMockGatewayService(ctrl)
-	mockCreator := mocks.NewMockNotificationCreator(ctrl)
 
 	useCase, err := application.NewNotificationCreatedUseCase(
 		mockGateway,
-		mockCreator,
 	)
 
 	require.NoError(t, err)
 	require.NotNil(t, useCase)
 
 	useCaseWithNil, err := application.NewNotificationCreatedUseCase(
-		nil, nil,
+		nil,
 	)
 
 	require.ErrorIs(t, err, myErrors.ErrEmptyPointer)
@@ -89,10 +86,9 @@ func TestNotificationCreatedUseCase_Execute(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockGateway := contractMock.NewMockGatewayService(ctrl)
-	mockCreator := mocks.NewMockNotificationCreator(ctrl)
 
 	useCase, err := application.NewNotificationCreatedUseCase(
-		mockGateway, mockCreator,
+		mockGateway,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, useCase)

@@ -231,8 +231,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	notificationRepository := provideNotificationRepository(db, eventRepository)
-	notificationCreatedUseCase, err := provideNotificationCreatedUseCase(gatewayService, notificationRepository)
+	notificationCreatedUseCase, err := provideNotificationCreatedUseCase(gatewayService)
 	if err != nil {
 		return nil, err
 	}
