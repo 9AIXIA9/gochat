@@ -40,7 +40,7 @@ func TestOutboxHandlerSignalIsFast(t *testing.T) {
 	triggerer := &fakeTriggerer{}
 	h := &outboxHandler{triggerer: triggerer}
 
-	start := time.Now()
+	start := time.Now().UTC()
 	err := h.OnRow(&canal.RowsEvent{Action: canal.InsertAction, Table: &schema.Table{Name: "unpublished_events"}})
 	require.NoError(t, err)
 	require.Less(t, time.Since(start), 50*time.Millisecond)

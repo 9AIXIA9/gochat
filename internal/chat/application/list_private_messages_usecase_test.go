@@ -196,7 +196,6 @@ func getPrivateMessages(count int) []*domain.PrivateMessage {
 			fixedFriendID,
 			fixedUserID,
 			fixedContent,
-			domain.MessageStateDelivered,
 			time.Now().UTC(),
 		)
 	}

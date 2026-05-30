@@ -4,13 +4,10 @@ import (
 	"context"
 	"fmt"
 	"gochat/docs"
-	"gochat/internal/application"
 	authApp "gochat/internal/authorization/application"
 	chatApp "gochat/internal/chat/application"
 	friendshipApp "gochat/internal/friendship/application"
 	kafkaInfra "gochat/internal/infrastructure/kafka"
-	"gochat/internal/infrastructure/websocket"
-	notificationApp "gochat/internal/notification/application"
 	profileApp "gochat/internal/profile/application"
 	roomshipApp "gochat/internal/roomship/application"
 	"net/http"
@@ -19,7 +16,6 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
-	gorillaWebsocket "github.com/gorilla/websocket"
 	"github.com/redis/go-redis/v9"
 	"github.com/ulule/limiter/v3"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
@@ -30,16 +26,18 @@ import (
 	authHTTP "gochat/internal/authorization/port/http"
 	chatHTTP "gochat/internal/chat/port/http"
 	"gochat/internal/delivery/http/handler"
+
 	"gochat/internal/delivery/http/middleware"
 	friendshipHTTP "gochat/internal/friendship/port/http"
 	ginInfra "gochat/internal/infrastructure/gin"
-	notificationHTTP "gochat/internal/notification/port/http"
 	profileHTTP "gochat/internal/profile/port/http"
 	roomshipHTTP "gochat/internal/roomship/port/http"
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"golang.org/x/sync/errgroup"
+
+	gatewayWebsocket "gochat/internal/gateway/adapter/websocket"
 )
 
 var nonBusinessPaths = []string{
@@ -51,7 +49,6 @@ var nonBusinessPaths = []string{
 var HTTPSet = wire.NewSet(
 	provideHttpRouter,
 	provideHttpServer,
-	provideWebsocketHandler,
 	provideIsReadyChecker,
 )
 
@@ -68,8 +65,6 @@ func provideHttpRouter(
 	updateRoomProfile profileApp.UpdateRoomProfileUseCase,
 	sendPrivateMessage chatApp.SendPrivateMessageUseCase,
 	sendRoomMessage chatApp.SendRoomMessageUseCase,
-	readPrivateMessages chatApp.ReadPrivateMessagesUseCase,
-	readRoomMessages chatApp.ReadRoomMessagesUseCase,
 	listPrivateMessages chatApp.ListPrivateMessagesUseCase,
 	listRoomMessages chatApp.ListRoomMessagesUseCase,
 	createRoom roomshipApp.CreateRoomUseCase,
@@ -85,9 +80,8 @@ func provideHttpRouter(
 	refuseFriendRequest friendshipApp.RefuseFriendRequestUseCase,
 	listFriendships friendshipApp.ListFriendshipsUseCase,
 	listFriendRequests friendshipApp.ListFriendRequestsUseCase,
-	listSystemMessages notificationApp.ListSystemMessagesUseCase,
 	validator ginInfra.Validator,
-	websocketHandler *handler.WebsocketHandler,
+	websocketHandler *gatewayWebsocket.IngressHandler,
 	isReady func() bool,
 	_ OTELShutdown,
 ) *gin.Engine {
@@ -181,8 +175,6 @@ func provideHttpRouter(
 		chatsGroup.GET("/rooms/messages/:room_id", chatHTTP.NewListRoomMessagesHandler(listRoomMessages, validator))
 		chatsGroup.POST("/private-messages", chatHTTP.NewSendPrivateMessageHandler(sendPrivateMessage, validator))
 		chatsGroup.POST("/rooms/messages", chatHTTP.NewSendRoomMessageHandler(sendRoomMessage, validator))
-		chatsGroup.PUT("/private-messages/read", chatHTTP.NewReadPrivateMessagesHandler(readPrivateMessages, validator))
-		chatsGroup.PUT("/rooms/messages/read", chatHTTP.NewReadRoomMessagesHandler(readRoomMessages, validator))
 	}
 
 	// 房间与成员相关路由（RESTful）
@@ -229,13 +221,6 @@ func provideHttpRouter(
 		friendshipRequestsGroup.PUT("/:request_id/agree", friendshipHTTP.NewAgreeFriendRequestHandler(agreeFriendRequest, validator))
 		friendshipRequestsGroup.PUT("/:request_id/refuse", friendshipHTTP.NewRefuseFriendRequestHandler(refuseFriendRequest, validator))
 	}
-
-	// 通知功能路由（RESTful）
-	notificationsGroup := baseGroup.Group("/notifications")
-	notificationsGroup.Use(authorizationMiddleware)
-	{
-		notificationsGroup.GET("/system-messages", notificationHTTP.NewListSystemMessagesHandler(listSystemMessages, validator))
-	}
 	return router
 }
 
@@ -254,22 +239,6 @@ func provideHttpServer(appConfig *config.App, router *gin.Engine) *ginInfra.Serv
 	}
 
 	return ginInfra.NewServer(router, srv, debugSrv)
-}
-
-func provideWebsocketHandler(
-	appConfig *config.App,
-	upgrader *gorillaWebsocket.Upgrader,
-	manager *websocket.Manager,
-	router *websocket.Router,
-	userSessionStartedUseCase application.UserSessionStartedUseCase,
-) *handler.WebsocketHandler {
-	return handler.NewWebsocketHandler(
-		upgrader,
-		manager,
-		router,
-		userSessionStartedUseCase,
-		appConfig.DisableSessionStartedEvent,
-	)
 }
 
 func provideIsReadyChecker(

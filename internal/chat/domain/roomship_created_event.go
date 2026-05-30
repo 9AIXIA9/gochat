@@ -7,7 +7,7 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-const TopicRoomshipCreated event.Topic = "chat.roomship.created"
+const TopicRoomshipCreated event.Topic = "roomship.created"
 
 var _ event.SpecificEvent = (*RoomshipCreatedEvent)(nil)
 
@@ -27,25 +27,6 @@ func ToRoomshipCreatedEvent(ev event.Event) (*RoomshipCreatedEvent, error) {
 			return nil, err
 		}
 	}
-	return e, nil
-}
-
-func NewRoomshipCreatedEvent(
-	id RoomshipID,
-	userID kernel.UserID,
-	roomID kernel.RoomID,
-	generator event.IDGenerator,
-) (*RoomshipCreatedEvent, error) {
-	e := &RoomshipCreatedEvent{
-		userID: userID,
-		roomID: roomID,
-	}
-	payload, err := e.Marshal()
-	if err != nil {
-		return nil, err
-	}
-
-	e.StandardEvent = event.NewStandardEvent(kernel.ID(id), TopicRoomshipCreated, payload, generator)
 	return e, nil
 }
 

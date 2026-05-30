@@ -5,7 +5,6 @@ import (
 	"gochat/internal/roomship/domain"
 	"gochat/internal/roomship/domain/mocks"
 	myErrors "gochat/internal/shared/errors"
-	eventMock "gochat/internal/shared/event/mocks"
 	kernelmocks "gochat/internal/shared/kernel/mocks"
 	"testing"
 	"time"
@@ -73,7 +72,6 @@ func TestNewSendMemberRequestUseCase(t *testing.T) {
 	mockMemberRequestExister := mocks.NewMockMemberRequestExisterByUserIDAndRoomIDAndState(ctrl)
 	mockRoomshipExister := mocks.NewMockRoomshipExisterByUserIDAndRoomID(ctrl)
 	mockFinder := mocks.NewMockRoomFinderByID(ctrl)
-	mockEventIDGenerator := eventMock.NewMockIDGenerator(ctrl)
 	mockOperationIDGenerator := kernelmocks.NewMockOperationIDGenerator(ctrl)
 	mockComparator := mocks.NewMockComparator(ctrl)
 	mockCreator := mocks.NewMockMemberRequestCreator(ctrl)
@@ -82,7 +80,6 @@ func TestNewSendMemberRequestUseCase(t *testing.T) {
 		mockMemberRequestExister,
 		mockRoomshipExister,
 		mockFinder,
-		mockEventIDGenerator,
 		mockOperationIDGenerator,
 		mockComparator,
 		mockCreator,
@@ -92,7 +89,7 @@ func TestNewSendMemberRequestUseCase(t *testing.T) {
 	require.NotNil(t, useCase)
 
 	useCaseWithNil, err := application.NewSendMemberRequestUseCase(
-		nil, nil, nil, nil, nil, nil, nil,
+		nil, nil, nil, nil, nil, nil,
 	)
 
 	require.ErrorIs(t, err, myErrors.ErrEmptyPointer)
@@ -106,7 +103,6 @@ func TestSendMemberRequestUseCase_Execute(t *testing.T) {
 	mockMemberRequestExister := mocks.NewMockMemberRequestExisterByUserIDAndRoomIDAndState(ctrl)
 	mockRoomshipExister := mocks.NewMockRoomshipExisterByUserIDAndRoomID(ctrl)
 	mockFinder := mocks.NewMockRoomFinderByID(ctrl)
-	mockEventIDGenerator := eventMock.NewMockIDGenerator(ctrl)
 	mockOperationIDGenerator := kernelmocks.NewMockOperationIDGenerator(ctrl)
 	mockComparator := mocks.NewMockComparator(ctrl)
 	mockCreator := mocks.NewMockMemberRequestCreator(ctrl)
@@ -115,7 +111,6 @@ func TestSendMemberRequestUseCase_Execute(t *testing.T) {
 		mockMemberRequestExister,
 		mockRoomshipExister,
 		mockFinder,
-		mockEventIDGenerator,
 		mockOperationIDGenerator,
 		mockComparator,
 		mockCreator,
@@ -140,7 +135,6 @@ func TestSendMemberRequestUseCase_Execute(t *testing.T) {
 		mockFinder.EXPECT().FindByID(nil, fixedRoomID).Return(mockRoom, nil),
 		mockComparator.EXPECT().Compare(fixedPasswordEncrypted.String(), fixedPassword.String()).Return(nil),
 		mockOperationIDGenerator.EXPECT().Generate().Return(fixedOperationID),
-		mockEventIDGenerator.EXPECT().Generate().Return(fixedEventID),
 		mockCreator.EXPECT().Create(nil, gomock.Any()).Return(nil),
 	)
 
@@ -189,7 +183,6 @@ func TestSendMemberRequestUseCase_Execute(t *testing.T) {
 		mockFinder.EXPECT().FindByID(nil, fixedRoomID).Return(mockRoom, nil),
 		mockComparator.EXPECT().Compare(fixedPasswordEncrypted.String(), fixedPassword.String()).Return(nil),
 		mockOperationIDGenerator.EXPECT().Generate().Return(fixedOperationID),
-		mockEventIDGenerator.EXPECT().Generate().Return(fixedEventID),
 		mockCreator.EXPECT().Create(nil, gomock.Any()).Return(domain.ErrMemberRequestAlreadyExists),
 	)
 

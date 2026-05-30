@@ -8,7 +8,7 @@ import (
 )
 
 func NewMemberRequestAgreedEventHandler(uc application.MemberRequestAgreedUseCase) event.Handler {
-	return event.AdaptUsecaseToHandler(
+	return event.AdaptUsecaseToEventHandler(
 		uc,
 		domain.ToMemberRequestAgreedEvent,
 		func(agreedEvent *domain.MemberRequestAgreedEvent) *application.MemberRequestAgreedInput {

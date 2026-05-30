@@ -75,7 +75,7 @@ func TestFriendRequestAgreedUseCase_Execute(t *testing.T) {
 		fixedToID,
 		fixedContent,
 		domain.StateAgreed,
-		time.Now(),
+		time.Now().UTC(),
 	)
 
 	//正常情况
@@ -98,7 +98,7 @@ func TestFriendRequestAgreedUseCase_Execute(t *testing.T) {
 		fixedToID,
 		fixedContent,
 		domain.StatePending,
-		time.Now(),
+		time.Now().UTC(),
 	)
 
 	friendRequestFinderByID.EXPECT().FindByID(nil, fixedOperationID).Return(mockRequestNotAgreed, nil)

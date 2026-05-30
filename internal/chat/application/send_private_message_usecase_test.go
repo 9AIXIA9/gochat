@@ -5,6 +5,7 @@ import (
 	"gochat/internal/chat/domain"
 	"gochat/internal/chat/domain/mocks"
 	myErrors "gochat/internal/shared/errors"
+	eventMock "gochat/internal/shared/event/mocks"
 	kernelmocks "gochat/internal/shared/kernel/mocks"
 	"testing"
 
@@ -47,14 +48,14 @@ func TestNewSendPrivateMessageUseCase(t *testing.T) {
 
 	mockExister := mocks.NewMockFriendshipExisterByUserID(ctrl)
 	mockMessageIDGenerator := kernelmocks.NewMockMessageIDGenerator(ctrl)
-	mockNotifier := mocks.NewMockPrivateMessageNotifier(ctrl)
+	mockEventIDGenerator := eventMock.NewMockIDGenerator(ctrl)
 	mockMessageCreator := mocks.NewMockPrivateMessageCreator(ctrl)
 
 	useCase, err := application.NewSendPrivateMessageUseCase(
 		mockExister,
 		mockMessageIDGenerator,
-		mockNotifier,
 		mockMessageCreator,
+		mockEventIDGenerator,
 	)
 
 	require.NoError(t, err)
@@ -74,14 +75,14 @@ func TestSendPrivateMessageUseCase_Execute(t *testing.T) {
 
 	mockExister := mocks.NewMockFriendshipExisterByUserID(ctrl)
 	mockMessageIDGenerator := kernelmocks.NewMockMessageIDGenerator(ctrl)
-	mockNotifier := mocks.NewMockPrivateMessageNotifier(ctrl)
+	mockEventIDGenerator := eventMock.NewMockIDGenerator(ctrl)
 	mockMessageCreator := mocks.NewMockPrivateMessageCreator(ctrl)
 
 	useCase, err := application.NewSendPrivateMessageUseCase(
 		mockExister,
 		mockMessageIDGenerator,
-		mockNotifier,
 		mockMessageCreator,
+		mockEventIDGenerator,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, useCase)
@@ -90,7 +91,7 @@ func TestSendPrivateMessageUseCase_Execute(t *testing.T) {
 	gomock.InOrder(
 		mockExister.EXPECT().ExistByUserID(nil, fixedUserID, fixedFriendID).Return(true, nil).Times(1),
 		mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1),
-		mockNotifier.EXPECT().Notify(gomock.Any()).Return(nil).Times(1),
+		mockEventIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(1),
 		mockMessageCreator.EXPECT().Create(nil, gomock.Any()).Return(nil).Times(1),
 	)
 	_, err = useCase.Execute(nil, &application.SendPrivateMessageInput{
@@ -114,7 +115,7 @@ func TestSendPrivateMessageUseCase_Execute(t *testing.T) {
 	// 发送给自己
 	gomock.InOrder(
 		mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1),
-		mockNotifier.EXPECT().Notify(gomock.Any()).Return(nil).Times(1),
+		mockEventIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(1),
 		mockMessageCreator.EXPECT().Create(nil, gomock.Any()).Return(nil).Times(1),
 	)
 	_, err = useCase.Execute(nil, &application.SendPrivateMessageInput{
@@ -123,4 +124,18 @@ func TestSendPrivateMessageUseCase_Execute(t *testing.T) {
 		Content:     fixedContent,
 	})
 	require.NoError(t, err)
+
+	// 创建失败
+	gomock.InOrder(
+		mockExister.EXPECT().ExistByUserID(nil, fixedUserID, fixedFriendID).Return(true, nil).Times(1),
+		mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1),
+		mockEventIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(1),
+		mockMessageCreator.EXPECT().Create(nil, gomock.Any()).Return(myErrors.ErrDuplicatedKey).Times(1),
+	)
+	_, err = useCase.Execute(nil, &application.SendPrivateMessageInput{
+		SenderID:    fixedUserID,
+		RecipientID: fixedFriendID,
+		Content:     fixedContent,
+	})
+	require.ErrorIs(t, err, myErrors.ErrDuplicatedKey)
 }

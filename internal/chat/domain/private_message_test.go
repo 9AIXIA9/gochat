@@ -2,9 +2,10 @@ package domain_test
 
 import (
 	"context"
-	"errors"
 	"gochat/internal/chat/domain"
 	"gochat/internal/chat/domain/mocks"
+	"gochat/internal/shared/contract"
+	eventMock "gochat/internal/shared/event/mocks"
 	kernelmocks "gochat/internal/shared/kernel/mocks"
 	"testing"
 	"time"
@@ -20,7 +21,6 @@ func TestLoadPrivateMessage(t *testing.T) {
 		fixedUserID,
 		fixedFriendID,
 		"Hello, Friend!",
-		domain.MessageStateRead,
 		time.Now().UTC(),
 	)
 
@@ -29,7 +29,6 @@ func TestLoadPrivateMessage(t *testing.T) {
 	assert.Equal(t, fixedUserID, message.SenderID())
 	assert.Equal(t, fixedFriendID, message.RecipientID())
 	assert.Equal(t, "Hello, Friend!", message.Content())
-	assert.Equal(t, domain.MessageStateRead, message.State())
 }
 
 func TestCreatePrivateMessage(t *testing.T) {
@@ -38,11 +37,11 @@ func TestCreatePrivateMessage(t *testing.T) {
 
 	mockExister := mocks.NewMockFriendshipExisterByUserID(ctrl)
 	mockMessageIDGenerator := kernelmocks.NewMockMessageIDGenerator(ctrl)
-	mockNotifier := mocks.NewMockPrivateMessageNotifier(ctrl)
+	mockEventIDGenerator := eventMock.NewMockIDGenerator(ctrl)
 
 	mockExister.EXPECT().ExistByUserID(gomock.Any(), fixedUserID, fixedFriendID).Return(true, nil).Times(1)
 	mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1)
-	mockNotifier.EXPECT().Notify(gomock.Any()).Return(nil).Times(1)
+	mockEventIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(1)
 
 	start := time.Now().UTC()
 	message, err := domain.CreatePrivateMessage(
@@ -50,8 +49,8 @@ func TestCreatePrivateMessage(t *testing.T) {
 		fixedFriendID,
 		fixedUserID,
 		"Hello, Friend!",
+		mockEventIDGenerator,
 		mockMessageIDGenerator,
-		mockNotifier,
 		mockExister,
 	)
 	require.NoError(t, err)
@@ -60,7 +59,10 @@ func TestCreatePrivateMessage(t *testing.T) {
 	assert.Equal(t, fixedUserID, message.SenderID())
 	assert.Equal(t, fixedFriendID, message.RecipientID())
 	assert.Equal(t, "Hello, Friend!", message.Content())
-	assert.Equal(t, domain.MessageStateUndelivered, message.State())
+	evs := message.GetEvents()
+	require.Len(t, evs, 1)
+	assert.Equal(t, fixedEventID, evs[0].ID())
+	assert.Equal(t, contract.TopicNotificationCreated, evs[0].Topic())
 	assert.WithinDuration(t, start, message.SentAt(), timeTolerance)
 
 	// content 为空
@@ -69,40 +71,16 @@ func TestCreatePrivateMessage(t *testing.T) {
 		fixedFriendID,
 		fixedUserID,
 		"",
+		mockEventIDGenerator,
 		mockMessageIDGenerator,
-		mockNotifier,
 		mockExister,
 	)
 	require.ErrorIs(t, err, domain.ErrEmptyMessageContent)
 	require.Nil(t, message)
 
-	// 发送失败
-	mockExister.EXPECT().ExistByUserID(gomock.Any(), fixedUserID, fixedFriendID).Return(true, nil).Times(1)
+	// 发送给自己
 	mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1)
-	mockNotifier.EXPECT().Notify(gomock.Any()).Return(errors.New("test")).Times(1)
-
-	start = time.Now().UTC()
-	messageWithFailedDeliver, err := domain.CreatePrivateMessage(
-		context.Background(),
-		fixedFriendID,
-		fixedUserID,
-		"Hello, Friend!",
-		mockMessageIDGenerator,
-		mockNotifier,
-		mockExister,
-	)
-	require.NoError(t, err)
-	require.NotNil(t, messageWithFailedDeliver)
-	assert.Equal(t, fixedMessageID, messageWithFailedDeliver.ID())
-	assert.Equal(t, fixedUserID, messageWithFailedDeliver.SenderID())
-	assert.Equal(t, fixedFriendID, messageWithFailedDeliver.RecipientID())
-	assert.Equal(t, "Hello, Friend!", messageWithFailedDeliver.Content())
-	assert.Equal(t, domain.MessageStateUndelivered, messageWithFailedDeliver.State())
-	assert.WithinDuration(t, start, messageWithFailedDeliver.SentAt(), timeTolerance)
-
-	// 发送给自己，也尝试投递，但创建态仍然保持未投递
-	mockMessageIDGenerator.EXPECT().Generate().Return(fixedMessageID).Times(1)
-	mockNotifier.EXPECT().Notify(gomock.Any()).Return(nil).Times(1)
+	mockEventIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(1)
 
 	start = time.Now().UTC()
 	messageToSelf, err := domain.CreatePrivateMessage(
@@ -110,8 +88,8 @@ func TestCreatePrivateMessage(t *testing.T) {
 		fixedUserID,
 		fixedUserID,
 		"Hello, Self!",
+		mockEventIDGenerator,
 		mockMessageIDGenerator,
-		mockNotifier,
 		mockExister,
 	)
 	require.NoError(t, err)
@@ -120,6 +98,9 @@ func TestCreatePrivateMessage(t *testing.T) {
 	assert.Equal(t, fixedUserID, messageToSelf.SenderID())
 	assert.Equal(t, fixedUserID, messageToSelf.RecipientID())
 	assert.Equal(t, "Hello, Self!", messageToSelf.Content())
-	assert.Equal(t, domain.MessageStateUndelivered, messageToSelf.State())
+	evs = messageToSelf.GetEvents()
+	require.Len(t, evs, 1)
+	assert.Equal(t, fixedEventID, evs[0].ID())
+	assert.Equal(t, contract.TopicNotificationCreated, evs[0].Topic())
 	assert.WithinDuration(t, start, messageToSelf.SentAt(), timeTolerance)
 }

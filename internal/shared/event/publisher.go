@@ -3,6 +3,10 @@ package event
 
 import "context"
 
-type Publisher interface {
+type AsyncPublisher interface {
+	Publish(ctx context.Context, event Event) error
+}
+
+type SyncPublisher interface {
 	Publish(ctx context.Context, event Event) error
 }

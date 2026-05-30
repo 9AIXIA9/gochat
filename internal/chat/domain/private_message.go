@@ -2,6 +2,8 @@ package domain
 
 import (
 	"context"
+	"encoding/json"
+	"gochat/internal/shared/contract"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"time"
@@ -11,7 +13,6 @@ type PrivateMessage struct {
 	id          kernel.MessageID
 	senderID    kernel.UserID
 	recipientID kernel.UserID
-	state       MessageState
 	content     string
 	sentAt      time.Time
 
@@ -23,14 +24,12 @@ func LoadPrivateMessage(
 	senderID kernel.UserID,
 	recipientID kernel.UserID,
 	content string,
-	state MessageState,
 	sentAt time.Time,
 ) *PrivateMessage {
 	return &PrivateMessage{
 		id:           id,
 		senderID:     senderID,
 		recipientID:  recipientID,
-		state:        state,
 		content:      content,
 		sentAt:       sentAt,
 		eventManager: event.NewEventManager(),
@@ -42,8 +41,8 @@ func CreatePrivateMessage(
 	recipientID kernel.UserID,
 	senderID kernel.UserID,
 	content string,
+	eventIDGenerator event.IDGenerator,
 	messageIDGenerator kernel.MessageIDGenerator,
-	notifier PrivateMessageNotifier,
 	exister FriendshipExisterByUserID,
 ) (*PrivateMessage, error) {
 	if len(content) == 0 {
@@ -65,15 +64,26 @@ func CreatePrivateMessage(
 		id:           messageIDGenerator.Generate(),
 		senderID:     senderID,
 		recipientID:  recipientID,
-		state:        MessageStateUndelivered,
 		content:      content,
 		sentAt:       time.Now().UTC(),
 		eventManager: event.NewEventManager(),
 	}
 
-	if err := notifier.Notify(message); err != nil {
-		return message, nil
+	rawPayload, err := message.Marshal()
+	if err != nil {
+		return nil, err
 	}
+
+	ev, err := contract.NewNotificationCreatedEvent(
+		message.id,
+		message.recipientID,
+		rawPayload,
+		eventIDGenerator,
+	)
+	if err != nil {
+		return nil, err
+	}
+	message.eventManager.RecordEvent(ev)
 
 	return message, nil
 }
@@ -94,12 +104,26 @@ func (m *PrivateMessage) Content() string {
 	return m.content
 }
 
-func (m *PrivateMessage) State() MessageState {
-	return m.state
-}
-
 func (m *PrivateMessage) SentAt() time.Time {
 	return m.sentAt
+}
+
+func (m *PrivateMessage) Marshal() ([]byte, error) {
+	type Alias struct {
+		ID          kernel.MessageID `json:"id"`
+		SenderID    kernel.UserID    `json:"sender_id"`
+		RecipientID kernel.UserID    `json:"recipient_id"`
+		Content     string           `json:"content"`
+		SentAt      time.Time        `json:"sent_at"`
+	}
+
+	return json.Marshal(&Alias{
+		ID:          m.id,
+		SenderID:    m.senderID,
+		RecipientID: m.recipientID,
+		Content:     m.content,
+		SentAt:      m.sentAt,
+	})
 }
 
 func (m *PrivateMessage) GetEvents() []event.Event {

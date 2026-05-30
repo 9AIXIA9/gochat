@@ -3,11 +3,9 @@ package di
 import (
 	"fmt"
 	"gochat/config"
-	authApp "gochat/internal/authorization/application"
-	authDomain "gochat/internal/authorization/domain"
-	authEvent "gochat/internal/authorization/port/event"
 	chatApp "gochat/internal/chat/application"
 	chatDomain "gochat/internal/chat/domain"
+	"gochat/internal/chat/port/command"
 	chatEvent "gochat/internal/chat/port/event"
 	"gochat/internal/delivery/kafka/handler"
 	"gochat/internal/delivery/kafka/middleware"
@@ -17,7 +15,6 @@ import (
 	kafkaInfra "gochat/internal/infrastructure/kafka"
 	redisInfra "gochat/internal/infrastructure/redis"
 	notificationApp "gochat/internal/notification/application"
-	notificationDomain "gochat/internal/notification/domain"
 	notificationEvent "gochat/internal/notification/port/event"
 	profileApp "gochat/internal/profile/application"
 	profileDomain "gochat/internal/profile/domain"
@@ -25,37 +22,22 @@ import (
 	roomshipApp "gochat/internal/roomship/application"
 	roomshipDomain "gochat/internal/roomship/domain"
 	roomshipEvent "gochat/internal/roomship/port/event"
+	"gochat/internal/shared/contract"
 	"gochat/internal/shared/event"
 
 	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/google/wire"
-	go_redis "github.com/redis/go-redis/v9"
+	goredis "github.com/redis/go-redis/v9"
 	"github.com/ulule/limiter/v3"
-	"go.uber.org/zap"
 )
 
 var KafkaSet = wire.NewSet(
 	provideKafkaProducer,
 	provideKafkaConsumers,
-	provideAuthEventConsumer,
-	provideProfileEventConsumer,
-	provideChatEventConsumer,
-	provideNotificationEventConsumer,
-	provideRoomshipEventConsumer,
-	provideFriendshipEventConsumer,
+	provideIsRetriableError,
 )
 
-// Distinct wrapper types for per-context consumers to avoid Wire ambiguity
-// Underlying type is *kafkaInfra.Consumer, but each is a separate named type
-// so Wire can differentiate providers and parameters.
-type (
-	AuthKafkaConsumer         *kafkaInfra.Consumer
-	ProfileKafkaConsumer      *kafkaInfra.Consumer
-	ChatKafkaConsumer         *kafkaInfra.Consumer
-	NotificationKafkaConsumer *kafkaInfra.Consumer
-	RoomshipKafkaConsumer     *kafkaInfra.Consumer
-	FriendshipKafkaConsumer   *kafkaInfra.Consumer
-)
+type isRetriableError func(error) bool
 
 func provideKafkaProducer(
 	appConf *config.App,
@@ -67,210 +49,208 @@ func provideKafkaProducer(
 	return producer, nil
 }
 
-func provideKafkaConsumers(
-	authConsumer AuthKafkaConsumer,
-	profileConsumer ProfileKafkaConsumer,
-	chatConsumer ChatKafkaConsumer,
-	notificationConsumer NotificationKafkaConsumer,
-	roomshipConsumer RoomshipKafkaConsumer,
-	friendshipConsumer FriendshipKafkaConsumer,
-) []*kafkaInfra.Consumer {
-	return []*kafkaInfra.Consumer{
-		authConsumer,
-		profileConsumer,
-		chatConsumer,
-		notificationConsumer,
-		roomshipConsumer,
-		friendshipConsumer,
+func consumerGroupID(appConfig *config.App, contextName string) string {
+	if appConfig == nil || appConfig.Kafka == nil {
+		return ""
 	}
+	return appConfig.Kafka.GroupID + "_" + contextName
 }
 
-// common builder to reduce duplication across contexts
 func buildKafkaConsumer(
 	appConfig *config.App,
 	kafkaLimiter *KafkaLimiter,
-	redisClient *go_redis.Client,
+	redisClient *goredis.Client,
 	reproducer *ckafka.Producer,
 	eventRepo event.Repository,
 	contextName string,
+	topicName string,
 	register func(r *kafkaInfra.Router),
+	isRetriableError isRetriableError,
 ) (*kafkaInfra.Consumer, error) {
+	if appConfig == nil || appConfig.Kafka == nil {
+		return nil, fmt.Errorf("failed to create Kafka consumer: app config kafka is nil")
+	}
+
+	consumerConfig := appConfig.Kafka.WithGroupIDSuffix(contextName)
+	groupID := consumerGroupID(appConfig, contextName)
+	consumerName := fmt.Sprintf("%s.%s.%s.kafka_consumer", appConfig.Name, contextName, topicName)
+	breakerName := fmt.Sprintf("%s_%s_%s_kafka_consumer_circuit_breaker", appConfig.Name, contextName, topicName)
+
 	router := kafkaInfra.NewRouter()
-	inboxStore := redisInfra.NewInboxStore(redisClient)
+	var inboxStore middleware.InboxStore
+	if redisClient != nil {
+		inboxStore = redisInfra.NewInboxStore(redisClient)
+	}
 	// Order matters: timeout wraps recover so panic inside timeout goroutine is still recoverable.
 	middlewares := []kafkaInfra.Middleware{
-		middleware.NewRateLimitMiddleware((*limiter.Limiter)(kafkaLimiter)),
+		middleware.NewRateLimitMiddleware((*limiter.Limiter)(kafkaLimiter), groupID),
 		middleware.NewTimeoutMiddleware(appConfig.Timeout),
 		middleware.NewRecoverMiddleware(),
 		// inbox middleware ensures idempotence by reserving event ids via the inbox store abstraction
-		middleware.NewInboxMiddleware(inboxStore),
+		middleware.NewInboxMiddleware(inboxStore, groupID),
 		middleware.NewLoggerMiddleware(),
 	}
 	if appConfig.OTEL != nil && appConfig.OTEL.Enabled {
-		middlewares = append([]kafkaInfra.Middleware{middleware.NewTraceMiddleware(appConfig.Name + "." + contextName + ".kafka_consumer")}, middlewares...)
+		middlewares = append([]kafkaInfra.Middleware{middleware.NewTraceMiddleware(consumerName)}, middlewares...)
 	}
 	router.Use(middlewares...)
 
 	if appConfig.Breaker != nil {
 		conf := *appConfig.Breaker
-		conf.Name = appConfig.Name + "_" + contextName + "_kafka_consumer_circuit_breaker"
+		conf.Name = breakerName
 		router.Use(middleware.NewCircuitBreakMiddleware(&conf))
 	}
 	register(router)
 
-	consumer, err := kafkaInfra.NewConsumer(appConfig.Kafka, router)
+	consumer, err := kafkaInfra.NewConsumer(consumerConfig, router)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Kafka consumer: %w", err)
 	}
 
 	consumer.SetErrorHandler(
 		handler.NewLoggerErrorHandler(),
-		middleware.NewRetryErrorMiddleware(reproducer),
-		middleware.NewDeadLetterErrorMiddleware(eventRepo),
+		middleware.NewRetryErrorMiddleware(reproducer, isRetriableError),
+		middleware.NewDeadLetterErrorMiddlewareWithNamespace(eventRepo, groupID),
 	)
 
 	// Configure breaker-based pause duration and middleware when breaker is enabled
 	if appConfig.Breaker != nil {
 		conf := *appConfig.Breaker
-		conf.Name = appConfig.Name + "_" + contextName + "_kafka_consumer_circuit_breaker"
+		conf.Name = breakerName
 		consumer.SetBreakerPause(conf.Timeout)
 	}
 	return consumer, nil
 }
 
-func provideAuthEventConsumer(
+func provideKafkaConsumers(
 	appConfig *config.App,
 	kafkaLimiter *KafkaLimiter,
-	redisClient *go_redis.Client,
+	redisClient *goredis.Client,
 	reproducer *ckafka.Producer,
 	eventRepo event.Repository,
-	authUserCreated authApp.UserCreatedUseCase,
-) (AuthKafkaConsumer, error) {
-	consumer, err := buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "authorization",
-		func(r *kafkaInfra.Router) {
-			r.EventHandle(authDomain.TopicUserCreated, authEvent.NewUserCreatedEventHandler(authUserCreated))
-		},
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return consumer, nil
-}
-
-func provideProfileEventConsumer(
-	appConfig *config.App,
-	kafkaLimiter *KafkaLimiter,
-	redisClient *go_redis.Client,
-	reproducer *ckafka.Producer,
-	eventRepo event.Repository,
+	gateway contract.GatewayService,
+	isRetriableError isRetriableError,
 	profileUserCreated profileApp.UserCreatedUseCase,
 	profileRoomCreated profileApp.RoomCreatedUseCase,
 	profileRoomshipCreated profileApp.RoomshipCreatedUseCase,
-) (ProfileKafkaConsumer, error) {
-	consumer, err := buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "profile",
-		func(r *kafkaInfra.Router) {
-			r.EventHandle(profileDomain.TopicUserCreated, profileEvent.NewUserCreatedEventHandler(profileUserCreated))
-			r.EventHandle(profileDomain.TopicRoomCreated, profileEvent.NewRoomCreatedEventHandler(profileRoomCreated))
-			r.EventHandle(profileDomain.TopicRoomshipCreated, profileEvent.NewRoomshipCreatedEventHandler(profileRoomshipCreated))
-		},
-	)
-	return consumer, err
-}
-
-func provideChatEventConsumer(
-	appConfig *config.App,
-	kafkaLimiter *KafkaLimiter,
-	redisClient *go_redis.Client,
-	reproducer *ckafka.Producer,
-	eventRepo event.Repository,
 	chatUserCreated chatApp.UserCreatedUseCase,
 	chatRoomCreated chatApp.RoomCreatedUseCase,
 	chatRoomshipCreated chatApp.RoomshipCreatedUseCase,
 	chatFriendshipCreated chatApp.FriendshipCreatedUseCase,
-	chatUndeliveredMessagesPushRequested chatApp.UndeliveredMessagesPushRequestedUseCase,
-) (ChatKafkaConsumer, error) {
-	consumer, err := buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "chat",
-		func(r *kafkaInfra.Router) {
-			r.EventHandle(chatDomain.TopicUserCreated, chatEvent.NewUserCreatedEventHandler(chatUserCreated))
-			r.EventHandle(chatDomain.TopicRoomCreated, chatEvent.NewRoomCreatedEventHandler(chatRoomCreated))
-			r.EventHandle(chatDomain.TopicRoomshipCreated, chatEvent.NewRoomshipCreatedEventHandler(chatRoomshipCreated))
-			r.EventHandle(chatDomain.TopicFriendshipCreated, chatEvent.NewFriendshipCreatedEventHandler(chatFriendshipCreated))
-			r.EventHandle(chatDomain.TopicUndeliveredMessagesPushRequested, chatEvent.NewUndeliveredMessagesPushRequestedEventHandler(chatUndeliveredMessagesPushRequested))
-		},
-	)
-	return consumer, err
-}
-
-func provideNotificationEventConsumer(
-	appConfig *config.App,
-	emailAvailable emailServiceAvailable,
-	kafkaLimiter *KafkaLimiter,
-	redisClient *go_redis.Client,
-	reproducer *ckafka.Producer,
-	eventRepo event.Repository,
-	notificationWelcomeEmailNotificationRequested notificationApp.WelcomeEmailNotificationRequestedUseCase,
-	notificationSystemMessageNotificationRequested notificationApp.SystemMessageNotificationRequestedUseCase,
-	notificationUndeliveredMessagesRequested notificationApp.UndeliveredMessagesNotificationRequestedUseCase,
-) (NotificationKafkaConsumer, error) {
-	consumer, err := buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "notification",
-		func(r *kafkaInfra.Router) {
-			if !appConfig.Email.Enable {
-				zap.L().Info("Skipping subscription to WelcomeEmailNotificationRequested topic as email notifier is disabled in config")
-			} else if emailAvailable {
-				r.EventHandle(notificationDomain.TopicWelcomeEmailNotificationRequested, notificationEvent.NewWelcomeEmailNotificationRequestedEventHandler(notificationWelcomeEmailNotificationRequested))
-			} else {
-				zap.L().Info("Skipping subscription to WelcomeEmailNotificationRequested topic as email dialer is not connected")
-			}
-			r.EventHandle(notificationDomain.TopicSystemMessageNotificationRequested, notificationEvent.NewSystemMessageNotificationRequestedEventHandler(notificationSystemMessageNotificationRequested))
-			r.EventHandle(notificationDomain.TopicUndeliveredMessagesNotificationRequested, notificationEvent.NewUndeliveredMessagesNotificationRequestedEventHandler(notificationUndeliveredMessagesRequested))
-		},
-	)
-	return consumer, err
-}
-
-func provideRoomshipEventConsumer(
-	appConfig *config.App,
-	kafkaLimiter *KafkaLimiter,
-	redisClient *go_redis.Client,
-	reproducer *ckafka.Producer,
-	eventRepo event.Repository,
+	chatSendPrivateMessage chatApp.SendPrivateMessageUseCase,
+	chatSendRoomMessage chatApp.SendRoomMessageUseCase,
 	roomshipUserCreated roomshipApp.UserCreatedUseCase,
 	roomshipRoomCreated roomshipApp.RoomCreatedUseCase,
 	roomshipMemberRequestAgreed roomshipApp.MemberRequestAgreedUseCase,
-	roomshipMemberRequestCreated roomshipApp.MemberRequestCreatedUseCase,
-	roomshipRoomshipCreated roomshipApp.RoomshipCreatedUseCase,
-) (RoomshipKafkaConsumer, error) {
-	consumer, err := buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "roomship",
-		func(r *kafkaInfra.Router) {
-			r.EventHandle(roomshipDomain.TopicUserCreated, roomshipEvent.NewUserCreatedEventHandler(roomshipUserCreated))
-			r.EventHandle(roomshipDomain.TopicRoomCreated, roomshipEvent.NewRoomCreatedEventHandler(roomshipRoomCreated))
-			r.EventHandle(roomshipDomain.TopicMemberRequestCreated, roomshipEvent.NewMemberRequestCreatedEventHandler(roomshipMemberRequestCreated))
-			r.EventHandle(roomshipDomain.TopicMemberRequestAgreed, roomshipEvent.NewMemberRequestAgreedEventHandler(roomshipMemberRequestAgreed))
-			r.EventHandle(roomshipDomain.TopicRoomshipCreated, roomshipEvent.NewRoomshipCreatedEventHandler(roomshipRoomshipCreated))
-		},
-	)
-	return consumer, err
-}
-
-func provideFriendshipEventConsumer(
-	appConfig *config.App,
-	kafkaLimiter *KafkaLimiter,
-	redisClient *go_redis.Client,
-	reproducer *ckafka.Producer,
-	eventRepo event.Repository,
 	friendshipUserCreated friendshipApp.UserCreatedUseCase,
 	friendshipFriendRequestAgreed friendshipApp.FriendRequestAgreedUseCase,
-	friendshipFriendRequestCreated friendshipApp.FriendRequestCreatedUseCase,
-	friendshipFriendshipCreated friendshipApp.FriendshipCreatedUseCase,
-) (FriendshipKafkaConsumer, error) {
-	consumer, err := buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "friendship",
-		func(r *kafkaInfra.Router) {
-			r.EventHandle(friendshipDomain.TopicUserCreated, friendshipEvent.NewUserCreatedEventHandler(friendshipUserCreated))
-			r.EventHandle(friendshipDomain.TopicFriendRequestAgreed, friendshipEvent.NewFriendRequestAgreedEventHandler(friendshipFriendRequestAgreed))
-			r.EventHandle(friendshipDomain.TopicFriendRequestCreated, friendshipEvent.NewFriendRequestCreatedEventHandler(friendshipFriendRequestCreated))
-			r.EventHandle(friendshipDomain.TopicFriendshipCreated, friendshipEvent.NewFriendshipCreatedEventHandler(friendshipFriendshipCreated))
-		},
-	)
-	return consumer, err
+	notificationCreated notificationApp.NotificationCreatedUseCase,
+) (consumers []*kafkaInfra.Consumer, err error) {
+	defer func() {
+		if err == nil {
+			return
+		}
+		for _, consumer := range consumers {
+			if consumer != nil {
+				consumer.Close()
+			}
+		}
+	}()
+
+	addConsumer := func(consumer *kafkaInfra.Consumer, buildErr error) error {
+		if buildErr != nil {
+			return buildErr
+		}
+		consumers = append(consumers, consumer)
+		return nil
+	}
+
+	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "profile", string(profileDomain.TopicUserCreated), func(r *kafkaInfra.Router) {
+		r.EventHandle(profileDomain.TopicUserCreated, profileEvent.NewUserCreatedEventHandler(profileUserCreated))
+	}, isRetriableError)); err != nil {
+		return nil, err
+	}
+	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "profile", string(profileDomain.TopicRoomCreated), func(r *kafkaInfra.Router) {
+		r.EventHandle(profileDomain.TopicRoomCreated, profileEvent.NewRoomCreatedEventHandler(profileRoomCreated))
+	}, isRetriableError)); err != nil {
+		return nil, err
+	}
+	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "profile", string(profileDomain.TopicRoomshipCreated), func(r *kafkaInfra.Router) {
+		r.EventHandle(profileDomain.TopicRoomshipCreated, profileEvent.NewRoomshipCreatedEventHandler(profileRoomshipCreated))
+	}, isRetriableError)); err != nil {
+		return nil, err
+	}
+
+	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "chat", string(chatDomain.TopicUserCreated), func(r *kafkaInfra.Router) {
+		r.EventHandle(chatDomain.TopicUserCreated, chatEvent.NewUserCreatedEventHandler(chatUserCreated))
+	}, isRetriableError)); err != nil {
+		return nil, err
+	}
+	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "chat", string(chatDomain.TopicRoomCreated), func(r *kafkaInfra.Router) {
+		r.EventHandle(chatDomain.TopicRoomCreated, chatEvent.NewRoomCreatedEventHandler(chatRoomCreated))
+	}, isRetriableError)); err != nil {
+		return nil, err
+	}
+	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "chat", string(chatDomain.TopicRoomshipCreated), func(r *kafkaInfra.Router) {
+		r.EventHandle(chatDomain.TopicRoomshipCreated, chatEvent.NewRoomshipCreatedEventHandler(chatRoomshipCreated))
+	}, isRetriableError)); err != nil {
+		return nil, err
+	}
+	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "chat", string(chatDomain.TopicFriendshipCreated), func(r *kafkaInfra.Router) {
+		r.EventHandle(chatDomain.TopicFriendshipCreated, chatEvent.NewFriendshipCreatedEventHandler(chatFriendshipCreated))
+	}, isRetriableError)); err != nil {
+		return nil, err
+	}
+
+	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "chat", string(chatDomain.TopicSendPrivateMessageCommand), func(r *kafkaInfra.Router) {
+		r.EventHandle(chatDomain.TopicSendPrivateMessageCommand, command.NewSendPrivateMessageCommandHandler(chatSendPrivateMessage, gateway))
+	}, isRetriableError)); err != nil {
+		return nil, err
+	}
+	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "chat", string(chatDomain.TopicSendRoomMessageCommand), func(r *kafkaInfra.Router) {
+		r.EventHandle(chatDomain.TopicSendRoomMessageCommand, command.NewSendRoomMessageCommandHandler(chatSendRoomMessage, gateway))
+	}, isRetriableError)); err != nil {
+		return nil, err
+	}
+
+	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "roomship", string(roomshipDomain.TopicUserCreated), func(r *kafkaInfra.Router) {
+		r.EventHandle(roomshipDomain.TopicUserCreated, roomshipEvent.NewUserCreatedEventHandler(roomshipUserCreated))
+	}, isRetriableError)); err != nil {
+		return nil, err
+	}
+	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "roomship", string(roomshipDomain.TopicRoomCreated), func(r *kafkaInfra.Router) {
+		r.EventHandle(roomshipDomain.TopicRoomCreated, roomshipEvent.NewRoomCreatedEventHandler(roomshipRoomCreated))
+	}, isRetriableError)); err != nil {
+		return nil, err
+	}
+	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "roomship", string(roomshipDomain.TopicMemberRequestAgreed), func(r *kafkaInfra.Router) {
+		r.EventHandle(roomshipDomain.TopicMemberRequestAgreed, roomshipEvent.NewMemberRequestAgreedEventHandler(roomshipMemberRequestAgreed))
+	}, isRetriableError)); err != nil {
+		return nil, err
+	}
+
+	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "friendship", string(friendshipDomain.TopicUserCreated), func(r *kafkaInfra.Router) {
+		r.EventHandle(friendshipDomain.TopicUserCreated, friendshipEvent.NewUserCreatedEventHandler(friendshipUserCreated))
+	}, isRetriableError)); err != nil {
+		return nil, err
+	}
+	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "friendship", string(friendshipDomain.TopicFriendRequestAgreed), func(r *kafkaInfra.Router) {
+		r.EventHandle(friendshipDomain.TopicFriendRequestAgreed, friendshipEvent.NewFriendRequestAgreedEventHandler(friendshipFriendRequestAgreed))
+	}, isRetriableError)); err != nil {
+		return nil, err
+	}
+
+	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "notification", string(contract.TopicNotificationCreated), func(r *kafkaInfra.Router) {
+		r.EventHandle(contract.TopicNotificationCreated, notificationEvent.NewNotificationCreatedEventHandler(notificationCreated))
+	}, isRetriableError)); err != nil {
+		return nil, err
+	}
+
+	return consumers, nil
+}
+
+func provideIsRetriableError() isRetriableError {
+	return func(error) bool {
+		return false
+	}
 }

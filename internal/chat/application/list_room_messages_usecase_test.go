@@ -96,7 +96,7 @@ func TestNewListRoomMessagesUseCase(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	finder := mocks.NewMockRoomMessagesFinderByRoomIDAndUserID(ctrl)
+	finder := mocks.NewMockRoomMessagesFinderByRoomIDAndUserIDWithoutRecipients(ctrl)
 
 	useCase, err := application.NewListRoomMessagesUseCase(
 		finder,
@@ -117,7 +117,7 @@ func TestListRoomMessagesUseCase_Execute(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	finder := mocks.NewMockRoomMessagesFinderByRoomIDAndUserID(ctrl)
+	finder := mocks.NewMockRoomMessagesFinderByRoomIDAndUserIDWithoutRecipients(ctrl)
 
 	useCase, err := application.NewListRoomMessagesUseCase(
 		finder,
@@ -129,7 +129,7 @@ func TestListRoomMessagesUseCase_Execute(t *testing.T) {
 	fixedLimit := maxRoomMessagesLimit - 1
 	messages := getRoomMessages(fixedLimit)
 
-	finder.EXPECT().FindsByRoomIDAndUserID(gomock.Any(), fixedRoomID, fixedUserID, fixedLimit, fixedRoomMessageBaseID).Return(messages, nil)
+	finder.EXPECT().FindsByRoomIDAndUserIDWithoutRecipients(gomock.Any(), fixedRoomID, fixedUserID, fixedLimit, fixedRoomMessageBaseID).Return(messages, nil)
 
 	output, err := useCase.Execute(nil, &application.ListRoomMessagesInput{
 		UserID: fixedUserID,
@@ -145,7 +145,7 @@ func TestListRoomMessagesUseCase_Execute(t *testing.T) {
 	// 模拟limit为0
 	messages = getRoomMessages(defaultRoomMessagesLimit)
 
-	finder.EXPECT().FindsByRoomIDAndUserID(gomock.Any(), fixedRoomID, fixedUserID, defaultRoomMessagesLimit, fixedRoomMessageBaseID).Return(messages, nil)
+	finder.EXPECT().FindsByRoomIDAndUserIDWithoutRecipients(gomock.Any(), fixedRoomID, fixedUserID, defaultRoomMessagesLimit, fixedRoomMessageBaseID).Return(messages, nil)
 
 	output, err = useCase.Execute(nil, &application.ListRoomMessagesInput{
 		UserID: fixedUserID,
@@ -159,7 +159,7 @@ func TestListRoomMessagesUseCase_Execute(t *testing.T) {
 	require.Len(t, output.RoomMessages, defaultRoomMessagesLimit)
 
 	//模拟负数limit
-	finder.EXPECT().FindsByRoomIDAndUserID(gomock.Any(), fixedRoomID, fixedUserID, defaultRoomMessagesLimit, fixedRoomMessageBaseID).Return(messages, nil)
+	finder.EXPECT().FindsByRoomIDAndUserIDWithoutRecipients(gomock.Any(), fixedRoomID, fixedUserID, defaultRoomMessagesLimit, fixedRoomMessageBaseID).Return(messages, nil)
 
 	output, err = useCase.Execute(nil, &application.ListRoomMessagesInput{
 		UserID: fixedUserID,
@@ -175,7 +175,7 @@ func TestListRoomMessagesUseCase_Execute(t *testing.T) {
 	// 模拟太大的limit
 	messages = getRoomMessages(maxRoomMessagesLimit)
 
-	finder.EXPECT().FindsByRoomIDAndUserID(gomock.Any(), fixedRoomID, fixedUserID, maxRoomMessagesLimit, fixedRoomMessageBaseID).Return(messages, nil)
+	finder.EXPECT().FindsByRoomIDAndUserIDWithoutRecipients(gomock.Any(), fixedRoomID, fixedUserID, maxRoomMessagesLimit, fixedRoomMessageBaseID).Return(messages, nil)
 
 	output, err = useCase.Execute(nil, &application.ListRoomMessagesInput{
 		UserID: fixedUserID,
@@ -191,12 +191,11 @@ func TestListRoomMessagesUseCase_Execute(t *testing.T) {
 
 func getRoomMessages(count int) []*domain.RoomMessage {
 	messages := make([]*domain.RoomMessage, count)
-	states := make(map[kernel.UserID]domain.MessageState, count+1)
+	states := make([]kernel.UserID, count)
 
 	for i := 0; i < count; i++ {
-		states[kernel.UserID("user-"+kernel.UserID(strconv.Itoa(i)).String())] = domain.MessageStateRead
+		states[i] = kernel.UserID("user-" + kernel.UserID(strconv.Itoa(i)).String())
 	}
-	states[fixedUserID] = domain.MessageStateDelivered
 
 	for i := 0; i < count; i++ {
 		messages[i] = domain.LoadRoomMessage(

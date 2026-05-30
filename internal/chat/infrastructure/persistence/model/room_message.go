@@ -1,7 +1,6 @@
 package model
 
 import (
-	"gochat/internal/chat/domain"
 	"gochat/internal/shared/kernel"
 	"time"
 )
@@ -18,22 +17,21 @@ type RoomMessage struct {
 	_ struct{} `gorm:"constraint:OnDelete:CASCADE,OnUpdate:CASCADE;foreignKey:RoomID;references:ID"`
 
 	// 关联状态
-	States []*RoomMessageState `gorm:"foreignKey:MessageID;constraint:OnDelete:CASCADE"`
+	Recipients []*RoomMessageRecipient `gorm:"foreignKey:MessageID;constraint:OnDelete:CASCADE"`
 }
 
 func (RoomMessage) TableName() string {
 	return "chat_room_messages"
 }
 
-type RoomMessageState struct {
-	MessageID kernel.MessageID    `gorm:"type:char(36);not null;index;uniqueIndex:idx_room_msg_state,priority:1"`
-	UserID    kernel.UserID       `gorm:"type:char(36);not null;index;uniqueIndex:idx_room_msg_state,priority:2"`
-	State     domain.MessageState `gorm:"type:varchar(36);not null;index"`
+type RoomMessageRecipient struct {
+	MessageID kernel.MessageID `gorm:"type:char(36);not null;index;uniqueIndex:idx_room_msg,priority:1"`
+	UserID    kernel.UserID    `gorm:"type:char(36);not null;index;uniqueIndex:idx_room_msg,priority:2"`
 
 	_ struct{} `gorm:"constraint:OnDelete:CASCADE,OnUpdate:CASCADE;foreignKey:MessageID;references:ID"`
 	_ struct{} `gorm:"constraint:OnDelete:RESTRICT,OnUpdate:CASCADE;foreignKey:UserID;references:ID"`
 }
 
-func (*RoomMessageState) TableName() string {
-	return "chat_room_message_states"
+func (*RoomMessageRecipient) TableName() string {
+	return "chat_room_message_recipients"
 }

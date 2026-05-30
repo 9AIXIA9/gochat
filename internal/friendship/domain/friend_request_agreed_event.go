@@ -6,7 +6,7 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-const TopicFriendRequestAgreed event.Topic = "friendship.friend_request.agreed"
+const TopicFriendRequestAgreed event.Topic = "friend_request.agreed"
 
 var _ event.SpecificEvent = (*FriendRequestAgreedEvent)(nil)
 

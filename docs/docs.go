@@ -171,39 +171,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/chats/private-messages/read": {
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "阅读来自指定用户的所有未读消息",
-                "tags": [
-                    "Chat"
-                ],
-                "summary": "阅读指定用户消息",
-                "parameters": [
-                    {
-                        "description": "阅读指定用户消息请求体",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/internal_chat_port_http.ReadPrivateMessagesRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "成功已读",
-                        "schema": {
-                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
-                        }
-                    }
-                }
-            }
-        },
         "/chats/private-messages/{user_id}": {
             "get": {
                 "security": [
@@ -219,7 +186,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "019b5929-65bc-7549-89c6-3f7dc6872577",
+                        "x-example": "019b5929-65bc-7549-89c6-3f7dc6872577",
                         "description": "私聊对象用户ID",
                         "name": "user_id",
                         "in": "path",
@@ -227,7 +194,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "分页游标",
                         "name": "base_id",
                         "in": "query"
@@ -237,7 +204,7 @@ const docTemplate = `{
                         "minimum": 1,
                         "type": "integer",
                         "default": 20,
-                        "example": 50,
+                        "x-example": 50,
                         "description": "分页大小，默认 20，最大 100",
                         "name": "limit",
                         "in": "query"
@@ -298,39 +265,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/chats/rooms/messages/read": {
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "阅读指定房间的所有消息",
-                "tags": [
-                    "Chat"
-                ],
-                "summary": "阅读指定房间消息",
-                "parameters": [
-                    {
-                        "description": "阅读指定房间消息请求体",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/internal_chat_port_http.ReadRoomMessagesRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "成功已读",
-                        "schema": {
-                            "$ref": "#/definitions/gochat_internal_shared_api.Response"
-                        }
-                    }
-                }
-            }
-        },
         "/chats/rooms/messages/{room_id}": {
             "get": {
                 "security": [
@@ -346,7 +280,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "019b5929-65bc-7549-89c6-3f7dc6872577",
+                        "x-example": "019b5929-65bc-7549-89c6-3f7dc6872577",
                         "description": "群聊对象房间ID",
                         "name": "room_id",
                         "in": "path",
@@ -354,7 +288,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "分页游标",
                         "name": "base_id",
                         "in": "query"
@@ -364,7 +298,7 @@ const docTemplate = `{
                         "minimum": 1,
                         "type": "integer",
                         "default": 20,
-                        "example": 50,
+                        "x-example": 50,
                         "description": "分页大小，默认 20，最大 100",
                         "name": "limit",
                         "in": "query"
@@ -407,7 +341,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "分页游标，返回该ID之前的记录",
                         "name": "base_id",
                         "in": "query"
@@ -417,7 +351,7 @@ const docTemplate = `{
                         "minimum": 1,
                         "type": "integer",
                         "default": 20,
-                        "example": 50,
+                        "x-example": 50,
                         "description": "分页大小，默认20，最大100",
                         "name": "limit",
                         "in": "query"
@@ -491,7 +425,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "好友请求ID",
                         "name": "request_id",
                         "in": "path",
@@ -523,7 +457,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "好友请求ID",
                         "name": "request_id",
                         "in": "path",
@@ -555,7 +489,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "分页游标，返回该ID之前的记录",
                         "name": "base_id",
                         "in": "query"
@@ -565,7 +499,7 @@ const docTemplate = `{
                         "minimum": 1,
                         "type": "integer",
                         "default": 20,
-                        "example": 50,
+                        "x-example": 50,
                         "description": "分页大小，默认20，最大100",
                         "name": "limit",
                         "in": "query"
@@ -584,59 +518,6 @@ const docTemplate = `{
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/internal_friendship_port_http.ListFriendshipsResponseData"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
-        "/notifications/system-messages": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "获取当前登录用户的系统通知列表，可基于 base_id 游标和 limit 分页",
-                "tags": [
-                    "Notification"
-                ],
-                "summary": "获取系统通知列表",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
-                        "description": "分页游标，返回该ID之前的消息",
-                        "name": "base_id",
-                        "in": "query"
-                    },
-                    {
-                        "maximum": 100,
-                        "minimum": 1,
-                        "type": "integer",
-                        "default": 20,
-                        "example": 50,
-                        "description": "分页大小，默认20，最大100",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "成功返回系统通知列表",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/internal_notification_port_http.ListSystemMessagesResponseData"
                                         }
                                     }
                                 }
@@ -721,7 +602,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "房间ID",
                         "name": "room_id",
                         "in": "path",
@@ -763,7 +644,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "\"019b593b-462e-74d6-bfda-0e103a172192\"",
+                        "x-example": "\"019b593b-462e-74d6-bfda-0e103a172192\"",
                         "description": "房间ID",
                         "name": "room_id",
                         "in": "path",
@@ -799,7 +680,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "用户ID",
                         "name": "user_id",
                         "in": "path",
@@ -843,7 +724,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "分页游标，返回该ID之前的记录",
                         "name": "base_id",
                         "in": "query"
@@ -853,7 +734,7 @@ const docTemplate = `{
                         "minimum": 1,
                         "type": "integer",
                         "default": 20,
-                        "example": 50,
+                        "x-example": 50,
                         "description": "分页大小，默认20，最大100",
                         "name": "limit",
                         "in": "query"
@@ -927,7 +808,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "分页游标，返回该ID之前的记录",
                         "name": "base_id",
                         "in": "query"
@@ -937,7 +818,7 @@ const docTemplate = `{
                         "minimum": 1,
                         "type": "integer",
                         "default": 20,
-                        "example": 50,
+                        "x-example": 50,
                         "description": "分页大小，默认20，最大100",
                         "name": "limit",
                         "in": "query"
@@ -1011,7 +892,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "成员请求ID",
                         "name": "request_id",
                         "in": "path",
@@ -1043,7 +924,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "成员请求ID",
                         "name": "request_id",
                         "in": "path",
@@ -1070,7 +951,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "房间ID",
                         "name": "room_id",
                         "in": "path",
@@ -1114,7 +995,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "019b593b-462e-74d6-bfda-0e103a172190",
+                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
                         "description": "房间ID",
                         "name": "room_id",
                         "in": "path",
@@ -1133,19 +1014,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "gochat_internal_chat_domain.MessageState": {
-            "type": "string",
-            "enum": [
-                "undelivered",
-                "delivered",
-                "read"
-            ],
-            "x-enum-varnames": [
-                "MessageStateUndelivered",
-                "MessageStateDelivered",
-                "MessageStateRead"
-            ]
-        },
         "gochat_internal_chat_dto.PrivateMessage": {
             "type": "object",
             "properties": {
@@ -1168,14 +1036,6 @@ const docTemplate = `{
                 "sent_at": {
                     "type": "string",
                     "example": "2025-12-26 05:56:55.470"
-                },
-                "state": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_chat_domain.MessageState"
-                        }
-                    ],
-                    "example": "read"
                 }
             }
         },
@@ -1201,12 +1061,6 @@ const docTemplate = `{
                 "sent_at": {
                     "type": "string",
                     "example": "2025-12-26 05:38:19.740"
-                },
-                "states": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "$ref": "#/definitions/gochat_internal_chat_domain.MessageState"
-                    }
                 }
             }
         },
@@ -1275,46 +1129,6 @@ const docTemplate = `{
                 "user_id_2": {
                     "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172192"
-                }
-            }
-        },
-        "gochat_internal_notification_domain.MessageState": {
-            "type": "string",
-            "enum": [
-                "undelivered",
-                "delivered"
-            ],
-            "x-enum-varnames": [
-                "MessageStateUndelivered",
-                "MessageStateDelivered"
-            ]
-        },
-        "gochat_internal_notification_dto.SystemMessage": {
-            "type": "object",
-            "properties": {
-                "content": {
-                    "type": "string",
-                    "example": "Hello-Gochat!"
-                },
-                "id": {
-                    "type": "string",
-                    "example": "019b593b-462e-74d6-bfda-0e103a172191"
-                },
-                "recipient_id": {
-                    "type": "string",
-                    "example": "019b593b-462e-74d6-bfda-0e103a172192"
-                },
-                "sent_at": {
-                    "type": "string",
-                    "example": "2025-12-26 05:38:19.740"
-                },
-                "state": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_notification_domain.MessageState"
-                        }
-                    ],
-                    "example": "delivered"
                 }
             }
         },
@@ -1617,30 +1431,6 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_chat_port_http.ReadPrivateMessagesRequest": {
-            "type": "object",
-            "required": [
-                "sender_id"
-            ],
-            "properties": {
-                "sender_id": {
-                    "type": "string",
-                    "example": "019b593b-462e-74d6-bfda-0e103a172190"
-                }
-            }
-        },
-        "internal_chat_port_http.ReadRoomMessagesRequest": {
-            "type": "object",
-            "required": [
-                "room_id"
-            ],
-            "properties": {
-                "room_id": {
-                    "type": "string",
-                    "example": "019b593b-462e-74d6-bfda-0e103a172190"
-                }
-            }
-        },
         "internal_chat_port_http.SendPrivateMessageRequest": {
             "type": "object",
             "required": [
@@ -1714,17 +1504,6 @@ const docTemplate = `{
                 "to_id": {
                     "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172191"
-                }
-            }
-        },
-        "internal_notification_port_http.ListSystemMessagesResponseData": {
-            "type": "object",
-            "properties": {
-                "system_messages": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/gochat_internal_notification_dto.SystemMessage"
-                    }
                 }
             }
         },

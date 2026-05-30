@@ -8,7 +8,7 @@ import (
 )
 
 func NewUserCreatedEventHandler(uc application.UserCreatedUseCase) event.Handler {
-	return event.AdaptUsecaseToHandler(
+	return event.AdaptUsecaseToEventHandler(
 		uc,
 		domain.ToUserCreatedEvent,
 		func(createdEvent *domain.UserCreatedEvent) *application.UserCreatedInput {

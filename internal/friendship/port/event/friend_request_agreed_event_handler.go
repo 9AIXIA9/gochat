@@ -8,7 +8,7 @@ import (
 )
 
 func NewFriendRequestAgreedEventHandler(uc application.FriendRequestAgreedUseCase) event.Handler {
-	return event.AdaptUsecaseToHandler(
+	return event.AdaptUsecaseToEventHandler(
 		uc,
 		domain.ToFriendRequestAgreedEvent,
 		func(agreedEvent *domain.FriendRequestAgreedEvent) *application.FriendRequestAgreedInput {

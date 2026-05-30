@@ -5,7 +5,7 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-func AdaptUsecaseToHandler[
+func AdaptUsecaseToEventHandler[
 	SpecialEvent SpecificEvent,
 	Input kernel.Validatable,
 	Output any,
@@ -16,7 +16,12 @@ func AdaptUsecaseToHandler[
 	handleOutput func(context.Context, Output),
 	handleError func(context.Context, error),
 ) Handler {
-	return HandlerFunc(func(ctx context.Context, e Event) error {
+	return HandlerFunc(func(ctx context.Context, e Event) (err error) {
+		defer func() {
+			if err != nil && handleError != nil {
+				handleError(ctx, err)
+			}
+		}()
 		specialEvent, err := convertEvToSpecialEv(e)
 		if err != nil {
 			return err
@@ -30,10 +35,6 @@ func AdaptUsecaseToHandler[
 
 		output, err := usecase.Execute(ctx, input)
 		if err != nil {
-			if handleError == nil {
-				return err
-			}
-			handleError(ctx, err)
 			return err
 		}
 

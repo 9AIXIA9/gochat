@@ -113,7 +113,7 @@ func TestNewListRoomMessagesHandler(t *testing.T) {
 	fixedRoomMessage := chatDomain.LoadRoomMessage(
 		"message-10",
 		fixedUserID,
-		map[kernel.UserID]chatDomain.MessageState{"user-2": chatDomain.MessageStateDelivered},
+		[]kernel.UserID{"user-2"},
 		fixedRoomID,
 		"hello room",
 		fixedSentAt,

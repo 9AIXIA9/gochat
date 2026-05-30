@@ -9,10 +9,9 @@ import (
 	"gochat/internal/authorization/infrastructure/jwt"
 	authSnowflake "gochat/internal/authorization/infrastructure/snowflake"
 	authUUID "gochat/internal/authorization/infrastructure/uuid"
-	chatDomain "gochat/internal/chat/domain"
-	chatWebsocket "gochat/internal/chat/infrastructure/websocket"
 	friendshipDomain "gochat/internal/friendship/domain"
 	friendshipUUID "gochat/internal/friendship/infrastructure/uuid"
+	gatewayUUID "gochat/internal/gateway/infrastructure/uuid"
 	"gochat/internal/infrastructure/bcrypt"
 	ginutils "gochat/internal/infrastructure/gin"
 	gormInfra "gochat/internal/infrastructure/gorm"
@@ -23,42 +22,40 @@ import (
 	"gochat/internal/infrastructure/ulule"
 	"gochat/internal/infrastructure/uuid"
 	validatorInfra "gochat/internal/infrastructure/validator"
-	"gochat/internal/infrastructure/websocket"
-	notificationDomain "gochat/internal/notification/domain"
-	gomailInfra "gochat/internal/notification/infrastructure/gomail"
-	notificationWebsocket "gochat/internal/notification/infrastructure/websocket"
 	roomshipDomain "gochat/internal/roomship/domain"
 	roomshipSnowflake "gochat/internal/roomship/infrastructure/snowflake"
 	roomshipUUID "gochat/internal/roomship/infrastructure/uuid"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/iputil"
+	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/wire"
 	"github.com/redis/go-redis/v9"
 	"github.com/ulule/limiter/v3"
 	"go.uber.org/zap"
-	"gopkg.in/gomail.v2"
 	"gorm.io/gorm"
 )
 
 type (
-	emailServiceAvailable bool
-	OTELShutdown          func(context.Context) error
-	HTTPLimiter           limiter.Limiter
-	WebsocketLimiter      limiter.Limiter
-	KafkaLimiter          limiter.Limiter
+	OTELShutdown func(context.Context) error
+	HTTPLimiter  limiter.Limiter
+	KafkaLimiter limiter.Limiter
+	checkOrigin  func(r *http.Request) bool
 )
 
 var InfraSet = wire.NewSet(
 	provideObservability,
 	provideMysqlConnection,
 	provideRedisConnection,
-	provideKafkaPublisher,
+	provideKafkaAsyncPublisher,
+	provideKafkaSyncPublisher,
 	provideOutboxDispatcher,
+	provideCheckOrigin,
 	provideValidator,
 	provideHTTPLimiter,
-	provideWebsocketLimiter,
 	provideKafkaLimiter,
 	// Generators & managers (concrete providers)
 	provideEventIDGenerator,
@@ -66,6 +63,7 @@ var InfraSet = wire.NewSet(
 	provideAuthorizationUserNumberGenerator,
 	provideHasher,
 	provideMessageIDGenerator,
+	provideSessionIDGenerator,
 	provideRoomshipRoomIDGenerator,
 	provideRoomshipRoomshipIDGenerator,
 	provideRoomshipRoomNumberGenerator,
@@ -73,19 +71,13 @@ var InfraSet = wire.NewSet(
 	provideFriendshipFriendshipIDGenerator,
 	provideAccessTokenManager,
 	provideRefreshTokenGenerator,
-	provideGomailDialer,
-	provideEmailAvailable,
-	provideEmailNotifier,
-	provideSystemMessageNotifier,
-	providePrivateMessageNotifier,
-	provideRoomMessageNotifier,
 	// Binds
 	wire.Bind(new(event.IDGenerator), new(*uuid.EventIDGenerator)),
 	wire.Bind(new(kernel.MessageIDGenerator), new(*uuid.MessageIDGenerator)),
 	wire.Bind(new(kernel.OperationIDGenerator), new(*uuid.OperationIDGenerator)),
-	wire.Bind(new(event.Publisher), new(*kafkautil.EventPublisher)),
+	wire.Bind(new(event.AsyncPublisher), new(*kafkautil.EventAsyncPublisher)),
+	wire.Bind(new(event.SyncPublisher), new(*kafkautil.EventSyncPublisher)),
 	wire.Bind(new(ginutils.Validator), new(*validatorInfra.Validator)),
-	wire.Bind(new(websocket.Validator), new(*validatorInfra.Validator)),
 	// Authorization binds
 	wire.Bind(new(authDomain.UserIDGenerator), new(*authUUID.UserIDGenerator)),
 	wire.Bind(new(authDomain.UserNumberGenerator), new(*authSnowflake.UserNumberGenerator)),
@@ -94,9 +86,6 @@ var InfraSet = wire.NewSet(
 	wire.Bind(new(authDomain.AccessTokenGenerator), new(*jwt.AccessTokenManager)),
 	wire.Bind(new(authDomain.AccessTokenParser), new(*jwt.AccessTokenManager)),
 	wire.Bind(new(authDomain.RefreshTokenGenerator), new(*crypto.RefreshTokenGenerator)),
-	// Chat Notifier
-	wire.Bind(new(chatDomain.PrivateMessageNotifier), new(*chatWebsocket.PrivateMessageNotifier)),
-	wire.Bind(new(chatDomain.RoomMessageNotifier), new(*chatWebsocket.RoomMessageNotifier)),
 	// Roomship generator & crypto binds
 	wire.Bind(new(roomshipDomain.RoomIDGenerator), new(*roomshipUUID.RoomIDGenerator)),
 	wire.Bind(new(roomshipDomain.RoomshipIDGenerator), new(*roomshipUUID.RoomshipIDGenerator)),
@@ -105,9 +94,6 @@ var InfraSet = wire.NewSet(
 	wire.Bind(new(roomshipDomain.Comparator), new(*bcrypt.Hasher)),
 	// Friendship generator
 	wire.Bind(new(friendshipDomain.FriendshipIDGenerator), new(*friendshipUUID.FriendshipIDGenerator)),
-	// Notification binds
-	wire.Bind(new(notificationDomain.WelcomeEmailNotifier), new(*gomailInfra.EmailNotifier)),
-	wire.Bind(new(notificationDomain.SystemMessageNotifier), new(*notificationWebsocket.SystemMessageNotifier)),
 )
 
 func provideObservability(cfg *config.App) (OTELShutdown, error) {
@@ -134,9 +120,6 @@ func provideValidator() (*validatorInfra.Validator, error) { return validatorInf
 func provideHTTPLimiter(client *redis.Client, conf *config.App) *HTTPLimiter {
 	return (*HTTPLimiter)(ulule.NewLimiter(client, conf.HTTPRateLimit))
 }
-func provideWebsocketLimiter(client *redis.Client, conf *config.App) *WebsocketLimiter {
-	return (*WebsocketLimiter)(ulule.NewLimiter(client, conf.WebsocketRateLimit))
-}
 func provideKafkaLimiter(client *redis.Client, conf *config.App) *KafkaLimiter {
 	return (*KafkaLimiter)(ulule.NewLimiter(client, conf.KafkaRateLimit))
 }
@@ -149,6 +132,10 @@ func provideOperationIDGenerator() *uuid.OperationIDGenerator {
 }
 func provideMessageIDGenerator() *uuid.MessageIDGenerator {
 	return uuid.NewMessageIDGenerator()
+}
+
+func provideSessionIDGenerator() *gatewayUUID.SessionIDGenerator {
+	return gatewayUUID.NewSessionIDGenerator()
 }
 
 func provideAuthorizationUserIDGenerator() *authUUID.UserIDGenerator {
@@ -178,30 +165,8 @@ func provideAccessTokenManager(appConfig *config.App) *jwt.AccessTokenManager {
 func provideRefreshTokenGenerator(appConfig *config.App) *crypto.RefreshTokenGenerator {
 	return crypto.NewRefreshTokenGenerator(appConfig.RefreshToken)
 }
-func provideGomailDialer(appConfig *config.App) *gomail.Dialer {
-	return gomailInfra.NewDialer(appConfig.Email)
-}
-func provideEmailAvailable(d *gomail.Dialer) emailServiceAvailable {
-	if err := gomailInfra.TestConnection(d); err != nil {
-		zap.L().Info("Email dialer connection test failed, email notifier will be disabled", zap.Error(err))
-		return false
-	}
-	return true
-}
-func provideEmailNotifier(appConfig *config.App, dialer *gomail.Dialer) *gomailInfra.EmailNotifier {
-	return gomailInfra.NewEmailNotifier(appConfig.Name, dialer)
-}
-func provideSystemMessageNotifier(manager *websocket.Manager) *notificationWebsocket.SystemMessageNotifier {
-	return notificationWebsocket.NewSystemMessageNotifier(manager)
-}
-func providePrivateMessageNotifier(manager *websocket.Manager) *chatWebsocket.PrivateMessageNotifier {
-	return chatWebsocket.NewPrivateMessageNotifier(manager)
-}
-func provideRoomMessageNotifier(manager *websocket.Manager) *chatWebsocket.RoomMessageNotifier {
-	return chatWebsocket.NewRoomMessageNotifier(manager)
-}
-func provideKafkaPublisher(appConfig *config.App, eventRepo event.Repository) (*kafkautil.EventPublisher, error) {
-	return kafkautil.NewEventPublisher(
+func provideKafkaAsyncPublisher(appConfig *config.App, eventRepo event.Repository) (*kafkautil.EventAsyncPublisher, error) {
+	return kafkautil.NewEventAsyncPublisher(
 		appConfig.Kafka,
 		func(id event.ID) error {
 			return eventRepo.MarkAsPublished(context.Background(), id)
@@ -209,9 +174,48 @@ func provideKafkaPublisher(appConfig *config.App, eventRepo event.Repository) (*
 	)
 }
 
+func provideKafkaSyncPublisher(appConfig *config.App) (*kafkautil.EventSyncPublisher, error) {
+	return kafkautil.NewEventSyncPublisher(appConfig.Kafka)
+}
+
 func provideOutboxDispatcher(appConfig *config.App, uc rootapp.UnpublishedEventsCreatedUseCase) (*outboxUtil.Dispatcher, error) {
 	if appConfig == nil || appConfig.Outbox == nil {
 		return outboxUtil.NewDispatcher(uc, time.Second, 1)
 	}
 	return outboxUtil.NewDispatcher(uc, appConfig.Outbox.SweepInterval, appConfig.Outbox.TriggerBuffer)
+}
+
+func provideCheckOrigin(appConfig *config.App) checkOrigin {
+	allowed := make(map[string]struct{}, len(appConfig.CORS.AllowOrigins))
+	allowAll := false
+	for _, o := range appConfig.CORS.AllowOrigins {
+		o = strings.TrimSpace(o)
+		if o == "" {
+			continue
+		}
+		if o == "*" {
+			allowAll = true
+			continue
+		}
+		allowed[o] = struct{}{}
+	}
+
+	return func(r *http.Request) bool {
+		// 若未配置 origins 或包含通配符则允许所有来源
+		if allowAll || len(allowed) == 0 {
+			return true
+		}
+
+		if iputil.IsLoopbackRequest(r.RemoteAddr) {
+			return true
+		}
+
+		origin := r.Header.Get("Origin")
+		if origin == "" {
+			return false
+		}
+
+		_, ok := allowed[origin]
+		return ok
+	}
 }

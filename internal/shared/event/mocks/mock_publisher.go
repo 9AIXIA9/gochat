@@ -17,32 +17,32 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockPublisher is a mock of Publisher interface.
-type MockPublisher struct {
+// MockAsyncPublisher is a mock of AsyncPublisher interface.
+type MockAsyncPublisher struct {
 	ctrl     *gomock.Controller
-	recorder *MockPublisherMockRecorder
+	recorder *MockAsyncPublisherMockRecorder
 	isgomock struct{}
 }
 
-// MockPublisherMockRecorder is the mock recorder for MockPublisher.
-type MockPublisherMockRecorder struct {
-	mock *MockPublisher
+// MockAsyncPublisherMockRecorder is the mock recorder for MockAsyncPublisher.
+type MockAsyncPublisherMockRecorder struct {
+	mock *MockAsyncPublisher
 }
 
-// NewMockPublisher creates a new mock instance.
-func NewMockPublisher(ctrl *gomock.Controller) *MockPublisher {
-	mock := &MockPublisher{ctrl: ctrl}
-	mock.recorder = &MockPublisherMockRecorder{mock}
+// NewMockAsyncPublisher creates a new mock instance.
+func NewMockAsyncPublisher(ctrl *gomock.Controller) *MockAsyncPublisher {
+	mock := &MockAsyncPublisher{ctrl: ctrl}
+	mock.recorder = &MockAsyncPublisherMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockPublisher) EXPECT() *MockPublisherMockRecorder {
+func (m *MockAsyncPublisher) EXPECT() *MockAsyncPublisherMockRecorder {
 	return m.recorder
 }
 
 // Publish mocks base method.
-func (m *MockPublisher) Publish(ctx context.Context, arg1 event.Event) error {
+func (m *MockAsyncPublisher) Publish(ctx context.Context, arg1 event.Event) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Publish", ctx, arg1)
 	ret0, _ := ret[0].(error)
@@ -50,7 +50,45 @@ func (m *MockPublisher) Publish(ctx context.Context, arg1 event.Event) error {
 }
 
 // Publish indicates an expected call of Publish.
-func (mr *MockPublisherMockRecorder) Publish(ctx, arg1 any) *gomock.Call {
+func (mr *MockAsyncPublisherMockRecorder) Publish(ctx, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Publish", reflect.TypeOf((*MockPublisher)(nil).Publish), ctx, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Publish", reflect.TypeOf((*MockAsyncPublisher)(nil).Publish), ctx, arg1)
+}
+
+// MockSyncPublisher is a mock of SyncPublisher interface.
+type MockSyncPublisher struct {
+	ctrl     *gomock.Controller
+	recorder *MockSyncPublisherMockRecorder
+	isgomock struct{}
+}
+
+// MockSyncPublisherMockRecorder is the mock recorder for MockSyncPublisher.
+type MockSyncPublisherMockRecorder struct {
+	mock *MockSyncPublisher
+}
+
+// NewMockSyncPublisher creates a new mock instance.
+func NewMockSyncPublisher(ctrl *gomock.Controller) *MockSyncPublisher {
+	mock := &MockSyncPublisher{ctrl: ctrl}
+	mock.recorder = &MockSyncPublisherMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockSyncPublisher) EXPECT() *MockSyncPublisherMockRecorder {
+	return m.recorder
+}
+
+// Publish mocks base method.
+func (m *MockSyncPublisher) Publish(ctx context.Context, arg1 event.Event) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Publish", ctx, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Publish indicates an expected call of Publish.
+func (mr *MockSyncPublisherMockRecorder) Publish(ctx, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Publish", reflect.TypeOf((*MockSyncPublisher)(nil).Publish), ctx, arg1)
 }

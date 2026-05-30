@@ -8,7 +8,7 @@ import (
 )
 
 func NewRoomCreatedEventHandler(uc application.RoomCreatedUseCase) event.Handler {
-	return event.AdaptUsecaseToHandler(
+	return event.AdaptUsecaseToEventHandler(
 		uc,
 		domain.ToRoomCreatedEvent,
 		func(createdEvent *domain.RoomCreatedEvent) *application.RoomCreatedInput {

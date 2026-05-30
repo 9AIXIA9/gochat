@@ -37,21 +37,19 @@ func TestNewRoomCreatedUseCase(t *testing.T) {
 	mockIDGenerator := eventMock.NewMockIDGenerator(ctrl)
 	mockFinder := mocks.NewMockRoomFinderByID(ctrl)
 	mockRoomshipCreator := mocks.NewMockRoomshipCreator(ctrl)
-	mockEventCreator := eventMock.NewMockUnpublishedEventsCreator(ctrl)
 
 	useCase, err := application.NewRoomCreatedUseCase(
 		mockRoomshipIDGenerator,
 		mockIDGenerator,
 		mockFinder,
 		mockRoomshipCreator,
-		mockEventCreator,
 	)
 
 	require.NoError(t, err)
 	require.NotNil(t, useCase)
 
 	useCaseWithNil, err := application.NewRoomCreatedUseCase(
-		nil, nil, nil, nil, nil,
+		nil, nil, nil, nil,
 	)
 
 	require.ErrorIs(t, err, myErrors.ErrEmptyPointer)
@@ -66,14 +64,12 @@ func TestRoomCreatedUseCase_Execute(t *testing.T) {
 	mockIDGenerator := eventMock.NewMockIDGenerator(ctrl)
 	mockFinder := mocks.NewMockRoomFinderByID(ctrl)
 	mockRoomshipCreator := mocks.NewMockRoomshipCreator(ctrl)
-	mockEventCreator := eventMock.NewMockUnpublishedEventsCreator(ctrl)
 
 	useCase, err := application.NewRoomCreatedUseCase(
 		mockRoomshipIDGenerator,
 		mockIDGenerator,
 		mockFinder,
 		mockRoomshipCreator,
-		mockEventCreator,
 	)
 
 	require.NoError(t, err)
@@ -93,8 +89,6 @@ func TestRoomCreatedUseCase_Execute(t *testing.T) {
 		mockRoomshipIDGenerator.EXPECT().Generate().Return(fixedRoomshipID),
 		mockIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(1),
 		mockRoomshipCreator.EXPECT().Create(nil, gomock.Any()).Return(nil),
-		mockIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(2),
-		mockEventCreator.EXPECT().CreateUnpublishedEvents(nil, gomock.Any()).Return(nil),
 	)
 
 	_, err = useCase.Execute(nil, &application.RoomCreatedInput{
@@ -106,7 +100,7 @@ func TestRoomCreatedUseCase_Execute(t *testing.T) {
 	gomock.InOrder(
 		mockFinder.EXPECT().FindByID(nil, fixedRoomID).Return(mockRoom, nil),
 		mockRoomshipIDGenerator.EXPECT().Generate().Return(fixedRoomshipID),
-		mockIDGenerator.EXPECT().Generate().Return(fixedEventID),
+		mockIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(1),
 		mockRoomshipCreator.EXPECT().Create(nil, gomock.Any()).Return(myErrors.ErrDuplicatedKey),
 	)
 

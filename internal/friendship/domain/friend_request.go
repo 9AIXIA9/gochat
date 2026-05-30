@@ -55,7 +55,6 @@ func CreateFriendRequest(
 	to kernel.UserID,
 	content string,
 	operationIDGenerator kernel.OperationIDGenerator,
-	idGenerator event.IDGenerator,
 ) (*FriendRequest, error) {
 	if from == to {
 		return nil, ErrAddYourselfAsFriend
@@ -74,13 +73,6 @@ func CreateFriendRequest(
 		sentAt:       time.Now().UTC(),
 		eventManager: event.NewEventManager(),
 	}
-
-	ev, err := NewFriendRequestCreatedEvent(req.id, idGenerator)
-	if err != nil {
-		return nil, err
-	}
-
-	req.eventManager.RecordEvent(ev)
 	return req, nil
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"gochat/internal/chat/domain"
 	myErrors "gochat/internal/shared/errors"
+	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"gochat/pkg/validate"
 )
@@ -31,20 +32,20 @@ func (i *SendPrivateMessageInput) Validate() error {
 type sendPrivateMessageUseCase struct {
 	exister            domain.FriendshipExisterByUserID
 	messageIDGenerator kernel.MessageIDGenerator
-	notifier           domain.PrivateMessageNotifier
 	messageCreator     domain.PrivateMessageCreator
+	eventIDGenerator   event.IDGenerator
 }
 
 func NewSendPrivateMessageUseCase(
 	exister domain.FriendshipExisterByUserID,
 	messageIDGenerator kernel.MessageIDGenerator,
-	notifier domain.PrivateMessageNotifier,
 	messageCreator domain.PrivateMessageCreator,
+	eventIDGenerator event.IDGenerator,
 ) (SendPrivateMessageUseCase, error) {
 	if err := validate.NotNil(
 		exister,
+		eventIDGenerator,
 		messageIDGenerator,
-		notifier,
 		messageCreator,
 	); err != nil {
 		return nil, err
@@ -52,8 +53,8 @@ func NewSendPrivateMessageUseCase(
 	return &sendPrivateMessageUseCase{
 		exister:            exister,
 		messageIDGenerator: messageIDGenerator,
-		notifier:           notifier,
 		messageCreator:     messageCreator,
+		eventIDGenerator:   eventIDGenerator,
 	}, nil
 }
 
@@ -63,8 +64,8 @@ func (uc *sendPrivateMessageUseCase) Execute(ctx context.Context, input *SendPri
 		input.RecipientID,
 		input.SenderID,
 		input.Content,
+		uc.eventIDGenerator,
 		uc.messageIDGenerator,
-		uc.notifier,
 		uc.exister,
 	)
 	if err != nil {

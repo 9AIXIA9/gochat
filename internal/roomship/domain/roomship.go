@@ -62,7 +62,7 @@ func CreateRoomship(
 		manager:   event.NewEventManager(),
 	}
 
-	ev, err := NewRoomshipCreatedEvent(roomship.id, idGenerator)
+	ev, err := NewRoomshipCreatedEvent(roomship.userID, roomship.roomID, roomship.id, idGenerator)
 	if err != nil {
 		return nil, err
 	}

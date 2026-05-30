@@ -8,36 +8,11 @@ import (
 
 type PrivateMessageRepository interface {
 	PrivateMessageCreator
-	PrivateMessagesUpdater
-	PrivateMessageFinder
-	PrivateMessagesFinderByRecipientIDAndState
-	PrivateMessagesStatesUpdaterByUserID
-	PrivateMessagesStatesUpdaterByMessageIDs
 	PrivateMessagesFinderByUserIDs
 }
 
 type PrivateMessageCreator interface {
 	Create(ctx context.Context, message *PrivateMessage) error
-}
-
-type PrivateMessagesUpdater interface {
-	Updates(ctx context.Context, messages []*PrivateMessage) error
-}
-
-type PrivateMessageFinder interface {
-	FindPrivateMessage(ctx context.Context, messageID kernel.MessageID) (*PrivateMessage, error)
-}
-
-type PrivateMessagesFinderByRecipientIDAndState interface {
-	FindPrivateMessagesByRecipientIDAndState(ctx context.Context, recipientID kernel.UserID, state MessageState, limit int) ([]*PrivateMessage, error)
-}
-
-type PrivateMessagesStatesUpdaterByUserID interface {
-	UpdatesByUserID(ctx context.Context, senderID, recipientID kernel.UserID, state MessageState) error
-}
-
-type PrivateMessagesStatesUpdaterByMessageIDs interface {
-	UpdatesByMessageIDs(ctx context.Context, userID kernel.UserID, ids []kernel.MessageID, state MessageState) error
 }
 
 type PrivateMessagesFinderByUserIDs interface {

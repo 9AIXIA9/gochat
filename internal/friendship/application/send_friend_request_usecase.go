@@ -4,7 +4,6 @@ import (
 	"context"
 	"gochat/internal/friendship/domain"
 	myErrors "gochat/internal/shared/errors"
-	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"gochat/pkg/validate"
 
@@ -31,7 +30,6 @@ type sendFriendRequestUseCase struct {
 	friendshipExisterByUserID    domain.FriendshipExisterByUserID
 	friendRequestExisterByUserID domain.FriendRequestExisterByUserIDAndState
 	friendRequestCreator         domain.FriendRequestCreator
-	eventIDGenerator             event.IDGenerator
 	operationIDGenerator         kernel.OperationIDGenerator
 }
 
@@ -39,14 +37,12 @@ func NewSendFriendRequestUseCase(
 	friendshipExisterByUserID domain.FriendshipExisterByUserID,
 	friendRequestExisterByUserID domain.FriendRequestExisterByUserIDAndState,
 	friendRequestCreator domain.FriendRequestCreator,
-	eventIDGenerator event.IDGenerator,
 	operationIDGenerator kernel.OperationIDGenerator,
 ) (SendFriendRequestUseCase, error) {
 	if err := validate.NotNil(
 		friendshipExisterByUserID,
 		friendRequestExisterByUserID,
 		friendRequestCreator,
-		eventIDGenerator,
 		operationIDGenerator,
 	); err != nil {
 		return nil, err
@@ -56,7 +52,6 @@ func NewSendFriendRequestUseCase(
 		friendshipExisterByUserID:    friendshipExisterByUserID,
 		friendRequestExisterByUserID: friendRequestExisterByUserID,
 		friendRequestCreator:         friendRequestCreator,
-		eventIDGenerator:             eventIDGenerator,
 		operationIDGenerator:         operationIDGenerator,
 	}, nil
 }
@@ -80,7 +75,7 @@ func (uc *sendFriendRequestUseCase) Execute(ctx context.Context, input *SendFrie
 		return nil, domain.ErrFriendRequestExists
 	}
 
-	req, err := domain.CreateFriendRequest(input.FromID, input.ToID, input.Content, uc.operationIDGenerator, uc.eventIDGenerator)
+	req, err := domain.CreateFriendRequest(input.FromID, input.ToID, input.Content, uc.operationIDGenerator)
 	if err != nil {
 		return nil, err
 	}

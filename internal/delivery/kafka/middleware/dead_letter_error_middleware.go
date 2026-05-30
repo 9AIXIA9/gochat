@@ -12,18 +12,20 @@ import (
 
 const eventIDKey = "event_id"
 
-func NewDeadLetterErrorMiddleware(
+func NewDeadLetterErrorMiddlewareWithNamespace(
 	creator event.DeadLetterCreator,
+	namespace string,
 ) kafka.ErrorMiddleware {
 	return func(next kafka.ErrorHandler) kafka.ErrorHandler {
 		return kafka.ErrorHandlerFunc(func(ctx context.Context, err error, message *ckafka.Message) {
-			if err := creator.CreateDeadLetter(ctx, convertMessageToEvent(message), err); err != nil {
+			if err := creator.CreateDeadLetter(ctx, convertMessageToEvent(message, namespace), err); err != nil {
 				next.Handle(ctx, err, message)
 				return
 			}
 			zap.L().Info(
 				"message sent to dead letter queue",
 				zap.String("topic", *message.TopicPartition.Topic),
+				zap.String("namespace", namespace),
 				zap.Int32("partition", message.TopicPartition.Partition),
 				zap.Int64("offset", int64(message.TopicPartition.Offset)),
 				zap.Binary("key", message.Key),
@@ -33,13 +35,21 @@ func NewDeadLetterErrorMiddleware(
 	}
 }
 
-func convertMessageToEvent(message *ckafka.Message) event.Event {
+func convertMessageToEvent(message *ckafka.Message, namespace string) event.Event {
 	var id event.ID
+	headers := make(map[string]string, len(message.Headers)+2)
 	for _, header := range message.Headers {
+		headers[header.Key] = string(header.Value)
 		if header.Key == eventIDKey {
 			id = event.ID(header.Value)
 			break
 		}
+	}
+	if namespace != "" {
+		headers["kafka_consumer_group"] = namespace
+	}
+	if message.TopicPartition.Topic != nil {
+		headers["kafka_topic"] = *message.TopicPartition.Topic
 	}
 	return event.LoadStandardEvent(
 		id,
@@ -47,6 +57,6 @@ func convertMessageToEvent(message *ckafka.Message) event.Event {
 		message.Timestamp,
 		event.Topic(*message.TopicPartition.Topic),
 		message.Value,
-		nil,
+		headers,
 	)
 }

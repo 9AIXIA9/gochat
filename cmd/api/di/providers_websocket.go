@@ -1,71 +1,47 @@
 package di
 
 import (
-	"gochat/config"
-	chatApp "gochat/internal/chat/application"
-	chatWebsocket "gochat/internal/chat/port/websocket"
-	websocketDelivery "gochat/internal/delivery/websocket/handler"
-	"gochat/internal/delivery/websocket/middleware"
-	"gochat/internal/infrastructure/websocket"
-	notificationApp "gochat/internal/notification/application"
-	notificationWebsocket "gochat/internal/notification/port/websocket"
+	chatDomain "gochat/internal/chat/domain"
+	"gochat/internal/delivery/gateway"
+	gatewayWebsocket "gochat/internal/gateway/adapter/websocket"
+	"gochat/internal/gateway/api/local"
+	"gochat/internal/gateway/core"
+	"gochat/internal/gateway/infrastructure/uuid"
+	"gochat/internal/shared/contract"
+	"gochat/internal/shared/event"
 
 	"github.com/google/wire"
-	gorillaWebsocket "github.com/gorilla/websocket"
-	"github.com/ulule/limiter/v3"
 )
 
 var WebsocketSet = wire.NewSet(
-	provideWebsocketUpgrader,
-	provideWebsocketManager,
-	provideWebsocketRouter,
+	provideGatewayManager,
+	provideGatewayUpstreamHandler,
+	provideAllowedAction,
+	provideGatewayService,
+	provideGatewayIngressHandler,
 )
 
-func provideWebsocketUpgrader(appConfig *config.App) *gorillaWebsocket.Upgrader {
-	return websocket.NewUpgrader(appConfig.CORS.AllowOrigins)
+type AllowedAction map[event.Topic]struct{}
+
+func provideGatewayManager() *core.Manager {
+	return core.NewManager(1024)
 }
 
-func provideWebsocketManager() *websocket.Manager {
-	return websocket.NewManager()
+func provideGatewayService(manager *core.Manager) contract.GatewayService {
+	return local.NewLocalGatewayService(manager)
 }
 
-func provideWebsocketRouter(
-	appConfig *config.App,
-	websocketLimiter *WebsocketLimiter,
-	validator websocket.Validator,
-	chatSendPrivateMessage chatApp.SendPrivateMessageUseCase,
-	chatSendRoomMessage chatApp.SendRoomMessageUseCase,
-	chatConfirmPrivateMessages chatApp.ConfirmPrivateMessagesUseCase,
-	chatConfirmRoomMessages chatApp.ConfirmRoomMessagesUseCase,
-	notificationConfirmSystemMessages notificationApp.ConfirmSystemMessagesUseCase,
-
-) *websocket.Router {
-	router := websocket.NewRouter(validator)
-
-	middlewares := []websocket.Middleware{
-		middleware.NewRateLimitMiddleware((*limiter.Limiter)(websocketLimiter)),
-		middleware.NewTimeoutMiddleware(appConfig.Timeout),
-		middleware.NewRecoverMiddleware(),
-		middleware.NewLoggerMiddleware(),
+func provideAllowedAction() AllowedAction {
+	return map[event.Topic]struct{}{
+		chatDomain.TopicSendPrivateMessageCommand: {},
+		chatDomain.TopicSendRoomMessageCommand:    {},
 	}
-	if appConfig.OTEL != nil && appConfig.OTEL.Enabled {
-		middlewares = append([]websocket.Middleware{middleware.NewTraceMiddleware(appConfig.Name + ".websocket")}, middlewares...)
-	}
-	router.Use(middlewares...)
+}
 
-	if appConfig.Breaker != nil {
-		appConfig.Breaker.Name = appConfig.Name + "_websocket_circuit_breaker"
-		router.Use(middleware.NewCircuitBreakMiddleware(appConfig.Breaker))
-	}
+func provideGatewayUpstreamHandler(publisher event.SyncPublisher, generator event.IDGenerator, allowedAction AllowedAction) contract.UpstreamHandler {
+	return gateway.NewUpstreamRouter(publisher, generator, allowedAction)
+}
 
-	router.NoRoute(websocketDelivery.NewNotFoundHandler())
-
-	{
-		router.Handle(chatWebsocket.SendPrivateMessageTopic, chatWebsocket.NewSendPrivateMessageHandler(chatSendPrivateMessage, validator))
-		router.Handle(chatWebsocket.SendRoomMessageTopic, chatWebsocket.NewSendRoomMessageHandler(chatSendRoomMessage, validator))
-		router.Handle(chatWebsocket.ConfirmPrivateMessagesTopic, chatWebsocket.NewConfirmPrivateMessagesHandler(chatConfirmPrivateMessages, validator))
-		router.Handle(chatWebsocket.ConfirmRoomMessagesTopic, chatWebsocket.NewConfirmRoomMessagesHandler(chatConfirmRoomMessages, validator))
-		router.Handle(notificationWebsocket.ConfirmSystemMessagesTopic, notificationWebsocket.NewConfirmSystemMessagesHandler(notificationConfirmSystemMessages, validator))
-	}
-	return router
+func provideGatewayIngressHandler(hub *core.Manager, upstream contract.UpstreamHandler, sessionIDGenerator *uuid.SessionIDGenerator, checkOrigin checkOrigin) *gatewayWebsocket.IngressHandler {
+	return gatewayWebsocket.NewIngressHandler(hub, upstream, checkOrigin, sessionIDGenerator)
 }
