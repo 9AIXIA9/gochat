@@ -55,15 +55,23 @@ type pairLine struct {
 }
 
 type metrics struct {
-	connected   int64
-	connectFail int64
-	sent        int64
-	sendFail    int64
-	recv        int64
-	ackReceived int64
-	ackError    int64
-	readFail    int64
-	writeFail   int64
+	connected       int64
+	connectFail     int64
+	sent            int64
+	sendFail        int64
+	recv            int64
+	ackMatched      int64
+	ackUnmatched    int64
+	ackReceived     int64
+	ackError        int64
+	ackLatencyNs    int64
+	ackMaxLatencyNs int64
+	readFail        int64
+	writeFail       int64
+}
+
+type pendingMessage struct {
+	sentAt time.Time
 }
 
 type clientPlan struct {
@@ -201,6 +209,30 @@ func runClient(ctx context.Context, clientIdx int, token string, senderID string
 	atomic.AddInt64(&m.connected, 1)
 
 	clientRng := rand.New(rand.NewSource(seed))
+	var pendingMu sync.Mutex
+	pending := make(map[string]pendingMessage)
+	registerPending := func(messageID string) {
+		pendingMu.Lock()
+		pending[messageID] = pendingMessage{sentAt: time.Now()}
+		pendingMu.Unlock()
+	}
+	removePending := func(messageID string) {
+		pendingMu.Lock()
+		delete(pending, messageID)
+		pendingMu.Unlock()
+	}
+	resolvePending := func(messageID string) (time.Duration, bool) {
+		pendingMu.Lock()
+		msg, ok := pending[messageID]
+		if ok {
+			delete(pending, messageID)
+		}
+		pendingMu.Unlock()
+		if !ok {
+			return 0, false
+		}
+		return time.Since(msg.sentAt), true
+	}
 
 	readDone := make(chan struct{})
 	go func() {
@@ -217,6 +249,23 @@ func runClient(ctx context.Context, clientIdx int, token string, senderID string
 
 			var ack ackEnvelope
 			if err := json.Unmarshal(data, &ack); err == nil {
+				if ack.ClientMessageID != "" {
+					if latency, ok := resolvePending(ack.ClientMessageID); ok {
+						atomic.AddInt64(&m.ackMatched, 1)
+						atomic.AddInt64(&m.ackLatencyNs, latency.Nanoseconds())
+						for {
+							currentMax := atomic.LoadInt64(&m.ackMaxLatencyNs)
+							if latency.Nanoseconds() <= currentMax {
+								break
+							}
+							if atomic.CompareAndSwapInt64(&m.ackMaxLatencyNs, currentMax, latency.Nanoseconds()) {
+								break
+							}
+						}
+					} else {
+						atomic.AddInt64(&m.ackUnmatched, 1)
+					}
+				}
 				switch strings.ToLower(ack.AckType) {
 				case "received":
 					atomic.AddInt64(&m.ackReceived, 1)
@@ -248,13 +297,16 @@ func runClient(ctx context.Context, clientIdx int, token string, senderID string
 				atomic.AddInt64(&m.sendFail, 1)
 				continue
 			}
+			registerPending(env.ClientMessageID)
 			payload, err := json.Marshal(env)
 			if err != nil {
+				removePending(env.ClientMessageID)
 				atomic.AddInt64(&m.sendFail, 1)
 				continue
 			}
 
 			if err := conn.WriteMessage(websocket.TextMessage, payload); err != nil {
+				removePending(env.ClientMessageID)
 				atomic.AddInt64(&m.writeFail, 1)
 				return
 			}
@@ -399,15 +451,24 @@ func normalizeAuth(token string) string {
 }
 
 func printMetrics(prefix string, m *metrics) {
-	log.Printf("[%s] connected=%d connect_fail=%d sent=%d send_fail=%d recv=%d ack_received=%d ack_error=%d read_fail=%d write_fail=%d",
+	matched := atomic.LoadInt64(&m.ackMatched)
+	avgLatencyNs := int64(0)
+	if matched > 0 {
+		avgLatencyNs = atomic.LoadInt64(&m.ackLatencyNs) / matched
+	}
+	log.Printf("[%s] connected=%d connect_fail=%d sent=%d send_fail=%d recv=%d ack_matched=%d ack_unmatched=%d ack_received=%d ack_error=%d ack_avg_latency_ms=%.2f ack_max_latency_ms=%.2f read_fail=%d write_fail=%d",
 		prefix,
 		atomic.LoadInt64(&m.connected),
 		atomic.LoadInt64(&m.connectFail),
 		atomic.LoadInt64(&m.sent),
 		atomic.LoadInt64(&m.sendFail),
 		atomic.LoadInt64(&m.recv),
+		matched,
+		atomic.LoadInt64(&m.ackUnmatched),
 		atomic.LoadInt64(&m.ackReceived),
 		atomic.LoadInt64(&m.ackError),
+		float64(avgLatencyNs)/float64(time.Millisecond),
+		float64(atomic.LoadInt64(&m.ackMaxLatencyNs))/float64(time.Millisecond),
 		atomic.LoadInt64(&m.readFail),
 		atomic.LoadInt64(&m.writeFail),
 	)
