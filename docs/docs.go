@@ -527,59 +527,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/notifications/system-messages": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "获取当前登录用户的系统通知列表，可基于 base_id 游标和 limit 分页",
-                "tags": [
-                    "Notification"
-                ],
-                "summary": "获取系统通知列表",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "x-example": "019b593b-462e-74d6-bfda-0e103a172190",
-                        "description": "分页游标，返回该ID之前的消息",
-                        "name": "base_id",
-                        "in": "query"
-                    },
-                    {
-                        "maximum": 100,
-                        "minimum": 1,
-                        "type": "integer",
-                        "default": 20,
-                        "x-example": 50,
-                        "description": "分页大小，默认20，最大100",
-                        "name": "limit",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "成功返回系统通知列表",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/internal_notification_port_http.ListSystemMessagesResponseData"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
-        },
         "/profiles/me": {
             "get": {
                 "security": [
@@ -1185,46 +1132,6 @@ const docTemplate = `{
                 }
             }
         },
-        "gochat_internal_notification_domain.MessageState": {
-            "type": "string",
-            "enum": [
-                "undelivered",
-                "delivered"
-            ],
-            "x-enum-varnames": [
-                "MessageStateUndelivered",
-                "MessageStateDelivered"
-            ]
-        },
-        "gochat_internal_notification_dto.SystemMessage": {
-            "type": "object",
-            "properties": {
-                "content": {
-                    "type": "string",
-                    "example": "Hello-Gochat!"
-                },
-                "id": {
-                    "type": "string",
-                    "example": "019b593b-462e-74d6-bfda-0e103a172191"
-                },
-                "recipient_id": {
-                    "type": "string",
-                    "example": "019b593b-462e-74d6-bfda-0e103a172192"
-                },
-                "sent_at": {
-                    "type": "string",
-                    "example": "2025-12-26 05:38:19.740"
-                },
-                "state": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/gochat_internal_notification_domain.MessageState"
-                        }
-                    ],
-                    "example": "delivered"
-                }
-            }
-        },
         "gochat_internal_profile_dto.RoomProfile": {
             "type": "object",
             "properties": {
@@ -1597,17 +1504,6 @@ const docTemplate = `{
                 "to_id": {
                     "type": "string",
                     "example": "019b593b-462e-74d6-bfda-0e103a172191"
-                }
-            }
-        },
-        "internal_notification_port_http.ListSystemMessagesResponseData": {
-            "type": "object",
-            "properties": {
-                "system_messages": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/gochat_internal_notification_dto.SystemMessage"
-                    }
                 }
             }
         },
