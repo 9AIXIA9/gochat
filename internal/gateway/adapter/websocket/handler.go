@@ -47,8 +47,6 @@ func (h *IngressHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// 注册新用户长连接进本地资源池调度
 	h.hub.Register(session)
 
-	// 后台开启读写引擎 (pump)
+	// 开启读写引擎 (pump)
 	session.Start(r.Context())
-
-	<-r.Context().Done()
 }

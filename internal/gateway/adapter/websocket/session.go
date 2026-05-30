@@ -46,7 +46,7 @@ func NewWSSession(
 // Start 启动当前连接的收发 pump Goroutine
 func (s *WSSession) Start(ctx context.Context) {
 	go s.readPump(ctx)
-	go s.writePump(ctx)
+	s.writePump(ctx)
 }
 
 func (s *WSSession) ID() core.SessionID {
