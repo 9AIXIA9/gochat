@@ -62,10 +62,12 @@ type metrics struct {
 	recv            int64
 	ackMatched      int64
 	ackUnmatched    int64
+	ackTimedOut     int64
 	ackReceived     int64
 	ackError        int64
 	ackLatencyNs    int64
 	ackMaxLatencyNs int64
+	pendingCurrent  int64
 	readFail        int64
 	writeFail       int64
 }
@@ -96,6 +98,7 @@ var (
 
 	connectRate = flag.Int("connect-rate", 0, "connections per second, 0 means burst")
 	origin      = flag.String("origin", "", "optional Origin header")
+	ackTimeout  = flag.Duration("ack-timeout", 5*time.Second, "pending ack timeout; 0 disables timeout tracking")
 
 	contentPrefix = flag.String("content-prefix", "bench", "message content prefix")
 	seed          = flag.Int64("seed", 0, "rng seed, 0 means now")
@@ -211,14 +214,58 @@ func runClient(ctx context.Context, clientIdx int, token string, senderID string
 	clientRng := rand.New(rand.NewSource(seed))
 	var pendingMu sync.Mutex
 	pending := make(map[string]pendingMessage)
+	stopTimeoutSweep := make(chan struct{})
+	if *ackTimeout > 0 {
+		sweepEvery := *ackTimeout / 2
+		if sweepEvery < 500*time.Millisecond {
+			sweepEvery = 500 * time.Millisecond
+		}
+		if sweepEvery > *ackTimeout {
+			sweepEvery = *ackTimeout
+		}
+		go func() {
+			ticker := time.NewTicker(sweepEvery)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case <-stopTimeoutSweep:
+					return
+				case <-ticker.C:
+					deadline := time.Now().Add(-*ackTimeout)
+					pendingMu.Lock()
+					timedOut := 0
+					for messageID, msg := range pending {
+						if msg.sentAt.After(deadline) {
+							continue
+						}
+						delete(pending, messageID)
+						timedOut++
+					}
+					pendingMu.Unlock()
+					if timedOut > 0 {
+						atomic.AddInt64(&m.ackTimedOut, int64(timedOut))
+						atomic.AddInt64(&m.pendingCurrent, -int64(timedOut))
+					}
+				}
+			}
+		}()
+	}
 	registerPending := func(messageID string) {
 		pendingMu.Lock()
 		pending[messageID] = pendingMessage{sentAt: time.Now()}
 		pendingMu.Unlock()
+		atomic.AddInt64(&m.pendingCurrent, 1)
 	}
 	removePending := func(messageID string) {
 		pendingMu.Lock()
-		delete(pending, messageID)
+		if _, ok := pending[messageID]; ok {
+			delete(pending, messageID)
+			pendingMu.Unlock()
+			atomic.AddInt64(&m.pendingCurrent, -1)
+			return
+		}
 		pendingMu.Unlock()
 	}
 	resolvePending := func(messageID string) (time.Duration, bool) {
@@ -231,8 +278,10 @@ func runClient(ctx context.Context, clientIdx int, token string, senderID string
 		if !ok {
 			return 0, false
 		}
+		atomic.AddInt64(&m.pendingCurrent, -1)
 		return time.Since(msg.sentAt), true
 	}
+	defer close(stopTimeoutSweep)
 
 	readDone := make(chan struct{})
 	go func() {
@@ -456,7 +505,7 @@ func printMetrics(prefix string, m *metrics) {
 	if matched > 0 {
 		avgLatencyNs = atomic.LoadInt64(&m.ackLatencyNs) / matched
 	}
-	log.Printf("[%s] connected=%d connect_fail=%d sent=%d send_fail=%d recv=%d ack_matched=%d ack_unmatched=%d ack_received=%d ack_error=%d ack_avg_latency_ms=%.2f ack_max_latency_ms=%.2f read_fail=%d write_fail=%d",
+	log.Printf("[%s] connected=%d connect_fail=%d sent=%d send_fail=%d recv=%d ack_matched=%d ack_unmatched=%d ack_timed_out=%d pending=%d ack_received=%d ack_error=%d ack_avg_latency_ms=%.2f ack_max_latency_ms=%.2f read_fail=%d write_fail=%d",
 		prefix,
 		atomic.LoadInt64(&m.connected),
 		atomic.LoadInt64(&m.connectFail),
@@ -465,6 +514,8 @@ func printMetrics(prefix string, m *metrics) {
 		atomic.LoadInt64(&m.recv),
 		matched,
 		atomic.LoadInt64(&m.ackUnmatched),
+		atomic.LoadInt64(&m.ackTimedOut),
+		atomic.LoadInt64(&m.pendingCurrent),
 		atomic.LoadInt64(&m.ackReceived),
 		atomic.LoadInt64(&m.ackError),
 		float64(avgLatencyNs)/float64(time.Millisecond),
