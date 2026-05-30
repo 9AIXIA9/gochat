@@ -74,7 +74,19 @@ type metrics struct {
 }
 
 type pendingMessage struct {
-	sentAt time.Time
+	sentAt    time.Time
+	clientIdx int
+	seq       int
+}
+
+type latencySample struct {
+	Timestamp string  `json:"ts"`
+	ClientID  int     `json:"client_id"`
+	Sequence  int     `json:"sequence"`
+	MessageID string  `json:"client_message_id"`
+	AckType   string  `json:"ack_type"`
+	LatencyMS float64 `json:"latency_ms"`
+	SendMode  string  `json:"send_mode"`
 }
 
 type clientPlan struct {
@@ -97,10 +109,11 @@ var (
 	sendMode     = flag.String("send-mode", "private", "send mode: private|room|mixed")
 	roomRatio    = flag.Float64("room-ratio", 0.5, "room traffic ratio when send-mode=mixed")
 
-	connectRate = flag.Int("connect-rate", 0, "connections per second, 0 means burst")
-	origin      = flag.String("origin", "", "optional Origin header")
-	ackTimeout  = flag.Duration("ack-timeout", 5*time.Second, "pending ack timeout; 0 disables timeout tracking")
-	jsonOutFile = flag.String("json-out-file", "./websocket_benchmark_data/output/ws_metrics.jsonl", "JSONL metrics output file (appended); empty disables")
+	connectRate    = flag.Int("connect-rate", 0, "connections per second, 0 means burst")
+	origin         = flag.String("origin", "", "optional Origin header")
+	ackTimeout     = flag.Duration("ack-timeout", 5*time.Second, "pending ack timeout; 0 disables timeout tracking")
+	jsonOutFile    = flag.String("json-out-file", "./websocket_benchmark_data/output/ws_metrics.jsonl", "JSONL metrics output file (appended); empty disables")
+	latencyOutFile = flag.String("latency-out-file", "./websocket_benchmark_data/output/ws_latency.jsonl", "JSONL latency samples output file (appended); empty disables")
 
 	contentPrefix = flag.String("content-prefix", "bench", "message content prefix")
 	seed          = flag.Int64("seed", 0, "rng seed, 0 means now")
@@ -155,12 +168,23 @@ func main() {
 	defer cancel()
 
 	var m metrics
-	wg := sync.WaitGroup{}
+	var clientWG sync.WaitGroup
+	var auxWG sync.WaitGroup
+	latencyCh := make(chan latencySample, 4096)
+	if *latencyOutFile != "" {
+		auxWG.Add(1)
+		go func() {
+			defer auxWG.Done()
+			if err := writeLatencySamples(*latencyOutFile, latencyCh); err != nil {
+				log.Printf("write latency samples failed: %v", err)
+			}
+		}()
+	}
 
 	if *reportEvery > 0 {
-		wg.Add(1)
+		auxWG.Add(1)
 		go func() {
-			defer wg.Done()
+			defer auxWG.Done()
 			t := time.NewTicker(*reportEvery)
 			defer t.Stop()
 			for {
@@ -190,15 +214,19 @@ func main() {
 			<-connectTicker.C
 		}
 		plan := plans[i]
-		wg.Add(1)
+		clientWG.Add(1)
 		go func(p clientPlan) {
-			defer wg.Done()
-			runClient(ctx, p.ClientIdx, p.Token, p.SenderID, recipients, rooms, pairMap, rng.Int63(), &m)
+			defer clientWG.Done()
+			runClient(ctx, p.ClientIdx, p.Token, p.SenderID, recipients, rooms, pairMap, rng.Int63(), &m, latencyCh)
 		}(plan)
 	}
 
 	<-ctx.Done()
-	wg.Wait()
+	clientWG.Wait()
+	if *latencyOutFile != "" {
+		close(latencyCh)
+	}
+	auxWG.Wait()
 	printMetrics("final", &m)
 	if *jsonOutFile != "" {
 		if err := dumpMetricsJSON(*jsonOutFile, "final", &m); err != nil {
@@ -256,7 +284,26 @@ func dumpMetricsJSON(path string, prefix string, m *metrics) error {
 	return nil
 }
 
-func runClient(ctx context.Context, clientIdx int, token string, senderID string, recipients []string, rooms []string, pairMap map[string]string, seed int64, m *metrics) {
+func writeLatencySamples(path string, samples <-chan latencySample) error {
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		return err
+	}
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = f.Close() }()
+
+	enc := json.NewEncoder(f)
+	for sample := range samples {
+		if err := enc.Encode(sample); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func runClient(ctx context.Context, clientIdx int, token string, senderID string, recipients []string, rooms []string, pairMap map[string]string, seed int64, m *metrics, latencyCh chan<- latencySample) {
 	d := websocket.Dialer{HandshakeTimeout: 8 * time.Second}
 	h := http.Header{}
 	h.Set("Authorization", normalizeAuth(token))
@@ -313,12 +360,6 @@ func runClient(ctx context.Context, clientIdx int, token string, senderID string
 			}
 		}()
 	}
-	registerPending := func(messageID string) {
-		pendingMu.Lock()
-		pending[messageID] = pendingMessage{sentAt: time.Now()}
-		pendingMu.Unlock()
-		atomic.AddInt64(&m.pendingCurrent, 1)
-	}
 	removePending := func(messageID string) {
 		pendingMu.Lock()
 		if _, ok := pending[messageID]; ok {
@@ -329,7 +370,7 @@ func runClient(ctx context.Context, clientIdx int, token string, senderID string
 		}
 		pendingMu.Unlock()
 	}
-	resolvePending := func(messageID string) (time.Duration, bool) {
+	resolvePending := func(messageID string) (pendingMessage, time.Duration, bool) {
 		pendingMu.Lock()
 		msg, ok := pending[messageID]
 		if ok {
@@ -337,10 +378,10 @@ func runClient(ctx context.Context, clientIdx int, token string, senderID string
 		}
 		pendingMu.Unlock()
 		if !ok {
-			return 0, false
+			return pendingMessage{}, 0, false
 		}
 		atomic.AddInt64(&m.pendingCurrent, -1)
-		return time.Since(msg.sentAt), true
+		return msg, time.Since(msg.sentAt), true
 	}
 	defer close(stopTimeoutSweep)
 
@@ -360,7 +401,7 @@ func runClient(ctx context.Context, clientIdx int, token string, senderID string
 			var ack ackEnvelope
 			if err := json.Unmarshal(data, &ack); err == nil {
 				if ack.ClientMessageID != "" {
-					if latency, ok := resolvePending(ack.ClientMessageID); ok {
+					if pendingMsg, latency, ok := resolvePending(ack.ClientMessageID); ok {
 						atomic.AddInt64(&m.ackMatched, 1)
 						atomic.AddInt64(&m.ackLatencyNs, latency.Nanoseconds())
 						for {
@@ -370,6 +411,17 @@ func runClient(ctx context.Context, clientIdx int, token string, senderID string
 							}
 							if atomic.CompareAndSwapInt64(&m.ackMaxLatencyNs, currentMax, latency.Nanoseconds()) {
 								break
+							}
+						}
+						if latencyCh != nil {
+							latencyCh <- latencySample{
+								Timestamp: time.Now().UTC().Format(time.RFC3339Nano),
+								ClientID:  pendingMsg.clientIdx,
+								Sequence:  pendingMsg.seq,
+								MessageID: ack.ClientMessageID,
+								AckType:   strings.ToLower(ack.AckType),
+								LatencyMS: float64(latency) / float64(time.Millisecond),
+								SendMode:  strings.ToLower(strings.TrimSpace(*sendMode)),
 							}
 						}
 					} else {
@@ -407,7 +459,10 @@ func runClient(ctx context.Context, clientIdx int, token string, senderID string
 				atomic.AddInt64(&m.sendFail, 1)
 				continue
 			}
-			registerPending(env.ClientMessageID)
+			pendingMu.Lock()
+			pending[env.ClientMessageID] = pendingMessage{sentAt: time.Now(), clientIdx: clientIdx, seq: seq}
+			pendingMu.Unlock()
+			atomic.AddInt64(&m.pendingCurrent, 1)
 			payload, err := json.Marshal(env)
 			if err != nil {
 				removePending(env.ClientMessageID)
