@@ -3,9 +3,11 @@ package application
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"gochat/internal/gateway/core"
 	"gochat/internal/notification/domain"
+	"gochat/internal/shared/contract"
 	myErrors "gochat/internal/shared/errors"
-	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"gochat/pkg/validate"
 )
@@ -31,24 +33,23 @@ func (r *NotificationCreatedInput) Validate() error {
 }
 
 type notificationCreatedUseCase struct {
-	idGenerator event.IDGenerator
-	creator     domain.NotificationCreator
+	gateway contract.GatewayService
+	creator domain.NotificationCreator
 }
 
 func NewNotificationCreatedUseCase(
-	idGenerator event.IDGenerator,
+	gateway contract.GatewayService,
 	creator domain.NotificationCreator,
 ) (NotificationCreatedUseCase, error) {
 	if err := validate.NotNil(
-		idGenerator,
-		creator,
+		creator, gateway,
 	); err != nil {
 		return nil, err
 	}
 
 	return &notificationCreatedUseCase{
-		idGenerator: idGenerator,
-		creator:     creator,
+		gateway: gateway,
+		creator: creator,
 	}, nil
 }
 
@@ -57,14 +58,17 @@ func (uc *notificationCreatedUseCase) Execute(ctx context.Context, input *Notifi
 		input.ID,
 		input.RecipientID,
 		input.RawPayload,
-		uc.idGenerator,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := uc.creator.Create(ctx, notification); err != nil {
-		return nil, err
+	err = uc.gateway.PushToUser(ctx, input.RecipientID, core.NewActiveDownstreamEnvelop(domain.ActionPushNotification, input.RawPayload))
+
+	if errors.Is(err, myErrors.ErrUserOffline) {
+		if err := uc.creator.Create(ctx, notification); err != nil {
+			return nil, err
+		}
 	}
-	return nil, nil
+	return nil, err
 }

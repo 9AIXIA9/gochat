@@ -29,7 +29,7 @@ func NewSendRoomMessageCommandHandler(
 		},
 		func(ctx context.Context, action *domain.SendRoomMessageCommand, output *kernel.NoOutput) {
 			messageID := action.Headers()[KeyClientMessageID]
-			envelop := core.NewSuccessEnvelop(kernel.MessageID(messageID), action.Topic(), nil)
+			envelop := core.NewActionSucceededDownstreamEnvelop(kernel.MessageID(messageID), action.Topic(), nil)
 			if err := gateway.PushToUser(ctx, kernel.UserID(action.AggregateID()), envelop); err != nil {
 				zap.L().Error(
 					"failed to push message to sender after sending private message successfully",
@@ -47,7 +47,7 @@ func NewSendRoomMessageCommandHandler(
 			} else {
 				errorMessage = myErrors.ErrServerBusy.Error()
 			}
-			envelop := core.NewFailedEnvelop(kernel.MessageID(messageID), action.Topic(), errorMessage)
+			envelop := core.NewActionFailedDownstreamEnvelop(kernel.MessageID(messageID), action.Topic(), errorMessage)
 			if err := gateway.PushToUser(ctx, kernel.UserID(action.AggregateID()), envelop); err != nil {
 				zap.L().Error(
 					"failed to push message to sender after sending private message successfully",

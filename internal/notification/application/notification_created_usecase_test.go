@@ -2,11 +2,12 @@ package application_test
 
 import (
 	"encoding/json"
+	"gochat/internal/gateway/core"
 	"gochat/internal/notification/application"
+	"gochat/internal/notification/domain"
 	"gochat/internal/notification/domain/mocks"
+	contractMock "gochat/internal/shared/contract/mocks"
 	myErrors "gochat/internal/shared/errors"
-	"gochat/internal/shared/event"
-	eventMock "gochat/internal/shared/event/mocks"
 	"gochat/internal/shared/kernel"
 	"testing"
 	"time"
@@ -16,7 +17,6 @@ import (
 )
 
 const (
-	fixedEventID     event.ID         = "event-123"
 	fixedMessageID   kernel.MessageID = "notification-123"
 	fixedRecipientID kernel.UserID    = "user-456"
 	fixedSenderID    kernel.UserID    = "user-789"
@@ -65,11 +65,11 @@ func TestNewNotificationCreatedUseCase(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockIDGenerator := eventMock.NewMockIDGenerator(ctrl)
+	mockGateway := contractMock.NewMockGatewayService(ctrl)
 	mockCreator := mocks.NewMockNotificationCreator(ctrl)
 
 	useCase, err := application.NewNotificationCreatedUseCase(
-		mockIDGenerator,
+		mockGateway,
 		mockCreator,
 	)
 
@@ -88,16 +88,16 @@ func TestNotificationCreatedUseCase_Execute(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockIDGenerator := eventMock.NewMockIDGenerator(ctrl)
+	mockGateway := contractMock.NewMockGatewayService(ctrl)
 	mockCreator := mocks.NewMockNotificationCreator(ctrl)
 
 	useCase, err := application.NewNotificationCreatedUseCase(
-		mockIDGenerator, mockCreator,
+		mockGateway, mockCreator,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, useCase)
 
-	// 正常情况
+	// 用户在线
 	fixedRawPayload, err := json.Marshal(&AliasPayload{
 		Content:  fixedContent,
 		SenderID: fixedSenderID,
@@ -106,8 +106,7 @@ func TestNotificationCreatedUseCase_Execute(t *testing.T) {
 	require.NoError(t, err)
 
 	gomock.InOrder(
-		mockIDGenerator.EXPECT().Generate().Return(fixedEventID).Times(1),
-		mockCreator.EXPECT().Create(nil, gomock.Any()).Return(nil).Times(1),
+		mockGateway.EXPECT().PushToUser(nil, fixedRecipientID, core.NewActiveDownstreamEnvelop(domain.ActionPushNotification, fixedRawPayload)).Return(nil),
 	)
 	_, err = useCase.Execute(nil, &application.NotificationCreatedInput{
 		ID:          fixedMessageID,

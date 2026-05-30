@@ -1,3 +1,4 @@
+//go:generate mockgen -source=gateway_service.go -destination=./mocks/mock_gateway_service.go -package=mocks
 package contract
 
 import (

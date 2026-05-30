@@ -17,6 +17,7 @@ import (
 	"gochat/internal/roomship/domain"
 	roomshipDomain "gochat/internal/roomship/domain"
 	RoomshipPersistence "gochat/internal/roomship/infrastructure/persistence/repository"
+	"gochat/internal/shared/contract"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 
@@ -66,7 +67,6 @@ var UseCaseKafkaSet = wire.NewSet(
 	provideFriendshipUserCreatedUseCase,
 	provideFriendshipFriendRequestAgreedUseCase,
 	provideNotificationCreatedUseCase,
-	providePushSucceededUseCase,
 )
 
 // -------------------- UseCases (System side) --------------------
@@ -442,19 +442,11 @@ func provideFriendshipFriendRequestAgreedUseCase(
 }
 
 func provideNotificationCreatedUseCase(
-	idGenerator event.IDGenerator,
+	gateway contract.GatewayService,
 	repo notificationDomain.NotificationRepository,
 ) (notificationApp.NotificationCreatedUseCase, error) {
 	return notificationApp.NewNotificationCreatedUseCase(
-		idGenerator,
-		repo,
-	)
-}
-
-func providePushSucceededUseCase(
-	repo notificationDomain.NotificationRepository,
-) (notificationApp.PushSucceededUseCase, error) {
-	return notificationApp.NewPushSucceededUseCase(
+		gateway,
 		repo,
 	)
 }

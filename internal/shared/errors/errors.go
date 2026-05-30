@@ -17,6 +17,7 @@ var (
 
 // 业务逻辑相关错误
 var (
+	ErrUserOffline   = errors.New("logic: user is offline")
 	ErrInvalidLength = errors.New("logic: invalid length")
 	ErrInvalidNumber = errors.New("logic: invalid number")
 	ErrInvalidFormat = errors.New("logic: invalid format")

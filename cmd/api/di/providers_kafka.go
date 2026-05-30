@@ -145,7 +145,6 @@ func provideKafkaConsumers(
 	friendshipUserCreated friendshipApp.UserCreatedUseCase,
 	friendshipFriendRequestAgreed friendshipApp.FriendRequestAgreedUseCase,
 	notificationCreated notificationApp.NotificationCreatedUseCase,
-	pushSucceeded notificationApp.PushSucceededUseCase,
 ) (consumers []*kafkaInfra.Consumer, err error) {
 	defer func() {
 		if err == nil {
@@ -243,12 +242,6 @@ func provideKafkaConsumers(
 
 	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "notification", string(contract.TopicNotificationCreated), func(r *kafkaInfra.Router) {
 		r.EventHandle(contract.TopicNotificationCreated, notificationEvent.NewNotificationCreatedEventHandler(notificationCreated))
-	}, isRetriableError)); err != nil {
-		return nil, err
-	}
-
-	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "notification", string(contract.TopicPushSucceeded), func(r *kafkaInfra.Router) {
-		r.EventHandle(contract.TopicPushSucceeded, notificationEvent.NewPushSucceededEventHandler(pushSucceeded))
 	}, isRetriableError)); err != nil {
 		return nil, err
 	}

@@ -26,23 +26,12 @@ func NewNotificationRepository(db *gorm.DB, eventRepo event.Repository) *Notific
 }
 
 func (repo *NotificationRepository) Create(ctx context.Context, notification *domain.Notification) error {
-	return repo.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(repo.toModel(notification)).Error; err != nil {
-			return gormutils.TranslateError(err)
-		}
-
-		if err := repo.eventRepo.CreateUnpublishedEvents(gormutils.SetTransaction(ctx, tx), notification.GetEvents()); err != nil {
-			return gormutils.TranslateError(err)
-		}
-
-		return nil
-	})
+	return repo.db.WithContext(ctx).Create(repo.toModel(notification)).Error
 }
 
-func (repo *NotificationRepository) UpdateStateByID(ctx context.Context, id kernel.MessageID, state domain.NotificationState) error {
+func (repo *NotificationRepository) Delete(ctx context.Context, id kernel.MessageID) error {
 	if err := repo.db.WithContext(ctx).Model(&model.Notification{}).
-		Where("id = ?", id).
-		Update("state", state).Error; err != nil {
+		Where("id = ?", id).Error; err != nil {
 		return gormutils.TranslateError(err)
 	}
 	return nil
@@ -52,7 +41,6 @@ func (repo *NotificationRepository) toModel(notification *domain.Notification) *
 	return &model.Notification{
 		ID:          notification.ID(),
 		RecipientID: notification.RecipientID(),
-		State:       notification.State(),
 		RawPayload:  notification.RawPayload(),
 	}
 }

@@ -232,15 +232,11 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 		return nil, err
 	}
 	notificationRepository := provideNotificationRepository(db, eventRepository)
-	notificationCreatedUseCase, err := provideNotificationCreatedUseCase(eventIDGenerator, notificationRepository)
+	notificationCreatedUseCase, err := provideNotificationCreatedUseCase(gatewayService, notificationRepository)
 	if err != nil {
 		return nil, err
 	}
-	pushSucceededUseCase, err := providePushSucceededUseCase(notificationRepository)
-	if err != nil {
-		return nil, err
-	}
-	v, err := provideKafkaConsumers(appConfig, kafkaLimiter, client, producer, eventRepository, gatewayService, diIsRetriableError, userCreatedUseCase, roomCreatedUseCase, roomshipCreatedUseCase, applicationUserCreatedUseCase, applicationRoomCreatedUseCase, applicationRoomshipCreatedUseCase, friendshipCreatedUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, userCreatedUseCase2, roomCreatedUseCase2, memberRequestAgreedUseCase, userCreatedUseCase3, friendRequestAgreedUseCase, notificationCreatedUseCase, pushSucceededUseCase)
+	v, err := provideKafkaConsumers(appConfig, kafkaLimiter, client, producer, eventRepository, gatewayService, diIsRetriableError, userCreatedUseCase, roomCreatedUseCase, roomshipCreatedUseCase, applicationUserCreatedUseCase, applicationRoomCreatedUseCase, applicationRoomshipCreatedUseCase, friendshipCreatedUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, userCreatedUseCase2, roomCreatedUseCase2, memberRequestAgreedUseCase, userCreatedUseCase3, friendRequestAgreedUseCase, notificationCreatedUseCase)
 	if err != nil {
 		return nil, err
 	}

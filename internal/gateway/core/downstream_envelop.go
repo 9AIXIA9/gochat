@@ -19,14 +19,21 @@ const (
 
 // DownstreamEnvelop 定义了由服务器发往客户端的标准信封结构
 type DownstreamEnvelop struct {
-	ClientMessageID kernel.MessageID `json:"client_message_id"`
 	Action          event.Topic      `json:"action"`
-	Result          CommandResult    `json:"result"`
 	Payload         json.RawMessage  `json:"payload"`
+	ClientMessageID kernel.MessageID `json:"client_message_id,omitempty"`
+	Result          CommandResult    `json:"result,omitempty"`
 	ErrorMessage    string           `json:"error_message,omitempty"`
 }
 
-func NewSuccessEnvelop(clientMessageID kernel.MessageID, action event.Topic, payload []byte) *DownstreamEnvelop {
+func NewActiveDownstreamEnvelop(action event.Topic, payload json.RawMessage) *DownstreamEnvelop {
+	return &DownstreamEnvelop{
+		Action:  action,
+		Payload: payload,
+	}
+}
+
+func NewActionSucceededDownstreamEnvelop(clientMessageID kernel.MessageID, action event.Topic, payload []byte) *DownstreamEnvelop {
 	return &DownstreamEnvelop{
 		ClientMessageID: clientMessageID,
 		Action:          action,
@@ -35,7 +42,7 @@ func NewSuccessEnvelop(clientMessageID kernel.MessageID, action event.Topic, pay
 	}
 }
 
-func NewFailedEnvelop(clientMessageID kernel.MessageID, action event.Topic, errorMessage string) *DownstreamEnvelop {
+func NewActionFailedDownstreamEnvelop(clientMessageID kernel.MessageID, action event.Topic, errorMessage string) *DownstreamEnvelop {
 	return &DownstreamEnvelop{
 		ClientMessageID: clientMessageID,
 		Action:          action,

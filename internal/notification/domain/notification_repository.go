@@ -8,13 +8,13 @@ import (
 
 type NotificationRepository interface {
 	NotificationCreator
-	NotificationStateUpdater
+	NotificationDeleter
 }
 
 type NotificationCreator interface {
 	Create(ctx context.Context, notification *Notification) error
 }
 
-type NotificationStateUpdater interface {
-	UpdateStateByID(ctx context.Context, id kernel.MessageID, state NotificationState) error
+type NotificationDeleter interface {
+	Delete(ctx context.Context, id kernel.MessageID) error
 }
