@@ -163,12 +163,13 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 		return nil, err
 	}
 	manager := provideGatewayManager()
-	eventSyncPublisher, err := provideKafkaSyncPublisher(appConfig)
+	commandSyncPublisher, err := provideKafkaSyncPublisher(appConfig)
 	if err != nil {
 		return nil, err
 	}
+	commandIDGenerator := provideCommandIDGenerator()
 	allowedAction := provideAllowedAction()
-	upstreamHandler := provideGatewayUpstreamHandler(eventSyncPublisher, eventIDGenerator, allowedAction)
+	upstreamHandler := provideGatewayUpstreamHandler(commandSyncPublisher, commandIDGenerator, allowedAction)
 	sessionIDGenerator := provideSessionIDGenerator()
 	diCheckOrigin := provideCheckOrigin(appConfig)
 	ingressHandler := provideGatewayIngressHandler(manager, upstreamHandler, sessionIDGenerator, diCheckOrigin)
@@ -235,7 +236,8 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	notificationCreatedUseCase, err := provideNotificationCreatedUseCase(gatewayService)
+	deliverService := provideNotificationGatewayDelivery(gatewayService)
+	notificationCreatedUseCase, err := provideNotificationCreatedUseCase(deliverService)
 	if err != nil {
 		return nil, err
 	}
@@ -268,7 +270,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	}
 	eventHandler := provideCanalBinlogReaderHandler(dispatcher)
 	binlogReader := provideCanalBinlogReader(canal, eventHandler)
-	dependencies, err := BuildDependencies(server, db, client, eventAsyncPublisher, eventSyncPublisher, dispatcher, v, binlogReader, otelShutdown)
+	dependencies, err := BuildDependencies(server, db, client, eventAsyncPublisher, commandSyncPublisher, dispatcher, v, binlogReader, otelShutdown)
 	if err != nil {
 		return nil, err
 	}

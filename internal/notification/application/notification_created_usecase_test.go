@@ -2,10 +2,9 @@ package application_test
 
 import (
 	"encoding/json"
-	"gochat/internal/gateway/core"
 	"gochat/internal/notification/application"
 	"gochat/internal/notification/domain"
-	contractMock "gochat/internal/shared/contract/mocks"
+	"gochat/internal/notification/domain/mocks"
 	myErrors "gochat/internal/shared/errors"
 	"gochat/internal/shared/kernel"
 	"testing"
@@ -64,10 +63,10 @@ func TestNewNotificationCreatedUseCase(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockGateway := contractMock.NewMockGatewayService(ctrl)
+	mockService := mocks.NewMockDeliveryService(ctrl)
 
 	useCase, err := application.NewNotificationCreatedUseCase(
-		mockGateway,
+		mockService,
 	)
 
 	require.NoError(t, err)
@@ -85,10 +84,10 @@ func TestNotificationCreatedUseCase_Execute(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockGateway := contractMock.NewMockGatewayService(ctrl)
+	mockService := mocks.NewMockDeliveryService(ctrl)
 
 	useCase, err := application.NewNotificationCreatedUseCase(
-		mockGateway,
+		mockService,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, useCase)
@@ -101,9 +100,8 @@ func TestNotificationCreatedUseCase_Execute(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	gomock.InOrder(
-		mockGateway.EXPECT().PushToUser(nil, fixedRecipientID, core.NewActiveDownstreamEnvelop(domain.ActionPushNotification, fixedRawPayload)).Return(nil),
-	)
+	mockService.EXPECT().Deliver(nil, fixedRecipientID, domain.ActionPushNotification, fixedRawPayload).Return(nil)
+
 	_, err = useCase.Execute(nil, &application.NotificationCreatedInput{
 		ID:          fixedMessageID,
 		RecipientID: fixedRecipientID,

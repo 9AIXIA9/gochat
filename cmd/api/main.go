@@ -136,7 +136,7 @@ func shutdownComponents(ctx context.Context, dependencies *di.Dependencies) {
 	}
 
 	dependencies.KafkaAsyncEventPublisher.Close()
-	dependencies.KafkaSyncEventPublisher.Close()
+	dependencies.KafkaSyncCommandPublisher.Close()
 
 	if dependencies.MysqlDB != nil {
 		if sqlDB, err := dependencies.MysqlDB.DB(); err != nil {

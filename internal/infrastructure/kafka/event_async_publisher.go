@@ -71,7 +71,7 @@ func (p *EventAsyncPublisher) Publish(ctx context.Context, ev event.Event) error
 		return myErrors.ErrHasBeenClosed
 	}
 
-	message := toMessage(ev)
+	message := eventToMessage(ev)
 
 	// 当本地队列已满时，进行有上下文感知的重试（指数退避），以避免把 Queue full 直接上抛到上层批量处理逻辑
 	backoff := 10 * time.Millisecond
@@ -179,34 +179,4 @@ func (p *EventAsyncPublisher) Close() {
 
 	// 关闭底层 producer
 	p.producer.Close()
-}
-
-func toMessage(ev event.Event) *ckafka.Message {
-	topic := ev.Topic().String()
-
-	headers := []ckafka.Header{
-		{
-			Key:   eventIDKey,
-			Value: []byte(ev.ID()),
-		},
-	}
-
-	for key, value := range ev.Headers() {
-		headers = append(headers, ckafka.Header{
-			Key:   key,
-			Value: []byte(value),
-		})
-	}
-
-	return &ckafka.Message{
-		TopicPartition: ckafka.TopicPartition{
-			Topic:     &topic,
-			Partition: ckafka.PartitionAny,
-		},
-		Value:     ev.Payload(),
-		Timestamp: ev.OccurredAt(),
-		Key:       []byte(ev.AggregateID().String()),
-		Headers:   headers,
-		Opaque:    ev.ID(), // 回调 识别消息
-	}
 }

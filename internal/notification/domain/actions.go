@@ -1,3 +1,9 @@
 package domain
 
-const ActionPushNotification = "push_notification"
+import (
+	"gochat/internal/shared/command"
+)
+
+const (
+	ActionPushNotification command.Action = "push_notification"
+)
