@@ -17,7 +17,5 @@ func NewFriendshipCreatedEventHandler(uc application.FriendshipCreatedUseCase) e
 				UserID2: createdEvent.UserID2(),
 			}
 		},
-		nil,
-		nil,
 	)
 }

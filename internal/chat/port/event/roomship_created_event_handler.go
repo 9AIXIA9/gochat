@@ -17,7 +17,5 @@ func NewRoomshipCreatedEventHandler(uc application.RoomshipCreatedUseCase) event
 				RoomID: createdEvent.RoomID(),
 			}
 		},
-		nil,
-		nil,
 	)
 }

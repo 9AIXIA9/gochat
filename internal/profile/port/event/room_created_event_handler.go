@@ -17,7 +17,5 @@ func NewRoomCreatedEventHandler(uc application.RoomCreatedUseCase) event.Handler
 				CreatedAt: createdEvent.CreatedAt(),
 			}
 		},
-		nil,
-		nil,
 	)
 }

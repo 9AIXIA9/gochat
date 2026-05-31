@@ -18,7 +18,5 @@ func NewRoomshipCreatedEventHandler(uc application.RoomshipCreatedUseCase) event
 				Role:   createdEvent.Role(),
 			}
 		},
-		nil,
-		nil,
 	)
 }

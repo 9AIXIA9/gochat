@@ -16,7 +16,5 @@ func NewMemberRequestAgreedEventHandler(uc application.MemberRequestAgreedUseCas
 				RequestID: kernel.OperationID(agreedEvent.AggregateID()),
 			}
 		},
-		nil,
-		nil,
 	)
 }
