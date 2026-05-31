@@ -29,9 +29,9 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/auth/login": {
+        "/auth/login/email": {
             "post": {
-                "description": "使用账号和密码登录，成功后下发访问令牌与刷新令牌（刷新令牌存于 Cookie）",
+                "description": "使用邮件和密码登录，成功后下发访问令牌与刷新令牌（刷新令牌存于 Cookie）",
                 "tags": [
                     "Authorization"
                 ],
@@ -43,7 +43,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_authorization_port_http.LoginRequest"
+                            "$ref": "#/definitions/internal_authorization_port_http.LoginByEmailRequest"
                         }
                     }
                 ],
@@ -59,7 +59,47 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/internal_authorization_port_http.LoginResponseData"
+                                            "$ref": "#/definitions/internal_authorization_port_http.LoginByEmailResponseData"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/login/user_number": {
+            "post": {
+                "description": "使用账号和密码登录，成功后下发访问令牌与刷新令牌（刷新令牌存于 Cookie）",
+                "tags": [
+                    "Authorization"
+                ],
+                "summary": "用户登录",
+                "parameters": [
+                    {
+                        "description": "登录请求体",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_authorization_port_http.LoginByNumberRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "登录成功，返回访问令牌",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/gochat_internal_shared_api.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/internal_authorization_port_http.LoginByNumberResponseData"
                                         }
                                     }
                                 }
@@ -1346,7 +1386,33 @@ const docTemplate = `{
                 "FemaleGender"
             ]
         },
-        "internal_authorization_port_http.LoginRequest": {
+        "internal_authorization_port_http.LoginByEmailRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "example": "user12345@app.com"
+                },
+                "password": {
+                    "type": "string",
+                    "example": "your-password"
+                }
+            }
+        },
+        "internal_authorization_port_http.LoginByEmailResponseData": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySUQiOiIwMTliNTkyOS02NWJjLTc1NDktODljNi0zZjdkYzY4NzI1NzciLCJleHAiOjE3NjY4MjY5MTMsImlhdCI6MTc2NjgyMzMxM30.ogmbXIK85Eqnh3EP_8Ttj0kkuZxsxP5wfERPSc0vNgw"
+                }
+            }
+        },
+        "internal_authorization_port_http.LoginByNumberRequest": {
             "type": "object",
             "required": [
                 "number",
@@ -1363,7 +1429,7 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_authorization_port_http.LoginResponseData": {
+        "internal_authorization_port_http.LoginByNumberResponseData": {
             "type": "object",
             "properties": {
                 "access_token": {

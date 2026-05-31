@@ -238,7 +238,25 @@ definitions:
     - UnknownGender
     - MaleGender
     - FemaleGender
-  internal_authorization_port_http.LoginRequest:
+  internal_authorization_port_http.LoginByEmailRequest:
+    properties:
+      email:
+        example: user12345@app.com
+        type: string
+      password:
+        example: your-password
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  internal_authorization_port_http.LoginByEmailResponseData:
+    properties:
+      access_token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySUQiOiIwMTliNTkyOS02NWJjLTc1NDktODljNi0zZjdkYzY4NzI1NzciLCJleHAiOjE3NjY4MjY5MTMsImlhdCI6MTc2NjgyMzMxM30.ogmbXIK85Eqnh3EP_8Ttj0kkuZxsxP5wfERPSc0vNgw
+        type: string
+    type: object
+  internal_authorization_port_http.LoginByNumberRequest:
     properties:
       number:
         example: '2004426295315795968'
@@ -250,7 +268,7 @@ definitions:
     - number
     - password
     type: object
-  internal_authorization_port_http.LoginResponseData:
+  internal_authorization_port_http.LoginByNumberResponseData:
     properties:
       access_token:
         example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VySUQiOiIwMTliNTkyOS02NWJjLTc1NDktODljNi0zZjdkYzY4NzI1NzciLCJleHAiOjE3NjY4MjY5MTMsImlhdCI6MTc2NjgyMzMxM30.ogmbXIK85Eqnh3EP_8Ttj0kkuZxsxP5wfERPSc0vNgw
@@ -465,16 +483,16 @@ info:
   title: GoChat Backend API
   version: '1.0'
 paths:
-  /auth/login:
+  /auth/login/email:
     post:
-      description: 使用账号和密码登录，成功后下发访问令牌与刷新令牌（刷新令牌存于 Cookie）
+      description: 使用邮件和密码登录，成功后下发访问令牌与刷新令牌（刷新令牌存于 Cookie）
       parameters:
       - description: 登录请求体
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/internal_authorization_port_http.LoginRequest'
+          $ref: '#/definitions/internal_authorization_port_http.LoginByEmailRequest'
       responses:
         '200':
           description: 登录成功，返回访问令牌
@@ -483,7 +501,30 @@ paths:
             - $ref: '#/definitions/gochat_internal_shared_api.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/internal_authorization_port_http.LoginResponseData'
+                  $ref: '#/definitions/internal_authorization_port_http.LoginByEmailResponseData'
+              type: object
+      summary: 用户登录
+      tags:
+      - Authorization
+  /auth/login/user_number:
+    post:
+      description: 使用账号和密码登录，成功后下发访问令牌与刷新令牌（刷新令牌存于 Cookie）
+      parameters:
+      - description: 登录请求体
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_authorization_port_http.LoginByNumberRequest'
+      responses:
+        '200':
+          description: 登录成功，返回访问令牌
+          schema:
+            allOf:
+            - $ref: '#/definitions/gochat_internal_shared_api.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/internal_authorization_port_http.LoginByNumberResponseData'
               type: object
       summary: 用户登录
       tags:
