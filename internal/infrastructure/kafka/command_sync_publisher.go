@@ -3,18 +3,18 @@ package kafka
 import (
 	"context"
 	"fmt"
-	"gochat/internal/shared/event"
+	"gochat/internal/shared/command"
 
 	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
-var _ event.SyncPublisher = (*EventSyncPublisher)(nil)
+var _ command.SyncPublisher = (*CommandSyncPublisher)(nil)
 
-type EventSyncPublisher struct {
+type CommandSyncPublisher struct {
 	producer *ckafka.Producer
 }
 
-func NewEventSyncPublisher(config *Config) (*EventSyncPublisher, error) {
+func NewCommandSyncPublisher(config *Config) (*CommandSyncPublisher, error) {
 	producer, err := ckafka.NewProducer(getProducerConfigMap(config))
 	if err != nil {
 		defer func() {
@@ -26,17 +26,17 @@ func NewEventSyncPublisher(config *Config) (*EventSyncPublisher, error) {
 		return nil, fmt.Errorf("create kafka sync producer failed: %w", err)
 	}
 
-	return &EventSyncPublisher{
+	return &CommandSyncPublisher{
 		producer: producer,
 	}, nil
 }
 
-func (p *EventSyncPublisher) Publish(ctx context.Context, ev event.Event) error {
-	if ev == nil {
-		return fmt.Errorf("event is nil")
+func (p *CommandSyncPublisher) Publish(ctx context.Context, com command.Command) error {
+	if com == nil {
+		return fmt.Errorf("command is nil")
 	}
 
-	message := toMessage(ev)
+	message := commandToMessage(com)
 
 	// 创建一个只给当前这次投递使用的一次性接收 channel
 	deliveryChan := make(chan ckafka.Event, 1)
@@ -56,7 +56,7 @@ func (p *EventSyncPublisher) Publish(ctx context.Context, ev event.Event) error 
 	case e := <-deliveryChan:
 		m, ok := e.(*ckafka.Message)
 		if !ok {
-			return fmt.Errorf("unexpected event type received from delivery channel")
+			return fmt.Errorf("unexpected command type received from delivery channel")
 		}
 		// m.TopicPartition.Error 如果非 nil，说明远端明确拒绝了或者超时失败等
 		if err := m.TopicPartition.Error; err != nil {
@@ -67,7 +67,7 @@ func (p *EventSyncPublisher) Publish(ctx context.Context, ev event.Event) error 
 	}
 }
 
-func (p *EventSyncPublisher) Close() {
+func (p *CommandSyncPublisher) Close() {
 	if p.producer != nil {
 		p.producer.Flush(5000)
 		p.producer.Close()

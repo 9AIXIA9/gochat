@@ -202,13 +202,13 @@ func provideKafkaConsumers(
 		return nil, err
 	}
 
-	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "chat", string(chatDomain.TopicSendPrivateMessageCommand), func(r *kafkaInfra.Router) {
-		r.EventHandle(chatDomain.TopicSendPrivateMessageCommand, command.NewSendPrivateMessageCommandHandler(chatSendPrivateMessage, gateway))
+	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "chat", string(chatDomain.ActionSendPrivateMessageCommand), func(r *kafkaInfra.Router) {
+		r.CommandHandle(chatDomain.ActionSendPrivateMessageCommand, command.NewSendPrivateMessageCommandHandler(chatSendPrivateMessage, gateway))
 	}, isRetriableError)); err != nil {
 		return nil, err
 	}
-	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "chat", string(chatDomain.TopicSendRoomMessageCommand), func(r *kafkaInfra.Router) {
-		r.EventHandle(chatDomain.TopicSendRoomMessageCommand, command.NewSendRoomMessageCommandHandler(chatSendRoomMessage, gateway))
+	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "chat", string(chatDomain.ActionSendRoomMessageCommand), func(r *kafkaInfra.Router) {
+		r.CommandHandle(chatDomain.ActionSendRoomMessageCommand, command.NewSendRoomMessageCommandHandler(chatSendRoomMessage, gateway))
 	}, isRetriableError)); err != nil {
 		return nil, err
 	}

@@ -5,9 +5,9 @@ import (
 	"gochat/internal/chat/application"
 	"gochat/internal/chat/domain"
 	"gochat/internal/gateway/core"
+	"gochat/internal/shared/command"
 	"gochat/internal/shared/contract"
 	myErrors "gochat/internal/shared/errors"
-	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 
 	"go.uber.org/zap"
@@ -16,20 +16,20 @@ import (
 func NewSendRoomMessageCommandHandler(
 	uc application.SendRoomMessageUseCase,
 	gateway contract.GatewayService,
-) event.Handler {
-	return event.AdaptUsecaseToCommandHandler(
+) command.Handler {
+	return command.AdaptUsecaseToCommandHandler(
 		uc,
 		domain.ToSendRoomMessageCommand,
-		func(ev *domain.SendRoomMessageCommand) *application.SendRoomMessageInput {
+		func(com *domain.SendRoomMessageCommand) *application.SendRoomMessageInput {
 			return &application.SendRoomMessageInput{
-				SenderID: kernel.UserID(ev.AggregateID()),
-				RoomID:   ev.RoomID(),
-				Content:  ev.Content(),
+				SenderID: kernel.UserID(com.AggregateID()),
+				RoomID:   com.RoomID(),
+				Content:  com.Content(),
 			}
 		},
 		func(ctx context.Context, action *domain.SendRoomMessageCommand, output *kernel.NoOutput) {
 			messageID := action.Headers()[KeyClientMessageID]
-			envelop := core.NewActionSucceededDownstreamEnvelop(kernel.MessageID(messageID), action.Topic(), nil)
+			envelop := core.NewActionSucceededDownstreamEnvelop(kernel.MessageID(messageID), action.Action(), nil)
 			if err := gateway.PushToUser(ctx, kernel.UserID(action.AggregateID()), envelop); err != nil {
 				zap.L().Error(
 					"failed to push message to sender after sending private message successfully",
@@ -47,7 +47,7 @@ func NewSendRoomMessageCommandHandler(
 			} else {
 				errorMessage = myErrors.ErrServerBusy.Error()
 			}
-			envelop := core.NewActionFailedDownstreamEnvelop(kernel.MessageID(messageID), action.Topic(), errorMessage)
+			envelop := core.NewActionFailedDownstreamEnvelop(kernel.MessageID(messageID), action.Action(), errorMessage)
 			if err := gateway.PushToUser(ctx, kernel.UserID(action.AggregateID()), envelop); err != nil {
 				zap.L().Error(
 					"failed to push message to sender after sending private message successfully",

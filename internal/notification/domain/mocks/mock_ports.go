@@ -12,7 +12,7 @@ package mocks
 import (
 	context "context"
 	json "encoding/json"
-	event "gochat/internal/shared/event"
+	command "gochat/internal/shared/command"
 	kernel "gochat/internal/shared/kernel"
 	reflect "reflect"
 
@@ -44,7 +44,7 @@ func (m *MockDeliveryService) EXPECT() *MockDeliveryServiceMockRecorder {
 }
 
 // Deliver mocks base method.
-func (m *MockDeliveryService) Deliver(ctx context.Context, recipient kernel.UserID, action event.Topic, rawPayload json.RawMessage) error {
+func (m *MockDeliveryService) Deliver(ctx context.Context, recipient kernel.UserID, action command.Action, rawPayload json.RawMessage) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Deliver", ctx, recipient, action, rawPayload)
 	ret0, _ := ret[0].(error)

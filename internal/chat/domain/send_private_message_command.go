@@ -2,28 +2,28 @@ package domain
 
 import (
 	"encoding/json"
+	"gochat/internal/shared/command"
 	myErrors "gochat/internal/shared/errors"
-	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 )
 
-const TopicSendPrivateMessageCommand event.Topic = "send_private_message_command"
+const ActionSendPrivateMessageCommand command.Action = "send_private_message"
 
-var _ event.SpecificEvent = (*SendPrivateMessageCommand)(nil)
+var _ command.SpecificCommand = (*SendPrivateMessageCommand)(nil)
 
 type SendPrivateMessageCommand struct {
 	recipientID kernel.UserID
 	content     string
-	*event.StandardEvent
+	*command.StandardCommand
 }
 
-func ToSendPrivateMessageCommand(ev event.Event) (*SendPrivateMessageCommand, error) {
-	if ev.Topic() != TopicSendPrivateMessageCommand {
-		return nil, myErrors.ErrWrongEventTopic
+func ToSendPrivateMessageCommand(com command.Command) (*SendPrivateMessageCommand, error) {
+	if com.Action() != ActionSendPrivateMessageCommand {
+		return nil, myErrors.ErrWrongCommandAction
 	}
-	e := &SendPrivateMessageCommand{StandardEvent: event.LoadStandardEventFromEvent(ev)}
-	if len(ev.Payload()) > 0 {
-		if err := e.Unmarshal(ev.Payload()); err != nil {
+	e := &SendPrivateMessageCommand{StandardCommand: command.LoadStandardCommandFromCommand(com)}
+	if len(com.Payload()) > 0 {
+		if err := e.Unmarshal(com.Payload()); err != nil {
 			return nil, err
 		}
 	}

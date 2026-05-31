@@ -6,8 +6,8 @@ import (
 	"gochat/internal/gateway/core"
 	myErrors "gochat/internal/shared/errors"
 
+	"gochat/internal/shared/command"
 	"gochat/internal/shared/contract"
-	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 
 	"go.uber.org/zap"
@@ -20,15 +20,15 @@ const (
 
 // UpstreamRouter 实现了 gateway 上下文暴露的契约 contract.UpstreamHandler
 type UpstreamRouter struct {
-	idGenerator    event.IDGenerator
-	publisher      event.SyncPublisher
-	allowedActions map[event.Topic]struct{}
+	idGenerator    command.IDGenerator
+	publisher      command.SyncPublisher
+	allowedActions map[command.Action]struct{}
 }
 
 func NewUpstreamRouter(
-	publisher event.SyncPublisher,
-	idGenerator event.IDGenerator,
-	allowedActions map[event.Topic]struct{},
+	publisher command.SyncPublisher,
+	idGenerator command.IDGenerator,
+	allowedActions map[command.Action]struct{},
 ) contract.UpstreamHandler {
 	return &UpstreamRouter{
 		publisher:      publisher,
@@ -56,12 +56,12 @@ func (r *UpstreamRouter) HandleUpstream(ctx context.Context, userID kernel.UserI
 	if !ok {
 		zap.L().Warn("gateway: unauthorized or unknown action", zap.String("action", string(env.Action)), zap.String("userID", userID.String()))
 		// 直接快速阻断
-		ackBytes, _ := NewAckError(env.ClientMessageID, myErrors.ErrWrongAction)
+		ackBytes, _ := NewAckError(env.ClientMessageID, myErrors.ErrWrongCommandAction)
 		return ackBytes
 	}
 
-	// 将 UpstreamEnvelope 装裱为一个领域事件发送，使用映射后的内部真实 Topic
-	ev := event.NewStandardEvent(kernel.ID(userID), env.Action, env.Payload, r.idGenerator)
+	// 将 UpstreamEnvelope 装裱为一个领域事件发送，使用映射后的内部真实 Action
+	ev := command.NewStandardCommand(kernel.ID(userID), env.Action, env.Payload, r.idGenerator)
 	ev.AddHeaders(map[string]string{
 		KeyClientMessageID: env.ClientMessageID.String(),
 		KeyUserID:          userID.String(),

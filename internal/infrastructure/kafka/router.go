@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"context"
+	"gochat/internal/shared/command"
 	"gochat/internal/shared/event"
 
 	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
@@ -9,14 +10,14 @@ import (
 )
 
 type Router struct {
-	handlers        map[event.Topic]Handler
+	handlers        map[string]Handler
 	middlewares     []Middleware
 	notFoundHandler Handler
 }
 
 func NewRouter() *Router {
 	return &Router{
-		handlers:        make(map[event.Topic]Handler),
+		handlers:        make(map[string]Handler),
 		middlewares:     make([]Middleware, 0),
 		notFoundHandler: nil,
 	}
@@ -36,17 +37,24 @@ func (r *Router) EventHandle(topic event.Topic, h event.Handler, middlewares ...
 	// Apply route-level middlewares first, then global middlewares
 	wrapped := chainHandlers(WrapEventHandler(h), middlewares)
 	wrapped = chainHandlers(wrapped, r.middlewares)
-	r.handlers[topic] = wrapped
+	r.handlers[topic.String()] = wrapped
+}
+
+func (r *Router) CommandHandle(action command.Action, h command.Handler, middlewares ...Middleware) {
+	// Apply route-level middlewares first, then global middlewares
+	wrapped := chainHandlers(WrapCommandHandler(h), middlewares)
+	wrapped = chainHandlers(wrapped, r.middlewares)
+	r.handlers[action.String()] = wrapped
 }
 
 func (r *Router) Route(ctx context.Context, message *ckafka.Message) error {
-	topic := event.Topic(*message.TopicPartition.Topic)
+	topic := *message.TopicPartition.Topic
 	h, ok := r.handlers[topic]
 	if !ok {
 		if r.notFoundHandler != nil {
 			h = r.notFoundHandler
 		} else {
-			zap.L().Debug("event: topic is not found", zap.String("topic", topic.String()))
+			zap.L().Debug("event: topic is not found", zap.String("topic", topic))
 		}
 	}
 
@@ -56,7 +64,7 @@ func (r *Router) Route(ctx context.Context, message *ckafka.Message) error {
 func (r *Router) Topics() []string {
 	topics := make([]string, 0, len(r.handlers))
 	for topic := range r.handlers {
-		topics = append(topics, topic.String())
+		topics = append(topics, topic)
 	}
 	return topics
 }

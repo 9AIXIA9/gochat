@@ -2,26 +2,26 @@ package domain
 
 import (
 	"encoding/json"
+	"gochat/internal/shared/command"
 	myErrors "gochat/internal/shared/errors"
-	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 )
 
-const TopicSendRoomMessageCommand event.Topic = "send_room_message_command"
+const ActionSendRoomMessageCommand command.Action = "send_room_message"
 
-var _ event.SpecificEvent = (*SendRoomMessageCommand)(nil)
+var _ command.SpecificCommand = (*SendRoomMessageCommand)(nil)
 
 type SendRoomMessageCommand struct {
 	roomID  kernel.RoomID
 	content string
-	*event.StandardEvent
+	*command.StandardCommand
 }
 
-func ToSendRoomMessageCommand(ev event.Event) (*SendRoomMessageCommand, error) {
-	if ev.Topic() != TopicSendRoomMessageCommand {
-		return nil, myErrors.ErrWrongEventTopic
+func ToSendRoomMessageCommand(ev command.Command) (*SendRoomMessageCommand, error) {
+	if ev.Action() != ActionSendRoomMessageCommand {
+		return nil, myErrors.ErrWrongCommandAction
 	}
-	e := &SendRoomMessageCommand{StandardEvent: event.LoadStandardEventFromEvent(ev)}
+	e := &SendRoomMessageCommand{StandardCommand: command.LoadStandardCommandFromCommand(ev)}
 	if len(ev.Payload()) > 0 {
 		if err := e.Unmarshal(ev.Payload()); err != nil {
 			return nil, err

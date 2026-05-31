@@ -26,6 +26,7 @@ import (
 	roomshipDomain "gochat/internal/roomship/domain"
 	roomshipSnowflake "gochat/internal/roomship/infrastructure/snowflake"
 	roomshipUUID "gochat/internal/roomship/infrastructure/uuid"
+	"gochat/internal/shared/command"
 	"gochat/internal/shared/contract"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
@@ -61,6 +62,7 @@ var InfraSet = wire.NewSet(
 	provideKafkaLimiter,
 	// Generators & managers (concrete providers)
 	provideEventIDGenerator,
+	provideCommandIDGenerator,
 	provideAuthorizationUserIDGenerator,
 	provideAuthorizationUserNumberGenerator,
 	provideHasher,
@@ -76,10 +78,11 @@ var InfraSet = wire.NewSet(
 	provideNotificationGatewayDelivery,
 	// Binds
 	wire.Bind(new(event.IDGenerator), new(*uuid.EventIDGenerator)),
+	wire.Bind(new(command.IDGenerator), new(*uuid.CommandIDGenerator)),
 	wire.Bind(new(kernel.MessageIDGenerator), new(*uuid.MessageIDGenerator)),
 	wire.Bind(new(kernel.OperationIDGenerator), new(*uuid.OperationIDGenerator)),
 	wire.Bind(new(event.AsyncPublisher), new(*kafkautil.EventAsyncPublisher)),
-	wire.Bind(new(event.SyncPublisher), new(*kafkautil.EventSyncPublisher)),
+	wire.Bind(new(command.SyncPublisher), new(*kafkautil.CommandSyncPublisher)),
 	wire.Bind(new(ginutils.Validator), new(*validatorInfra.Validator)),
 	// Authorization binds
 	wire.Bind(new(authDomain.UserIDGenerator), new(*authUUID.UserIDGenerator)),
@@ -129,6 +132,10 @@ func provideKafkaLimiter(client *redis.Client, conf *config.App) *KafkaLimiter {
 
 func provideEventIDGenerator() *uuid.EventIDGenerator {
 	return uuid.NewEventIDGenerator()
+}
+
+func provideCommandIDGenerator() *uuid.CommandIDGenerator {
+	return uuid.NewCommandIDGenerator()
 }
 func provideOperationIDGenerator() *uuid.OperationIDGenerator {
 	return uuid.NewOperationIDGenerator()
@@ -181,8 +188,8 @@ func provideNotificationGatewayDelivery(gateway contract.GatewayService) *notifi
 	return notificationGateway.NewDeliverService(gateway)
 }
 
-func provideKafkaSyncPublisher(appConfig *config.App) (*kafkautil.EventSyncPublisher, error) {
-	return kafkautil.NewEventSyncPublisher(appConfig.Kafka)
+func provideKafkaSyncPublisher(appConfig *config.App) (*kafkautil.CommandSyncPublisher, error) {
+	return kafkautil.NewCommandSyncPublisher(appConfig.Kafka)
 }
 
 func provideOutboxDispatcher(appConfig *config.App, uc rootapp.UnpublishedEventsCreatedUseCase) (*outboxUtil.Dispatcher, error) {

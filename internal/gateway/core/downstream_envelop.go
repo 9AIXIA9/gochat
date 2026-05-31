@@ -2,7 +2,7 @@ package core
 
 import (
 	"encoding/json"
-	"gochat/internal/shared/event"
+	"gochat/internal/shared/command"
 	"gochat/internal/shared/kernel"
 )
 
@@ -19,21 +19,21 @@ const (
 
 // DownstreamEnvelop 定义了由服务器发往客户端的标准信封结构
 type DownstreamEnvelop struct {
-	Action          event.Topic      `json:"action"`
+	Action          command.Action   `json:"action"`
 	Payload         json.RawMessage  `json:"payload"`
 	ClientMessageID kernel.MessageID `json:"client_message_id,omitempty"`
 	Result          CommandResult    `json:"result,omitempty"`
 	ErrorMessage    string           `json:"error_message,omitempty"`
 }
 
-func NewActiveDownstreamEnvelop(action event.Topic, payload json.RawMessage) *DownstreamEnvelop {
+func NewActiveDownstreamEnvelop(action command.Action, payload json.RawMessage) *DownstreamEnvelop {
 	return &DownstreamEnvelop{
 		Action:  action,
 		Payload: payload,
 	}
 }
 
-func NewActionSucceededDownstreamEnvelop(clientMessageID kernel.MessageID, action event.Topic, payload []byte) *DownstreamEnvelop {
+func NewActionSucceededDownstreamEnvelop(clientMessageID kernel.MessageID, action command.Action, payload []byte) *DownstreamEnvelop {
 	return &DownstreamEnvelop{
 		ClientMessageID: clientMessageID,
 		Action:          action,
@@ -42,7 +42,7 @@ func NewActionSucceededDownstreamEnvelop(clientMessageID kernel.MessageID, actio
 	}
 }
 
-func NewActionFailedDownstreamEnvelop(clientMessageID kernel.MessageID, action event.Topic, errorMessage string) *DownstreamEnvelop {
+func NewActionFailedDownstreamEnvelop(clientMessageID kernel.MessageID, action command.Action, errorMessage string) *DownstreamEnvelop {
 	return &DownstreamEnvelop{
 		ClientMessageID: clientMessageID,
 		Action:          action,

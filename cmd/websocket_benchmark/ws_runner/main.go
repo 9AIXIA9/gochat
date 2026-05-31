@@ -26,8 +26,8 @@ import (
 )
 
 const (
-	actionSendPrivateMessage = "send_private_message_command"
-	actionSendRoomMessage    = "send_room_message_command"
+	actionSendPrivateMessage = "send_private_message"
+	actionSendRoomMessage    = "send_room_message"
 )
 
 type upstreamEnvelope struct {

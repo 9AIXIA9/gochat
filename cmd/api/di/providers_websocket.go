@@ -7,8 +7,8 @@ import (
 	"gochat/internal/gateway/api/local"
 	"gochat/internal/gateway/core"
 	"gochat/internal/gateway/infrastructure/uuid"
+	"gochat/internal/shared/command"
 	"gochat/internal/shared/contract"
-	"gochat/internal/shared/event"
 
 	"github.com/google/wire"
 )
@@ -21,7 +21,7 @@ var WebsocketSet = wire.NewSet(
 	provideGatewayIngressHandler,
 )
 
-type AllowedAction map[event.Topic]struct{}
+type AllowedAction map[command.Action]struct{}
 
 func provideGatewayManager() *core.Manager {
 	return core.NewManager(1024)
@@ -32,13 +32,13 @@ func provideGatewayService(manager *core.Manager) contract.GatewayService {
 }
 
 func provideAllowedAction() AllowedAction {
-	return map[event.Topic]struct{}{
-		chatDomain.TopicSendPrivateMessageCommand: {},
-		chatDomain.TopicSendRoomMessageCommand:    {},
+	return map[command.Action]struct{}{
+		chatDomain.ActionSendPrivateMessageCommand: {},
+		chatDomain.ActionSendRoomMessageCommand:    {},
 	}
 }
 
-func provideGatewayUpstreamHandler(publisher event.SyncPublisher, generator event.IDGenerator, allowedAction AllowedAction) contract.UpstreamHandler {
+func provideGatewayUpstreamHandler(publisher command.SyncPublisher, generator command.IDGenerator, allowedAction AllowedAction) contract.UpstreamHandler {
 	return gateway.NewUpstreamRouter(publisher, generator, allowedAction)
 }
 
