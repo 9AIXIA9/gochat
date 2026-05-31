@@ -43,7 +43,7 @@ func (m *MockGatewayService) EXPECT() *MockGatewayServiceMockRecorder {
 }
 
 // PushToUser mocks base method.
-func (m *MockGatewayService) PushToUser(ctx context.Context, userID kernel.UserID, envelop *core.DownstreamEnvelop) error {
+func (m *MockGatewayService) PushToUser(ctx context.Context, userID kernel.UserID, envelop *core.Envelope) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "PushToUser", ctx, userID, envelop)
 	ret0, _ := ret[0].(error)

@@ -23,7 +23,7 @@ func NewLocalGatewayService(manager *core.Manager) contract.GatewayService {
 	}
 }
 
-func (s *gatewayService) PushToUser(ctx context.Context, userID kernel.UserID, envelop *core.DownstreamEnvelop) error {
+func (s *gatewayService) PushToUser(ctx context.Context, userID kernel.UserID, envelop *core.Envelope) error {
 	if timeout.CheckCtxTimeout(ctx) {
 		return myErrors.ErrTimeout
 	}

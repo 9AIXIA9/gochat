@@ -3,6 +3,7 @@ package event
 import (
 	"context"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/ctxutil"
 )
 
 func AdaptUsecaseToEventHandler[
@@ -33,7 +34,7 @@ func AdaptUsecaseToEventHandler[
 			return err
 		}
 
-		output, err := usecase.Execute(ctx, input)
+		output, err := usecase.Execute(ctxutil.WithHeaders(ctx, specialEvent.Headers()), input)
 		if err != nil {
 			return err
 		}

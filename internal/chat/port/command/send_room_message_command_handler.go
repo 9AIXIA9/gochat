@@ -1,6 +1,7 @@
 package command
 
 import (
+	"context"
 	"gochat/internal/chat/application"
 	"gochat/internal/chat/domain"
 	"gochat/internal/shared/command"
@@ -20,7 +21,11 @@ func NewSendRoomMessageCommandHandler(
 				Content:  com.Content(),
 			}
 		},
-		nil,
-		nil,
+		func(ctx context.Context, output *kernel.NoOutput) {
+
+		},
+		func(ctx context.Context, err error) {
+
+		},
 	)
 }

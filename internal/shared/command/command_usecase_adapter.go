@@ -3,6 +3,7 @@ package command
 import (
 	"context"
 	"gochat/internal/shared/kernel"
+	"gochat/pkg/ctxutil"
 )
 
 func AdaptUsecaseToCommandHandler[
@@ -34,7 +35,7 @@ func AdaptUsecaseToCommandHandler[
 			return err
 		}
 
-		output, err := usecase.Execute(ctx, input)
+		output, err := usecase.Execute(ctxutil.WithHeaders(ctx, specialCommand.Headers()), input)
 		if err != nil {
 			return err
 		}
