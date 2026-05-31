@@ -2,7 +2,6 @@ package websocket
 
 import (
 	"gochat/internal/gateway/core"
-	"gochat/internal/shared/contract"
 	"gochat/pkg/ctxutil"
 	"net/http"
 
@@ -13,13 +12,13 @@ import (
 type IngressHandler struct {
 	hub                *core.Manager
 	upgrader           websocket.Upgrader
-	upstreamHandler    contract.UpstreamHandler
+	upstreamHandler    core.UpstreamHandler
 	sessionIDGenerator core.SessionIDGenerator
 }
 
 func NewIngressHandler(
 	hub *core.Manager,
-	handler contract.UpstreamHandler,
+	handler core.UpstreamHandler,
 	checkOrigin func(r *http.Request) bool,
 	idGenerator core.SessionIDGenerator,
 ) *IngressHandler {

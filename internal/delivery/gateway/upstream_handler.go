@@ -7,7 +7,6 @@ import (
 	myErrors "gochat/internal/shared/errors"
 
 	"gochat/internal/shared/command"
-	"gochat/internal/shared/contract"
 	"gochat/internal/shared/kernel"
 
 	"go.uber.org/zap"
@@ -29,7 +28,7 @@ func NewUpstreamRouter(
 	publisher command.SyncPublisher,
 	idGenerator command.IDGenerator,
 	allowedActions map[command.Action]struct{},
-) contract.UpstreamHandler {
+) core.UpstreamHandler {
 	return &UpstreamRouter{
 		publisher:      publisher,
 		idGenerator:    idGenerator,

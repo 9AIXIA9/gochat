@@ -3,7 +3,6 @@ package websocket
 import (
 	"context"
 	"gochat/internal/gateway/core"
-	"gochat/internal/shared/contract"
 	"gochat/internal/shared/kernel"
 	"time"
 
@@ -22,7 +21,7 @@ type WSSession struct {
 	userID          kernel.UserID
 	conn            *websocket.Conn
 	hub             *core.Manager
-	upstreamHandler contract.UpstreamHandler
+	upstreamHandler core.UpstreamHandler
 	send            chan []byte
 }
 
@@ -31,7 +30,7 @@ func NewWSSession(
 	userID kernel.UserID,
 	conn *websocket.Conn,
 	hub *core.Manager,
-	handler contract.UpstreamHandler,
+	handler core.UpstreamHandler,
 ) *WSSession {
 	return &WSSession{
 		id:              id,

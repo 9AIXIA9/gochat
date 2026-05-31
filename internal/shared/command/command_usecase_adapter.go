@@ -13,8 +13,8 @@ func AdaptUsecaseToCommandHandler[
 	usecase kernel.UseCase[Input, Output],
 	convertCommandToSpecialCommand func(Command) (SpecialCommand, error),
 	convertCommandToInput func(SpecialCommand) Input,
-	handleOutput func(context.Context, SpecialCommand, Output),
-	handleError func(context.Context, SpecialCommand, error),
+	handleOutput func(context.Context, Output),
+	handleError func(context.Context, error),
 ) Handler {
 	return HandlerFunc(func(ctx context.Context, e Command) (err error) {
 		specialCommand, err := convertCommandToSpecialCommand(e)
@@ -26,7 +26,7 @@ func AdaptUsecaseToCommandHandler[
 
 		defer func() {
 			if err != nil && handleError != nil {
-				handleError(ctx, specialCommand, err)
+				handleError(ctx, err)
 			}
 		}()
 
@@ -42,7 +42,7 @@ func AdaptUsecaseToCommandHandler[
 		if handleOutput == nil {
 			return nil
 		}
-		handleOutput(ctx, specialCommand, output)
+		handleOutput(ctx, output)
 		return nil
 	})
 }

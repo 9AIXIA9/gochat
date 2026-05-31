@@ -38,10 +38,10 @@ func provideAllowedAction() AllowedAction {
 	}
 }
 
-func provideGatewayUpstreamHandler(publisher command.SyncPublisher, generator command.IDGenerator, allowedAction AllowedAction) contract.UpstreamHandler {
+func provideGatewayUpstreamHandler(publisher command.SyncPublisher, generator command.IDGenerator, allowedAction AllowedAction) core.UpstreamHandler {
 	return gateway.NewUpstreamRouter(publisher, generator, allowedAction)
 }
 
-func provideGatewayIngressHandler(hub *core.Manager, upstream contract.UpstreamHandler, sessionIDGenerator *uuid.SessionIDGenerator, checkOrigin checkOrigin) *gatewayWebsocket.IngressHandler {
+func provideGatewayIngressHandler(hub *core.Manager, upstream core.UpstreamHandler, sessionIDGenerator *uuid.SessionIDGenerator, checkOrigin checkOrigin) *gatewayWebsocket.IngressHandler {
 	return gatewayWebsocket.NewIngressHandler(hub, upstream, checkOrigin, sessionIDGenerator)
 }

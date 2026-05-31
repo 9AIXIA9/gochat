@@ -178,7 +178,6 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 		return nil, err
 	}
 	kafkaLimiter := provideKafkaLimiter(client, appConfig)
-	gatewayService := provideGatewayService(manager)
 	diIsRetriableError := provideIsRetriableError()
 	repositoryUserRepository := provideProfileUserRepository(db)
 	userCreatedUseCase, err := provideProfileUserCreatedUseCase(repositoryUserRepository, userProfileRepository)
@@ -236,12 +235,13 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
+	gatewayService := provideGatewayService(manager)
 	deliverService := provideNotificationGatewayDelivery(gatewayService)
 	notificationCreatedUseCase, err := provideNotificationCreatedUseCase(deliverService)
 	if err != nil {
 		return nil, err
 	}
-	v, err := provideKafkaConsumers(appConfig, kafkaLimiter, client, producer, eventRepository, gatewayService, diIsRetriableError, userCreatedUseCase, roomCreatedUseCase, roomshipCreatedUseCase, applicationUserCreatedUseCase, applicationRoomCreatedUseCase, applicationRoomshipCreatedUseCase, friendshipCreatedUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, userCreatedUseCase2, roomCreatedUseCase2, memberRequestAgreedUseCase, userCreatedUseCase3, friendRequestAgreedUseCase, notificationCreatedUseCase)
+	v, err := provideKafkaConsumers(appConfig, kafkaLimiter, client, producer, eventRepository, diIsRetriableError, userCreatedUseCase, roomCreatedUseCase, roomshipCreatedUseCase, applicationUserCreatedUseCase, applicationRoomCreatedUseCase, applicationRoomshipCreatedUseCase, friendshipCreatedUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, userCreatedUseCase2, roomCreatedUseCase2, memberRequestAgreedUseCase, userCreatedUseCase3, friendRequestAgreedUseCase, notificationCreatedUseCase)
 	if err != nil {
 		return nil, err
 	}
