@@ -48,6 +48,14 @@ func (repo *UserRepository) FindByNumber(ctx context.Context, number kernel.User
 	return repo.toDomain(&user), nil
 }
 
+func (repo *UserRepository) FindByEmail(ctx context.Context, email kernel.Email) (*domain.User, error) {
+	var user model.User
+	if err := repo.db.WithContext(ctx).First(&user, "email = ?", email).Error; err != nil {
+		return nil, gormutils.TranslateError(err)
+	}
+	return repo.toDomain(&user), nil
+}
+
 func (repo *UserRepository) FindByID(ctx context.Context, id kernel.UserID) (*domain.User, error) {
 	var user model.User
 	if err := repo.db.WithContext(ctx).First(&user, "id = ?", id).Error; err != nil {

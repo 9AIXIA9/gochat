@@ -9,6 +9,7 @@ import (
 type UserRepository interface {
 	UserCreator
 	UserFinderByNumber
+	UserFinderByEmail
 	UserFinderByID
 }
 
@@ -18,6 +19,10 @@ type UserCreator interface {
 
 type UserFinderByNumber interface {
 	FindByNumber(ctx context.Context, number kernel.UserNumber) (*User, error)
+}
+
+type UserFinderByEmail interface {
+	FindByEmail(ctx context.Context, email kernel.Email) (*User, error)
 }
 
 type UserFinderByID interface {

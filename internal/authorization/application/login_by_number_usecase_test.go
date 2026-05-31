@@ -12,8 +12,8 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestLoginInput_Validate(t *testing.T) {
-	input := &application.LoginInput{
+func TestLoginByNumberInput_Validate(t *testing.T) {
+	input := &application.LoginByNumberInput{
 		Number:   fixedUserNumber,
 		Password: fixedPassword,
 	}
@@ -21,7 +21,7 @@ func TestLoginInput_Validate(t *testing.T) {
 	err := input.Validate()
 	require.NoError(t, err)
 
-	inputWithEmptyPassword := &application.LoginInput{
+	inputWithEmptyPassword := &application.LoginByNumberInput{
 		Number:   fixedUserNumber,
 		Password: "",
 	}
@@ -29,7 +29,7 @@ func TestLoginInput_Validate(t *testing.T) {
 	err = inputWithEmptyPassword.Validate()
 	require.ErrorIs(t, err, myErrors.ErrInvalidLength)
 
-	inputWithEmptyNumber := &application.LoginInput{
+	inputWithEmptyNumber := &application.LoginByNumberInput{
 		Number:   "",
 		Password: fixedPassword,
 	}
@@ -38,7 +38,7 @@ func TestLoginInput_Validate(t *testing.T) {
 	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
 }
 
-func TestNewLoginUseCase(t *testing.T) {
+func TestNewLoginByNumberUseCase(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -48,7 +48,7 @@ func TestNewLoginUseCase(t *testing.T) {
 	mockAccessTokenGenerator := mocks.NewMockAccessTokenGenerator(ctrl)
 	mockRefreshTokenGenerator := mocks.NewMockRefreshTokenGenerator(ctrl)
 
-	useCase, err := application.NewLoginUseCase(
+	useCase, err := application.NewLoginByNumberUseCase(
 		mockComparator,
 		mockUserFinder,
 		mockRefreshTokenUpserter,
@@ -59,7 +59,7 @@ func TestNewLoginUseCase(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, useCase)
 
-	useCaseWithNil, err := application.NewLoginUseCase(
+	useCaseWithNil, err := application.NewLoginByNumberUseCase(
 		nil, nil, nil, nil, nil,
 	)
 
@@ -67,7 +67,7 @@ func TestNewLoginUseCase(t *testing.T) {
 	require.Nil(t, useCaseWithNil)
 }
 
-func TestLoginUseCase_Execute(t *testing.T) {
+func TestLoginByNumberUseCase_Execute(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -77,7 +77,7 @@ func TestLoginUseCase_Execute(t *testing.T) {
 	mockAccessTokenGenerator := mocks.NewMockAccessTokenGenerator(ctrl)
 	mockRefreshTokenGenerator := mocks.NewMockRefreshTokenGenerator(ctrl)
 
-	useCase, err := application.NewLoginUseCase(
+	useCase, err := application.NewLoginByNumberUseCase(
 		mockComparator,
 		mockUserFinder,
 		mockRefreshTokenUpserter,
@@ -103,7 +103,7 @@ func TestLoginUseCase_Execute(t *testing.T) {
 		mockRefreshTokenUpserter.EXPECT().Upsert(nil, gomock.Any()).Return(nil).Times(1),
 	)
 
-	_, err = useCase.Execute(nil, &application.LoginInput{
+	_, err = useCase.Execute(nil, &application.LoginByNumberInput{
 		Number:   fixedUserNumber,
 		Password: fixedPassword,
 	})
@@ -111,7 +111,7 @@ func TestLoginUseCase_Execute(t *testing.T) {
 
 	// 用户不存在
 	mockUserFinder.EXPECT().FindByNumber(nil, fixedUserNumber).Return(nil, myErrors.ErrNotFound).Times(1)
-	_, err = useCase.Execute(nil, &application.LoginInput{
+	_, err = useCase.Execute(nil, &application.LoginByNumberInput{
 		Number:   fixedUserNumber,
 		Password: fixedPassword,
 	})

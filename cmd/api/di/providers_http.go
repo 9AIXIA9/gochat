@@ -55,7 +55,8 @@ var HTTPSet = wire.NewSet(
 func provideHttpRouter(
 	appConfig *config.App,
 	signUp authApp.SignUpUseCase,
-	login authApp.LoginUseCase,
+	loginByNumber authApp.LoginByNumberUseCase,
+	loginByEmail authApp.LoginByEmailUseCase,
 	refreshAccessToken authApp.RefreshAccessTokenUseCase,
 	parseAccessToken authApp.ParseAccessTokenUseCase,
 	getUserProfile profileApp.GetUserProfileUseCase,
@@ -147,7 +148,8 @@ func provideHttpRouter(
 	authGroup := baseGroup.Group("/auth")
 	{
 		authGroup.POST("/sign-up", authHTTP.NewSignUpHandler(signUp, validator))
-		authGroup.POST("/login", authHTTP.NewLoginHandler(login, validator, appConfig.Cookie))
+		authGroup.POST("/login/user_number", authHTTP.NewLoginByNumberHandler(loginByNumber, validator, appConfig.Cookie))
+		authGroup.POST("/login/email", authHTTP.NewLoginByEmailHandler(loginByEmail, validator, appConfig.Cookie))
 		authGroup.PUT("/tokens/refresh", authHTTP.NewRefreshAccessTokenHandler(refreshAccessToken, validator, appConfig.Cookie))
 	}
 
