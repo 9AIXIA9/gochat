@@ -1,7 +1,6 @@
 package command
 
 import (
-	"context"
 	"gochat/internal/chat/application"
 	"gochat/internal/chat/domain"
 	"gochat/internal/shared/command"
@@ -20,12 +19,6 @@ func NewSendRoomMessageCommandHandler(
 				RoomID:   com.RoomID(),
 				Content:  com.Content(),
 			}
-		},
-		func(ctx context.Context, output *kernel.NoOutput) {
-
-		},
-		func(ctx context.Context, err error) {
-
 		},
 	)
 }

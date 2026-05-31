@@ -14,8 +14,6 @@ func AdaptUsecaseToCommandHandler[
 	usecase kernel.UseCase[Input, Output],
 	convertCommandToSpecialCommand func(Command) (SpecialCommand, error),
 	convertCommandToInput func(SpecialCommand) Input,
-	handleOutput func(context.Context, Output),
-	handleError func(context.Context, error),
 ) Handler {
 	return HandlerFunc(func(ctx context.Context, e Command) (err error) {
 		specialCommand, err := convertCommandToSpecialCommand(e)
@@ -24,26 +22,14 @@ func AdaptUsecaseToCommandHandler[
 		}
 
 		input := convertCommandToInput(specialCommand)
-
-		defer func() {
-			if err != nil && handleError != nil {
-				handleError(ctx, err)
-			}
-		}()
-
 		if err := input.Validate(); err != nil {
 			return err
 		}
 
-		output, err := usecase.Execute(ctxutil.WithHeaders(ctx, specialCommand.Headers()), input)
+		_, err = usecase.Execute(ctxutil.WithHeaders(ctx, specialCommand.Headers()), input)
 		if err != nil {
 			return err
 		}
-
-		if handleOutput == nil {
-			return nil
-		}
-		handleOutput(ctx, output)
 		return nil
 	})
 }

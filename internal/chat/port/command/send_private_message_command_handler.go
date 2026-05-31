@@ -1,7 +1,6 @@
 package command
 
 import (
-	"context"
 	"gochat/internal/chat/application"
 	"gochat/internal/chat/domain"
 	"gochat/internal/shared/kernel"
@@ -21,12 +20,6 @@ func NewSendPrivateMessageCommandHandler(
 				RecipientID: com.RecipientID(),
 				Content:     com.Content(),
 			}
-		},
-		func(ctx context.Context, output *kernel.NoOutput) {
-
-		},
-		func(ctx context.Context, err error) {
-
 		},
 	)
 }
