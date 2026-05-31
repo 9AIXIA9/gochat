@@ -10,9 +10,7 @@ yarn-debug.log*
 yarn-error.log*
 
 #测试文件
-recipients.txt
-token_pool.jsonl
-tokens.txt
+websocket_benchmark_data/
 
 # 编译产物
 *.exe
