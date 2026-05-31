@@ -1,3 +1,9 @@
 package domain
 
-const ActionPushNotification = "push_notification"
+import (
+	"gochat/internal/shared/event"
+)
+
+const (
+	ActionPushNotification event.Topic = "push_notification"
+)

@@ -9,6 +9,7 @@ import (
 	chatDomain "gochat/internal/chat/domain"
 	friendshipApp "gochat/internal/friendship/application"
 	friendshipDomain "gochat/internal/friendship/domain"
+	notificationGateway "gochat/internal/notification/adapter/gateway"
 	notificationApp "gochat/internal/notification/application"
 	profileApp "gochat/internal/profile/application"
 	profileDomain "gochat/internal/profile/domain"
@@ -16,7 +17,6 @@ import (
 	"gochat/internal/roomship/domain"
 	roomshipDomain "gochat/internal/roomship/domain"
 	RoomshipPersistence "gochat/internal/roomship/infrastructure/persistence/repository"
-	"gochat/internal/shared/contract"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 
@@ -459,9 +459,9 @@ func provideFriendshipFriendRequestAgreedUseCase(
 }
 
 func provideNotificationCreatedUseCase(
-	gateway contract.GatewayService,
+	delivery *notificationGateway.DeliverService,
 ) (notificationApp.NotificationCreatedUseCase, error) {
 	return notificationApp.NewNotificationCreatedUseCase(
-		gateway,
+		delivery,
 	)
 }

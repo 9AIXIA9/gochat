@@ -235,7 +235,8 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	notificationCreatedUseCase, err := provideNotificationCreatedUseCase(gatewayService)
+	deliverService := provideNotificationGatewayDelivery(gatewayService)
+	notificationCreatedUseCase, err := provideNotificationCreatedUseCase(deliverService)
 	if err != nil {
 		return nil, err
 	}

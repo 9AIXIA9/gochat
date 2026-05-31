@@ -22,9 +22,11 @@ import (
 	"gochat/internal/infrastructure/ulule"
 	"gochat/internal/infrastructure/uuid"
 	validatorInfra "gochat/internal/infrastructure/validator"
+	notificationGateway "gochat/internal/notification/adapter/gateway"
 	roomshipDomain "gochat/internal/roomship/domain"
 	roomshipSnowflake "gochat/internal/roomship/infrastructure/snowflake"
 	roomshipUUID "gochat/internal/roomship/infrastructure/uuid"
+	"gochat/internal/shared/contract"
 	"gochat/internal/shared/event"
 	"gochat/internal/shared/kernel"
 	"gochat/pkg/iputil"
@@ -71,6 +73,7 @@ var InfraSet = wire.NewSet(
 	provideFriendshipFriendshipIDGenerator,
 	provideAccessTokenManager,
 	provideRefreshTokenGenerator,
+	provideNotificationGatewayDelivery,
 	// Binds
 	wire.Bind(new(event.IDGenerator), new(*uuid.EventIDGenerator)),
 	wire.Bind(new(kernel.MessageIDGenerator), new(*uuid.MessageIDGenerator)),
@@ -172,6 +175,10 @@ func provideKafkaAsyncPublisher(appConfig *config.App, eventRepo event.Repositor
 			return eventRepo.MarkAsPublished(context.Background(), id)
 		},
 	)
+}
+
+func provideNotificationGatewayDelivery(gateway contract.GatewayService) *notificationGateway.DeliverService {
+	return notificationGateway.NewDeliverService(gateway)
 }
 
 func provideKafkaSyncPublisher(appConfig *config.App) (*kafkautil.EventSyncPublisher, error) {
