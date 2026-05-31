@@ -18,6 +18,10 @@ var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-
 func (e Email) Validate() error {
 	email := e.String()
 
+	if email == "" {
+		return errors.ErrInvalidFormat
+	}
+
 	// 检查长度 (RFC 3696规定最大254字符)
 	if len(email) > 254 {
 		return errors.ErrInvalidLength

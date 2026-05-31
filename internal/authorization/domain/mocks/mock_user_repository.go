@@ -56,6 +56,21 @@ func (mr *MockUserRepositoryMockRecorder) Create(ctx, user any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUserRepository)(nil).Create), ctx, user)
 }
 
+// FindByEmail mocks base method.
+func (m *MockUserRepository) FindByEmail(ctx context.Context, email kernel.Email) (*domain.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindByEmail", ctx, email)
+	ret0, _ := ret[0].(*domain.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindByEmail indicates an expected call of FindByEmail.
+func (mr *MockUserRepositoryMockRecorder) FindByEmail(ctx, email any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByEmail", reflect.TypeOf((*MockUserRepository)(nil).FindByEmail), ctx, email)
+}
+
 // FindByID mocks base method.
 func (m *MockUserRepository) FindByID(ctx context.Context, id kernel.UserID) (*domain.User, error) {
 	m.ctrl.T.Helper()
@@ -161,6 +176,45 @@ func (m *MockUserFinderByNumber) FindByNumber(ctx context.Context, number kernel
 func (mr *MockUserFinderByNumberMockRecorder) FindByNumber(ctx, number any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByNumber", reflect.TypeOf((*MockUserFinderByNumber)(nil).FindByNumber), ctx, number)
+}
+
+// MockUserFinderByEmail is a mock of UserFinderByEmail interface.
+type MockUserFinderByEmail struct {
+	ctrl     *gomock.Controller
+	recorder *MockUserFinderByEmailMockRecorder
+	isgomock struct{}
+}
+
+// MockUserFinderByEmailMockRecorder is the mock recorder for MockUserFinderByEmail.
+type MockUserFinderByEmailMockRecorder struct {
+	mock *MockUserFinderByEmail
+}
+
+// NewMockUserFinderByEmail creates a new mock instance.
+func NewMockUserFinderByEmail(ctrl *gomock.Controller) *MockUserFinderByEmail {
+	mock := &MockUserFinderByEmail{ctrl: ctrl}
+	mock.recorder = &MockUserFinderByEmailMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockUserFinderByEmail) EXPECT() *MockUserFinderByEmailMockRecorder {
+	return m.recorder
+}
+
+// FindByEmail mocks base method.
+func (m *MockUserFinderByEmail) FindByEmail(ctx context.Context, email kernel.Email) (*domain.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FindByEmail", ctx, email)
+	ret0, _ := ret[0].(*domain.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindByEmail indicates an expected call of FindByEmail.
+func (mr *MockUserFinderByEmailMockRecorder) FindByEmail(ctx, email any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByEmail", reflect.TypeOf((*MockUserFinderByEmail)(nil).FindByEmail), ctx, email)
 }
 
 // MockUserFinderByID is a mock of UserFinderByID interface.

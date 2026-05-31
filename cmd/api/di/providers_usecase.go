@@ -25,7 +25,8 @@ import (
 
 var UseCaseHTTPSet = wire.NewSet(
 	provideSignUpUseCase,
-	provideLoginUseCase,
+	provideLoginByNumberUseCase,
+	provideLoginByEmailUseCase,
 	provideRefreshAccessTokenUseCase,
 	provideParseAccessTokenUseCase,
 	provideProfileGetRoomProfileUseCase,
@@ -98,14 +99,14 @@ func provideSignUpUseCase(
 	)
 }
 
-func provideLoginUseCase(
+func provideLoginByNumberUseCase(
 	comparator authDomain.Comparator,
 	accessTokenGenerator authDomain.AccessTokenGenerator,
 	refreshTokenGenerator authDomain.RefreshTokenGenerator,
 	userRepo authDomain.UserRepository,
 	refreshTokenRepo authDomain.RefreshTokenRepository,
-) (authApp.LoginUseCase, error) {
-	return authApp.NewLoginUseCase(
+) (authApp.LoginByNumberUseCase, error) {
+	return authApp.NewLoginByNumberUseCase(
 		comparator,
 		userRepo,
 		refreshTokenRepo,
@@ -113,6 +114,23 @@ func provideLoginUseCase(
 		refreshTokenGenerator,
 	)
 }
+
+func provideLoginByEmailUseCase(
+	comparator authDomain.Comparator,
+	accessTokenGenerator authDomain.AccessTokenGenerator,
+	refreshTokenGenerator authDomain.RefreshTokenGenerator,
+	userRepo authDomain.UserRepository,
+	refreshTokenRepo authDomain.RefreshTokenRepository,
+) (authApp.LoginByEmailUseCase, error) {
+	return authApp.NewLoginByEmailUseCase(
+		comparator,
+		userRepo,
+		refreshTokenRepo,
+		accessTokenGenerator,
+		refreshTokenGenerator,
+	)
+}
+
 func provideRefreshAccessTokenUseCase(
 	refreshTokenRepo authDomain.RefreshTokenRepository,
 	accessTokenGenerator authDomain.AccessTokenGenerator,

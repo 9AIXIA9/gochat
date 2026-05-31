@@ -22,35 +22,35 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-type fakeLoginUseCase struct {
-	exec func(ctx context.Context, in *authApplication.LoginInput) (*authApplication.LoginOutput, error)
+type fakeLoginByEmailUseCase struct {
+	exec func(ctx context.Context, in *authApplication.LoginByEmailInput) (*authApplication.LoginByEmailOutput, error)
 }
 
-func (f fakeLoginUseCase) Execute(ctx context.Context, in *authApplication.LoginInput) (*authApplication.LoginOutput, error) {
+func (f fakeLoginByEmailUseCase) Execute(ctx context.Context, in *authApplication.LoginByEmailInput) (*authApplication.LoginByEmailOutput, error) {
 	return f.exec(ctx, in)
 }
 
-func TestLoginRequest_Bind(t *testing.T) {
+func TestLoginByEmailRequest_Bind(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
 		name      string
 		body      string
 		expectErr bool
-		want      *authhttp.LoginRequest
+		want      *authhttp.LoginByEmailRequest
 	}{
 		{
 			name:      "success",
-			body:      `{"number":"2004426295315795968","password":"your-password"}`,
+			body:      `{"email":"user123@app.com","password":"your-password"}`,
 			expectErr: false,
-			want: &authhttp.LoginRequest{
-				Number:   kernel.UserNumber("2004426295315795968"),
+			want: &authhttp.LoginByEmailRequest{
+				Email:    kernel.Email("user123@app.com"),
 				Password: authDomain.Password("your-password"),
 			},
 		},
 		{
 			name:      "malformed json",
-			body:      `{"number":`,
+			body:      `{"email":`,
 			expectErr: true,
 		},
 	}
@@ -61,12 +61,12 @@ func TestLoginRequest_Bind(t *testing.T) {
 			responseRecorder := httptest.NewRecorder()
 			ginContext, _ := gin.CreateTestContext(responseRecorder)
 
-			req, err := http.NewRequest(http.MethodPost, "/auth/login", bytes.NewBufferString(tt.body))
+			req, err := http.NewRequest(http.MethodPost, "/auth/login/email", bytes.NewBufferString(tt.body))
 			require.NoError(t, err)
 			req.Header.Set("Content-Type", "application/json")
 			ginContext.Request = req
 
-			request := &authhttp.LoginRequest{}
+			request := &authhttp.LoginByEmailRequest{}
 			err = request.Bind(ginContext)
 
 			if tt.expectErr {
@@ -80,10 +80,10 @@ func TestLoginRequest_Bind(t *testing.T) {
 	}
 }
 
-func TestNewLoginHandler(t *testing.T) {
+func TestNewLoginByEmailHandler(t *testing.T) {
 	t.Parallel()
 
-	fixedNumber := kernel.UserNumber("2004426295315795968")
+	fixedEmail := kernel.Email("user123@app.com")
 	fixedPassword := authDomain.Password("your-password")
 	fixedAccessToken := authDomain.AccessToken("access-token-xyz")
 	cookieConfig := &config.Cookie{
@@ -96,18 +96,18 @@ func TestNewLoginHandler(t *testing.T) {
 	tests := []struct {
 		name           string
 		body           string
-		useCase        fakeLoginUseCase
+		useCase        fakeLoginByEmailUseCase
 		expectValidate bool
 		expectResponse *api.Response
 		assertCookie   func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name: "success maps request to input and sets refresh cookie",
-			body: `{"number":"2004426295315795968","password":"your-password"}`,
-			useCase: fakeLoginUseCase{exec: func(_ context.Context, in *authApplication.LoginInput) (*authApplication.LoginOutput, error) {
-				assert.Equal(t, fixedNumber, in.Number)
+			body: `{"email":"user123@app.com","password":"your-password"}`,
+			useCase: fakeLoginByEmailUseCase{exec: func(_ context.Context, in *authApplication.LoginByEmailInput) (*authApplication.LoginByEmailOutput, error) {
+				assert.Equal(t, fixedEmail, in.Email)
 				assert.Equal(t, fixedPassword, in.Password)
-				return &authApplication.LoginOutput{
+				return &authApplication.LoginByEmailOutput{
 					AccessToken: fixedAccessToken,
 					RefreshToken: authDomain.LoadRefreshToken(
 						"refresh-token-abc",
@@ -118,7 +118,7 @@ func TestNewLoginHandler(t *testing.T) {
 				}, nil
 			}},
 			expectValidate: true,
-			expectResponse: api.NewResponseWithData(&authhttp.LoginResponseData{AccessToken: fixedAccessToken}),
+			expectResponse: api.NewResponseWithData(&authhttp.LoginByEmailResponseData{AccessToken: fixedAccessToken}),
 			assertCookie: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				t.Helper()
 				cookies := recorder.Result().Cookies()
@@ -141,9 +141,9 @@ func TestNewLoginHandler(t *testing.T) {
 		},
 		{
 			name: "expired refresh token in output returns server error",
-			body: `{"number":"2004426295315795968","password":"your-password"}`,
-			useCase: fakeLoginUseCase{exec: func(_ context.Context, _ *authApplication.LoginInput) (*authApplication.LoginOutput, error) {
-				return &authApplication.LoginOutput{
+			body: `{"email":"user123@app.com","password":"your-password"}`,
+			useCase: fakeLoginByEmailUseCase{exec: func(_ context.Context, _ *authApplication.LoginByEmailInput) (*authApplication.LoginByEmailOutput, error) {
+				return &authApplication.LoginByEmailOutput{
 					AccessToken: fixedAccessToken,
 					RefreshToken: authDomain.LoadRefreshToken(
 						"refresh-token-expired",
@@ -179,9 +179,9 @@ func TestNewLoginHandler(t *testing.T) {
 				validator.EXPECT().Validate(gomock.Any(), gomock.Any()).Return("", nil)
 			}
 
-			router.POST("/auth/login", authhttp.NewLoginHandler(tt.useCase, validator, cookieConfig))
+			router.POST("/auth/login/email", authhttp.NewLoginByEmailHandler(tt.useCase, validator, cookieConfig))
 
-			req, err := http.NewRequest(http.MethodPost, "/auth/login", bytes.NewBufferString(tt.body))
+			req, err := http.NewRequest(http.MethodPost, "/auth/login/email", bytes.NewBufferString(tt.body))
 			require.NoError(t, err)
 			req.Header.Set("Content-Type", "application/json")
 

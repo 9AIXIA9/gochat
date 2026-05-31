@@ -9,26 +9,26 @@ import (
 	"gochat/pkg/validate"
 )
 
-type LoginUseCase kernel.UseCase[*LoginInput, *LoginOutput]
+type LoginByNumberUseCase kernel.UseCase[*LoginByNumberInput, *LoginByNumberOutput]
 
-type LoginInput struct {
+type LoginByNumberInput struct {
 	Number   kernel.UserNumber
 	Password domain.Password
 }
 
-type LoginOutput struct {
+type LoginByNumberOutput struct {
 	AccessToken  domain.AccessToken
 	RefreshToken *domain.RefreshTokenEntity
 }
 
-func (i *LoginInput) Validate() error {
+func (i *LoginByNumberInput) Validate() error {
 	if err := i.Number.Validate(); err != nil {
 		return err
 	}
 	return i.Password.Validate()
 }
 
-type loginUseCase struct {
+type loginByNumberUseCase struct {
 	comparator            domain.Comparator
 	userFinder            domain.UserFinderByNumber
 	refreshTokenUpserter  domain.RefreshTokenUpserter
@@ -36,13 +36,13 @@ type loginUseCase struct {
 	refreshTokenGenerator domain.RefreshTokenGenerator
 }
 
-func NewLoginUseCase(
+func NewLoginByNumberUseCase(
 	comparator domain.Comparator,
 	userFinder domain.UserFinderByNumber,
 	refreshTokenUpserter domain.RefreshTokenUpserter,
 	accessTokenGenerator domain.AccessTokenGenerator,
 	refreshTokenGenerator domain.RefreshTokenGenerator,
-) (LoginUseCase, error) {
+) (LoginByNumberUseCase, error) {
 	if err := validate.NotNil(
 		comparator,
 		userFinder,
@@ -52,7 +52,7 @@ func NewLoginUseCase(
 	); err != nil {
 		return nil, err
 	}
-	return &loginUseCase{
+	return &loginByNumberUseCase{
 		comparator:            comparator,
 		userFinder:            userFinder,
 		refreshTokenUpserter:  refreshTokenUpserter,
@@ -61,7 +61,7 @@ func NewLoginUseCase(
 	}, nil
 }
 
-func (uc *loginUseCase) Execute(ctx context.Context, input *LoginInput) (*LoginOutput, error) {
+func (uc *loginByNumberUseCase) Execute(ctx context.Context, input *LoginByNumberInput) (*LoginByNumberOutput, error) {
 	user, err := uc.userFinder.FindByNumber(ctx, input.Number)
 	if err != nil {
 		if errors.Is(err, myErrors.ErrNotFound) {
@@ -91,7 +91,7 @@ func (uc *loginUseCase) Execute(ctx context.Context, input *LoginInput) (*LoginO
 		return nil, err
 	}
 
-	return &LoginOutput{
+	return &LoginByNumberOutput{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}, nil
