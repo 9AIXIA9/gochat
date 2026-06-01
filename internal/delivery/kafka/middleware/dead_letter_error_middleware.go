@@ -10,7 +10,11 @@ import (
 	"go.uber.org/zap"
 )
 
-const eventIDKey = "event_id"
+const (
+	eventIDKey   = "event_id"
+	commandIDKey = "command_id"
+	receiptIDKey = "receipt_id"
+)
 
 func NewDeadLetterErrorMiddlewareWithNamespace(
 	creator event.DeadLetterCreator,
@@ -40,9 +44,8 @@ func convertMessageToEvent(message *ckafka.Message, namespace string) event.Even
 	headers := make(map[string]string, len(message.Headers)+2)
 	for _, header := range message.Headers {
 		headers[header.Key] = string(header.Value)
-		if header.Key == eventIDKey {
+		if header.Key == eventIDKey || header.Key == commandIDKey || header.Key == receiptIDKey {
 			id = event.ID(header.Value)
-			break
 		}
 	}
 	if namespace != "" {
