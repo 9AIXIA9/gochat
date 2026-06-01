@@ -93,6 +93,9 @@ func main() {
 
 func startComponents(dependencies *di.Dependencies) error {
 	dependencies.KafkaAsyncEventPublisher.Start()
+	if dependencies.CommandReceiptAsyncPublisher != nil {
+		dependencies.CommandReceiptAsyncPublisher.Start()
+	}
 	if dependencies.OutboxDispatcher != nil {
 		dependencies.OutboxDispatcher.Start(context.Background())
 	}
@@ -127,6 +130,10 @@ func shutdownComponents(ctx context.Context, dependencies *di.Dependencies) {
 	dependencies.BinlogReader.Close()
 	if dependencies.OutboxDispatcher != nil {
 		dependencies.OutboxDispatcher.Stop()
+	}
+
+	if dependencies.CommandReceiptAsyncPublisher != nil {
+		dependencies.CommandReceiptAsyncPublisher.Close()
 	}
 
 	for i := len(dependencies.KafkaConsumers) - 1; i >= 0; i-- {

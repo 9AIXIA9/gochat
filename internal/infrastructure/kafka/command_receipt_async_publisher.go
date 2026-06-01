@@ -21,21 +21,21 @@ var _ command.ReceiptAsyncPublisher = (*CommandReceiptAsyncPublisher)(nil)
 type CommandReceiptAsyncPublisher struct {
 	publishResultChan chan ckafka.Event
 	producer          *ckafka.Producer
-	onDelivered       func(command.ID) error
+	onDelivered       func(command.ReceiptID) error
 
 	wg     sync.WaitGroup
 	closed atomic.Bool
 	// deliveredCh decouples delivery-report handling from the kafka commands loop.
 	// Workers read from this channel and persist publish state concurrently to avoid
 	// blocking the producer command loop (which may cause "Queue full").
-	deliveredCh chan command.ID
+	deliveredCh chan command.ReceiptID
 	// number of concurrent workers that call onDelivered
 	deliveredWorkers int
 }
 
 func NewCommandReceiptAsyncPublisher(
 	config *Config,
-	onDelivered func(command.ID) error,
+	onDelivered func(command.ReceiptID) error,
 ) (*CommandReceiptAsyncPublisher, error) {
 	if onDelivered == nil {
 		return nil, fmt.Errorf("%w: onDelivered is nil", myErrors.ErrEmptyPointer)
@@ -57,7 +57,7 @@ func NewCommandReceiptAsyncPublisher(
 		publishResultChan: make(chan ckafka.Event, 4096),
 		producer:          producer,
 		onDelivered:       onDelivered,
-		deliveredCh:       make(chan command.ID, 16384),
+		deliveredCh:       make(chan command.ReceiptID, 16384),
 		deliveredWorkers:  16,
 	}, nil
 }
@@ -81,7 +81,7 @@ func (p *CommandReceiptAsyncPublisher) Publish(ctx context.Context, receipt comm
 		select {
 		case <-ctx.Done():
 			metrics.KafkaProduce(ctx, "failed", "context_done")
-			return fmt.Errorf("publish command timeout: %w", ctx.Err())
+			return fmt.Errorf("publish receipt timeout: %w", ctx.Err())
 		default:
 		}
 
@@ -97,7 +97,7 @@ func (p *CommandReceiptAsyncPublisher) Publish(ctx context.Context, receipt comm
 				case <-ctx.Done():
 					timer.Stop()
 					metrics.KafkaProduce(ctx, "failed", "context_done")
-					return fmt.Errorf("publish command timeout: %w", ctx.Err())
+					return fmt.Errorf("publish receipt timeout: %w", ctx.Err())
 				case <-timer.C:
 				}
 
@@ -125,9 +125,9 @@ func (p *CommandReceiptAsyncPublisher) processPublishingResponse() {
 			if err := message.TopicPartition.Error; err != nil {
 				continue
 			}
-			// 绝不丢弃 delivered id：当通道写满时在这里背压等待，保证最终会执行 onDelivered。
+			// 绝不丢弃 delivered receipt id：当通道写满时在这里背压等待，保证最终会执行 onDelivered。
 			// 这样会降低峰值吞吐，但能避免已投递消息因未标记 published 导致重复处理。
-			p.deliveredCh <- message.Opaque.(command.ID)
+			p.deliveredCh <- message.Opaque.(command.ReceiptID)
 		case ckafka.Error:
 			zap.L().Error("kafka producer error", zap.Error(message))
 		default:
@@ -154,7 +154,7 @@ func (p *CommandReceiptAsyncPublisher) Start() {
 			for id := range p.deliveredCh {
 				if err := p.onDelivered(id); err != nil {
 					zap.L().Error("kafka message delivered callback error",
-						zap.String("command_id", id.String()),
+						zap.String("receipt_id", id.String()),
 						zap.Error(err),
 					)
 				}

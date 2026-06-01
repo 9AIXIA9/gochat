@@ -199,9 +199,9 @@ func provideKafkaCommandSyncPublisher(appConfig *config.App) (*kafkautil.Command
 }
 
 func provideKafkaCommandReceiptAsyncPublisher(appConfig *config.App) (*kafkautil.CommandReceiptAsyncPublisher, error) {
-	return kafkautil.NewCommandReceiptAsyncPublisher(appConfig.Kafka, func(id command.ID) error {
+	return kafkautil.NewCommandReceiptAsyncPublisher(appConfig.Kafka, func(id command.ReceiptID) error {
 		zap.L().Debug("command receipt delivered", zap.String(
-			"command_id",
+			"receipt_id",
 			id.String(),
 		))
 		return nil

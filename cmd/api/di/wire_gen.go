@@ -275,7 +275,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	}
 	eventHandler := provideCanalBinlogReaderHandler(dispatcher)
 	binlogReader := provideCanalBinlogReader(canal, eventHandler)
-	dependencies, err := BuildDependencies(server, db, client, eventAsyncPublisher, commandSyncPublisher, dispatcher, v, binlogReader, otelShutdown)
+	dependencies, err := BuildDependencies(server, db, client, eventAsyncPublisher, commandReceiptAsyncPublisher, commandSyncPublisher, dispatcher, v, binlogReader, otelShutdown)
 	if err != nil {
 		return nil, err
 	}

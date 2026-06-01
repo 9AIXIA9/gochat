@@ -120,7 +120,6 @@ func Init(conf *Config) (func(context.Context) error, error) {
 
 		if len(errs) > 0 {
 			err := errors.Join(errs...)
-			fmt.Println("Errors during OTEL shutdown:", err)
 			return err
 		}
 		return nil
