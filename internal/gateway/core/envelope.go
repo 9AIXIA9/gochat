@@ -13,9 +13,24 @@ type Envelope struct {
 	Payload         json.RawMessage  `json:"payload"`
 }
 
-func NewEnvelop(action command.Action, payload json.RawMessage) *Envelope {
+func NewEnvelop(
+	action command.Action,
+	payload json.RawMessage,
+) *Envelope {
 	return &Envelope{
 		Action:  action,
 		Payload: payload,
+	}
+}
+
+func NewEnvelopWithClientMessageID(
+	action command.Action,
+	payload json.RawMessage,
+	clientMessageID kernel.MessageID,
+) *Envelope {
+	return &Envelope{
+		ClientMessageID: clientMessageID,
+		Action:          action,
+		Payload:         payload,
 	}
 }

@@ -16,6 +16,36 @@ func WrapEventHandler(eventHandler event.Handler) Handler {
 	})
 }
 
+func eventToMessage(ev event.Event) *ckafka.Message {
+	topic := ev.Topic().String()
+
+	headers := []ckafka.Header{
+		{
+			Key:   eventIDKey,
+			Value: []byte(ev.ID()),
+		},
+	}
+
+	for key, value := range ev.Headers() {
+		headers = append(headers, ckafka.Header{
+			Key:   key,
+			Value: []byte(value),
+		})
+	}
+
+	return &ckafka.Message{
+		TopicPartition: ckafka.TopicPartition{
+			Topic:     &topic,
+			Partition: ckafka.PartitionAny,
+		},
+		Value:     ev.Payload(),
+		Timestamp: ev.OccurredAt(),
+		Key:       []byte(ev.AggregateID().String()),
+		Headers:   headers,
+		Opaque:    ev.ID(), // 回调 识别消息
+	}
+}
+
 func toEvent(message *ckafka.Message) event.Event {
 	var id event.ID
 	headers := make(map[string]string, len(message.Headers)-1)

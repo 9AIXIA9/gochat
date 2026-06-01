@@ -131,6 +131,7 @@ func provideKafkaConsumers(
 	publisher *kafkaInfra.CommandReceiptAsyncPublisher,
 	idGenerator command.ReceiptIDGenerator,
 	eventRepo event.Repository,
+	gatewayService contract.GatewayService,
 	isRetriableError isRetriableError,
 	profileUserCreated profileApp.UserCreatedUseCase,
 	profileRoomCreated profileApp.RoomCreatedUseCase,
@@ -211,6 +212,16 @@ func provideKafkaConsumers(
 	}
 	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "chat", string(chatDomain.ActionSendRoomMessageCommand), func(r *kafkaInfra.Router) {
 		r.CommandHandle(chatDomain.ActionSendRoomMessageCommand, chatCommand.NewSendRoomMessageCommandHandler(chatSendRoomMessage, publisher, idGenerator))
+	}, isRetriableError)); err != nil {
+		return nil, err
+	}
+
+	receiptHandler := handler.NewReceiptGatewayHandler(gatewayService)
+	if err = addConsumer(buildKafkaConsumer(appConfig, kafkaLimiter, redisClient, reproducer, eventRepo, "gateway", "receipt", func(r *kafkaInfra.Router) {
+		r.ReceiptHandle(string(chatDomain.ActionSendPrivateMessageCommand)+"."+command.StatusSucceeded.String(), receiptHandler)
+		r.ReceiptHandle(string(chatDomain.ActionSendPrivateMessageCommand)+"."+command.StatusFailed.String(), receiptHandler)
+		r.ReceiptHandle(string(chatDomain.ActionSendRoomMessageCommand)+"."+command.StatusSucceeded.String(), receiptHandler)
+		r.ReceiptHandle(string(chatDomain.ActionSendRoomMessageCommand)+"."+command.StatusFailed.String(), receiptHandler)
 	}, isRetriableError)); err != nil {
 		return nil, err
 	}

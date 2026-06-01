@@ -13,12 +13,13 @@ func (id ReceiptID) String() string {
 
 type Receipt interface {
 	ID() ReceiptID
+	CommandID() ID
 	AggregateID() kernel.ID
 	Action() Action
 	Status() ReceiptStatus
 	OccurredAt() time.Time
-	Payload() []byte
 	Headers() map[string]string
 	AddHeader(key string, value string)
 	AddHeaders(headers map[string]string)
+	kernel.Serializer
 }
