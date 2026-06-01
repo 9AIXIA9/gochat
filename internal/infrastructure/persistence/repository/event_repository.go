@@ -220,4 +220,27 @@ func setEventTrace(ctx context.Context, ev event.Event) {
 	otel.GetTextMapPropagator().Inject(ctx, carrier)
 
 	ev.AddHeaders(carrier)
+	if ctx == nil {
+		return
+	}
+	transportKeys := []string{"client_message_id", "user_id"}
+	transportHeaders := make(map[string]string)
+	for _, k := range transportKeys {
+		if v := ctx.Value(k); v != nil {
+			switch tv := v.(type) {
+			case string:
+				if tv != "" {
+					transportHeaders[k] = tv
+				}
+			case interface{ String() string }:
+				s := tv.String()
+				if s != "" {
+					transportHeaders[k] = s
+				}
+			}
+		}
+	}
+	if len(transportHeaders) > 0 {
+		ev.AddHeaders(transportHeaders)
+	}
 }
