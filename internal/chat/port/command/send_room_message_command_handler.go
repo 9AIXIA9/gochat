@@ -9,6 +9,8 @@ import (
 
 func NewSendRoomMessageCommandHandler(
 	uc application.SendRoomMessageUseCase,
+	publisher command.ReceiptAsyncPublisher,
+	generator command.ReceiptIDGenerator,
 ) command.Handler {
 	return command.AdaptUsecaseToCommandHandler(
 		uc,
@@ -20,5 +22,7 @@ func NewSendRoomMessageCommandHandler(
 				Content:  com.Content(),
 			}
 		},
+		publisher,
+		generator,
 	)
 }

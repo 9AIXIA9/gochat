@@ -8,7 +8,10 @@ import (
 	ckafka "github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
-const commandIDKey = "command_id"
+const (
+	commandIDKey = "command_id"
+	receiptIDKey = "receipt_id"
+)
 
 func WrapCommandHandler(commandHandler command.Handler) Handler {
 	return HandlerFunc(func(ctx context.Context, msg *ckafka.Message) error {

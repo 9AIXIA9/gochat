@@ -6,4 +6,8 @@ message.created
 member_request.agreed
 friend_request.agreed
 send_private_message
+send_private_message.succeeded
+send_private_message.failed
 send_room_message
+send_room_message.succeeded
+send_room_message.failed

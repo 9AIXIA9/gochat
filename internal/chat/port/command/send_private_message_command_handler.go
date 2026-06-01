@@ -10,6 +10,8 @@ import (
 
 func NewSendPrivateMessageCommandHandler(
 	uc application.SendPrivateMessageUseCase,
+	publisher command.ReceiptAsyncPublisher,
+	generator command.ReceiptIDGenerator,
 ) command.Handler {
 	return command.AdaptUsecaseToCommandHandler(
 		uc,
@@ -21,5 +23,7 @@ func NewSendPrivateMessageCommandHandler(
 				Content:     com.Content(),
 			}
 		},
+		publisher,
+		generator,
 	)
 }

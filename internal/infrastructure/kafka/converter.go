@@ -38,7 +38,7 @@ func eventToMessage(ev event.Event) *ckafka.Message {
 }
 
 func commandToMessage(com command.Command) *ckafka.Message {
-	action := com.Action().String()
+	topic := com.Action().String()
 
 	headers := []ckafka.Header{
 		{
@@ -56,7 +56,7 @@ func commandToMessage(com command.Command) *ckafka.Message {
 
 	return &ckafka.Message{
 		TopicPartition: ckafka.TopicPartition{
-			Topic:     &action,
+			Topic:     &topic,
 			Partition: ckafka.PartitionAny,
 		},
 		Value:     com.Payload(),
@@ -64,5 +64,35 @@ func commandToMessage(com command.Command) *ckafka.Message {
 		Key:       []byte(com.AggregateID().String()),
 		Headers:   headers,
 		Opaque:    com.ID(), // 回调 识别消息
+	}
+}
+
+func receiptToMessage(receipt command.Receipt) *ckafka.Message {
+	topic := receipt.Action().String() + "." + receipt.Status().String()
+
+	headers := []ckafka.Header{
+		{
+			Key:   receiptIDKey,
+			Value: []byte(receipt.ID()),
+		},
+	}
+
+	for key, value := range receipt.Headers() {
+		headers = append(headers, ckafka.Header{
+			Key:   key,
+			Value: []byte(value),
+		})
+	}
+
+	return &ckafka.Message{
+		TopicPartition: ckafka.TopicPartition{
+			Topic:     &topic,
+			Partition: ckafka.PartitionAny,
+		},
+		Value:     receipt.Payload(),
+		Timestamp: receipt.OccurredAt(),
+		Key:       []byte(receipt.AggregateID().String()),
+		Headers:   headers,
+		Opaque:    receipt.ID(), // 回调 识别消息
 	}
 }
