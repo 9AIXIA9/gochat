@@ -4,12 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"gochat/internal/gateway/core"
-	myErrors "gochat/internal/shared/errors"
 
 	"gochat/internal/shared/command"
 	"gochat/internal/shared/kernel"
 
 	"go.uber.org/zap"
+)
+
+const (
+	ActionPushACK   command.Action = "push_command_ack"
+	ActionPushError command.Action = "push_command_error"
 )
 
 const (
@@ -55,34 +59,40 @@ func (r *UpstreamRouter) HandleUpstream(ctx context.Context, userID kernel.UserI
 	if !ok {
 		zap.L().Warn("gateway: unauthorized or unknown action", zap.String("action", string(env.Action)), zap.String("userID", userID.String()))
 		// 直接快速阻断
-		ackBytes, _ := NewAckError(env.ClientMessageID, myErrors.ErrWrongCommandAction)
-		return ackBytes
+		envelop := core.NewEnvelopWithClientMessageID(ActionPushError, nil, env.ClientMessageID)
+		envelopBytes, err := json.Marshal(envelop)
+		if err != nil {
+			zap.L().Error("gateway: marshal ack error failed", zap.Error(err), zap.String("clientMessageID", env.ClientMessageID.String()))
+			return nil
+		}
+		return envelopBytes
 	}
 
-	// 将 Envelope 装裱为一个领域事件发送，使用映射后的内部真实 Action
-	ev := command.NewStandardCommand(kernel.ID(userID), env.Action, env.Payload, r.idGenerator)
-	ev.AddHeaders(map[string]string{
+	com := command.NewStandardCommand(kernel.ID(userID), env.Action, env.Payload, r.idGenerator)
+	com.AddHeaders(map[string]string{
 		KeyClientMessageID: env.ClientMessageID.String(),
 		KeyUserID:          userID.String(),
 	})
 
 	// 阻塞投递给事件总线，等待结果
-	err := r.publisher.Publish(ctx, ev)
+	err := r.publisher.Publish(ctx, com)
 	if err != nil {
 		zap.L().Error("gateway: sync publish failed", zap.Error(err), zap.String("action", string(env.Action)))
 
 		// 投递失败的回执 (Fast ACK = error)
-		ackBytes, err := NewAckError(env.ClientMessageID, myErrors.ErrServerBusy)
+		envelop := core.NewEnvelopWithClientMessageID(ActionPushError, nil, env.ClientMessageID)
+		envelopBytes, err := json.Marshal(envelop)
 		if err != nil {
-			zap.L().Error("gateway: create ack error failed", zap.Error(err), zap.String("clientMessageID", env.ClientMessageID.String()))
+			zap.L().Error("gateway: marshal ack error failed", zap.Error(err), zap.String("clientMessageID", env.ClientMessageID.String()))
 			return nil
 		}
-		return ackBytes
+		return envelopBytes
 	}
-	data, err := NewAckReceived(env.ClientMessageID)
+	envelop := core.NewEnvelopWithClientMessageID(ActionPushACK, nil, env.ClientMessageID)
+	envelopBytes, err := json.Marshal(envelop)
 	if err != nil {
-		zap.L().Error("gateway: create ack received failed", zap.Error(err), zap.String("clientMessageID", env.ClientMessageID.String()))
+		zap.L().Error("gateway: marshal ack received failed", zap.Error(err), zap.String("clientMessageID", env.ClientMessageID.String()))
 		return nil
 	}
-	return data
+	return envelopBytes
 }

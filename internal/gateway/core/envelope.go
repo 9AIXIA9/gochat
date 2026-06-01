@@ -10,7 +10,7 @@ import (
 type Envelope struct {
 	ClientMessageID kernel.MessageID `json:"client_message_id,omitempty"`
 	Action          command.Action   `json:"action"`
-	Payload         json.RawMessage  `json:"payload"`
+	Payload         json.RawMessage  `json:"payload,omitempty"`
 }
 
 func NewEnvelop(
