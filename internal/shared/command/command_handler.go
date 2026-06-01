@@ -1,6 +1,10 @@
 package command
 
-import "context"
+import (
+	"context"
+)
+
+var _ Handler = HandlerFunc(nil)
 
 type Handler interface {
 	Handle(ctx context.Context, c Command) error
