@@ -202,7 +202,8 @@ make tidy
 ```text
 backend/
 ├─ cmd/
-│  └─ api/                     # 程序入口、依赖注入（Wire）、HTTP 路由装配
+│  ├─ api/                     # 程序入口、依赖注入（Wire）、HTTP 路由装配
+│  └─ websocket_benchmark/     # WebSocket 压测与预热脚本
 ├─ config/                     # 基础配置与环境覆盖配置
 ├─ db/
 │  └─ migrations/              # Goose 数据库迁移脚本
@@ -219,7 +220,7 @@ backend/
 │  ├─ infrastructure/          # 基础设施适配层（DB/Redis/Kafka/OTel/Logger 等）
 │  └─ shared/                  # 通用组件与共享内核
 ├─ pkg/                        # 可复用工具包
-├─ scripts/                    # 开发脚本（如 websocket 压测）
+├─ scripts/                    # 通用开发脚本（如 Swagger 修复）
 ├─ docker-compose.yml          # 核心服务编排（app + mysql + redis + kafka + migrate）
 ├─ docker-compose.observability.yml # 可观测服务编排（otel + jaeger + prometheus + grafana）
 ├─ Dockerfile                  # 应用镜像构建
