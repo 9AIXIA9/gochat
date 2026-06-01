@@ -18,7 +18,5 @@ func NewNotificationCreatedEventHandler(uc application.NotificationCreatedUseCas
 				RawPayload:  createdEvent.RawPayload(),
 			}
 		},
-		nil,
-		nil,
 	)
 }

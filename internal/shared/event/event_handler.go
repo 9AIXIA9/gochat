@@ -2,6 +2,8 @@ package event
 
 import "context"
 
+var _ Handler = HandlerFunc(nil)
+
 type Handler interface {
 	Handle(ctx context.Context, e Event) error
 }

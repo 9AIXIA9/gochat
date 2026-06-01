@@ -16,7 +16,5 @@ func NewFriendRequestAgreedEventHandler(uc application.FriendRequestAgreedUseCas
 				RequestID: kernel.OperationID(agreedEvent.AggregateID()),
 			}
 		},
-		nil,
-		nil,
 	)
 }

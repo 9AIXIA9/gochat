@@ -16,7 +16,5 @@ func NewUserCreatedEventHandler(uc application.UserCreatedUseCase) event.Handler
 				UserID: kernel.UserID(createdEvent.AggregateID()),
 			}
 		},
-		nil,
-		nil,
 	)
 }

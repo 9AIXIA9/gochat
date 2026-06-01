@@ -28,6 +28,9 @@ import (
 const (
 	actionSendPrivateMessage = "send_private_message"
 	actionSendRoomMessage    = "send_room_message"
+	actionPushCommandACK     = "push_command_ack"
+	actionPushCommandError   = "push_command_error"
+	actionPushNotification   = "push_notification"
 )
 
 type upstreamEnvelope struct {
@@ -44,12 +47,6 @@ type privatePayload struct {
 type roomPayload struct {
 	RoomID  string `json:"room_id"`
 	Content string `json:"content"`
-}
-
-type ackEnvelope struct {
-	ClientMessageID string `json:"client_message_id"`
-	AckType         string `json:"ack_type"`
-	Error           string `json:"error,omitempty"`
 }
 
 type downstreamEnvelope struct {
@@ -345,47 +342,6 @@ func extractBusinessMessageID(payload benchmarkMessagePayload) string {
 		return strings.TrimSpace(payload.MessageID)
 	}
 	return strings.TrimSpace(payload.ID)
-}
-
-func extractBusinessMessageIDFromRaw(raw json.RawMessage) string {
-	return extractBusinessMessageIDFromRawDepth(raw, 0)
-}
-
-func extractBusinessMessageIDFromRawDepth(raw json.RawMessage, depth int) string {
-	if depth > 2 || len(raw) == 0 {
-		return ""
-	}
-
-	var payload benchmarkMessagePayload
-	if err := json.Unmarshal(raw, &payload); err == nil {
-		if id := extractBusinessMessageID(payload); id != "" {
-			return id
-		}
-	}
-
-	var obj map[string]json.RawMessage
-	if err := json.Unmarshal(raw, &obj); err != nil {
-		return ""
-	}
-
-	for _, key := range []string{"id", "message_id", "messageId", "msg_id"} {
-		if v, ok := obj[key]; ok {
-			var s string
-			if err := json.Unmarshal(v, &s); err == nil && strings.TrimSpace(s) != "" {
-				return strings.TrimSpace(s)
-			}
-		}
-	}
-
-	for _, key := range []string{"message", "data", "result", "payload"} {
-		if v, ok := obj[key]; ok {
-			if id := extractBusinessMessageIDFromRawDepth(v, depth+1); id != "" {
-				return id
-			}
-		}
-	}
-
-	return ""
 }
 
 func main() {
@@ -743,60 +699,70 @@ func runClient(ctx context.Context, clientIdx int, token string, senderID string
 		handleMessage := func(data []byte) {
 			var env downstreamEnvelope
 			envErr := json.Unmarshal(data, &env)
-			if envErr == nil && env.ClientMessageID != "" {
-				if businessMessageID := extractBusinessMessageIDFromRaw(env.Payload); businessMessageID != "" {
-					corrStore.bindBusinessMessageID(env.ClientMessageID, businessMessageID)
-				}
-			}
-
-			var ack ackEnvelope
-			if err := json.Unmarshal(data, &ack); err == nil {
-				if ack.AckType != "" || ack.Error != "" {
-					if ack.ClientMessageID != "" {
-						if pendingMsg, latency, ok := resolvePending(ack.ClientMessageID); ok {
-							atomic.AddInt64(&m.ackMatched, 1)
-							atomic.AddInt64(&m.ackLatencyNs, latency.Nanoseconds())
-							if latStats != nil {
-								latStats.addAck(float64(latency) / float64(time.Millisecond))
-							}
-							for {
-								currentMax := atomic.LoadInt64(&m.ackMaxLatencyNs)
-								if latency.Nanoseconds() <= currentMax {
-									break
-								}
-								if atomic.CompareAndSwapInt64(&m.ackMaxLatencyNs, currentMax, latency.Nanoseconds()) {
-									break
-								}
-							}
-							if latencyCh != nil {
-								latencyCh <- latencySample{
-									Timestamp: time.Now().UTC().Format(time.RFC3339Nano),
-									ClientID:  pendingMsg.clientIdx,
-									Sequence:  pendingMsg.seq,
-									MessageID: ack.ClientMessageID,
-									AckType:   strings.ToLower(ack.AckType),
-									LatencyMS: float64(latency) / float64(time.Millisecond),
-									SendMode:  strings.ToLower(strings.TrimSpace(*sendMode)),
-								}
-							}
-						} else {
-							atomic.AddInt64(&m.ackUnmatched, 1)
-						}
-					}
-					switch strings.ToLower(ack.AckType) {
-					case "received":
-						atomic.AddInt64(&m.ackReceived, 1)
-					case "error":
-						atomic.AddInt64(&m.ackError, 1)
-					}
-					return
-				}
-			}
 
 			if envErr != nil {
 				return
 			}
-			if strings.ToLower(env.Action) != "push_notification" {
+
+			action := strings.ToLower(strings.TrimSpace(env.Action))
+			ackKind := ""
+			switch action {
+			case actionPushCommandACK:
+				ackKind = "received"
+			case actionPushCommandError:
+				ackKind = "error"
+			default:
+				if env.Result != "" && action != actionPushNotification {
+					if strings.EqualFold(env.Result, "success") {
+						ackKind = "received"
+					} else {
+						ackKind = "error"
+					}
+				}
+			}
+
+			if ackKind != "" {
+				if env.ClientMessageID != "" {
+					if pendingMsg, latency, ok := resolvePending(env.ClientMessageID); ok {
+						atomic.AddInt64(&m.ackMatched, 1)
+						atomic.AddInt64(&m.ackLatencyNs, latency.Nanoseconds())
+						if latStats != nil {
+							latStats.addAck(float64(latency) / float64(time.Millisecond))
+						}
+						for {
+							currentMax := atomic.LoadInt64(&m.ackMaxLatencyNs)
+							if latency.Nanoseconds() <= currentMax {
+								break
+							}
+							if atomic.CompareAndSwapInt64(&m.ackMaxLatencyNs, currentMax, latency.Nanoseconds()) {
+								break
+							}
+						}
+						if latencyCh != nil {
+							latencyCh <- latencySample{
+								Timestamp: time.Now().UTC().Format(time.RFC3339Nano),
+								ClientID:  pendingMsg.clientIdx,
+								Sequence:  pendingMsg.seq,
+								MessageID: env.ClientMessageID,
+								AckType:   ackKind,
+								LatencyMS: float64(latency) / float64(time.Millisecond),
+								SendMode:  strings.ToLower(strings.TrimSpace(*sendMode)),
+							}
+						}
+					} else {
+						atomic.AddInt64(&m.ackUnmatched, 1)
+					}
+				}
+				switch ackKind {
+				case "received":
+					atomic.AddInt64(&m.ackReceived, 1)
+				case "error":
+					atomic.AddInt64(&m.ackError, 1)
+				}
+				return
+			}
+
+			if action != actionPushNotification {
 				return
 			}
 

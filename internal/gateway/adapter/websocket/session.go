@@ -3,7 +3,6 @@ package websocket
 import (
 	"context"
 	"gochat/internal/gateway/core"
-	"gochat/internal/shared/contract"
 	"gochat/internal/shared/kernel"
 	"time"
 
@@ -22,7 +21,7 @@ type WSSession struct {
 	userID          kernel.UserID
 	conn            *websocket.Conn
 	hub             *core.Manager
-	upstreamHandler contract.UpstreamHandler
+	upstreamHandler core.UpstreamHandler
 	send            chan []byte
 }
 
@@ -31,7 +30,7 @@ func NewWSSession(
 	userID kernel.UserID,
 	conn *websocket.Conn,
 	hub *core.Manager,
-	handler contract.UpstreamHandler,
+	handler core.UpstreamHandler,
 ) *WSSession {
 	return &WSSession{
 		id:              id,
@@ -62,7 +61,14 @@ func (s *WSSession) Send(msg []byte) error {
 	case s.send <- msg:
 		return nil
 	default:
-		s.Close()
+		if err := s.Close(); err != nil {
+			zap.L().Error(
+				"gateway adapter: failed to send message, closing session",
+				zap.String("userID", s.userID.String()),
+				zap.Error(err),
+			)
+			return err
+		}
 		return nil
 	}
 }
@@ -75,7 +81,14 @@ func (s *WSSession) Close() error {
 
 func (s *WSSession) readPump(ctx context.Context) {
 	defer func() {
-		s.Close()
+		if err := s.Close(); err != nil {
+			zap.L().Error(
+				"gateway adapter: failed to close session in readPump",
+				zap.String("userID", s.userID.String()),
+				zap.Error(err),
+			)
+			return
+		}
 	}()
 	s.conn.SetReadLimit(4096)
 	_ = s.conn.SetReadDeadline(time.Now().UTC().Add(pongWait))
@@ -97,7 +110,14 @@ func (s *WSSession) readPump(ctx context.Context) {
 		if s.upstreamHandler != nil {
 			if ackMsg := s.upstreamHandler.HandleUpstream(ctx, s.userID, message); ackMsg != nil {
 				// 直接塞入当前连接的写队列
-				s.Send(ackMsg)
+				if err := s.Send(ackMsg); err != nil {
+					zap.L().Error(
+						"gateway adapter: failed to send ack message from upstream handler",
+						zap.String("userID", s.userID.String()),
+						zap.Error(err),
+					)
+					return
+				}
 			}
 		}
 	}
@@ -107,7 +127,14 @@ func (s *WSSession) writePump(ctx context.Context) {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		ticker.Stop()
-		s.Close()
+		if err := s.Close(); err != nil {
+			zap.L().Error(
+				"gateway adapter: failed to close session in writePump",
+				zap.String("userID", s.userID.String()),
+				zap.Error(err),
+			)
+			return
+		}
 	}()
 
 	for {
@@ -128,8 +155,22 @@ func (s *WSSession) writePump(ctx context.Context) {
 			// 读尽当前管道内现存积压包做 Batching 支持
 			n := len(s.send)
 			for i := 0; i < n; i++ {
-				w.Write([]byte{'\n'})
-				w.Write(<-s.send)
+				if _, err := w.Write([]byte{'\n'}); err != nil {
+					zap.L().Error(
+						"gateway adapter: failed to write batch message delimiter",
+						zap.String("userID", s.userID.String()),
+						zap.Error(err),
+					)
+					return
+				}
+				if _, err := w.Write(<-s.send); err != nil {
+					zap.L().Error(
+						"gateway adapter: failed to write batch message",
+						zap.String("userID", s.userID.String()),
+						zap.Error(err),
+					)
+					return
+				}
 			}
 
 			if err := w.Close(); err != nil {

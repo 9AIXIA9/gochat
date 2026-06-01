@@ -47,6 +47,13 @@ func (r *Router) CommandHandle(action command.Action, h command.Handler, middlew
 	r.handlers[action.String()] = wrapped
 }
 
+func (r *Router) ReceiptHandle(topic string, h command.ReceiptHandler, middlewares ...Middleware) {
+	// Apply route-level middlewares first, then global middlewares
+	wrapped := chainHandlers(WrapReceiptHandler(h), middlewares)
+	wrapped = chainHandlers(wrapped, r.middlewares)
+	r.handlers[topic] = wrapped
+}
+
 func (r *Router) Route(ctx context.Context, message *ckafka.Message) error {
 	topic := *message.TopicPartition.Topic
 	h, ok := r.handlers[topic]

@@ -10,21 +10,7 @@ import (
 const (
 	userIDKey    = "user_id"
 	requestIDKey = "request_id"
-	errorKey     = "error"
 )
-
-// WithError returns a new context carrying an error value.
-func WithError(ctx context.Context, err error) context.Context {
-	return context.WithValue(ctx, errorKey, err)
-}
-
-// ErrorFrom extracts an error value from context, if present.
-func ErrorFrom(ctx context.Context) error {
-	if err, ok := ctx.Value(errorKey).(error); ok {
-		return err
-	}
-	return nil
-}
 
 // WithUserID returns a new context carrying a user id.
 func WithUserID(ctx context.Context, userID kernel.UserID) context.Context {
@@ -62,4 +48,11 @@ func SpanIDAndTraceIDFrom(ctx context.Context) (string, string) {
 	}
 
 	return spanCtx.TraceID().String(), spanCtx.SpanID().String()
+}
+
+func WithHeaders(ctx context.Context, headers map[string]string) context.Context {
+	for k, v := range headers {
+		ctx = context.WithValue(ctx, k, v)
+	}
+	return ctx
 }

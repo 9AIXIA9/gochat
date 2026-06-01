@@ -163,7 +163,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 		return nil, err
 	}
 	manager := provideGatewayManager()
-	commandSyncPublisher, err := provideKafkaSyncPublisher(appConfig)
+	commandSyncPublisher, err := provideKafkaCommandSyncPublisher(appConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -178,6 +178,11 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 		return nil, err
 	}
 	kafkaLimiter := provideKafkaLimiter(client, appConfig)
+	commandReceiptAsyncPublisher, err := provideKafkaCommandReceiptAsyncPublisher(appConfig)
+	if err != nil {
+		return nil, err
+	}
+	commandReceiptIDGenerator := provideCommandReceiptIDGenerator()
 	gatewayService := provideGatewayService(manager)
 	diIsRetriableError := provideIsRetriableError()
 	repositoryUserRepository := provideProfileUserRepository(db)
@@ -241,7 +246,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	if err != nil {
 		return nil, err
 	}
-	v, err := provideKafkaConsumers(appConfig, kafkaLimiter, client, producer, eventRepository, gatewayService, diIsRetriableError, userCreatedUseCase, roomCreatedUseCase, roomshipCreatedUseCase, applicationUserCreatedUseCase, applicationRoomCreatedUseCase, applicationRoomshipCreatedUseCase, friendshipCreatedUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, userCreatedUseCase2, roomCreatedUseCase2, memberRequestAgreedUseCase, userCreatedUseCase3, friendRequestAgreedUseCase, notificationCreatedUseCase)
+	v, err := provideKafkaConsumers(appConfig, kafkaLimiter, client, producer, commandReceiptAsyncPublisher, commandReceiptIDGenerator, eventRepository, gatewayService, diIsRetriableError, userCreatedUseCase, roomCreatedUseCase, roomshipCreatedUseCase, applicationUserCreatedUseCase, applicationRoomCreatedUseCase, applicationRoomshipCreatedUseCase, friendshipCreatedUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, userCreatedUseCase2, roomCreatedUseCase2, memberRequestAgreedUseCase, userCreatedUseCase3, friendRequestAgreedUseCase, notificationCreatedUseCase)
 	if err != nil {
 		return nil, err
 	}
@@ -252,7 +257,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	}
 	engine := provideHttpRouter(appConfig, signUpUseCase, loginByNumberUseCase, loginByEmailUseCase, refreshAccessTokenUseCase, parseAccessTokenUseCase, getUserProfileUseCase, httpLimiter, getRoomProfileUseCase, updateUserProfileUseCase, updateRoomProfileUseCase, sendPrivateMessageUseCase, sendRoomMessageUseCase, listPrivateMessagesUseCase, listRoomMessagesUseCase, createRoomUseCase, listRoomMembersUseCase, sendMemberRequestUseCase, agreeMemberRequestUseCase, refuseMemberRequestUseCase, listMemberRequestsUseCase, listRoomshipsUseCase, leaveRoomUseCase, sendFriendRequestUseCase, agreeFriendRequestUseCase, refuseFriendRequestUseCase, listFriendshipsUseCase, listFriendRequestsUseCase, validator, ingressHandler, v2, otelShutdown)
 	server := provideHttpServer(appConfig, engine)
-	eventAsyncPublisher, err := provideKafkaAsyncPublisher(appConfig, eventRepository)
+	eventAsyncPublisher, err := provideKafkaEventAsyncPublisher(appConfig, eventRepository)
 	if err != nil {
 		return nil, err
 	}
@@ -270,7 +275,7 @@ func Initialize(appConfig *config.App) (*Dependencies, error) {
 	}
 	eventHandler := provideCanalBinlogReaderHandler(dispatcher)
 	binlogReader := provideCanalBinlogReader(canal, eventHandler)
-	dependencies, err := BuildDependencies(server, db, client, eventAsyncPublisher, commandSyncPublisher, dispatcher, v, binlogReader, otelShutdown)
+	dependencies, err := BuildDependencies(server, db, client, eventAsyncPublisher, commandReceiptAsyncPublisher, commandSyncPublisher, dispatcher, v, binlogReader, otelShutdown)
 	if err != nil {
 		return nil, err
 	}

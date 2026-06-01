@@ -21,5 +21,5 @@ func NewDeliverService(gateway contract.GatewayService) *DeliverService {
 }
 
 func (s *DeliverService) Deliver(ctx context.Context, recipient kernel.UserID, action command.Action, rawPayload json.RawMessage) error {
-	return s.gateway.PushToUser(ctx, recipient, core.NewActiveDownstreamEnvelop(action, rawPayload))
+	return s.gateway.PushToUser(ctx, recipient, core.NewEnvelop(action, rawPayload))
 }

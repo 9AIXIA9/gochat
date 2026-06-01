@@ -18,7 +18,5 @@ func NewUserCreatedEventHandler(uc application.UserCreatedUseCase) event.Handler
 				SignedUpAt: createdEvent.SignedAt(),
 			}
 		},
-		nil,
-		nil,
 	)
 }

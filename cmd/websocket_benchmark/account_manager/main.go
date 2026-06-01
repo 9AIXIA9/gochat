@@ -15,7 +15,7 @@ import (
 )
 
 const signUpURL = "/auth/sign-up"
-const loginURL = "/auth/login"
+const loginURL = "/auth/login/user_number"
 const profileMeURL = "/profiles/me"
 
 type Account struct {

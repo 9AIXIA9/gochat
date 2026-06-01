@@ -53,8 +53,9 @@ var InfraSet = wire.NewSet(
 	provideObservability,
 	provideMysqlConnection,
 	provideRedisConnection,
-	provideKafkaAsyncPublisher,
-	provideKafkaSyncPublisher,
+	provideKafkaEventAsyncPublisher,
+	provideKafkaCommandSyncPublisher,
+	provideKafkaCommandReceiptAsyncPublisher,
 	provideOutboxDispatcher,
 	provideCheckOrigin,
 	provideValidator,
@@ -63,6 +64,7 @@ var InfraSet = wire.NewSet(
 	// Generators & managers (concrete providers)
 	provideEventIDGenerator,
 	provideCommandIDGenerator,
+	provideCommandReceiptIDGenerator,
 	provideAuthorizationUserIDGenerator,
 	provideAuthorizationUserNumberGenerator,
 	provideHasher,
@@ -79,6 +81,7 @@ var InfraSet = wire.NewSet(
 	// Binds
 	wire.Bind(new(event.IDGenerator), new(*uuid.EventIDGenerator)),
 	wire.Bind(new(command.IDGenerator), new(*uuid.CommandIDGenerator)),
+	wire.Bind(new(command.ReceiptIDGenerator), new(*uuid.CommandReceiptIDGenerator)),
 	wire.Bind(new(kernel.MessageIDGenerator), new(*uuid.MessageIDGenerator)),
 	wire.Bind(new(kernel.OperationIDGenerator), new(*uuid.OperationIDGenerator)),
 	wire.Bind(new(event.AsyncPublisher), new(*kafkautil.EventAsyncPublisher)),
@@ -137,6 +140,9 @@ func provideEventIDGenerator() *uuid.EventIDGenerator {
 func provideCommandIDGenerator() *uuid.CommandIDGenerator {
 	return uuid.NewCommandIDGenerator()
 }
+func provideCommandReceiptIDGenerator() *uuid.CommandReceiptIDGenerator {
+	return uuid.NewCommandReceiptIDGenerator()
+}
 func provideOperationIDGenerator() *uuid.OperationIDGenerator {
 	return uuid.NewOperationIDGenerator()
 }
@@ -175,7 +181,7 @@ func provideAccessTokenManager(appConfig *config.App) *jwt.AccessTokenManager {
 func provideRefreshTokenGenerator(appConfig *config.App) *crypto.RefreshTokenGenerator {
 	return crypto.NewRefreshTokenGenerator(appConfig.RefreshToken)
 }
-func provideKafkaAsyncPublisher(appConfig *config.App, eventRepo event.Repository) (*kafkautil.EventAsyncPublisher, error) {
+func provideKafkaEventAsyncPublisher(appConfig *config.App, eventRepo event.Repository) (*kafkautil.EventAsyncPublisher, error) {
 	return kafkautil.NewEventAsyncPublisher(
 		appConfig.Kafka,
 		func(id event.ID) error {
@@ -188,8 +194,18 @@ func provideNotificationGatewayDelivery(gateway contract.GatewayService) *notifi
 	return notificationGateway.NewDeliverService(gateway)
 }
 
-func provideKafkaSyncPublisher(appConfig *config.App) (*kafkautil.CommandSyncPublisher, error) {
+func provideKafkaCommandSyncPublisher(appConfig *config.App) (*kafkautil.CommandSyncPublisher, error) {
 	return kafkautil.NewCommandSyncPublisher(appConfig.Kafka)
+}
+
+func provideKafkaCommandReceiptAsyncPublisher(appConfig *config.App) (*kafkautil.CommandReceiptAsyncPublisher, error) {
+	return kafkautil.NewCommandReceiptAsyncPublisher(appConfig.Kafka, func(id command.ReceiptID) error {
+		zap.L().Debug("command receipt delivered", zap.String(
+			"receipt_id",
+			id.String(),
+		))
+		return nil
+	})
 }
 
 func provideOutboxDispatcher(appConfig *config.App, uc rootapp.UnpublishedEventsCreatedUseCase) (*outboxUtil.Dispatcher, error) {

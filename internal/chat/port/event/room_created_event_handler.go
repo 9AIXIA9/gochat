@@ -16,7 +16,5 @@ func NewRoomCreatedEventHandler(uc application.RoomCreatedUseCase) event.Handler
 				RoomID: kernel.RoomID(createdEvent.AggregateID()),
 			}
 		},
-		nil,
-		nil,
 	)
 }
