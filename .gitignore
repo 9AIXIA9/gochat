@@ -110,3 +110,6 @@ config/config.override.yaml
 
 # Code intelligence index (local cache)
 .codegraph/
+
+# Reasonix local config (per-user, may contain session history)
+reasonix.toml
