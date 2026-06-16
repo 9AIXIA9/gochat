@@ -403,3 +403,9 @@ flowchart LR
 3. `internal/<业务域>/application`（核心用例）
 4. `internal/<业务域>/domain`（领域模型与规则）
 
+## AI Coding Agent Specifications
+
+This repository includes AI-readable conventions for coding agents (Reasonix, Claude Code, GitHub Copilot, etc.):
+
+- **[AGENTS.md](AGENTS.md)** — Entry point: commands, architecture overview, skill index
+- **[.reasonix/skills/](.reasonix/skills/)** — 11 detailed specs: bounded-contexts, architecture, shared-kernel, dependency-injection, command-event, repository, middleware, http-handler, websocket, testing, observability

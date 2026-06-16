@@ -9,7 +9,7 @@ import (
 	"gochat/internal/shared/kernel"
 	"testing"
 	"time"
-
+	
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
@@ -27,71 +27,71 @@ type AliasPayload struct {
 	SendAt   time.Time
 }
 
-func TestNotificationCreatedInput_Validate(t *testing.T) {
+func TestNotificationIntentCreatedInput_Validate(t *testing.T) {
 	fixedRawPayload, err := json.Marshal(&AliasPayload{
 		Content:  fixedContent,
 		SenderID: fixedSenderID,
 		SendAt:   time.Now().UTC(),
 	})
 	require.NoError(t, err)
-
-	input := &application.NotificationCreatedInput{
+	
+	input := &application.NotificationIntentCreatedInput{
 		ID:          fixedMessageID,
 		RecipientID: fixedRecipientID,
 		RawPayload:  fixedRawPayload,
 	}
-
+	
 	err = input.Validate()
 	require.NoError(t, err)
-
-	inputWithEmptyNotificationID := &application.NotificationCreatedInput{
+	
+	inputWithEmptyNotificationID := &application.NotificationIntentCreatedInput{
 		ID: "",
 	}
-
+	
 	err = inputWithEmptyNotificationID.Validate()
 	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
-
-	inputWithEmptyRecipientID := &application.NotificationCreatedInput{
+	
+	inputWithEmptyRecipientID := &application.NotificationIntentCreatedInput{
 		ID: fixedMessageID,
 	}
-
+	
 	err = inputWithEmptyRecipientID.Validate()
 	require.ErrorIs(t, err, myErrors.ErrEmptyInput)
 }
 
-func TestNewNotificationCreatedUseCase(t *testing.T) {
+func TestNewNotificationIntentCreatedUseCase(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
+	
 	mockService := mocks.NewMockDeliveryService(ctrl)
-
-	useCase, err := application.NewNotificationCreatedUseCase(
+	
+	useCase, err := application.NewNotificationIntentCreatedUseCase(
 		mockService,
 	)
-
+	
 	require.NoError(t, err)
 	require.NotNil(t, useCase)
-
-	useCaseWithNil, err := application.NewNotificationCreatedUseCase(
+	
+	useCaseWithNil, err := application.NewNotificationIntentCreatedUseCase(
 		nil,
 	)
-
+	
 	require.ErrorIs(t, err, myErrors.ErrEmptyPointer)
 	require.Nil(t, useCaseWithNil)
 }
 
-func TestNotificationCreatedUseCase_Execute(t *testing.T) {
+func TestNotificationIntentCreatedUseCase_Execute(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
+	
 	mockService := mocks.NewMockDeliveryService(ctrl)
-
-	useCase, err := application.NewNotificationCreatedUseCase(
+	
+	useCase, err := application.NewNotificationIntentCreatedUseCase(
 		mockService,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, useCase)
-
+	
 	// 用户在线
 	fixedRawPayload, err := json.Marshal(&AliasPayload{
 		Content:  fixedContent,
@@ -99,10 +99,10 @@ func TestNotificationCreatedUseCase_Execute(t *testing.T) {
 		SendAt:   time.Now().UTC(),
 	})
 	require.NoError(t, err)
-
+	
 	mockService.EXPECT().Deliver(nil, fixedRecipientID, domain.ActionPushNotification, fixedRawPayload).Return(nil)
-
-	_, err = useCase.Execute(nil, &application.NotificationCreatedInput{
+	
+	_, err = useCase.Execute(nil, &application.NotificationIntentCreatedInput{
 		ID:          fixedMessageID,
 		RecipientID: fixedRecipientID,
 		RawPayload:  fixedRawPayload,
