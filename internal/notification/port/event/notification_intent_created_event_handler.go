@@ -7,12 +7,12 @@ import (
 	"gochat/internal/shared/kernel"
 )
 
-func NewNotificationCreatedEventHandler(uc application.NotificationCreatedUseCase) event.Handler {
+func NewNotificationIntentCreatedEventHandler(uc application.NotificationIntentCreatedUseCase) event.Handler {
 	return event.AdaptUsecaseToEventHandler(
 		uc,
-		contract.ToNotificationCreatedEvent,
-		func(createdEvent *contract.NotificationCreatedEvent) *application.NotificationCreatedInput {
-			return &application.NotificationCreatedInput{
+		contract.ToNotificationIntentCreatedEvent,
+		func(createdEvent *contract.NotificationIntentCreatedEvent) *application.NotificationIntentCreatedInput {
+			return &application.NotificationIntentCreatedInput{
 				ID:          kernel.MessageID(createdEvent.AggregateID()),
 				RecipientID: createdEvent.RecipientID(),
 				RawPayload:  createdEvent.RawPayload(),

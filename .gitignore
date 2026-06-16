@@ -107,3 +107,6 @@ certs/
 # Local config overlays (not committed)
 config/config.local.yaml
 config/config.override.yaml
+
+# Code intelligence index (local cache)
+.codegraph/
